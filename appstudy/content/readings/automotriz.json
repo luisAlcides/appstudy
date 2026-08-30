@@ -1,0 +1,204 @@
+{
+"deck": "automotriz",
+"chapters": [
+{
+ "level": 1, "minutes": 10, "tags": "motor,mantenimiento,eléctrico,llantas",
+ "title": "Cómo funciona un motor y qué necesita",
+ "subtitle": "Los cuatro tiempos, los fluidos, el tablero y el mantenimiento que evita el 80% de las averías.",
+ "body": [
+  {"p": "Un motor de combustión convierte una explosión controlada en giro. Todo lo que le hacemos —aceite, filtros, bujías, refrigerante— existe para que esa explosión ocurra miles de veces por minuto sin destruir la máquina que la contiene."},
+
+  {"h": "Los cuatro tiempos"},
+  {"steps": [
+    "<b>Admisión</b>: el pistón baja y entra aire (o mezcla de aire y gasolina).",
+    "<b>Compresión</b>: el pistón sube y comprime. Comprimir calienta: es física, y es la clave del diésel.",
+    "<b>Explosión</b>: salta la chispa en gasolina, o se inyecta el diésel sobre aire ya muy caliente. El pistón es empujado hacia abajo. <b>Este es el único tiempo que genera potencia.</b>",
+    "<b>Escape</b>: el pistón sube y expulsa los gases quemados."
+  ]},
+  {"p": "El ciclo completo toma <b>dos vueltas del cigüeñal</b>. En un motor de cuatro cilindros, los tiempos están desfasados para que siempre haya uno empujando: por eso el giro es continuo y no a golpes."},
+  {"h": "Gasolina y diésel: la diferencia esencial"},
+  {"code": "GASOLINA   comprime mezcla aire+combustible (~10:1)\n           y la enciende con CHISPA (bujía)\n\nDIÉSEL     comprime SOLO AIRE, mucho más (~18:1)\n           el aire llega a 700-900 °C y enciende el\n           combustible al inyectarlo. Sin bujía de encendido."},
+  {"p": "De ahí salen las diferencias prácticas: el diésel tiene más torque y mejor rendimiento, la gasolina más revoluciones y funcionamiento más suave. Y el diésel necesita <b>bujías de precalentamiento</b> —que no dan chispa, solo calientan— para arrancar en frío."},
+
+  {"h": "El aceite: qué significan los números"},
+  {"code": "5W-30\n│  │\n│  └── viscosidad a temperatura de trabajo (100 °C)\n└───── viscosidad en frío (W = Winter)\n\nMenor número antes de la W = más fluido al arrancar en frío"},
+  {"p": "La mayor parte del desgaste de un motor ocurre en los primeros segundos tras el arranque, cuando el aceite aún no ha llegado a todas partes. Usar un aceite más grueso del especificado retrasa esa llegada; usar uno más delgado no sostiene la película en caliente. El manual no es una sugerencia."},
+  {"h": "Cómo se mide bien"},
+  {"steps": [
+    "Motor <b>apagado</b>, vehículo en plano.",
+    "Espera <b>5 a 10 minutos</b> después de apagarlo, para que el aceite escurra al cárter.",
+    "Saca la varilla, límpiala, métela hasta el fondo y vuelve a sacarla. La primera lectura nunca es fiable.",
+    "El nivel debe estar entre las marcas. Ni al mínimo ni por encima del máximo."
+  ]},
+  {"warn": "<b>Sobrellenar es tan malo como faltar.</b> Con exceso, el cigüeñal bate el aceite, lo llena de aire y la bomba empieza a mandar espuma en vez de aceite: pierdes presión justo cuando crees que estás sobrado."},
+
+  {"h": "Los otros fluidos"},
+  {"list": [
+    "<b>Refrigerante</b> — no es agua: lleva anticongelante y anticorrosivos. Se revisa en el depósito de expansión y se cambia cada 2-5 años porque sus aditivos se agotan.",
+    "<b>Líquido de frenos</b> — <b>higroscópico</b>: absorbe humedad del aire. Con agua disuelta hierve antes, y el vapor sí se comprime: en una bajada larga el pedal se va al fondo. Por eso se cambia <b>cada 2 años</b> aunque se vea limpio.",
+    "<b>ATF (caja automática)</b> — transmite fuerza y refrigera. Si huele a tostado y se ve marrón oscuro, está quemado.",
+    "<b>Dirección hidráulica</b> — nivel bajo produce ruido de bomba al girar a tope."
+  ]},
+  {"warn": "Nunca abras el radiador en caliente. El sistema está presurizado, lo que eleva el punto de ebullición por encima de 100 °C. Al abrir, la presión cae de golpe, el refrigerante hierve instantáneamente y sale disparado."},
+
+  {"h": "El tablero: los colores importan"},
+  {"list": [
+    "<b>Roja</b> — detente ahora. Presión de aceite, temperatura, freno, batería.",
+    "<b>Ámbar</b> — revisa pronto, puedes circular con cuidado. Check engine, ABS, control de tracción.",
+    "<b>Verde o azul</b> — solo informa."
+  ]},
+  {"key": "Dos casos que hay que saber: la luz de <b>presión de aceite</b> encendida significa <b>detente de inmediato</b>, no «llega al taller» — sin presión, el motor se destruye en minutos. Y el <b>Check Engine parpadeando</b> (no fijo) indica fallo de combustión en curso: el combustible sin quemar está pasando al catalizador y puede destruirlo en pocos kilómetros."},
+
+  {"h": "La distribución"},
+  {"p": "La correa o cadena de distribución sincroniza el cigüeñal con el árbol de levas, es decir, los pistones con las válvulas. Se cambia típicamente entre <b>60.000 y 150.000 km</b> según el fabricante."},
+  {"p": "En un motor <b>de interferencia</b> —la mayoría hoy— si la correa se rompe, las válvulas abiertas chocan contra los pistones que suben. El resultado es culata, válvulas y pistones destruidos: una reparación que multiplica por diez el costo del mantenimiento que no se hizo."},
+
+  {"h": "Batería y carga"},
+  {"code": "Motor apagado, en reposo:   12.6 V  = 100%\n                            12.2 V  ≈ 50%\n                            <12.0 V = descargada\n\nMotor encendido:            13.8 - 14.4 V  = alternador cargando bien\n                            >15 V = regulador dañado (hervirá la batería)"},
+  {"p": "Si al girar la llave solo escuchas <b>clic-clic rápido</b>, es batería sin fuerza o mala conexión: revisa bornes (corrosión y apriete) y la masa al chasis antes de cambiar nada. Un solo clic fuerte apunta más al solenoide del motor de arranque."},
+
+  {"h": "Llantas: el desgaste te habla"},
+  {"list": [
+    "<b>Ambos bordes gastados</b> — presión baja.",
+    "<b>Centro gastado</b> — presión alta.",
+    "<b>Un solo borde</b> — alineación (camber o toe).",
+    "<b>Parches o dientes de sierra</b> — amortiguadores vencidos o desbalanceo."
+  ]},
+  {"p": "La presión se mide <b>en frío</b> y según la etiqueta del marco de la puerta, no según el número grabado en el flanco de la llanta —ese es el máximo que soporta, no el recomendado. Profundidad mínima legal: <b>1,6 mm</b>."}
+ ]
+},
+{
+ "level": 2, "minutes": 11, "tags": "diagnóstico,electrónica,frenos,suspensión",
+ "title": "Diagnóstico: leer los síntomas",
+ "subtitle": "Los tres elementos del arranque, qué dicen los códigos OBD2, los fuel trims y cómo interpretar ruidos y vibraciones.",
+ "body": [
+  {"p": "Diagnosticar es reducir posibilidades con pruebas, no probar piezas hasta acertar. Cada síntoma tiene una lógica que acota el problema a un sistema antes de tocar una sola herramienta."},
+
+  {"h": "Gira pero no arranca: los tres elementos"},
+  {"p": "Si el motor <b>gira</b>, ya sabes algo importante: la batería y el motor de arranque funcionan. Un motor necesita exactamente tres cosas, y falta una de ellas:"},
+  {"steps": [
+    "<b>Chispa</b> (o calor, en diésel): bujías, bobinas, sensor de posición de cigüeñal, inmovilizador. Se comprueba con una bujía a masa o con un probador.",
+    "<b>Combustible</b>: bomba, filtro, presión en el riel, inyectores. Escucha el zumbido de la bomba al dar contacto; mide la presión.",
+    "<b>Compresión</b>: si la correa de distribución se rompió, el motor gira sospechosamente suave y rápido. Se confirma con prueba de compresión."
+  ]},
+  {"key": "Ese orden ahorra horas. Determinar cuál de los tres falta toma quince minutos y descarta el 90% de las causas posibles."},
+
+  {"h": "Códigos OBD2: qué son y qué no son"},
+  {"code": "P 0 3 0 1\n│ │ │ └┴── falla específica (01 = cilindro 1)\n│ │ └───── subsistema (3 = encendido)\n│ └─────── 0 genérico, 1 específico del fabricante\n└───────── P powertrain, B carrocería, C chasis, U red"},
+  {"warn": "Un código <b>no es un diagnóstico</b>: es el síntoma que detectó la computadora. P0171 «mezcla pobre» no significa cambiar el sensor de oxígeno; significa que la ECU está agregando combustible porque algo hace entrar aire de más o combustible de menos."},
+  {"p": "Códigos frecuentes y su lectura correcta: <b>P0300</b> fallo de encendido aleatorio (bujías, bobinas, fuga de vacío, presión de combustible, compresión); <b>P0301-P0304</b> el mismo fallo pero localizado en un cilindro, lo que permite intercambiar bobina y bujía con otro cilindro para ver si el código se mueve; <b>P0420</b> eficiencia del catalizador baja."},
+
+  {"h": "Los fuel trims: el dato que casi nadie mira"},
+  {"p": "Son la corrección de combustible que aplica la ECU respecto a lo que calculó. Están en el escáner, en datos en vivo, y son la mejor pista de todo el sistema:"},
+  {"list": [
+    "<b>STFT</b> (corto plazo) — corrección instantánea, oscila constantemente.",
+    "<b>LTFT</b> (largo plazo) — el aprendizaje acumulado. Este es el que importa.",
+    "<b>LTFT positivo</b> (+10% o más) — está <b>agregando</b> combustible: mezcla pobre. Fuga de vacío, MAF sucio, presión de combustible baja, inyectores obstruidos.",
+    "<b>LTFT negativo</b> — está <b>quitando</b>: mezcla rica. Inyector goteando, presión alta, filtro de aire tapado, sensor de temperatura engañando a la ECU."
+  ]},
+  {"note": "Truco de diagnóstico: si el LTFT es muy positivo en ralentí pero se normaliza a alta velocidad, sospecha <b>fuga de vacío</b> —a ralentí el vacío es alto y la fuga pesa más. Si es positivo solo a alta carga, sospecha <b>suministro de combustible</b>."},
+
+  {"h": "Fugas de vacío"},
+  {"p": "Aire que entra al motor sin pasar por el medidor de flujo. La ECU no lo cuenta, así que la mezcla queda pobre: ralentí inestable, tirones, P0171."},
+  {"steps": [
+    "Escucha el silbido característico con el motor en ralentí.",
+    "Rocía limpiador de carburador o propano cerca de las uniones y mangueras: si las rpm <b>cambian</b>, encontraste la fuga.",
+    "La forma profesional: máquina de humo, que presuriza la admisión y muestra por dónde sale.",
+    "Puntos habituales: manguera del servofreno, PCV, empaque del múltiple, mangueritas resecas, sellos del cuerpo de aceleración."
+  ]},
+
+  {"h": "Los sensores que más fallan"},
+  {"list": [
+    "<b>MAF</b> (caudal de aire) — se ensucia y reporta menos aire del real: mezcla pobre, pérdida de potencia. Se limpia <b>solo con limpiador específico de MAF</b>, sin tocar el hilo caliente.",
+    "<b>Sonda lambda / O2</b> — mide oxígeno en el escape para ajustar la mezcla en tiempo real. Una vaga dispara el consumo y daña el catalizador.",
+    "<b>Sensor de posición de cigüeñal (CKP)</b> — si falla, el motor simplemente no arranca o se apaga en caliente.",
+    "<b>Sensor de temperatura de refrigerante</b> — engaña a la ECU: si reporta frío permanente, enriquece la mezcla y sube el consumo."
+  ]},
+
+  {"h": "Ruidos: cada uno tiene su firma"},
+  {"list": [
+    "<b>Chirrido agudo al frenar</b> — testigo metálico de las pastillas: quedan pocos milímetros.",
+    "<b>Chirrido al arrancar en frío que desaparece</b> — correa de accesorios floja o vidriada.",
+    "<b>Golpeteo metálico que sube con las rpm</b> — detonación (mala gasolina, avance excesivo, carbón) o, más grave, cojinetes de biela.",
+    "<b>Tictac rítmico arriba del motor</b> — juego de válvulas o taqués hidráulicos con aceite sucio.",
+    "<b>Zumbido que cambia al girar</b> — rodamiento de rueda del lado que se descarga.",
+    "<b>Clac-clac repetitivo al girar a tope</b> — juntas homocinéticas.",
+    "<b>Traqueteo seco al pasar baches</b> — bujes de barra estabilizadora, terminales o rótulas."
+  ]},
+
+  {"h": "Vibraciones: el momento define la causa"},
+  {"code": "Vibra SOLO al frenar          → discos alabeados o espesor desigual\nVibra a cierta VELOCIDAD      → balanceo de llantas\nVibra al ACELERAR             → soportes de motor, homocinéticas\nVibra en RALENTÍ y se va      → soportes de motor, fallo de encendido"},
+  {"p": "Y si el vehículo <b>tira hacia un lado al frenar</b>, no es alineación: es desequilibrio entre lados —caliper trabado, pistón sucio o manguera flexible colapsada que actúa como válvula de retención. Tirar <b>siempre</b>, en cambio, sí apunta a alineación o presiones desiguales."},
+
+  {"h": "Frenos: pedal esponjoso o que se hunde"},
+  {"list": [
+    "<b>Esponjoso</b> — aire en el circuito. Purgar del cilindro maestro hacia la rueda más lejana, sin dejar que el depósito se vacíe.",
+    "<b>Se hunde lentamente con presión constante</b> — el cilindro maestro tiene fuga interna, aunque no se vea líquido por fuera.",
+    "<b>Baja pero se siente firme al bombear</b> — aire o líquido con humedad.",
+    "<b>Duro y sin asistencia</b> — servofreno o su manguera de vacío."
+  ]},
+  {"key": "En vehículos con ABS, purgar puede requerir activar el módulo con escáner para mover las válvulas internas. Purgar «a la antigua» deja aire atrapado en el bloque hidráulico."}
+ ]
+},
+{
+ "level": 3, "minutes": 9, "tags": "diagnóstico,electrónica,motor,seguridad",
+ "title": "Electrónica, common rail e híbridos",
+ "subtitle": "Caída de tensión, CAN bus, osciloscopio y la seguridad no negociable de la alta tensión.",
+ "body": [
+  {"p": "El diagnóstico moderno se juega en tres frentes que no existían hace treinta años: redes de comunicación, inyección a altísima presión y sistemas de alta tensión. Las herramientas cambian, pero la lógica —medir en vez de suponer— es la misma."},
+
+  {"h": "La prueba que revela lo que la continuidad esconde"},
+  {"p": "Un cable puede dar continuidad perfecta con el multímetro y aun así ser incapaz de alimentar un consumidor. La corrosión y los contactos flojos solo se manifiestan <b>bajo carga</b>."},
+  {"code": "PRUEBA DE CAÍDA DE TENSIÓN (circuito TRABAJANDO)\n\nMide entre los dos extremos del mismo cable:\n  cable de alimentación  →  máximo 0.5 V\n  masa / tierra          →  máximo 0.2 V\n\nMás que eso = resistencia excesiva en ese tramo"},
+  {"key": "Esta prueba encuentra en minutos lo que una revisión visual no ve nunca: masas corroídas bajo el chasis, conectores con pines flojos, empalmes viejos. Es la prueba eléctrica más subutilizada del taller."},
+
+  {"h": "CAN bus"},
+  {"p": "Los módulos del vehículo se comunican por dos cables trenzados —CAN-H y CAN-L— con resistencias terminadoras de 120 Ω en cada extremo de la red."},
+  {"code": "Con todo apagado, mide resistencia entre CAN-H y CAN-L:\n\n  ~60 Ω    → correcto (dos de 120 Ω en paralelo)\n  ~120 Ω   → falta una terminación o hay un tramo cortado\n  infinito → bus abierto\n  ~0 Ω     → cortocircuito entre líneas"},
+  {"p": "Síntoma típico de bus caído: <b>muchos códigos de comunicación a la vez</b> y varios testigos encendidos simultáneamente. Cuando el escáner arroja ocho códigos en módulos distintos, casi nunca son ocho fallas: es una causa común —masa corroída, batería débil, alimentación compartida o el propio bus."},
+  {"warn": "Antes de cualquier diagnóstico electrónico, verifica el estado de la batería y del sistema de carga. Una batería débil genera códigos fantasma en media docena de módulos y hace perder días de trabajo."},
+
+  {"h": "El osciloscopio"},
+  {"p": "El multímetro te da un promedio; el osciloscopio te muestra la <b>forma de la señal en el tiempo</b>. Esa diferencia es decisiva en componentes que trabajan en milisegundos."},
+  {"list": [
+    "<b>Inyector</b>: se ve el pico de apertura, la meseta de sostenimiento y un pequeño «hombro» que confirma que la aguja realmente se movió. Un inyector puede recibir la señal correcta y no abrir.",
+    "<b>Bobina</b>: la <i>línea de quemado</i> —su altura y duración— revela bujía gastada, mezcla pobre o compresión baja en ese cilindro concreto.",
+    "<b>Sensores de cigüeñal y árbol de levas</b>: permite ver la sincronización real entre ambos, y detectar una cadena de distribución saltada un diente.",
+    "<b>Prueba de compresión relativa</b>: midiendo la corriente del motor de arranque se compara la compresión de todos los cilindros sin desarmar nada."
+  ]},
+
+  {"h": "Prueba de fugas: mejor que la de compresión"},
+  {"p": "La prueba de compresión dice <b>que</b> hay pérdida. La de fugas (leak-down) dice <b>por dónde</b>. Se presuriza el cilindro con las válvulas cerradas y se escucha:"},
+  {"code": "Aire por el ESCAPE          → válvula de escape\nAire por la ADMISIÓN        → válvula de admisión\nAire por el LLENADO ACEITE  → anillos / cilindro rayado\nBURBUJAS en el radiador     → empaque de culata o culata fisurada"},
+  {"p": "Y para confirmar un empaque de culata sin desarmar: prueba de <b>gases de combustión en el refrigerante</b>, con el reactivo químico que cambia de color. Combinada con aceite «achocolatado» y humo blanco dulce persistente, el diagnóstico queda cerrado."},
+
+  {"h": "Common rail: por qué es tan sensible"},
+  {"p": "Trabaja entre <b>1.500 y 2.500 bar</b> con tolerancias de micras en los inyectores. Y el propio diésel es el <b>lubricante</b> de la bomba de alta presión."},
+  {"list": [
+    "Agua en el combustible destruye la bomba por falta de lubricación. El <b>separador de agua se drena religiosamente</b>.",
+    "Las partículas metálicas que genera una bomba dañada viajan por el riel y arruinan todos los inyectores: una falla se convierte en una reparación completa.",
+    "Nunca se arranca con el filtro sin cebar; nunca se afloja nada aguas abajo de la bomba de alta.",
+    "Los inyectores tienen <b>códigos de calibración</b> que deben programarse en la ECU al reemplazarlos. Sin eso, el motor funciona mal aunque las piezas sean nuevas."
+  ]},
+
+  {"h": "Postratamiento: DPF, EGR y SCR"},
+  {"p": "<b>EGR</b> recircula gases de escape para bajar la temperatura de combustión y con ella los NOx. <b>DPF</b> atrapa el hollín y lo quema periódicamente en una <i>regeneración</i> a alta temperatura. <b>SCR</b> inyecta urea (AdBlue/DEF) que convierte los NOx en nitrógeno y agua."},
+  {"warn": "Muchos trayectos cortos y mucho ralentí impiden que el DPF alcance la temperatura de regeneración: se satura y termina en modo de potencia reducida. No es una falla del filtro, es un patrón de uso incompatible con el diseño."},
+
+  {"h": "Distribución variable (VVT)"},
+  {"p": "Varía el momento de apertura de las válvulas según el régimen: más torque abajo, más potencia arriba. El actuador se mueve con <b>presión de aceite</b> gobernada por una solenoide."},
+  {"p": "Por eso los códigos P0011/P0014 con ralentí áspero y tictac al arrancar suelen resolverse con un cambio de aceite del grado correcto y la limpieza de la solenoide y su filtro-malla, no cambiando el actuador. El VVT es el componente que más castiga el mantenimiento negligente del aceite."},
+
+  {"h": "Alta tensión: la regla que no se negocia"},
+  {"p": "Los sistemas híbridos y eléctricos trabajan entre <b>200 y 800 V de corriente continua</b>. La corriente continua es especialmente peligrosa porque, a diferencia de la alterna, <b>no cruza por cero</b>: no suelta."},
+  {"steps": [
+    "Los cables de alta tensión son <b>naranjas</b>. Nunca se cortan, se pinchan ni se manipulan sin desenergizar.",
+    "Desconectar el <b>service plug</b> o interruptor de servicio, y guardarlo contigo para que nadie lo reconecte.",
+    "<b>Esperar el tiempo que indique el fabricante</b> —típicamente 5 a 10 minutos— a que se descarguen los condensadores del inversor.",
+    "Verificar ausencia de tensión con guantes dieléctricos vigentes y multímetro categoría III o superior.",
+    "Trabajar con la herramienta aislada correspondiente y nunca en solitario."
+  ]},
+  {"key": "Ninguna reparación, por urgente que sea, justifica saltarse estos pasos. Es el único procedimiento de este curso donde el error no se paga con dinero."}
+ ]
+}
+]}

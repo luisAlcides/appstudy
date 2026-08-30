@@ -1,0 +1,736 @@
+{
+ "key": "ingles",
+ "name": "Inglés",
+ "icon": "🗣️",
+ "color": "#3584e4",
+ "pos": 1,
+ "levels": [
+  "A2",
+  "B1",
+  "B2",
+  "C1"
+ ],
+ "cards": [
+  {
+   "level": 1,
+   "kind": "lesson",
+   "front": "Present Simple vs. Present Continuous",
+   "back": "<b>Present Simple</b> — routines and facts:\n<i>I work at a workshop. He fixes engines every day.</i>\n\n<b>Present Continuous</b> — happening now or around now:\n<i>I am working on a truck right now.</i>\n\n⚠️ Don’t forget the <b>-s</b> in he/she/it: <i>he work<b>s</b></i>.",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "How do you make questions in the Present Simple?",
+   "back": "Use <b>do / does</b> + base verb:\n<i>Do you work on weekends?</i>\n<i><b>Does</b> he <b>speak</b> English?</i> (not <s>does he speaks</s>)\n\nShort answers: <i>Yes, I do. / No, he doesn’t.</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "front": "Choose the correct sentence (Present Simple negative).",
+   "choices": [
+    "She doesn’t work on Sundays",
+    "She don’t works on Sundays",
+    "She doesn’t works on Sundays",
+    "She not work on Sundays"
+   ],
+   "answer": 0,
+   "back": "After <b>does/doesn’t</b>, the main verb goes back to its <b>base form</b>: <i>doesn’t work</i>.",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Past Simple: regular and irregular verbs",
+   "back": "<b>Regular</b>: add <b>-ed</b> → work<b>ed</b>, check<b>ed</b>, repair<b>ed</b>.\n<b>Irregular</b>: you must learn them → go/<b>went</b>, buy/<b>bought</b>, take/<b>took</b>, drive/<b>drove</b>, break/<b>broke</b>.\n\nNegative and questions use <b>did</b> + base form:\n<i>I didn’t go. Did you see it?</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "PHRASAL VERBS — daily routine: <i>get up, turn on, turn off, put on, take off</i>",
+   "back": "<b>get up</b> = leave your bed → <i>I get up at 5 a.m.</i>\n<b>turn on / turn off</b> = start / stop a machine → <i>Turn off the engine.</i>\n<b>put on / take off</b> = clothes → <i>Put on your gloves.</i>",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "PHRASAL VERBS — <i>look for</i>, <i>look at</i>, <i>look after</i>",
+   "back": "<b>look for</b> = search → <i>I’m looking for a 14 mm wrench.</i>\n<b>look at</b> = direct your eyes → <i>Look at this crack.</i>\n<b>look after</b> = take care of → <i>He looks after the machines.</i>\n\nSame verb, different particle, completely different meaning.",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "front": "“I’m ___ my keys. I can’t find them.”",
+   "choices": [
+    "looking for",
+    "looking at",
+    "looking after",
+    "looking up"
+   ],
+   "answer": 0,
+   "back": "<b>look for</b> = to search for something.",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "VOCABULARY — basic hand tools",
+   "back": "<b>wrench</b> (US) / <b>spanner</b> (UK) = llave\n<b>screwdriver</b> = destornillador\n<b>hammer</b> = martillo\n<b>pliers</b> = alicates (always plural)\n<b>socket</b> = dado / copa\n<b>tape measure</b> = cinta métrica",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "VOCABULARY — parts and fasteners",
+   "back": "<b>bolt</b> = perno\n<b>nut</b> = tuerca\n<b>washer</b> = arandela\n<b>screw</b> = tornillo\n<b>bearing</b> = rodamiento\n<b>gasket</b> = empaque / junta\n<b>hose</b> = manguera",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Countable and uncountable: <i>How much</i> vs. <i>How many</i>",
+   "back": "<b>How many</b> + countable plural → <i>How many bolts do we need?</i>\n<b>How much</b> + uncountable → <i>How much oil is left?</i>\n\nUncountable words to remember: <b>oil, fuel, water, work, information, advice, money, equipment</b>.",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "<i>There is</i> vs. <i>There are</i>",
+   "back": "<b>There is</b> + singular/uncountable → <i>There is a leak. There is some oil on the floor.</i>\n<b>There are</b> + plural → <i>There are two trucks outside.</i>\n\nNegative: <i>There isn’t any / There aren’t any.</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "front": "Choose the correct question.",
+   "choices": [
+    "How much fuel do we have?",
+    "How many fuel do we have?",
+    "How much fuels do we have?",
+    "How many fuel does we have?"
+   ],
+   "answer": 0,
+   "back": "<b>Fuel</b> is uncountable, so it takes <b>how much</b> and no plural -s.",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Prepositions of time: <i>at, on, in</i>",
+   "back": "<b>at</b> + clock time → <i>at 7 o’clock, at night</i>\n<b>on</b> + days and dates → <i>on Monday, on 3rd May</i>\n<b>in</b> + months, years, long periods → <i>in June, in 2026, in the morning</i>\n\nFrom small to big: <b>at → on → in</b>.",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Comparatives and superlatives",
+   "back": "<b>Short adjectives</b>: fast → fast<b>er</b> → the fast<b>est</b>\n<b>Long adjectives</b>: expensive → <b>more</b> expensive → the <b>most</b> expensive\n<b>Irregular</b>: good/better/best, bad/worse/worst, far/further/furthest\n\n<i>This engine is more powerful <b>than</b> that one.</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Talking about the future: <i>going to</i> vs. <i>will</i>",
+   "back": "<b>going to</b> = plan or clear evidence:\n<i>I’m going to change the oil tomorrow.</i> (already decided)\n<i>Look at that smoke — it’s going to break down.</i>\n\n<b>will</b> = decision at the moment of speaking, offers, predictions:\n<i>I’ll help you with that.</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Translate: “The machine doesn’t start because the battery is dead.”",
+   "back": "<i>The machine doesn’t start <b>because</b> the battery is <b>dead</b>.</i>\n\n<b>dead battery</b> = batería descargada (not <s>died</s>)\n<b>flat tyre</b> = llanta desinflada\n<b>the engine won’t start</b> = no quiere arrancar",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "VOCABULARY — verbs you use every day at work",
+   "back": "<b>to check</b> = revisar\n<b>to fix / to repair</b> = arreglar\n<b>to replace</b> = reemplazar\n<b>to tighten</b> ≠ <b>to loosen</b> = apretar ≠ aflojar\n<b>to fill up</b> = llenar\n<b>to measure</b> = medir\n<b>to lift</b> = levantar",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "VOCABULARY — numbers, measurements and quantities",
+   "back": "<b>a quarter</b> = un cuarto · <b>a half</b> = un medio · <b>three quarters</b> = tres cuartos\n<b>litre / gallon</b>, <b>pound (lb) / kilo</b>, <b>inch</b> = pulgada, <b>gauge</b> = manómetro / calibre\n<i>How many <b>litres</b> does it take?</i>\n<i>Tighten it to 90 <b>pounds of torque</b>.</i>",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "front": "Your colleague says: “Can you give me a hand?” What do they want?",
+   "choices": [
+    "Help",
+    "Your glove",
+    "A handshake",
+    "A tool called a hand"
+   ],
+   "answer": 0,
+   "back": "<b>to give someone a hand</b> = to help.\nOther everyday idioms: <b>hang on</b> = wait, <b>no worries</b> = it’s fine, <b>let me have a look</b> = déjame ver.",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "front": "How do you say «Tengo 34 años»?",
+   "choices": [
+    "I am 34 years old",
+    "I have 34 years",
+    "I have 34 years old",
+    "I am 34 years"
+   ],
+   "answer": 0,
+   "back": "English uses <b>to be</b> for age: <i>I <b>am</b> 34.</i>\nSame with: <i>I am hungry, I am cold, I am right, I am afraid, I am in a hurry.</i>\nAnd the question is <b>How old are you?</b>",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "When do you use <i>it</i> and when <i>there</i> as an empty subject?",
+   "back": "<b>There is / there are</b> = something <b>exists</b>:\n<i>There is a problem. There are two trucks.</i>\n\n<b>It is</b> = describes a situation:\n<i>It is raining. It is cold. It is seven o'clock. It is important to check.</i>\n\nEnglish always needs a subject, even when there is nothing to name.",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "VOCABULARY — describing a problem at work",
+   "back": "<b>broken</b> = roto · <b>stuck</b> = atascado\n<b>loose</b> ↔ <b>tight</b> = flojo ↔ apretado\n<b>worn out</b> = gastado · <b>missing</b> = falta\n<b>leaking</b> = con fuga · <b>dripping</b> = goteando\n\n<i>There is a problem <b>with</b> the pump. It stopped working yesterday.</i>",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "front": "Your colleague asks: «Do you work here?» What is the natural answer?",
+   "choices": [
+    "Yes, I do",
+    "Yes, I work",
+    "Yes",
+    "Yes, I am"
+   ],
+   "answer": 0,
+   "back": "English answers with the <b>same auxiliary</b> as the question:\n<i>Are you ready? — Yes, I <b>am</b>.</i>\n<i>Can you fix it? — No, I <b>can't</b>.</i>\n<i>Did you check it? — Yes, I <b>did</b>.</i>\nA bare «yes» sounds abrupt.",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Possessive adjectives: my, your, his, her, its, our, their",
+   "back": "They match the <b>owner</b>, not the object:\n<i>Ana and <b>her</b> truck · Luis and <b>his</b> tools</i>\nSpanish uses «su» for both, so this needs practice.\n\n⚠️ <b>its</b> = possessive (no apostrophe) · <b>it's</b> = it is",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "front": "Which one is correct? (going home)",
+   "choices": [
+    "I go home after work",
+    "I go to home after work",
+    "I go at home after work",
+    "I go in home after work"
+   ],
+   "answer": 0,
+   "back": "<b>home</b> is the exception: no preposition. <i>go home, come home, get home.</i>\nEverywhere else you need <i>to</i>: <i>go <b>to</b> the workshop</i>.\nAnd <b>arrive</b> takes <i>at</i> or <i>in</i>, never <i>to</i>.",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "in / on / at for place",
+   "back": "<b>in</b> = inside something → <i>in the truck, in the box, in Managua</i>\n<b>on</b> = on a surface → <i>on the table, on the wall, on the floor</i>\n<b>at</b> = at a point or place → <i>at the workshop, at home, at work</i>\n\nVehicles: <b>get on/off</b> a bus or truck, <b>get in/out of</b> a car.",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "How do you ask someone to repeat something, politely?",
+   "back": "<i><b>Sorry, I didn't catch that.</b></i>\n<i><b>Could you repeat that, please?</b></i>\n<i><b>Could you speak more slowly, please?</b></i>\n\n«I didn't catch that» sounds more natural than «I don't understand»: it puts the problem on the noise, not on you.",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "front": "Your supplier says «fifty». You ordered 15. What do you do?",
+   "choices": [
+    "Confirm it: «One five, fifteen?»",
+    "Assume they said fifteen",
+    "Say nothing",
+    "Order 50 to be safe"
+   ],
+   "answer": 0,
+   "back": "<b>13 THIRteen</b> vs <b>30 THIRty</b>: the stress moves, and that is the only difference. Confusing them is the most expensive beginner mistake at work — native speakers confirm numbers too.",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Contractions: why <i>I'm</i> and not <i>I am</i>?",
+   "back": "Native speakers contract almost always in speech:\n<i>I'm · you're · he's · we'll · I'd · don't · can't · isn't · won't</i>\n\nNot contracting doesn't sound formal — it sounds like a textbook. Write them out only in formal letters.\n\n⚠️ Listen for <b>won't</b> (will not) vs <b>want</b>: different words.",
+   "tags": "pronunciation"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Verbs followed by <i>-ing</i>: like, love, hate, enjoy, don't mind",
+   "back": "<i>I like <b>working</b> outdoors. I don't mind <b>working</b> weekends. I hate <b>waiting</b>.</i>\n\nBut <b>would like</b> takes <b>to</b>:\n<i>I'd like <b>to learn</b> English.</i>\n\n<b>I like coffee</b> = in general. <b>I'd like a coffee</b> = I want one now.",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "On the phone: how do you say who you are?",
+   "back": "<i><b>Hello, this is Luis.</b></i> — never <s>I am Luis</s>. It's a fixed expression.\n\n<i>Can I speak to Mr. Ramírez, please?</i>\n<i>Who's calling? — It's Luis, from the workshop.</i>\n<i>Hold on a moment. / Can I leave a message?</i>",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "front": "Which sentence is written correctly?",
+   "choices": [
+    "I work on Monday and I start in August",
+    "I work on monday and I start in august",
+    "I work in Monday and I start on August",
+    "I work at Monday and I start at August"
+   ],
+   "answer": 0,
+   "back": "Two rules at once:\n<b>on</b> + days, <b>in</b> + months.\nAnd days and months are <b>always capitalised</b> in English, unlike Spanish.",
+   "tags": "grammar"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Spelling: why <i>stopping</i> but <i>hoping</i>?",
+   "back": "The double consonant keeps the vowel <b>short</b>:\n<b>hop → hopping</b> (short o) · <b>hope → hoping</b> (long o, drop the -e)\n<b>stop → stopped</b> · <b>use → used</b>\n\nWith -y: <b>try → tried</b> (after consonant), <b>play → played</b> (after vowel).",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Three words that make you sound polite",
+   "back": "<b>please</b> — with any request\n<b>sorry</b> — to apologise, or when you didn't hear\n<b>excuse me</b> — to get attention or to pass by\n\n<i>Give me the wrench</i> → <i><b>Could you</b> pass me the wrench, <b>please</b>?</i>\n<i>I want a coffee</i> → <i><b>I'd like</b> a coffee, please.</i>",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 2,
+   "kind": "lesson",
+   "front": "Present Perfect vs. Past Simple — the key rule",
+   "back": "<b>Past Simple</b> = finished action, definite time:\n<i>I repaired the pump <b>yesterday</b>.</i>\n\n<b>Present Perfect</b> = no definite time, or still relevant now:\n<i>I <b>have repaired</b> three pumps this week.</i>\n\n🔑 If you say <b>when</b> (yesterday, in 2019, last week), you must use Past Simple.",
+   "tags": "grammar"
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "front": "Choose the correct sentence (Present Perfect + time).",
+   "choices": [
+    "I have worked here for ten years",
+    "I work here since ten years",
+    "I am working here since ten years",
+    "I have worked here since ten years"
+   ],
+   "answer": 0,
+   "back": "<b>for</b> + a period of time (ten years, two hours).\n<b>since</b> + a starting point (2016, Monday, I was 20).",
+   "tags": "grammar"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "<i>for</i> vs. <i>since</i> vs. <i>ago</i>",
+   "back": "<b>for</b> + duration → <i>for three hours, for a long time</i>\n<b>since</b> + starting point → <i>since Monday, since 2020</i>\n<b>ago</b> + Past Simple → <i>I bought it two years <b>ago</b>.</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "<i>used to</i> — habits in the past",
+   "back": "<b>used to + base verb</b> = something true before but not now:\n<i>I <b>used to</b> drive trucks.</i>\n\n⚠️ In negatives and questions it loses the -d:\n<i>I <b>didn’t use to</b> like it. Did you <b>use to</b> work at night?</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "First and Second Conditional",
+   "back": "<b>1st — real future</b>: If + present, ... will\n<i>If it rains, we <b>will stop</b> working.</i>\n\n<b>2nd — imaginary present</b>: If + past, ... would\n<i>If I <b>had</b> more time, I <b>would study</b> every day.</i>\n\n⚠️ Never <s>if I will</s>. The <i>if</i> half never takes <b>will</b>.",
+   "tags": "grammar"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "<i>must</i> vs. <i>have to</i> vs. <i>should</i>",
+   "back": "<b>must</b> = obligation from the speaker → <i>I must finish this today.</i>\n<b>have to</b> = obligation from outside (rules) → <i>You have to wear a helmet.</i>\n<b>should</b> = advice → <i>You should check the oil first.</i>\n\n⚠️ <b>mustn’t</b> = prohibited. <b>don’t have to</b> = not necessary. Very different!",
+   "tags": "grammar"
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "front": "“You ___ smoke near the fuel tank.” (it is forbidden)",
+   "choices": [
+    "mustn’t",
+    "don’t have to",
+    "shouldn’t have to",
+    "needn’t"
+   ],
+   "answer": 0,
+   "back": "<b>mustn’t</b> = prohibition. <b>Don’t have to</b> would mean it isn’t necessary — a dangerous mistake here.",
+   "tags": "grammar"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "PHRASAL VERBS — problems: <i>break down, run out of, give up</i>",
+   "back": "<b>break down</b> = stop working → <i>The truck broke down on the road.</i>\n<b>run out of</b> = have no more left → <i>We ran out of hydraulic oil.</i>\n<b>give up</b> = stop trying / quit → <i>Don’t give up. He gave up smoking.</i>",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "PHRASAL VERBS — <i>find out, work out, figure out</i>",
+   "back": "<b>find out</b> = discover information → <i>I found out the pump was faulty.</i>\n<b>work out</b> = calculate; also exercise → <i>Let’s work out the cost.</i>\n<b>figure out</b> = understand after thinking → <i>I can’t figure out what’s wrong.</i>",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "PHRASAL VERBS — people: <i>get on with, look after, take after</i>",
+   "back": "<b>get on with</b> = have a good relationship → <i>I get on well with my boss.</i>\n<b>look after</b> = take care of → <i>She looks after the paperwork.</i>\n<b>take after</b> = resemble a relative → <i>He takes after his father.</i>",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "The Passive Voice — present and past simple",
+   "back": "<b>be + past participle</b>. Use it when who does the action is unknown or unimportant:\n<i>The engine <b>is repaired</b> every 500 hours.</i>\n<i>The report <b>was written</b> yesterday.</i>\n\nAdd the agent with <b>by</b> only if it matters: <i>...was written <b>by</b> the supervisor.</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "Relative clauses: <i>who, which, that, where</i>",
+   "back": "<b>who</b> = people → <i>The man <b>who</b> called you is here.</i>\n<b>which</b> = things → <i>The part <b>which</b> broke is expensive.</i>\n<b>that</b> = people or things (informal) \n<b>where</b> = places → <i>The workshop <b>where</b> I work.</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "VOCABULARY — describing a fault",
+   "back": "<b>a leak</b> = una fuga → <i>There’s an oil leak.</i>\n<b>to drip</b> = gotear\n<b>loose</b> ≠ <b>tight</b> = flojo ≠ apretado\n<b>worn out</b> = gastado\n<b>faulty</b> = defectuoso\n<b>to overheat</b> = recalentarse\n<b>noisy / rattling</b> = ruidoso / traqueteando",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "How do you pronounce the <i>-ed</i> ending?",
+   "back": "Three sounds, decided by the sound before it:\n<b>/t/</b> after voiceless sounds → work<b>ed</b>, stopp<b>ed</b>, check<b>ed</b>\n<b>/d/</b> after voiced sounds → play<b>ed</b>, clean<b>ed</b>, repair<b>ed</b>\n<b>/ɪd/</b> only after <b>t</b> or <b>d</b> → want<b>ed</b>, need<b>ed</b>, start<b>ed</b>",
+   "tags": "pronunciation"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "CHALLENGE: describe a problem you fixed last week (3 sentences).",
+   "back": "Model answer:\n<i>Last week the excavator wouldn’t start. I checked the battery and the fuel filter, and I found out the filter was blocked. After I replaced it, the engine started straight away.</i>\n\nNotice: Past Simple throughout, linkers <b>after / and</b>, and the phrasal verb <b>found out</b>.",
+   "tags": "production"
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "front": "Which sentence is correct?",
+   "choices": [
+    "The parts were delivered yesterday",
+    "The parts was delivered yesterday",
+    "The parts were deliver yesterday",
+    "The parts are delivered yesterday morning"
+   ],
+   "answer": 0,
+   "back": "Plural subject → <b>were</b>, plus the <b>past participle</b> (delivered). Passive = be + past participle.",
+   "tags": "grammar"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "VOCABULARY — describing people at work",
+   "back": "<b>reliable</b> = confiable · <b>hard-working</b> = trabajador\n<b>skilled</b> = capacitado · <b>careless</b> = descuidado\n<b>willing to learn</b> = dispuesto a aprender\n<b>in charge of</b> = a cargo de → <i>He is in charge of the workshop.</i>",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "VOCABULARY — materials and conditions",
+   "back": "<b>steel</b> = acero · <b>rubber</b> = caucho · <b>copper</b> = cobre\n<b>rust</b> = óxido → <b>rusty</b> = oxidado\n<b>cracked</b> = agrietado · <b>bent</b> = doblado · <b>dented</b> = abollado\n<b>brand new</b> = nuevecito ≠ <b>second-hand</b> = de segunda",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 3,
+   "kind": "lesson",
+   "front": "Present Perfect Simple vs. Continuous",
+   "back": "<b>Simple</b> — focus on the <b>result</b>, how many:\n<i>I’ve repaired three engines today.</i>\n\n<b>Continuous</b> — focus on the <b>activity and its duration</b>:\n<i>I’ve been repairing engines all morning.</i> (that’s why I’m dirty)\n\nState verbs (know, be, have, believe) don’t take the continuous: <s>I’ve been knowing</s> ❌",
+   "tags": "grammar"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "Third Conditional — regret about the past",
+   "back": "<b>If + had + past participle, ... would have + past participle</b>\n<i>If I <b>had checked</b> the oil, the engine <b>wouldn’t have seized</b>.</i>\n\nSpoken form: <i>If I’d checked… I wouldn’t’ve…</i>\nIt describes something that <b>did not happen</b>.",
+   "tags": "grammar"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "Reported Speech — what changes?",
+   "back": "Tenses shift one step back:\npresent → past · past → past perfect · will → would · can → could\n\n<i>“I <b>am</b> busy.”</i> → <i>He said he <b>was</b> busy.</i>\n<i>“I <b>saw</b> it.”</i> → <i>He said he <b>had seen</b> it.</i>\n\nAlso change: <b>tomorrow → the next day, here → there, this → that</b>.",
+   "tags": "grammar"
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "front": "Report this: “I will call you tomorrow.”",
+   "choices": [
+    "He said he would call me the next day",
+    "He said he will call me tomorrow",
+    "He said he would call me tomorrow",
+    "He says he would call me the next day"
+   ],
+   "answer": 0,
+   "back": "<b>will → would</b> and <b>tomorrow → the next day</b>, because you are reporting later, from a different moment.",
+   "tags": "grammar"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "Modals of deduction: <i>must / might / can’t</i> have",
+   "back": "<b>must be</b> = I’m almost sure it’s true → <i>It must be the alternator.</i>\n<b>might / could be</b> = it’s possible → <i>It might be a vacuum leak.</i>\n<b>can’t be</b> = I’m sure it isn’t → <i>It can’t be the battery; it’s new.</i>\n\nAbout the past, add <b>have</b>: <i>The seal <b>must have failed</b> under pressure.</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "Gerund or infinitive after a verb?",
+   "back": "<b>+ -ing</b>: enjoy, avoid, finish, keep, suggest, mind, practise\n<i>I avoid <b>working</b> in the rain.</i>\n\n<b>+ to</b>: decide, hope, need, want, manage, offer, refuse\n<i>I managed <b>to fix</b> it.</i>\n\n<b>Both, different meaning</b>: <i>I stopped <b>smoking</b></i> (quit) vs. <i>I stopped <b>to smoke</b></i> (paused in order to).",
+   "tags": "grammar"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "<i>wish</i> and <i>if only</i>",
+   "back": "<b>Present regret</b>: wish + past → <i>I wish I <b>had</b> more time.</i>\n<b>Past regret</b>: wish + past perfect → <i>I wish I <b>had studied</b> English earlier.</i>\n<b>Annoyance with others</b>: wish + would → <i>I wish they <b>would stop</b> making that noise.</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "PHRASAL VERBS — work: <i>carry out, take on, set up, put off</i>",
+   "back": "<b>carry out</b> = perform (a task, an inspection) → <i>We carried out a full inspection.</i>\n<b>take on</b> = accept work / hire → <i>They took on two new mechanics.</i>\n<b>set up</b> = establish, prepare → <i>Set up the equipment before starting.</i>\n<b>put off</b> = postpone → <i>Don’t put off the service.</i>",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "PHRASAL VERBS — <i>put up with, get away with, come up with</i>",
+   "back": "<b>put up with</b> = tolerate → <i>I can’t put up with that noise.</i>\n<b>get away with</b> = escape punishment → <i>He got away with a warning.</i>\n<b>come up with</b> = invent, produce an idea → <i>She came up with a solution.</i>\n\nThese are <b>three-word phrasal verbs</b>: never separate them.",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "Are phrasal verbs separable? The pronoun rule",
+   "back": "<b>Separable</b>: <i>Turn <b>off</b> the engine</i> = <i>Turn the engine <b>off</b></i>.\n🔑 With a <b>pronoun</b> you MUST separate: <i>Turn <b>it</b> off</i> ✅ / <s>Turn off it</s> ❌\n\n<b>Inseparable</b> (usually with a preposition): <i>look after the machine</i> → <i>look after <b>it</b></i>, never <s>look it after</s>.",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "front": "Which one is correct?",
+   "choices": [
+    "I’ll pick it up tomorrow",
+    "I’ll pick up it tomorrow",
+    "I’ll pick up it up tomorrow",
+    "I’ll it pick up tomorrow"
+   ],
+   "answer": 0,
+   "back": "With a pronoun the phrasal verb must be split: <b>pick it up</b>.",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "<i>look forward to</i> — the classic trap",
+   "back": "After <b>to</b> here you need a <b>noun or -ing</b>, because this <i>to</i> is a preposition, not an infinitive:\n<i>I look forward to <b>hearing</b> from you.</i> ✅\n<s>I look forward to hear from you.</s> ❌\n\nSame pattern: <b>be used to</b>, <b>get used to</b> → <i>I’m used to <b>working</b> long hours.</i>",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "VOCABULARY — common collocations at work",
+   "back": "<b>make</b> a decision, a mistake, progress, an effort\n<b>do</b> the work, a job, research, damage\n<b>take</b> responsibility, a break, a risk, measurements\n<b>meet</b> a deadline, a requirement\n<b>run</b> a test, a business, a machine",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "VOCABULARY — false friends that catch Spanish speakers",
+   "back": "<b>actually</b> = in fact (≠ actualmente = <i>currently</i>)\n<b>eventually</b> = finally, in the end (≠ eventualmente = <i>occasionally</i>)\n<b>sensible</b> = with good judgement (≠ sensible = <i>sensitive</i>)\n<b>assist</b> = help (≠ asistir a = <i>attend</i>)\n<b>realize</b> = notice (≠ realizar = <i>carry out</i>)",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "CHALLENGE: write a short work email asking for a spare part.",
+   "back": "Model:\n<i>Dear Mr. Ramírez,\n\nI am writing to request a quotation for a hydraulic pump seal kit for a CAT 320D. Could you please confirm availability and delivery time?\n\nI look forward to hearing from you.\n\nKind regards,\nLuis</i>\n\nFormal markers: <b>I am writing to…</b>, <b>Could you please…</b>, <b>Kind regards</b>.",
+   "tags": "writing"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "WORD FORMATION — build the family, not just the word",
+   "back": "From one root you get four words:\n<b>maintain</b> (v) → <b>maintenance</b> (n) → <b>maintainable</b> (adj)\n<b>reliable</b> (adj) → <b>reliability</b> (n) → <b>unreliable</b> (opposite)\n<b>safe</b> → <b>safety</b> → <b>unsafe</b> → <b>safely</b>\n\nCommon suffixes: <b>-tion, -ment, -ity, -ness</b> (nouns) · <b>-able, -ive, -ous</b> (adjectives)",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "front": "Complete: “The pump is highly ___ if you service it properly.”",
+   "choices": [
+    "reliable",
+    "reliability",
+    "rely",
+    "reliably"
+   ],
+   "answer": 0,
+   "back": "After <b>is highly</b> you need an <b>adjective</b>: reliable. <i>Reliability</i> is the noun, <i>reliably</i> the adverb.",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "VOCABULARY — precise verbs instead of vague ones",
+   "back": "Replace weak verbs to sound competent:\n<b>get better</b> → <b>improve</b>\n<b>go up / go down</b> → <b>increase / decrease</b>\n<b>find</b> → <b>identify / detect</b>\n<b>check</b> → <b>inspect / verify</b>\n<b>make sure</b> → <b>ensure</b>\n<b>tell</b> → <b>report / inform</b>",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 4,
+   "kind": "lesson",
+   "front": "Inversion for emphasis",
+   "back": "When a <b>negative or limiting adverbial</b> starts the sentence, the subject and auxiliary swap — like a question:\n\n<i><b>Never have I seen</b> such a badly maintained machine.</i>\n<i><b>Not only did they</b> ignore the alarm, <b>but they also</b> kept working.</i>\n<i><b>Rarely does</b> a failure happen without warning.</i>\n\nUse it sparingly: it is formal and dramatic.",
+   "tags": "grammar"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "Mixed conditionals",
+   "back": "Mixing time frames:\n\n<b>Past condition → present result</b>:\n<i>If I <b>had studied</b> English at school, I <b>would be</b> working abroad now.</i>\n\n<b>Present condition → past result</b>:\n<i>If I <b>were</b> more careful, I <b>wouldn’t have made</b> that mistake.</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "Cleft sentences — putting the spotlight on one part",
+   "back": "<b>It-cleft</b>: <i><b>It was</b> the seal <b>that</b> failed, not the pump.</i>\n<b>What-cleft</b>: <i><b>What</b> caused the failure <b>was</b> contaminated oil.</i>\n<b>All-cleft</b>: <i><b>All</b> I need <b>is</b> a torque wrench.</i>\n\nThey let you correct, contrast or emphasise without raising your voice.",
+   "tags": "grammar"
+  },
+  {
+   "level": 4,
+   "kind": "quiz",
+   "front": "Choose the correctly inverted sentence.",
+   "choices": [
+    "Not until the engine cooled down did we open the radiator",
+    "Not until the engine cooled down we opened the radiator",
+    "Not until the engine cooled down we did open the radiator",
+    "Not until did the engine cool down we opened the radiator"
+   ],
+   "answer": 0,
+   "back": "The inversion happens in the <b>main clause</b> (<i>did we open</i>), never inside the <i>not until</i> clause itself.",
+   "tags": "grammar"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "The mandative subjunctive",
+   "back": "After verbs and adjectives of demand or recommendation, use the <b>bare infinitive</b> — no -s, no tense:\n\n<i>The manual recommends that the filter <b>be replaced</b> every 500 hours.</i>\n<i>They insisted that he <b>attend</b> the safety briefing.</i>\n<i>It is essential that everyone <b>wear</b> a helmet.</i>",
+   "tags": "grammar"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "Hedging — how professionals sound careful",
+   "back": "Instead of a bare claim, soften it:\n<i>The failure <b>appears to have been</b> caused by contamination.</i>\n<i>This <b>would suggest</b> a problem with the relief valve.</i>\n<i>There is <b>a strong likelihood that</b>…</i>\n<i>The evidence <b>points to</b> a seal failure.</i>\n\nHedging shows judgement, not weakness — essential in reports.",
+   "tags": "register"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "PHRASAL VERBS (C1) — <i>boil down to, iron out, hammer out</i>",
+   "back": "<b>boil down to</b> = to reduce to the essential point → <i>It all boils down to poor maintenance.</i>\n<b>iron out</b> = to resolve small problems → <i>We ironed out the last issues.</i>\n<b>hammer out</b> = to reach an agreement after hard discussion → <i>They hammered out a new contract.</i>",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "PHRASAL VERBS (C1) — <i>gloss over, weigh up, wind up, tide over</i>",
+   "back": "<b>gloss over</b> = to avoid dealing with something properly → <i>The report glossed over the safety failures.</i>\n<b>weigh up</b> = to consider carefully → <i>We weighed up the options.</i>\n<b>wind up</b> = to end up (in a situation); to close a business → <i>We wound up working all night.</i>\n<b>tide (someone) over</b> = to help until things improve → <i>This will tide us over until payday.</i>",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "PHRASAL VERBS (C1) — technical reports: <i>account for, rule out, follow up, phase out</i>",
+   "back": "<b>account for</b> = to explain or represent a proportion → <i>Wear accounts for 60% of failures.</i>\n<b>rule out</b> = to eliminate a possibility → <i>We ruled out an electrical fault.</i>\n<b>follow up</b> = to take further action → <i>I’ll follow up with the supplier.</i>\n<b>phase out</b> = to withdraw gradually → <i>They are phasing out that model.</i>",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 4,
+   "kind": "quiz",
+   "front": "“The investigation ___ mechanical failure as the cause.”",
+   "choices": [
+    "ruled out",
+    "ruled off",
+    "ruled over",
+    "ruled up"
+   ],
+   "answer": 0,
+   "back": "<b>rule out</b> = to eliminate something as a possibility. The opposite idea is <i>to point to</i> or <i>to attribute the failure to</i>.",
+   "tags": "phrasal verbs"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "Nominalisation — the mark of formal written English",
+   "back": "Turn verbs into nouns to sound objective and compact:\n\n<i>They inspected the machine and it failed.</i>\n→ <i><b>The inspection revealed a failure</b>.</i>\n\n<i>We decided to replace it because it was worn.</i>\n→ <i><b>The decision to replace it was based on wear</b>.</i>\n\nUseful in reports; overused, it becomes unreadable bureaucratic prose.",
+   "tags": "register"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "Discourse markers that organise an argument",
+   "back": "<b>Adding</b>: moreover, furthermore, what is more\n<b>Contrasting</b>: however, nevertheless, that said, whereas\n<b>Consequence</b>: consequently, hence, as a result\n<b>Conceding</b>: admittedly, granted, even so\n<b>Concluding</b>: overall, on balance, all things considered",
+   "tags": "register"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "Idiomatic vocabulary for problems at work",
+   "back": "<b>a bottleneck</b> = the point that slows everything down\n<b>a workaround</b> = a temporary solution\n<b>a stopgap</b> = a short-term fix\n<b>root cause</b> = the underlying cause\n<b>downtime</b> = time a machine is out of service\n<b>backlog</b> = accumulated pending work\n<b>to cut corners</b> = to do things badly to save time or money",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "CHALLENGE: explain a root cause in formal English (3–4 sentences).",
+   "back": "Model:\n<i>The failure appears to have originated in the hydraulic circuit rather than the pump itself. Analysis of the oil sample revealed a high silicon content, which points to contamination through a damaged air filter. Had the filter been replaced at the scheduled interval, the damage would most likely have been avoided. We therefore recommend that the servicing schedule be reviewed.</i>\n\nSpot: hedging, a cleft-like contrast, inverted third conditional (<b>Had the filter been…</b>) and the subjunctive (<b>be reviewed</b>).",
+   "tags": "production"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "REGISTER — the same idea, three levels of formality",
+   "back": "<b>Informal</b>: <i>The engine packed up.</i>\n<b>Neutral</b>: <i>The engine broke down.</i>\n<b>Formal</b>: <i>The engine suffered a catastrophic failure.</i>\n\nMore pairs: <b>ask for → request</b> · <b>put off → postpone</b> · <b>find out → ascertain</b> · <b>get rid of → eliminate</b>.\nPhrasal verbs are usually the informal half of the pair.",
+   "tags": "vocabulary"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "front": "VOCABULARY — shades of meaning in “broken”",
+   "back": "<b>faulty</b> = works badly, has a defect\n<b>defective</b> = faulty from manufacture\n<b>worn</b> = degraded by normal use\n<b>damaged</b> = harmed by an external event\n<b>seized</b> = locked solid, won’t move\n<b>obsolete</b> = still works, but no longer supported\n\nChoosing the right one tells the whole story of a failure in a single word.",
+   "tags": "vocabulary"
+  }
+ ]
+}

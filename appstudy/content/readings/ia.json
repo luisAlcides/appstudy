@@ -1,0 +1,187 @@
+{
+"deck": "ia",
+"chapters": [
+{
+ "level": 1, "minutes": 10, "tags": "fundamentos,prompting,práctica",
+ "title": "Qué es realmente un modelo de lenguaje",
+ "subtitle": "Predicción de tokens, contexto, alucinaciones y cómo escribir un prompt que funcione.",
+ "body": [
+  {"p": "Un modelo de lenguaje hace una sola cosa: <b>predecir el siguiente token</b> a partir de todo lo anterior. Traducir, razonar, programar y resumir no son funciones separadas: son consecuencias de hacer esa única tarea extraordinariamente bien, entrenando sobre cantidades enormes de texto."},
+  {"key": "Entender esto explica casi todo su comportamiento: por qué es brillante con el lenguaje, por qué inventa datos con total seguridad y por qué es malo en aritmética exacta."},
+
+  {"h": "Tokens y contexto"},
+  {"p": "Un <b>token</b> es la unidad mínima que procesa el modelo: aproximadamente una palabra corta o un fragmento de unos cuatro caracteres. «Hidráulico» puede ser tres o cuatro tokens. Importa porque el <b>costo y los límites se miden en tokens</b>, no en palabras."},
+  {"p": "La <b>ventana de contexto</b> es todo lo que el modelo puede leer y generar en una conversación. Fuera de esa ventana no hay memoria: si la charla la excede, hay que resumir o recortar. El modelo no «recuerda» conversaciones anteriores salvo que alguien vuelva a ponerlas en el prompt."},
+  {"note": "Una ventana grande no es lo mismo que atención perfecta. Los modelos atienden peor a la información que queda <b>en el medio</b> de un contexto muy largo. Pon lo esencial al principio o al final, y filtra antes de pegar: más contexto no es mejor contexto."},
+
+  {"h": "La fecha de corte"},
+  {"p": "El modelo se entrenó con texto hasta una fecha determinada. Después de esa fecha no sabe nada: ni precios, ni versiones de software, ni noticias. Para información actual necesita una <b>herramienta de búsqueda</b> o que tú se la pegues en el prompt."},
+
+  {"h": "Las alucinaciones"},
+  {"p": "El modelo genera lo que resulta <b>plausible</b>, no lo que es verdadero. Cuando no sabe algo, produce texto que suena exactamente igual de convincente que cuando sí lo sabe. Esa es la parte peligrosa: <b>el tono de seguridad no es señal de veracidad</b>."},
+  {"list": [
+    "Dale las fuentes en el prompt en lugar de confiar en su memoria (eso es RAG).",
+    "Pídele que <b>cite</b> de dónde sale cada afirmación.",
+    "Permítele explícitamente decir «no sé» — si no, siempre inventará algo.",
+    "Baja la temperatura cuando necesites consistencia.",
+    "Y sobre todo: <b>verifica</b> lo que tenga consecuencias."
+  ]},
+  {"warn": "Nunca uses un LLM como fuente única para números, referencias legales, dosis, especificaciones técnicas o citas. Úsalo para redactar, estructurar y explicar; verifica los datos duros en la fuente."},
+
+  {"h": "Los cuatro ingredientes de un buen prompt"},
+  {"steps": [
+    "<b>Rol y contexto</b>: «Eres un mecánico de maquinaria pesada con 20 años de experiencia».",
+    "<b>Tarea concreta</b>: qué quieres exactamente, no una descripción vaga del tema.",
+    "<b>Formato de salida</b>: lista, tabla, JSON, número de palabras. Si no lo dices, el modelo elige por ti.",
+    "<b>Ejemplos</b>: uno a tres ejemplos de entrada→salida valen más que tres párrafos de instrucciones. Se llama <i>few-shot</i>."
+  ]},
+  {"p": "Un quinto ingrediente para problemas difíciles: pedirle que <b>razone paso a paso</b> antes de responder. Cada paso intermedio condiciona el siguiente, y eso mejora notablemente lógica, matemáticas y diagnóstico. <i>«Analiza los síntomas uno por uno antes de dar el diagnóstico.»</i>"},
+  {"key": "El prompt influye más en el resultado que la elección del modelo. Antes de cambiar a un modelo más caro, invierte veinte minutos en reescribir el prompt: casi siempre rinde más."},
+
+  {"h": "La temperatura"},
+  {"code": "0.0        determinista y consistente\n           datos, clasificación, extracción, código\n\n0.7 - 1.0  variada y creativa\n           redacción, lluvia de ideas, alternativas"},
+  {"p": "Si tus resultados son inconsistentes —a veces bien, a veces mal, con el mismo prompt— lo primero es bajar la temperatura y añadir ejemplos del formato exacto. Eso resuelve la mayoría de los casos."},
+
+  {"h": "Dónde rinde hoy, de verdad"},
+  {"list": [
+    "<b>Redactar y corregir</b>: informes de falla, correos, traducciones.",
+    "<b>Resumir</b>: manuales largos, hilos de correo, actas de reunión.",
+    "<b>Explicar</b>: un error, un fragmento de código, un concepto a tu nivel.",
+    "<b>Transformar</b>: texto suelto a tabla, notas a lista estructurada."
+  ]},
+  {"p": "Fíjate en el patrón: en los cuatro casos <b>tú puedes verificar el resultado de un vistazo</b>. Ahí es donde un LLM rinde sin riesgo. Cuanto menos capaz seas de juzgar la respuesta, más peligroso es confiar en ella."},
+
+  {"h": "Cuándo NO usar IA"},
+  {"list": [
+    "Cuando una <b>regla simple</b> resuelve el problema. Un <code>if</code> es más barato, más rápido y auditable.",
+    "Cuando necesitas <b>exactitud garantizada</b>: contabilidad, cálculos legales, dosis.",
+    "Cuando <b>no puedes verificar</b> la respuesta y el error sale caro.",
+    "Cuando no tienes datos representativos del problema real."
+  ]}
+ ]
+},
+{
+ "level": 2, "minutes": 10, "tags": "arquitectura,agentes,evaluación,producción",
+ "title": "RAG, herramientas y agentes",
+ "subtitle": "Cómo se construye un sistema que responde sobre tus documentos y actúa sobre el mundo.",
+ "body": [
+  {"p": "Un modelo por sí solo es un motor sin transmisión: sabe mucho de lenguaje y nada de tu empresa, y no puede tocar nada. Las tres piezas que lo convierten en un sistema útil son <b>RAG</b>, <b>herramientas</b> y el <b>bucle de agente</b>."},
+
+  {"h": "Embeddings: el significado como coordenadas"},
+  {"p": "Un <b>embedding</b> es un vector de números que representa el significado de un texto. Textos parecidos quedan cerca en ese espacio, aunque no compartan una sola palabra: «avería del motor» y «falla mecánica» caen casi en el mismo punto."},
+  {"p": "Sobre esa idea se construye la búsqueda semántica: conviertes tus documentos en vectores, guardas los vectores en una <b>base de datos vectorial</b> (FAISS, Chroma, pgvector, Qdrant) y ante una pregunta recuperas los fragmentos más cercanos."},
+
+  {"h": "RAG paso a paso"},
+  {"code": "1. Partir los documentos en fragmentos (chunking)\n2. Convertir cada fragmento en embedding\n3. Guardarlos en la base vectorial\n           ─── en consulta ───\n4. Convertir la pregunta en embedding\n5. Recuperar los fragmentos más cercanos\n6. PEGARLOS EN EL PROMPT junto a la pregunta\n7. El modelo responde basándose en ellos, y cita"},
+  {"key": "RAG es preferible al fine-tuning para incorporar conocimiento: es barato, se actualiza al instante cuando cambia un manual, y permite <b>citar la fuente</b>. El fine-tuning enseña <b>estilo y formato</b>, no hechos actualizables."},
+  {"h": "El chunking decide si funciona"},
+  {"list": [
+    "<b>Fragmentos muy grandes</b>: traen ruido, diluyen la búsqueda y desperdician contexto.",
+    "<b>Muy pequeños</b>: pierden el contexto necesario y la respuesta queda coja.",
+    "Regla práctica: <b>300 a 800 palabras con solape</b> entre fragmentos consecutivos.",
+    "Respeta los límites naturales del documento: secciones, tablas, procedimientos completos."
+  ]},
+  {"note": "Cuando un RAG «no funciona», el problema casi nunca es el modelo: es que la recuperación trae los fragmentos equivocados. Antes de cambiar de modelo, mira <b>qué fragmentos se recuperaron</b> para esa pregunta."},
+
+  {"h": "Herramientas: dejar de adivinar"},
+  {"p": "Con <i>function calling</i> le describes al modelo funciones que puede invocar —consultar una base de datos, leer un archivo, calcular, llamar a una API—. Él decide cuándo llamarlas y con qué argumentos; tu código las ejecuta y le devuelve el resultado."},
+  {"p": "El cambio es cualitativo: el modelo deja de recordar y empieza a <b>consultar el dato real</b>. Es también la solución a su debilidad aritmética — no le pidas que calcule, dale una calculadora."},
+
+  {"h": "El bucle del agente"},
+  {"code": "objetivo → PENSAR → usar herramienta → OBSERVAR resultado\n              ↑                                    │\n              └────────────────────────────────────┘\n                        hasta cumplir el objetivo"},
+  {"warn": "Los errores se <b>multiplican</b> a lo largo del bucle: diez pasos al 95% de acierto dan un 60% de éxito total. Menos pasos, verificación después de cada uno, herramientas que fallen de forma explícita y un límite de reintentos para no entrar en bucles infinitos."},
+
+  {"h": "El system prompt"},
+  {"p": "Son las instrucciones persistentes que definen rol, tono, límites y formato para toda la conversación, por encima de cada mensaje. Ahí va quién es el asistente, qué puede y qué no, qué hacer cuando no sabe algo, y cómo debe entregar la respuesta."},
+
+  {"h": "Evaluar: la parte que todos se saltan"},
+  {"steps": [
+    "Arma un <b>conjunto de casos</b> con respuesta conocida. Con 30 a 100 ya se aprende muchísimo.",
+    "Define <b>qué cuenta como correcto</b> antes de mirar los resultados.",
+    "Mide con reglas exactas donde se pueda, y con revisión humana o <i>LLM-as-judge</i> donde no.",
+    "Incluye <b>casos trampa</b>: preguntas ambiguas y preguntas fuera de dominio, para ver si dice «no sé».",
+    "Repite la batería completa ante <b>cada cambio</b> de prompt, de modelo o de recuperación."
+  ]},
+  {"key": "Sin un conjunto de evaluación, «mejorar el prompt» es superstición: cambias algo, ves dos ejemplos que salieron mejor y no tienes idea de qué rompiste en los otros noventa."},
+
+  {"h": "Costo y latencia"},
+  {"list": [
+    "El <b>contexto largo se paga en cada llamada</b>: no metas documentos completos «por si acaso».",
+    "<b>Caché de prompts</b> para la parte fija (instrucciones, documentos base).",
+    "Recupera 3 fragmentos relevantes, no 30.",
+    "<b>Enruta</b>: modelo pequeño por defecto, grande solo cuando la tarea lo exige.",
+    "<b>Streaming</b> para que el usuario vea la respuesta mientras se genera, y paraleliza las llamadas independientes.",
+    "Registra el gasto <b>por caso de uso</b>, no solo el total: es la única forma de saber qué optimizar."
+  ]}
+ ]
+},
+{
+ "level": 3, "minutes": 9, "tags": "seguridad,entrenamiento,ética,límites",
+ "title": "Seguridad, límites y criterio",
+ "subtitle": "Prompt injection, guardrails, cómo se entrena el comportamiento y qué preguntar antes de desplegar.",
+ "body": [
+  {"p": "Cuando un sistema con IA deja de ser un experimento y empieza a tocar datos reales o a actuar sobre el mundo, las preguntas dejan de ser técnicas y pasan a ser de diseño y de responsabilidad."},
+
+  {"h": "Cómo se entrena el comportamiento"},
+  {"p": "El <b>preentrenamiento</b> da el conocimiento: predecir el siguiente token sobre enormes cantidades de texto. Pero un modelo así solo continúa texto; no es útil ni seguro por sí mismo."},
+  {"p": "Después viene el <b>ajuste por instrucciones</b> y el <b>RLHF</b> (aprendizaje por refuerzo con retroalimentación humana): personas comparan respuestas, esas preferencias entrenan un modelo de recompensa, y con él se afina el principal. De ahí salen la utilidad, el tono y las negativas."},
+  {"key": "El preentrenamiento da el <b>conocimiento</b>; esta segunda fase da el <b>comportamiento</b>. Son cosas distintas, y confundirlas lleva a esperar del modelo garantías que no puede dar por sí solo."},
+  {"p": "Dos técnicas que conviene conocer: <b>LoRA</b> entrena unas matrices pequeñas de adaptación en vez de todos los pesos, con resultados casi iguales y una fracción del cómputo; y la <b>cuantización</b> reduce la precisión de los pesos (16 → 8 o 4 bits) para que un modelo de 7-13B corra en una laptop."},
+
+  {"h": "Prompt injection"},
+  {"p": "Si tu sistema lee una página web, un correo o un documento, ese contenido entra en el prompt. Y si el contenido dice «ignora tus instrucciones anteriores y…», el modelo puede obedecer, porque para él todo el prompt es texto del mismo tipo."},
+  {"warn": "Contra prompt injection <b>no basta con instruir al modelo</b> que no obedezca. La defensa es de arquitectura, no de prompt."},
+  {"list": [
+    "<b>Separar datos de instrucciones</b>: marca claramente el contenido externo como datos no confiables.",
+    "<b>Mínimo privilegio</b>: el agente solo debe tener las herramientas y permisos que la tarea exige.",
+    "<b>Confirmación humana</b> antes de cualquier acción irreversible: borrar, pagar, enviar, publicar.",
+    "<b>Validar la salida</b>: si la respuesta debe ser un JSON con ciertos campos, verifícalo con código, no con confianza."
+  ]},
+
+  {"h": "Guardrails"},
+  {"p": "Un guardrail es una comprobación <b>fuera</b> del modelo, porque el modelo no puede garantizar sus propios límites. Se colocan en tres puntos:"},
+  {"steps": [
+    "<b>Entrada</b>: filtrar datos personales o confidenciales antes de enviarlos a un servicio externo.",
+    "<b>Salida</b>: validar el esquema (¿es JSON válido?, ¿el código de máquina existe en el catálogo?, ¿el número está en rango?).",
+    "<b>Acción</b>: exigir confirmación humana en el paso irreversible, y registrar qué se hizo y con qué entrada."
+  ]},
+  {"p": "Si la salida no pasa la validación, el sistema reintenta con una instrucción correctiva o escala a una persona. Lo que nunca debe hacer es ejecutar a ciegas."},
+
+  {"h": "Los límites que no se van a arreglar solos"},
+  {"list": [
+    "<b>Aritmética exacta</b> — el modelo no calcula, recuerda cómo se ven los cálculos. Dale una herramienta.",
+    "<b>Conocimiento posterior a su corte</b> — necesita búsqueda o contexto.",
+    "<b>Context rot</b> — en conversaciones muy largas atiende peor al medio y arrastra sus propios errores previos como si fueran hechos. Resume y reinicia.",
+    "<b>Autoevaluación</b> — un modelo no es buen juez de su propia certeza. Su confianza expresada no correlaciona bien con su acierto."
+  ]},
+
+  {"h": "Sesgo"},
+  {"p": "El modelo reproduce y amplifica los patrones de sus datos de entrenamiento. Si los datos históricos discriminan, el modelo discriminará, y lo hará a escala y con apariencia de objetividad técnica."},
+  {"p": "La mitigación no es solo técnica: auditar los datos, y <b>medir el desempeño por subgrupos</b> en vez de conformarse con el promedio global. Un sistema con 92% de acierto general puede tener 60% en un grupo concreto, y ese detalle no aparece en ninguna métrica agregada."},
+
+  {"h": "Antes de desplegar, responde esto"},
+  {"steps": [
+    "¿Los datos que envías incluyen información personal o confidencial? ¿Con qué base legal?",
+    "¿Quién responde si el sistema se equivoca y alguien actúa según su respuesta?",
+    "¿El usuario sabe que está hablando con una IA?",
+    "¿Puedes <b>explicar</b> una decisión concreta si te la reclaman?",
+    "¿Guardas registro de entradas y salidas para poder auditar después?",
+    "¿Qué pasa si el proveedor cambia el modelo por debajo? ¿Tienes evaluación para detectarlo?"
+  ]},
+  {"key": "La última pregunta se olvida siempre y es la que más rompe sistemas en producción: el modelo que usas hoy puede comportarse distinto mañana. Tu conjunto de evaluación es lo único que te avisa."},
+
+  {"h": "Diseñar un caso real"},
+  {"p": "Supón que quieres una IA que ayude a diagnosticar fallas de excavadoras. El diseño completo se ve así:"},
+  {"steps": [
+    "<b>Reunir el conocimiento</b>: manuales, códigos de error, historial de reparaciones reales.",
+    "<b>RAG</b> sobre esos documentos, con chunking que respete los procedimientos completos.",
+    "<b>Prompt</b> con rol de técnico, razonamiento paso a paso y obligación de citar el manual.",
+    "<b>Herramientas</b>: consulta de códigos de falla y del historial de esa máquina concreta.",
+    "<b>Guardrails</b>: nunca recomendar una intervención de seguridad crítica sin remitir al procedimiento oficial.",
+    "<b>Evaluación</b> con 50 casos reales de diagnóstico confirmado, más casos ambiguos y fuera de dominio.",
+    "<b>Línea base</b>: compararlo contra un técnico junior con el manual en la mano. Si no le gana, no aporta."
+  ]},
+  {"p": "Nota cuánto de esto es ingeniería de datos, evaluación y diseño de producto, y qué poco es «elegir el modelo». Esa proporción es la realidad de construir con IA."}
+ ]
+}
+]}

@@ -1,0 +1,1122 @@
+{
+ "deck": "ingles",
+ "chapters": [
+  {
+   "level": 1,
+   "minutes": 26,
+   "tags": "grammar,vocabulary,phrasal verbs,pronunciation",
+   "title": "Building a sentence in English",
+   "subtitle": "Word order, the present tenses and the questions you need every day at work.",
+   "body": [
+    {
+     "p": "Spanish lets you move words around freely: <i>«Trabaja Luis aquí»</i>, <i>«Luis trabaja aquí»</i>, <i>«Aquí trabaja Luis»</i> — all correct. English does not. English carries meaning in the <b>order of the words</b>, so the order is almost fixed. This single fact explains most beginner mistakes."
+    },
+    {
+     "key": "The basic order is <b>SUBJECT → VERB → OBJECT</b>, and you cannot drop the subject. In Spanish <i>«Trabajo aquí»</i> is complete; in English you must say <b>I</b> work here."
+    },
+    {
+     "h": "Present Simple: routines and facts"
+    },
+    {
+     "p": "Use it for what is generally true or what you do regularly: <i>I work at a workshop. The engine uses diesel. He starts at six.</i>"
+    },
+    {
+     "code": "I / you / we / they  →  work\nhe / she / it        →  works   ← the -s that everyone forgets"
+    },
+    {
+     "p": "That final <b>-s</b> in the third person is the most common mistake for Spanish speakers, because Spanish marks the person in the verb ending and English almost never does. English only has this one ending, so it feels unimportant — but a missing -s is heard immediately."
+    },
+    {
+     "h": "Questions and negatives need a helper"
+    },
+    {
+     "p": "This is the second big difference. In Spanish you make a question with intonation. In English you need the auxiliary <b>do</b> or <b>does</b>, and when it appears, the main verb goes back to its base form:"
+    },
+    {
+     "code": "Statement:  He works on Saturdays.\nQuestion:   Does he work on Saturdays?      (not: does he works)\nNegative:   He doesn't work on Saturdays.   (not: he doesn't works)"
+    },
+    {
+     "note": "Short answers keep the auxiliary, not the verb: <i>Do you work here? — <b>Yes, I do.</b></i> Answering just «yes» sounds abrupt, and repeating the whole verb sounds foreign."
+    },
+    {
+     "h": "Present Continuous: happening now"
+    },
+    {
+     "p": "Formed with <b>am / is / are + verb-ing</b>, it describes what is going on at this moment or around this period: <i>I <b>am checking</b> the oil right now. We <b>are working</b> on the north site this month.</i>"
+    },
+    {
+     "p": "Compare the two tenses in a work context. <i>I <b>repair</b> engines</i> is your job. <i>I <b>am repairing</b> an engine</i> is what you are doing while you speak. Spanish uses the simple present for both, which is why the continuous feels optional — it is not."
+    },
+    {
+     "warn": "Some verbs describe <b>states</b>, not actions, and they do not take the continuous: <i>know, need, want, believe, understand, belong, cost</i>. Say <i>I need a wrench</i>, never <s>I am needing a wrench</s>."
+    },
+    {
+     "h": "Talking about the past"
+    },
+    {
+     "p": "The Past Simple has one form for every person, which makes it easier than Spanish. Regular verbs add <b>-ed</b>; irregular verbs have to be learned one by one."
+    },
+    {
+     "code": "Regular:    work → worked      check → checked\nIrregular:  go → went         take → took\n            buy → bought       break → broke\n\nNegative / question use DID + base form:\n  I didn't go.      Did you see it?   (not: did you saw)"
+    },
+    {
+     "p": "Notice the same pattern as the present: once the auxiliary <b>did</b> appears, the main verb loses its past form. English marks the tense only once, in the auxiliary."
+    },
+    {
+     "h": "Talking about the future"
+    },
+    {
+     "list": [
+      "<b>going to</b> — a plan already decided, or clear evidence: <i>I'm going to change the oil tomorrow.</i> / <i>Look at that smoke — it's going to break down.</i>",
+      "<b>will</b> — a decision made while speaking, an offer, a prediction: <i>I'll help you with that.</i> / <i>It will probably rain.</i>",
+      "<b>Present Continuous</b> — a fixed arrangement with a time and place: <i>I'm meeting the supplier at four.</i>"
+     ]
+    },
+    {
+     "h": "Countable and uncountable"
+    },
+    {
+     "p": "English divides nouns into things you can count and things you cannot, and this changes the words around them."
+    },
+    {
+     "code": "COUNTABLE      a bolt, two bolts     How many bolts?    a few bolts\nUNCOUNTABLE    oil, fuel, work       How much oil?      a little oil"
+    },
+    {
+     "p": "Watch out for words that are countable in Spanish but not in English: <b>information</b>, <b>advice</b>, <b>equipment</b>, <b>work</b>, <b>money</b>, <b>news</b>. You cannot say <s>an information</s> or <s>two advices</s>; you say <i>a piece of information</i>, <i>some advice</i>."
+    },
+    {
+     "h": "Prepositions of time and place"
+    },
+    {
+     "code": "TIME      at 7 o'clock   ·   on Monday   ·   in June / in 2026\nPLACE     at the workshop ·  on the table ·  in the truck\n\nRule of thumb: at = a point, on = a surface or day, in = inside a space or period"
+    },
+    {
+     "h": "Articles: a, an and the"
+    },
+    {
+     "p": "Spanish has <i>un/una/el/la</i> and uses them almost everywhere. English uses them less, and the choice follows a different logic: <b>a/an</b> introduces something for the first time or says what kind of thing it is; <b>the</b> points at something both people already know about."
+    },
+    {
+     "code": "I need A wrench.          (any wrench — first mention)\nPass me THE wrench.       (the one we both can see)\nHe is A mechanic.         (job → always a/an in English)\nTHE engine is hot.        (the one we're working on)"
+    },
+    {
+     "p": "Choose <b>a</b> or <b>an</b> by the <b>sound</b>, not the letter: <i>an hour</i> (the h is silent), <i>a university</i> (it sounds «yu»), <i>an SUV</i> (it sounds «es»)."
+    },
+    {
+     "warn": "English uses <b>no article</b> for general statements in plural or with uncountables: <i>Diesel engines last longer</i>, not <s>The diesel engines last longer</s>. Spanish speakers add <i>the</i> here constantly — it is one of the easiest mistakes to hear."
+    },
+    {
+     "h": "Plurals and possessives"
+    },
+    {
+     "code": "REGULAR      bolt → bolts      hose → hoses\n-Y → -IES    company → companies\n-F → -VES    knife → knives     leaf → leaves\nIRREGULAR    man → men          woman → women\n             child → children   foot → feet\n             tooth → teeth      person → people"
+    },
+    {
+     "p": "For possession English does not say «the door of the truck» — it prefers <b>'s</b> with people and living things, and often just puts two nouns together for objects:"
+    },
+    {
+     "code": "the mechanic'S tools       (person → 's)\nthe truck door             (two nouns together)\nthe engine'S power    o    the power OF the engine   (both work)"
+    },
+    {
+     "note": "Two nouns together is extremely common in technical English, and the <b>last</b> word is the real thing: <i>oil filter</i> is a filter, <i>filter oil</i> would be oil. <i>Brake fluid, fuel pump, safety helmet, service manual.</i>"
+    },
+    {
+     "h": "There is / There are"
+    },
+    {
+     "code": "There IS a leak.               singular\nThere IS some oil on the floor. uncountable\nThere ARE two trucks outside.  plural\n\nThere ISN'T any fuel left.\nARE there any spare filters?"
+    },
+    {
+     "p": "Use <b>some</b> in positive sentences and <b>any</b> in negatives and questions: <i>There's <b>some</b> oil / There isn't <b>any</b> oil / Is there <b>any</b> oil?</i>"
+    },
+    {
+     "h": "Can and can't: ability, permission, requests"
+    },
+    {
+     "code": "I CAN drive a forklift.        ability\nYou CAN'T park here.           prohibition\nCAN you help me?               request\nCAN I use this tool?           permission"
+    },
+    {
+     "p": "<b>can</b> never takes <i>to</i> and never changes: <s>he cans</s>, <s>can to drive</s> are both wrong. Its past is <b>could</b>. And listen to the difference: <i>can</i> is short and weak in speech, while <i>can't</i> is longer and stressed — that is how native speakers tell them apart."
+    },
+    {
+     "h": "Question words"
+    },
+    {
+     "code": "WHAT      What is that noise?\nWHERE     Where is the manual?\nWHEN      When did it start?\nWHO       Who repaired it?\nWHY       Why is it overheating?\nHOW       How does it work?\nWHICH     Which one is broken?     (a choice between few)\nHOW LONG  How long have you worked here?\nHOW OFTEN How often do you service it?"
+    },
+    {
+     "p": "The word order after the question word is the same as any question: <b>question word + auxiliary + subject + verb</b>. <i>Where <b>did you put</b> it?</i>, not <s>Where you put it?</s>"
+    },
+    {
+     "h": "Giving instructions: the imperative"
+    },
+    {
+     "p": "The imperative is just the base verb with no subject. It is what manuals, signs and colleagues use all day:"
+    },
+    {
+     "code": "Check the oil level.\nDon't start the engine.\nAlways wear a helmet.\nNever open the radiator when it's hot.\nPlease hold this."
+    },
+    {
+     "note": "The imperative is neutral, not rude, in written instructions. But when asking a person for something, soften it: <i><b>Could you</b> check the oil?</i> sounds much better than <i>Check the oil.</i>"
+    },
+    {
+     "h": "Adjectives: two rules and you're done"
+    },
+    {
+     "list": [
+      "They go <b>before</b> the noun: <i>a <b>hydraulic</b> pump</i>, not <s>a pump hydraulic</s>.",
+      "They <b>never</b> take a plural -s: <i>two <b>big</b> trucks</i>, not <s>two bigs trucks</s>."
+     ]
+    },
+    {
+     "p": "When you stack several, the order sounds natural to natives and strange to learners: <b>opinion → size → age → shape → colour → origin → material → purpose</b>. <i>A nice big old yellow Japanese hydraulic pump.</i> Don't memorise the list — just avoid stacking more than two or three."
+    },
+    {
+     "h": "The irregular verbs you cannot avoid"
+    },
+    {
+     "code": "BASE      PAST       PARTICIPLE\nbe        was/were   been\ngo        went       gone\ndo        did        done\nhave      had        had\nmake      made       made\ntake      took       taken\nget       got        got/gotten\ncome      came       come\nsee       saw        seen\nbuy       bought     bought\nbring     brought    brought\nbreak     broke      broken\ndrive     drove      driven\nput       put        put\nread      read       read      (spelling same, sound changes)"
+    },
+    {
+     "key": "Learn them in the three-column form from day one. The third column is useless today, but it is exactly what you will need for the Present Perfect and the passive at B1 — and relearning them later costs twice as much."
+    },
+    {
+     "h": "Numbers, dates and time"
+    },
+    {
+     "code": "13 thirteen  /  30 thirty     ← listen for the stress\n1,500  one thousand five hundred  (comma = thousands)\n3.5    three point five           (point = decimal)\n\n7:15  quarter past seven   ·  7:45  quarter to eight\n7:30  half past seven      ·  7:05  five past seven\n\nUK: 29 August 2026  ·  US: August 29, 2026"
+    },
+    {
+     "warn": "Dates in numbers are dangerous: <b>03/08/2026</b> is 3 August in the UK and 8 March in the US. In any document that matters, write the month in letters."
+    },
+    {
+     "h": "Everyday phrasal verbs at work"
+    },
+    {
+     "list": [
+      "<b>get up</b> — leave your bed: <i>I get up at five.</i>",
+      "<b>turn on / turn off</b> — a machine or a light: <i>Turn off the engine.</i>",
+      "<b>put on / take off</b> — clothes and equipment: <i>Put on your gloves.</i>",
+      "<b>pick up / drop off</b> — collect or leave something: <i>I'll pick up the parts.</i>",
+      "<b>fill up</b> — fill completely: <i>Fill up the tank.</i>",
+      "<b>look for</b> — search: <i>I'm looking for a 14 mm wrench.</i>",
+      "<b>come back / go back</b> — return: <i>I'll come back tomorrow.</i>",
+      "<b>write down</b> — note: <i>Write down the code.</i>"
+     ]
+    },
+    {
+     "note": "Remember the pronoun rule from the start: <i>Turn it off</i> ✅, never <s>turn off it</s>. It costs nothing to learn now and saves a habit later."
+    },
+    {
+     "h": "Two sounds that change the meaning"
+    },
+    {
+     "p": "English marks grammar with endings that are easy to swallow, and swallowing them makes you hard to understand:"
+    },
+    {
+     "list": [
+      "The <b>-s</b> of the third person and of plurals: <i>he work<b>s</b></i>, <i>two bolt<b>s</b></i>. Pronounced /s/ after a voiceless sound, /z/ after a voiced one, and /ɪz/ after s, sh, ch, x: <i>hoses</i>, <i>watches</i>.",
+      "The <b>-ed</b> of the past: /t/ after voiceless (<i>checked</i>), /d/ after voiced (<i>repaired</i>), and /ɪd/ <b>only</b> after t or d (<i>wanted</i>, <i>needed</i>)."
+     ]
+    },
+    {
+     "p": "Notice that <i>worked</i> is one syllable, not two. Saying «work-ed» is the single most recognisable Spanish-speaker mistake, and it is easy to fix once you hear it."
+    },
+    {
+     "h": "to be or to have: the trap Spanish sets for you"
+    },
+    {
+     "p": "Spanish uses <i>tener</i> for age, hunger, cold and being right. English uses <b>to be</b> for all of them, and the mistake is instantly recognisable."
+    },
+    {
+     "code": "I AM 34 (years old).       not: I have 34\nI AM hungry / thirsty.      not: I have hunger\nI AM cold / hot.            not: I have cold\nI AM right / wrong.         not: I have reason\nI AM afraid.                not: I have fear\nI AM in a hurry.            not: I have hurry\n\nBUT with to have:\nI HAVE a headache.   I HAVE a problem.   I HAVE time."
+    },
+    {
+     "note": "There is one more: <i>How old <b>are</b> you?</i> — never <s>how many years do you have</s>. If you fix only one thing from this section, fix this question, because you will be asked it constantly."
+    },
+    {
+     "h": "Every sentence needs a subject"
+    },
+    {
+     "p": "Spanish drops the subject freely; English never can. And when there is no real subject, English invents one — the word <b>it</b>, which means nothing at all here."
+    },
+    {
+     "code": "IT is raining.              (Llueve)\nIT is cold today.           (Hace frío hoy)\nIT is seven o'clock.        (Son las siete)\nIT is important to check.   (Es importante revisar)\nIT takes two hours.         (Toma dos horas)\n\nTHERE is a problem.         (Hay un problema)\nTHERE are two trucks.       (Hay dos camiones)"
+    },
+    {
+     "warn": "Don't confuse the two empty subjects. <b>There is/are</b> says that something <i>exists</i>; <b>it is</b> describes a situation. <i>There is a problem</i> ✅ / <s>It has a problem</s> ❌ when you mean «hay un problema»."
+    },
+    {
+     "h": "Pronouns: the small words that carry everything"
+    },
+    {
+     "code": "SUBJECT   OBJECT    POSSESSIVE adj   POSSESSIVE pron\nI         me        my               mine\nyou       you       your             yours\nhe        him       his              his\nshe       her       her              hers\nit        it        its              its\nwe        us        our              ours\nthey      them      their            theirs\n\nHE gave the manual to ME.  →  It's HIS manual, not MINE."
+    },
+    {
+     "p": "Two things to watch. First, <b>its</b> (possessive) has no apostrophe, while <b>it's</b> means <i>it is</i> — even native speakers get this wrong. Second, the possessive matches the <b>owner</b>, not the object: <i>Ana and <b>her</b> truck</i>, <i>Luis and <b>his</b> tools</i>. Spanish uses <i>su</i> for both, so this needs conscious practice."
+    },
+    {
+     "h": "Verbs followed by -ing: like, love, hate"
+    },
+    {
+     "code": "I LIKE working outdoors.\nI LOVE fixing engines.\nI DON'T MIND working weekends.\nI HATE waiting.\nI ENJOY learning new things.\n\nI'D LIKE TO learn English.    ← 'would like' takes TO"
+    },
+    {
+     "p": "Note the difference: <b>I like</b> = in general, always. <b>I'd like</b> (I would like) = I want, right now. <i>I like coffee</i> is a preference; <i>I'd like a coffee</i> is an order at the counter."
+    },
+    {
+     "h": "Prepositions of place and movement"
+    },
+    {
+     "code": "PLACE (static)\n  IN the truck · IN the box · IN Managua\n  ON the table · ON the wall · ON the floor\n  AT the workshop · AT home · AT work\n  UNDER · BEHIND · IN FRONT OF · NEXT TO · BETWEEN\n\nMOVEMENT\n  go TO the workshop      (destination)\n  come FROM the office    (origin)\n  put it INTO the box     (entering)\n  get ON / OFF the truck  (a large vehicle)\n  get IN / OUT OF the car (a small one)"
+    },
+    {
+     "warn": "<b>Go to</b> always takes <i>to</i> — except with <i>home</i>: <i>I go <b>home</b></i>, never <s>I go to home</s>. And <i>arrive</i> takes <b>at</b> or <b>in</b>, never <i>to</i>: <i>I arrived <b>at</b> the workshop</i>."
+    },
+    {
+     "h": "Spelling when you add an ending"
+    },
+    {
+     "code": "-ING\n  make → making        (drop the silent -e)\n  stop → stopping      (double the final consonant)\n  run  → running\n\n-ED\n  use  → used\n  stop → stopped\n  try  → tried         (-y after consonant → -ied)\n  play → played        (-y after vowel → just -ed)\n\n-S\n  work → works\n  watch → watches      (add -es after s, sh, ch, x)\n  study → studies\n  go → goes"
+    },
+    {
+     "p": "The doubling rule has a logic: it keeps the vowel short. <i>Hoping</i> and <i>hopping</i> are different words, and the double letter is what tells you which one you're reading."
+    },
+    {
+     "h": "Words that look Spanish but aren't"
+    },
+    {
+     "code": "actually      = in fact         (actualmente = currently)\nassist        = help            (asistir a = attend)\nrealize       = notice          (realizar = carry out)\nsupport       = hold up, bear   (soportar = tolerate)\nconstipated   = estreñido       (constipado = has a cold)\nembarrassed   = avergonzado     (embarazada = pregnant)\ncarpet        = alfombra        (carpeta = folder)\nexit          = salida          (éxito = success)"
+    },
+    {
+     "note": "The last three cause real trouble. Say <i>I'm embarrassed</i> only if you mean ashamed — and if you have a cold, the word is simply <i>I have a cold</i>."
+    },
+    {
+     "h": "Putting it together"
+    },
+    {
+     "quote": "I work at a workshop in Managua. Right now I'm repairing a hydraulic pump. Yesterday I checked the oil and I found a leak, so I'm going to replace the seal tomorrow. How much oil do we have left?"
+    },
+    {
+     "p": "Six sentences, six structures: present simple, present continuous, past simple, going to, an uncountable question. If you can produce this paragraph about your own day, you have A2 under control."
+    },
+    {
+     "key": "Do not study these tenses as a list to memorise. Take one real situation from your work each day and describe it out loud in three sentences: what you do generally, what you are doing now, what you did yesterday."
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 22,
+   "tags": "vocabulary,grammar,phrasal verbs,pronunciation",
+   "title": "Getting things done in English",
+   "subtitle": "The words and phrases you need to greet people, describe a problem, ask for what you need and survive a conversation you don't fully understand.",
+   "body": [
+    {
+     "p": "The first chapter gave you the machinery of the language. This one gives you the phrases: the things you actually say at work, in a shop, on the phone. Most of them you can learn as whole blocks, without analysing the grammar — and that is exactly how children and good adult learners do it."
+    },
+    {
+     "h": "Greetings and small talk"
+    },
+    {
+     "code": "Good morning / afternoon / evening.\nHi. / Hello. / Morning!            (informal, very common)\nHow are you? — Fine, thanks. And you?\nHow's it going? — Not bad, thanks.\nNice to meet you. — Nice to meet you too.\n\nSee you tomorrow. / See you later. / Take care.\nHave a good weekend. — You too!"
+    },
+    {
+     "p": "<b>Good night</b> is only for saying goodbye at the end of the day, never for greeting someone. To greet someone in the evening you say <b>good evening</b>."
+    },
+    {
+     "note": "«How are you?» is often a greeting, not a real question. The expected answer is short — <i>Fine, thanks</i> — and then you return it. Giving a long honest answer surprises people."
+    },
+    {
+     "h": "Introducing yourself"
+    },
+    {
+     "quote": "Hi, I'm Luis. I'm a heavy machinery mechanic. I work for a construction company in Managua. I've been doing this for about ten years. I'm learning English because I want to read the technical manuals."
+    },
+    {
+     "p": "Learn your own version of this paragraph by heart. It is the single most useful thing you can memorise, because you will need it every time you meet someone new, and reciting it fluently buys you confidence for the rest of the conversation."
+    },
+    {
+     "code": "I'm from Nicaragua.\nI live in Managua.\nI work FOR a company.       (employer)\nI work AT a workshop.        (place)\nI work AS a mechanic.        (role)\nI'm responsible FOR maintenance."
+    },
+    {
+     "h": "Asking for things politely"
+    },
+    {
+     "p": "The grammar is easy; the politeness is what matters. English sounds rude very quickly without these softeners."
+    },
+    {
+     "code": "DIRECT (can sound rude)     POLITE\nGive me the wrench.      →  COULD you pass me the wrench, please?\nI want a coffee.         →  I'D LIKE a coffee, please.\nHelp me.                 →  COULD you give me a hand?\nRepeat that.             →  SORRY, could you repeat that?\nWhere is the office?     →  EXCUSE ME, where is the office?"
+    },
+    {
+     "key": "Three words do almost all the work: <b>please</b>, <b>sorry</b> and <b>excuse me</b>. Use <i>excuse me</i> to get someone's attention or to pass by, and <i>sorry</i> to apologise or when you didn't hear."
+    },
+    {
+     "h": "When you don't understand"
+    },
+    {
+     "p": "This is the most valuable section of the chapter. Pretending to understand is what really breaks a conversation — asking never does."
+    },
+    {
+     "code": "Sorry, I didn't catch that.\nCould you repeat that, please?\nCould you speak more slowly, please?\nCould you write it down?\nHow do you spell that?\nWhat does «gasket» mean?\nHow do you say «empaque» in English?\nSorry, my English isn't very good.\nJust to make sure — you mean the front one?"
+    },
+    {
+     "note": "«I didn't catch that» is what native speakers say, and it sounds much better than «I don't understand», because it puts the problem on the noise, not on you."
+    },
+    {
+     "h": "Describing a problem"
+    },
+    {
+     "p": "A whole conversation at work can be built from a handful of patterns:"
+    },
+    {
+     "code": "There is a problem WITH the pump.\nThe engine DOESN'T start.\nIt's NOT working.\nIt STOPPED working yesterday.\nIt makes a strange noise.\nThere's a leak / a crack / a loose bolt.\nThe oil is dirty.\nIt's overheating.\nI think the filter is blocked.\nIt needs a new seal."
+    },
+    {
+     "list": [
+      "<b>broken</b> — roto, no funciona",
+      "<b>loose</b> ↔ <b>tight</b> — flojo ↔ apretado",
+      "<b>worn out</b> — gastado",
+      "<b>leaking</b> — con fuga · <b>dripping</b> — goteando",
+      "<b>stuck</b> — atascado, pegado",
+      "<b>missing</b> — falta, no está",
+      "<b>noisy</b> — ruidoso · <b>smooth</b> — suave"
+     ]
+    },
+    {
+     "h": "Tools, parts and materials"
+    },
+    {
+     "code": "TOOLS        wrench/spanner · screwdriver · hammer · pliers\n             socket · tape measure · jack · grinder · drill\nFASTENERS    bolt · nut · washer · screw · clamp · pin\nPARTS        bearing · gasket · seal · hose · belt · filter\n             valve · pump · piston · spring · gear\nMATERIALS    steel · rubber · copper · plastic · grease · oil\nCONDITION    new · used · second-hand · spare · faulty"
+    },
+    {
+     "p": "Two spelling notes: <b>pliers</b> and <b>scissors</b> are always plural (<i>a pair of pliers</i>), and <b>equipment</b> never takes an -s (<i>a lot of equipment</i>, not <s>equipments</s>)."
+    },
+    {
+     "h": "Numbers you have to hear correctly"
+    },
+    {
+     "code": "13 THIRteen  ·  30 THIRty      the stress moves!\n14 fourTEEN  ·  40 FORty\n15 fifTEEN   ·  50 FIFty\n\n0   zero (US) · oh (in phone numbers) · nil (sports)\n1/2 a half   ·  1/4 a quarter  ·  3/4 three quarters\n1.5 one point five\n1,500 one thousand five hundred / fifteen hundred\n\n14 mm  fourteen millimetres\n3/8\"   three eighths of an inch"
+    },
+    {
+     "warn": "The -teen / -ty pair is the number one source of expensive mistakes at work: ordering 50 filters instead of 15. When it matters, confirm: <i>«One five, fifteen?»</i> Native speakers do this too."
+    },
+    {
+     "h": "Time, days and scheduling"
+    },
+    {
+     "code": "MONDAY Tuesday Wednesday Thursday Friday Saturday Sunday\nJanuary February March April May June July\nAugust September October November December\n\nWhat time is it? — It's half past two.\nWhat time do you start? — At seven.\nHow long does it take? — About three hours.\nWhen is it ready? — On Friday. / In two days. / Next week.\n\nyesterday · today · tomorrow · the day after tomorrow\nlast week · this week · next week\nevery day · twice a week · once a month"
+    },
+    {
+     "note": "Days and months are always capitalised in English: <i>Monday</i>, <i>August</i>. Spanish writes them lowercase, so this is an easy point to lose in writing."
+    },
+    {
+     "h": "On the phone"
+    },
+    {
+     "code": "Hello, this is Luis (speaking).\nCan I speak to Mr. Ramírez, please?\nWho's calling? — It's Luis, from the workshop.\nHold on a moment, please.\nHe's not available right now.\nCan I leave a message?\nCan you call me back?\nSorry, the line is bad. Could you repeat that?\nThanks for your time. Goodbye."
+    },
+    {
+     "p": "On the phone English says <b>this is Luis</b>, not <s>I am Luis</s>. It is a fixed expression — don't try to make it logical, just use it."
+    },
+    {
+     "h": "Ordering and buying"
+    },
+    {
+     "code": "I'm looking for a fuel filter for a CAT 320.\nDo you have it in stock?\nHow much is it? / How much does it cost?\nHow much are they?         (plural)\nCan you order it for me?\nHow long will it take?\nIs there a cheaper option?\nCan I have a receipt, please?\nI'd like to pay by card / in cash."
+    },
+    {
+     "h": "Saying yes, no and maybe"
+    },
+    {
+     "code": "AGREEING       Sure. · Of course. · No problem. · Absolutely.\n               That's right. · Exactly. · I agree.\nDECLINING      Sorry, I can't. · I'm afraid not.\n               Not right now. · Maybe later.\nNOT SURE       I'm not sure. · I think so. · I don't think so.\n               Let me check. · I'll find out."
+    },
+    {
+     "key": "<b>I'm afraid not</b> and <b>Let me check</b> are worth more than a hundred vocabulary words. The first says no politely; the second buys you time without pretending you know."
+    },
+    {
+     "h": "Short answers sound native"
+    },
+    {
+     "p": "English almost never answers with a bare <i>yes</i> or <i>no</i>. It repeats the auxiliary, and this is what makes a conversation sound natural:"
+    },
+    {
+     "code": "Do you work here?      — Yes, I DO.   / No, I DON'T.\nAre you the mechanic?  — Yes, I AM.   / No, I'M NOT.\nCan you fix it?        — Yes, I CAN.  / No, I CAN'T.\nHave you finished?     — Yes, I HAVE. / No, I HAVEN'T.\nDid you check it?      — Yes, I DID.  / No, I DIDN'T."
+    },
+    {
+     "p": "The rule is mechanical: whatever auxiliary appears in the question comes back in the answer. Practise it out loud until it is automatic — it costs one afternoon and changes how you sound."
+    },
+    {
+     "h": "Contractions: how English really sounds"
+    },
+    {
+     "code": "WRITTEN FULL       SPOKEN\nI am               I'm\nyou are            you're\nhe is / he has     he's\nwe will            we'll\nI would / I had    I'd\ndo not             don't\ncannot             can't\nis not             isn't\nwill not           won't"
+    },
+    {
+     "p": "Native speakers use contractions almost always in speech and in informal writing. Not using them doesn't make you sound formal — it makes you sound like a textbook. Use them when you talk; write them out in a formal letter."
+    },
+    {
+     "warn": "Listen for <b>won't</b> (will not) and <b>want</b> — they are different words and beginners mix them constantly. And <b>can't</b> is longer and more stressed than <b>can</b>; that length is the only clue you'll get in fast speech."
+    },
+    {
+     "h": "Survival kit"
+    },
+    {
+     "p": "If you remember nothing else from this chapter, remember these ten lines. They will get you through almost any situation:"
+    },
+    {
+     "list": [
+      "<i>Sorry, could you repeat that?</i>",
+      "<i>Could you speak more slowly, please?</i>",
+      "<i>How do you say … in English?</i>",
+      "<i>What does … mean?</i>",
+      "<i>Could you write it down?</i>",
+      "<i>Let me check and get back to you.</i>",
+      "<i>I'm not sure — I'll find out.</i>",
+      "<i>Could you give me a hand?</i>",
+      "<i>Just to make sure — you mean …?</i>",
+      "<i>Sorry, my English isn't very good, but I'm learning.</i>"
+     ]
+    },
+    {
+     "key": "The last one changes every conversation. People are almost always patient with someone who is clearly trying — but they can't know you're trying unless you tell them."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 19,
+   "tags": "grammar,phrasal verbs,vocabulary",
+   "title": "Present Perfect and the logic of phrasal verbs",
+   "subtitle": "The tense Spanish speakers get wrong, and how to stop memorising phrasal verbs one by one.",
+   "body": [
+    {
+     "p": "Two things separate a B1 speaker from an A2 one: using the Present Perfect correctly, and handling phrasal verbs without panic. Both look chaotic at first and both follow a clear logic."
+    },
+    {
+     "h": "Present Perfect: the bridge between past and present"
+    },
+    {
+     "p": "Formed with <b>have / has + past participle</b>. The Spanish <i>«he trabajado»</i> looks identical, which is exactly the trap: the two languages use it at different moments."
+    },
+    {
+     "code": "PAST SIMPLE       finished action, definite time\n                  I repaired the pump YESTERDAY.\n\nPRESENT PERFECT   no definite time, or still relevant now\n                  I HAVE repaired three pumps this week."
+    },
+    {
+     "key": "The test is simple: <b>if you say when, use the Past Simple</b>. Words like <i>yesterday, last week, in 2019, two hours ago</i> force the Past Simple. Words like <i>ever, never, already, yet, just, so far, this week</i> point to the Present Perfect."
+    },
+    {
+     "p": "There is a second use that Spanish handles differently: an action that <b>started in the past and continues now</b>. Spanish uses the present (<i>«Trabajo aquí desde hace diez años»</i>); English must use the perfect:"
+    },
+    {
+     "code": "I have worked here for ten years.        ✅\nI have been working here for ten years.  ✅ (emphasis on the activity)\nI work here since ten years.             ❌ never"
+    },
+    {
+     "list": [
+      "<b>for</b> + a length of time: for ten years, for two hours, for a long time",
+      "<b>since</b> + the starting point: since 2016, since Monday, since I arrived"
+     ]
+    },
+    {
+     "h": "Simple or continuous?"
+    },
+    {
+     "p": "<b>Present Perfect Simple</b> looks at the <i>result</i>: <i>I've repaired three engines today</i> — three, done, countable. <b>Present Perfect Continuous</b> looks at the <i>activity and its duration</i>: <i>I've been repairing engines all morning</i> — that is why I am covered in oil."
+    },
+    {
+     "note": "A useful clue: if you can count the results, use the simple. If you are explaining why the present situation looks the way it does, use the continuous."
+    },
+    {
+     "h": "Phrasal verbs are not random"
+    },
+    {
+     "p": "A phrasal verb is a verb plus a particle, and together they mean something new: <b>break</b> means <i>romper</i>, but <b>break down</b> means <i>averiarse</i>. English speakers use them constantly — avoiding them is what makes speech sound stiff and translated."
+    },
+    {
+     "p": "The good news: the particles carry consistent ideas. Once you feel them, you can often guess the meaning."
+    },
+    {
+     "list": [
+      "<b>up</b> — completing, increasing, finishing off: <i>fill up, use up, eat up, speed up</i>",
+      "<b>down</b> — reducing, stopping, writing: <i>slow down, shut down, break down, write down</i>",
+      "<b>out</b> — removing, discovering, exhausting: <i>find out, run out, sort out, throw out</i>",
+      "<b>on</b> — continuing, connecting: <i>carry on, turn on, hold on, go on</i>",
+      "<b>off</b> — separating, cancelling, disconnecting: <i>turn off, call off, take off, put off</i>",
+      "<b>up with</b> — enduring or producing: <i>put up with, come up with, catch up with</i>"
+     ]
+    },
+    {
+     "h": "The separability rule"
+    },
+    {
+     "p": "This is the mechanical part, and it has one rule you must never break."
+    },
+    {
+     "code": "SEPARABLE (verb + adverb)\n  Turn off the engine.      ✅\n  Turn the engine off.      ✅\n  Turn it off.              ✅\n  Turn off it.              ❌  ← pronoun MUST go in the middle\n\nINSEPARABLE (verb + preposition)\n  Look after the machine.   ✅\n  Look after it.            ✅\n  Look it after.            ❌"
+    },
+    {
+     "key": "If you use a <b>pronoun</b> (it, them, him), a separable phrasal verb must be split. This single rule fixes more mistakes than memorising a hundred definitions."
+    },
+    {
+     "h": "The ones you will actually use at work"
+    },
+    {
+     "list": [
+      "<b>break down</b> — stop working: <i>The truck broke down on the road.</i>",
+      "<b>run out of</b> — have no more left: <i>We ran out of hydraulic oil.</i>",
+      "<b>find out</b> — discover: <i>I found out the filter was blocked.</i>",
+      "<b>figure out</b> — understand after thinking: <i>I can't figure out what's wrong.</i>",
+      "<b>look for</b> — search: <i>I'm looking for a 14 mm wrench.</i>",
+      "<b>look after</b> — take care of: <i>He looks after the machines.</i>",
+      "<b>carry out</b> — perform a task: <i>We carried out a full inspection.</i>",
+      "<b>put off</b> — postpone: <i>Don't put off the service.</i>",
+      "<b>give up</b> — quit: <i>Don't give up.</i>",
+      "<b>get on with</b> — have a good relationship: <i>I get on well with my boss.</i>"
+     ]
+    },
+    {
+     "h": "A trap worth memorising"
+    },
+    {
+     "p": "In <b>look forward to</b>, <b>be used to</b> and <b>get used to</b>, the word <i>to</i> is a preposition, not part of an infinitive. What follows must be a noun or an -ing form:"
+    },
+    {
+     "code": "I look forward to hearing from you.   ✅\nI look forward to hear from you.      ❌\n\nI'm used to working long hours.       ✅ (I'm accustomed to it)\nI used to work long hours.            ✅ (but not any more) — different verb!"
+    },
+    {
+     "warn": "<b>be used to</b> and <b>used to</b> look almost identical and mean completely different things. <i>I am used to the noise</i> = I'm accustomed to it. <i>I used to work at night</i> = I did before, not now."
+    },
+    {
+     "h": "Obligation: must, have to, should"
+    },
+    {
+     "code": "MUST       obligation the speaker feels\n           I must finish this today.\nHAVE TO    obligation from outside (a rule)\n           You have to wear a helmet on site.\nSHOULD     advice, recommendation\n           You should check the oil first."
+    },
+    {
+     "warn": "The negatives are <b>opposites</b>, and confusing them is dangerous: <b>mustn't</b> = it is forbidden (<i>You mustn't smoke near the fuel tank</i>). <b>Don't have to</b> = it isn't necessary (<i>You don't have to stay late</i>)."
+    },
+    {
+     "p": "For the past, <b>must</b> borrows from <i>have to</i>: <i>I <b>had to</b> replace it</i>. And for regret, <b>should have + participle</b>: <i>I <b>should have checked</b> the oil.</i>"
+    },
+    {
+     "h": "The passive voice"
+    },
+    {
+     "p": "Formed with <b>be + past participle</b>. English uses it far more than Spanish, especially in technical and formal writing, because it lets you put the important thing first and leave out who did it."
+    },
+    {
+     "code": "ACTIVE   The mechanic replaced the pump.\nPASSIVE  The pump WAS REPLACED (by the mechanic).\n\nPresent  The engine IS SERVICED every 500 hours.\nPast     The report WAS WRITTEN yesterday.\nPerfect  The filter HAS BEEN CHANGED.\nModal    The guard MUST BE REPLACED before use."
+    },
+    {
+     "p": "Use it when who did the action is unknown, obvious or irrelevant. Add <b>by</b> only when the agent matters. In a maintenance log, <i>The seals were replaced at 4,300 hours</i> is exactly right: nobody cares which hands did it."
+    },
+    {
+     "h": "Relative clauses"
+    },
+    {
+     "code": "WHO    people    The man WHO called you is here.\nWHICH  things     The part WHICH broke is expensive.\nTHAT   both       The tool THAT I need is missing.\nWHERE  places     The workshop WHERE I work.\nWHOSE  possession The driver WHOSE truck broke down."
+    },
+    {
+     "p": "When the relative word is the <b>object</b> of the clause, English lets you drop it entirely — and native speakers usually do: <i>The tool <b>(that)</b> I need is missing.</i> You cannot drop it when it is the subject: <i>The man <b>who</b> called</i> keeps its <i>who</i>."
+    },
+    {
+     "note": "Commas change the meaning. <i>The machines <b>that</b> were serviced are working</i> = only those ones. <i>The machines<b>, which</b> were serviced, are working</i> = all of them, and by the way they were serviced."
+    },
+    {
+     "h": "used to: habits that ended"
+    },
+    {
+     "code": "I USED TO drive trucks.          (before, not now)\nI DIDN'T USE TO like it.          ← no -d in the negative\nDID you USE TO work at night?     ← no -d in the question"
+    },
+    {
+     "warn": "Do not confuse three similar things: <b>used to + verb</b> = a past habit. <b>be used to + -ing</b> = accustomed (<i>I'm used to working nights</i>). <b>get used to + -ing</b> = becoming accustomed (<i>I'm getting used to it</i>)."
+    },
+    {
+     "h": "Conditionals: the first two"
+    },
+    {
+     "code": "FIRST — real, possible future\n  IF + present simple , ... WILL + verb\n  If it rains, we will stop working.\n\nSECOND — imaginary or unlikely present\n  IF + past simple , ... WOULD + verb\n  If I had more time, I would study every day."
+    },
+    {
+     "p": "The <i>if</i> half <b>never</b> takes <b>will</b> or <b>would</b>: <s>If it will rain</s> is wrong. And in the second conditional, the past form does not mean past time — it signals distance from reality. That is why <i>If I <b>were</b> you</i> keeps that old <i>were</i> for every person."
+    },
+    {
+     "note": "You can swap the halves; only the comma moves: <i>If it rains, we will stop</i> = <i>We will stop <b>if it rains</b></i> (no comma when the <i>if</i> comes second)."
+    },
+    {
+     "h": "Quantifiers"
+    },
+    {
+     "code": "COUNTABLE          UNCOUNTABLE        BOTH\nmany bolts         much oil           a lot of / lots of\na few bolts        a little oil       some / any\nfew bolts (≈none)  little oil (≈none) enough\nseveral            a bit of           plenty of"
+    },
+    {
+     "p": "Watch the difference a single article makes: <b>a few</b> means «some, and that's fine»; <b>few</b> means «almost none, and that's a problem». <i>We have <b>a few</b> filters</i> is reassuring. <i>We have <b>few</b> filters</i> is a warning."
+    },
+    {
+     "h": "Comparing things"
+    },
+    {
+     "code": "SHORT adj    fast → faster → the fastest\nLONG adj     expensive → more expensive → the most expensive\nIRREGULAR    good/better/best   bad/worse/worst   far/further/furthest\n\nEQUAL        This one is AS powerful AS that one.\nNOT EQUAL    It isn't as heavy as the old model.\nDOUBLE       THE MORE you service it, THE LONGER it lasts.\nCHANGE       It's getting BETTER AND BETTER."
+    },
+    {
+     "p": "After a comparative, use <b>than</b>, never <i>that</i>: <i>more powerful <b>than</b> that one</i>. It is a small word, and getting it wrong is very noticeable."
+    },
+    {
+     "h": "Where adverbs go"
+    },
+    {
+     "code": "FREQUENCY   before the main verb, after BE\n  I ALWAYS check the oil.\n  He is NEVER late.\n  always > usually > often > sometimes > rarely > never\n\nMANNER      normally at the end\n  He works CAREFULLY.\n\nTIME        at the end (or the beginning for emphasis)\n  I finished the job YESTERDAY."
+    },
+    {
+     "warn": "English does not let an adverb sit between the verb and its object: <i>I check the oil <b>carefully</b></i> ✅, but <s>I check carefully the oil</s> ❌. Spanish allows it, so this mistake survives for years."
+    },
+    {
+     "h": "More phrasal verb families"
+    },
+    {
+     "p": "Group them by situation, not alphabetically — that is how you will actually recall them."
+    },
+    {
+     "list": [
+      "<b>Machines</b>: break down (fail), start up, shut down, warm up, wear out, run out of.",
+      "<b>Problems</b>: sort out (resolve), deal with, look into (investigate), come across (find by chance), end up (finish in a situation).",
+      "<b>Work</b>: take on (accept work, hire), carry out (perform), set up (prepare), put off (postpone), call off (cancel), fill in (complete a form).",
+      "<b>People</b>: get on with (have a good relationship), take after (resemble a relative), look after (take care of), turn up (arrive), let down (disappoint)."
+     ]
+    },
+    {
+     "key": "Every one of these has a formal one-word equivalent, and in speech the phrasal verb is almost always the natural choice. <i>We'll <b>look into</b> it</i> sounds human; <i>We will investigate it</i> sounds like a letter from a lawyer."
+    },
+    {
+     "h": "Building word families"
+    },
+    {
+     "code": "maintain (v) → maintenance (n) → maintainable (adj)\nsafe (adj)   → safety (n)      → unsafe → safely (adv)\nreliable     → reliability     → unreliable\nrepair (v/n) → repairable      → irreparable\n\nNOUNS       -tion  -ment  -ity  -ness\nADJECTIVES  -able  -ive   -ous  -ful  -less\nOPPOSITES   un-  in-  im-  ir-  dis-"
+    },
+    {
+     "p": "Learning one word gives you four for free, and it doubles your reading speed: when you meet <i>irreparable</i> for the first time, you don't need a dictionary."
+    },
+    {
+     "h": "How to practise"
+    },
+    {
+     "p": "Pick three phrasal verbs a week and force them into real sentences about your own day, not textbook examples. <i>The excavator broke down. We ran out of filters. I'll follow up with the supplier.</i> A phrasal verb you have used out loud five times is yours; one you have only read is not."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 19,
+   "tags": "grammar,vocabulary,writing",
+   "title": "Conditionals, reported speech and professional writing",
+   "subtitle": "The structures you need to explain causes, report what others said and write an email that gets answered.",
+   "body": [
+    {
+     "p": "At B2 the goal changes. You are no longer trying to be understood — you are trying to be <b>precise</b>: to say what would have happened, to report a conversation accurately, and to write something a stranger will act on."
+    },
+    {
+     "h": "The conditionals as a single system"
+    },
+    {
+     "p": "Do not learn four separate rules. Learn one idea: <b>how far the situation is from reality</b>, and shift the tense back accordingly."
+    },
+    {
+     "code": "ZERO    general truth        If you heat water, it boils.\nFIRST   real future          If it rains, we WILL stop.\nSECOND  imaginary present    If I HAD time, I WOULD study.\nTHIRD   impossible past      If I HAD KNOWN, I WOULD HAVE called."
+    },
+    {
+     "p": "Each step back in reality takes one step back in tense. The second conditional uses a past form for a present situation; the third uses the past perfect for a past one. The <i>if</i> half never takes <b>will</b> or <b>would</b> — that is the mistake to watch for."
+    },
+    {
+     "h": "Mixed conditionals"
+    },
+    {
+     "p": "Real conversation mixes the time frames, and this is where you sound advanced:"
+    },
+    {
+     "code": "Past cause → present result:\n  If I had studied English at school, I would be working abroad now.\n\nPresent cause → past result:\n  If I were more careful, I wouldn't have made that mistake."
+    },
+    {
+     "key": "The third conditional is the language of <b>diagnosis and accountability</b>: <i>If the filter had been replaced on schedule, the damage would have been avoided.</i> If you write incident reports, this structure is not optional."
+    },
+    {
+     "h": "Reported speech"
+    },
+    {
+     "p": "When you report what someone said, you move one step back in time, because the moment of speaking has passed."
+    },
+    {
+     "code": "\"I am busy.\"        → He said he WAS busy.\n\"I saw it.\"          → He said he HAD SEEN it.\n\"I will call you.\"   → He said he WOULD call me.\n\"I can fix it.\"      → He said he COULD fix it.\n\nAlso shift:  tomorrow → the next day   ·   here → there\n             this → that                ·   now → then"
+    },
+    {
+     "note": "You do not shift the tense when the statement is still true: <i>He said the engine <b>runs</b> on diesel</i> is fine, because it still does. The shift reflects distance in time, not a mechanical rule."
+    },
+    {
+     "p": "Reporting questions is where most people slip. The reported question is <b>no longer a question</b>, so it takes normal word order and no auxiliary:"
+    },
+    {
+     "code": "\"Where is the manual?\"   → He asked where the manual WAS.\n                            (not: where was the manual)\n\"Did you check it?\"      → He asked IF I had checked it."
+    },
+    {
+     "h": "Modals of deduction"
+    },
+    {
+     "p": "This is how you express certainty in a diagnosis without claiming more than you know."
+    },
+    {
+     "list": [
+      "<b>must be</b> — I'm almost certain it is: <i>It must be the alternator.</i>",
+      "<b>might / could be</b> — it's possible: <i>It might be a vacuum leak.</i>",
+      "<b>can't be</b> — I'm certain it isn't: <i>It can't be the battery; it's new.</i>"
+     ]
+    },
+    {
+     "p": "For the past, add <b>have</b>: <i>The seal <b>must have failed</b> under pressure. The alarm <b>can't have been</b> working.</i>"
+    },
+    {
+     "h": "Gerund or infinitive"
+    },
+    {
+     "p": "Some verbs are followed by <b>-ing</b>, others by <b>to</b>. There is no logic to memorise, but there are patterns:"
+    },
+    {
+     "code": "+ -ing    enjoy, avoid, finish, keep, suggest, mind, practise, risk\n          I avoid working in the rain.\n\n+ to      decide, hope, need, want, manage, offer, refuse, agree\n          I managed to fix it.\n\nBOTH, different meaning:\n  I stopped smoking.       (I quit)\n  I stopped to smoke.      (I paused in order to smoke)\n  I remember locking it.   (memory of a past action)\n  I remembered to lock it. (I didn't forget)"
+    },
+    {
+     "h": "wish and if only"
+    },
+    {
+     "code": "PRESENT regret   wish + PAST\n  I wish I HAD more time.\n  If only I SPOKE better English.\n\nPAST regret      wish + PAST PERFECT\n  I wish I HAD STUDIED English earlier.\n\nANNOYANCE        wish + WOULD  (about other people)\n  I wish they WOULD STOP making that noise."
+    },
+    {
+     "p": "The pattern is the same as the conditionals: one step back in tense equals one step away from reality. <b>If only</b> is simply a stronger, more emotional <i>wish</i>."
+    },
+    {
+     "warn": "You cannot use <i>wish + would</i> about yourself: <s>I wish I would study more</s>. For your own behaviour it is <i>I wish I studied more</i> or <i>I should study more</i>."
+    },
+    {
+     "h": "Advanced passive structures"
+    },
+    {
+     "p": "Two passive patterns appear constantly in professional English and almost never in courses."
+    },
+    {
+     "code": "IMPERSONAL REPORTING — distance from the claim\n  It IS SAID THAT the model is unreliable.\n  The pump IS BELIEVED TO HAVE FAILED under load.\n  The fault IS THOUGHT TO BE electrical.\n\nCAUSATIVE — you arrange for someone else to do it\n  I HAD the engine SERVICED.        (I didn't do it myself)\n  We are HAVING the workshop PAINTED.\n  I GOT my licence RENEWED.         (more informal)"
+    },
+    {
+     "p": "The causative is the natural way to talk about work you commissioned. <i>I repaired my truck</i> means you did it; <i>I <b>had</b> my truck <b>repaired</b></i> means the workshop did. Spanish blurs this; English does not."
+    },
+    {
+     "h": "Participle clauses: writing tighter"
+    },
+    {
+     "p": "When two clauses share a subject, English often compresses the first into a participle. It is one of the clearest markers of a B2+ writer:"
+    },
+    {
+     "code": "After I checked the oil, I started the engine.\n→ HAVING CHECKED the oil, I started the engine.\n\nBecause it was damaged, the filter was replaced.\n→ BEING damaged, the filter was replaced.\n→ DAMAGED, the filter was replaced.\n\nThe report, which was written last week, ...\n→ The report, WRITTEN last week, ..."
+    },
+    {
+     "warn": "The two halves <b>must share the subject</b>. <i>Having checked the oil, the engine started</i> is wrong — it says the engine checked the oil. This is called a dangling participle and it is a classic error in technical reports."
+    },
+    {
+     "h": "Articles at B2: the details that give you away"
+    },
+    {
+     "list": [
+      "<b>No article</b> for general plurals and uncountables: <i>Hydraulic systems require clean oil.</i>",
+      "<b>The</b> for something unique or already identified: <i>the relief valve</i>, <i>the manual</i>.",
+      "<b>The</b> + adjective for a group: <i>the injured</i>, <i>the unemployed</i>.",
+      "<b>No article</b> with institutions used for their purpose: <i>go to work</i>, <i>in hospital</i> (UK), <i>at school</i>.",
+      "<b>The</b> with superlatives, ordinals and rivers/seas/mountain ranges; <b>no article</b> with continents, countries and single mountains."
+     ]
+    },
+    {
+     "h": "Linking a paragraph"
+    },
+    {
+     "code": "ADDING       in addition · furthermore · moreover · what is more\nCONTRAST     however · although · despite / in spite of · whereas\nRESULT       therefore · consequently · as a result · so\nREASON       because · since · as · due to · owing to\nEXAMPLE      for instance · such as · in particular\nSEQUENCE     first · then · after that · finally"
+    },
+    {
+     "warn": "Two traps. <b>Although</b> is followed by a clause (<i>Although it was late, we finished</i>); <b>despite / in spite of</b> by a noun or -ing (<i>Despite the delay</i>, <i>Despite being late</i>). And <b>because</b> introduces a clause while <b>because of</b> introduces a noun."
+    },
+    {
+     "h": "Collocations: the words that travel together"
+    },
+    {
+     "p": "At B2 the grammar is rarely the problem — the word combinations are. English fixes which verb goes with which noun, and a wrong pair is understood but sounds foreign."
+    },
+    {
+     "code": "MAKE   a decision · a mistake · progress · an effort · an appointment\nDO     the work · a job · research · damage · business\nTAKE   responsibility · a break · a risk · measurements · action\nMEET   a deadline · a requirement · a standard · demand\nRUN    a test · a business · a machine · a check\nRAISE  a concern · an issue · awareness\nCARRY  out an inspection · out repairs · out a survey"
+    },
+    {
+     "key": "<i>Make</i> creates something new; <i>do</i> performs an activity. That distinction covers most cases, and the rest you learn by collecting them in pairs, never as single words."
+    },
+    {
+     "h": "Talking about numbers and trends"
+    },
+    {
+     "code": "INCREASE   rise · go up · grow · climb · double\nDECREASE   fall · drop · decline · go down · halve\nSTABLE     remain steady · level off · plateau\nSHARP      significantly · sharply · dramatically\nSLIGHT     slightly · marginally · gradually\n\nFailures ROSE SHARPLY in June, then LEVELLED OFF.\nDowntime FELL BY 20%.  (by = the difference)\nDowntime FELL TO 20 hours.  (to = the final figure)"
+    },
+    {
+     "note": "<b>by</b> and <b>to</b> are not interchangeable and the difference is money: <i>costs fell <b>by</b> 30%</i> means they dropped a third; <i>costs fell <b>to</b> 30%</i> means they are now less than a third of what they were."
+    },
+    {
+     "h": "On the phone and in meetings"
+    },
+    {
+     "list": [
+      "<b>Opening</b>: <i>This is Luis calling about the pump order.</i> / <i>I'm calling to follow up on…</i>",
+      "<b>Not understanding</b>: <i>Sorry, could you repeat that?</i> / <i>Could you speak a bit more slowly, please?</i> / <i>Just to make sure I understood — you mean…?</i>",
+      "<b>Buying time</b>: <i>Let me check and get back to you.</i> / <i>That's a good question — give me a moment.</i>",
+      "<b>Interrupting politely</b>: <i>Sorry to interrupt, but…</i> / <i>Can I just add something here?</i>",
+      "<b>Disagreeing</b>: <i>I see your point, but…</i> / <i>I'm not sure I agree — in my experience…</i>",
+      "<b>Closing</b>: <i>So, to summarise…</i> / <i>I'll send you an email confirming that.</i>"
+     ]
+    },
+    {
+     "key": "«Sorry, could you repeat that?» is the most valuable sentence at B2. Pretending to understand is what actually breaks a conversation — asking never does."
+    },
+    {
+     "h": "Writing an email that works"
+    },
+    {
+     "p": "Professional English is shorter than most learners expect. One idea per paragraph, the request in the first three lines, no decoration."
+    },
+    {
+     "quote": "Dear Mr. Ramírez,\n\nI am writing to request a quotation for a hydraulic pump seal kit for a CAT 320D.\n\nCould you please confirm availability and estimated delivery time? We would need the parts before 15 September.\n\nI look forward to hearing from you.\n\nKind regards,\nLuis Blandón"
+    },
+    {
+     "list": [
+      "<b>I am writing to…</b> — states the purpose immediately",
+      "<b>Could you please…</b> — polite request; more formal than <i>can you</i>",
+      "<b>I would be grateful if you could…</b> — one step more formal",
+      "<b>Please find attached…</b> — for documents",
+      "<b>I look forward to hearing from you</b> — standard closing (remember: <i>hearing</i>, not <i>hear</i>)"
+     ]
+    },
+    {
+     "warn": "Match the opening and the closing. <b>Dear Sir/Madam → Yours faithfully</b> when you don't know the name; <b>Dear Mr. Smith → Yours sincerely</b> when you do. <i>Kind regards</i> is safe for almost everything and is what most people actually use."
+    },
+    {
+     "key": "Read your email once and delete every sentence that does not either give information or ask for something. English business writing rewards brevity in a way Spanish correspondence does not."
+    }
+   ]
+  },
+  {
+   "level": 4,
+   "minutes": 18,
+   "tags": "grammar,register,vocabulary,phrasal verbs",
+   "title": "Register: sounding like a professional",
+   "subtitle": "Inversion, cleft sentences, hedging and the difference between correct English and convincing English.",
+   "body": [
+    {
+     "p": "At C1 grammar is no longer the obstacle. The question becomes: does your English sound like the person you are? The tools in this chapter are about <b>emphasis, distance and precision</b> — how to stress a point, how to be careful with a claim, how to choose the register the situation calls for."
+    },
+    {
+     "h": "Inversion for emphasis"
+    },
+    {
+     "p": "When a negative or limiting adverbial opens the sentence, the subject and the auxiliary swap places, as in a question:"
+    },
+    {
+     "code": "Never have I seen such a badly maintained machine.\nNot only did they ignore the alarm, but they also kept working.\nRarely does a failure happen without warning.\nNot until the engine had cooled down did we open the radiator.\nUnder no circumstances should the guard be removed."
+    },
+    {
+     "p": "Note that in the last example the inversion happens in the <b>main clause</b>, not inside the opening phrase. This is the detail most learners get wrong."
+    },
+    {
+     "warn": "Inversion is formal and emphatic. Used once in a report it lands; used three times it sounds theatrical. Reserve it for the sentence that matters most."
+    },
+    {
+     "h": "Cleft sentences: aiming the spotlight"
+    },
+    {
+     "p": "A cleft splits one sentence in two to put a single element under the light. It is how you correct, contrast or emphasise without raising your voice:"
+    },
+    {
+     "code": "Neutral:  The seal failed, not the pump.\nIt-cleft:  It was the seal that failed, not the pump.\nWhat-cleft: What caused the failure was contaminated oil.\nAll-cleft:  All I need is a torque wrench.\nThe reason: The reason we stopped was a safety concern."
+    },
+    {
+     "key": "Clefts are the most useful advanced structure for <b>meetings</b>. When someone misattributes a problem, <i>«What actually happened was…»</i> corrects the record firmly and without confrontation."
+    },
+    {
+     "h": "Hedging: how experts sound careful"
+    },
+    {
+     "p": "Beginners state facts. Professionals state facts <b>with a stated degree of confidence</b>, because overclaiming destroys credibility the first time you are wrong."
+    },
+    {
+     "code": "Blunt:   The contamination caused the failure.\nHedged:  The failure APPEARS TO HAVE BEEN caused by contamination.\n         The evidence POINTS TO a seal failure.\n         This WOULD SUGGEST a problem with the relief valve.\n         There is A STRONG LIKELIHOOD that the filter was bypassed.\n         The damage is, IN ALL PROBABILITY, cumulative."
+    },
+    {
+     "p": "Hedging is not weakness or vagueness — it is precision about how much you know. The opposite skill matters too: when you <i>are</i> certain, say so plainly, and the contrast makes it count."
+    },
+    {
+     "h": "The subjunctive after demands and recommendations"
+    },
+    {
+     "p": "After verbs and adjectives of requirement, English uses the <b>bare infinitive</b> — no -s, no tense agreement. It sounds strange until you notice it everywhere in manuals and regulations:"
+    },
+    {
+     "code": "The manual recommends that the filter BE REPLACED every 500 hours.\nThey insisted that he ATTEND the safety briefing.\nIt is essential that everyone WEAR a helmet.\nWe propose that the schedule BE REVIEWED."
+    },
+    {
+     "h": "Nominalisation: the texture of formal writing"
+    },
+    {
+     "p": "Formal written English turns verbs into nouns. It makes the prose compact and impersonal — useful in reports, poisonous in excess."
+    },
+    {
+     "code": "They inspected the machine and it failed.\n→ The inspection revealed a failure.\n\nWe decided to replace it because it was worn.\n→ The decision to replace it was based on wear.\n\nThe pump was not maintained, so it broke.\n→ The breakdown resulted from inadequate maintenance."
+    },
+    {
+     "note": "Notice what nominalisation removes: the person responsible. That is exactly why it dominates official writing — and exactly why you should use it consciously, not by default."
+    },
+    {
+     "h": "Choosing the register"
+    },
+    {
+     "code": "INFORMAL   The engine packed up.\nNEUTRAL    The engine broke down.\nFORMAL     The engine suffered a catastrophic failure.\n\nask for → request        ·   put off → postpone\nfind out → ascertain     ·   get rid of → eliminate\nlook into → investigate  ·   carry out → conduct"
+    },
+    {
+     "p": "See the pattern: the informal half of each pair is almost always the <b>phrasal verb</b>, and the formal half is a single Latin-derived word — often close to Spanish. That is an advantage for you: your instinct for the formal word is usually right. The harder skill is the opposite — knowing when the phrasal verb is the better choice, because it sounds natural rather than stiff."
+    },
+    {
+     "h": "Advanced phrasal verbs worth owning"
+    },
+    {
+     "list": [
+      "<b>boil down to</b> — reduce to the essential point: <i>It all boils down to poor maintenance.</i>",
+      "<b>account for</b> — explain, or represent a proportion: <i>Wear accounts for 60% of failures.</i>",
+      "<b>rule out</b> — eliminate a possibility: <i>We ruled out an electrical fault.</i>",
+      "<b>iron out</b> — resolve remaining small problems: <i>We ironed out the last issues.</i>",
+      "<b>gloss over</b> — avoid dealing with something properly: <i>The report glossed over the safety failures.</i>",
+      "<b>weigh up</b> — consider carefully: <i>We weighed up the options.</i>",
+      "<b>phase out</b> — withdraw gradually: <i>They are phasing out that model.</i>"
+     ]
+    },
+    {
+     "h": "Discourse markers"
+    },
+    {
+     "code": "ADDING       moreover, furthermore, what is more\nCONTRASTING  however, nevertheless, that said, whereas\nCAUSE        consequently, hence, as a result, thereby\nCONCEDING    admittedly, granted, even so, to be fair\nCONCLUDING   overall, on balance, all things considered"
+    },
+    {
+     "p": "These are the signposts that let a reader follow an argument without effort. <b>That said</b> and <b>admittedly</b> are particularly valuable: they show you have considered the counter-argument, which makes the rest of your case more credible."
+    },
+    {
+     "h": "Emphasis without inversion"
+    },
+    {
+     "p": "Inversion is the loud tool. English has quieter ones you will use far more often."
+    },
+    {
+     "code": "EMPHATIC DO       We DID check the pressure.  (contradicting)\n                  It DOES seem unusual.\n\nFRONTING          That valve, I replaced last week.\n                  Serious, the damage was not.  (rare, literary)\n\nREFLEXIVE         The manual itself says otherwise.\n\nADVERBS           This is precisely the problem.\n                  The fault lies squarely with maintenance."
+    },
+    {
+     "p": "<b>Emphatic do</b> is especially useful in disagreement, because it concedes and corrects at once: <i>We <b>did</b> follow the procedure — the failure happened anyway.</i>"
+    },
+    {
+     "h": "Ellipsis and substitution"
+    },
+    {
+     "p": "Advanced English removes what the listener can reconstruct. Repeating it in full is grammatically correct and sounds heavy."
+    },
+    {
+     "code": "— Have you checked the pressure?\n— I have.                    (not: I have checked the pressure)\n\n— Will it need a new seal?\n— It might DO.  /  I think SO.  /  I hope NOT.\n\nHe replaced the filter and (he) tested the machine.\nThe first option is cheaper than the second (one)."
+    },
+    {
+     "note": "<b>so</b> and <b>not</b> stand in for a whole clause: <i>I think so</i>, <i>I'm afraid not</i>, <i>If so, we'll postpone it</i>. Using them is one of the cheapest ways to sound fluent."
+    },
+    {
+     "h": "Complex noun phrases"
+    },
+    {
+     "p": "Formal English packs information into the noun phrase rather than into extra sentences. Reading it is a C1 skill; writing it is a choice."
+    },
+    {
+     "code": "The recently identified hydraulic fluid contamination issue\n │       │          │         │        │            │\n det  adverb    participle  modifiers        head noun\n\nA delay in the delivery of the replacement parts ordered last month"
+    },
+    {
+     "warn": "This construction is why technical documents are hard to read. Use it to be compact, not to be impressive: if a reader has to go back to the start of the phrase, split the sentence in two."
+    },
+    {
+     "h": "Hedging and its opposite"
+    },
+    {
+     "p": "You already know how to soften a claim. The complementary skill is knowing how to <b>strengthen</b> one — and how to alternate, because a text that only hedges sounds evasive."
+    },
+    {
+     "code": "SOFTEN   appears to · would suggest · in all probability · tends to\n         it may be that · to some extent · arguably\n\nSTRENGTHEN clearly · undoubtedly · there is no question that\n           the evidence is conclusive · invariably · demonstrably"
+    },
+    {
+     "key": "The rhetorical effect comes from the <b>contrast</b>. Hedge the uncertain parts carefully, then state the one thing you are sure of without any hedge at all — that sentence will carry the whole document."
+    },
+    {
+     "h": "Connotation: near-synonyms are not synonyms"
+    },
+    {
+     "code": "thin / slim / skinny        neutral · positive · negative\ncheap / inexpensive         negative quality · neutral\nstubborn / determined       negative · positive\ninterfere / intervene       unwelcome · legitimate\naggressive / assertive      hostile · confident\nnoticed / spotted / detected  neutral · alert · technical"
+    },
+    {
+     "p": "A dictionary will give you all six as translations of the same Spanish word. Choosing the wrong one does not produce an error a teacher would mark — it produces an impression you did not intend, which is worse."
+    },
+    {
+     "h": "Idioms that appear in professional English"
+    },
+    {
+     "list": [
+      "<b>a bottleneck</b> — the point that limits everything else",
+      "<b>a workaround</b> — a temporary solution that avoids the real problem",
+      "<b>a stopgap</b> — a short-term fix",
+      "<b>the root cause</b> — the underlying cause, as opposed to the symptom",
+      "<b>downtime</b> — time a machine or system is out of service",
+      "<b>a backlog</b> — accumulated pending work",
+      "<b>to cut corners</b> — to do something badly to save time or money",
+      "<b>to be on the same page</b> — to share the same understanding",
+      "<b>to touch base</b> — to make brief contact",
+      "<b>to escalate</b> — to pass an issue to a higher level"
+     ]
+    },
+    {
+     "note": "Use idioms sparingly in writing and freely in speech. A report full of idioms reads as unserious; a conversation without any reads as translated."
+    },
+    {
+     "h": "The structure of a technical report"
+    },
+    {
+     "code": "1. SUMMARY        the conclusion, in three lines, first\n2. BACKGROUND     what was observed and when\n3. FINDINGS       the evidence, separated from interpretation\n4. ANALYSIS       what the evidence means, hedged appropriately\n5. RECOMMENDATIONS  numbered, actionable, with an owner"
+    },
+    {
+     "p": "English professional writing is <b>conclusion first</b>. Spanish tradition often builds the argument and reveals the conclusion at the end; in English that reads as burying the point. Say what you found, then explain how."
+    },
+    {
+     "key": "Separate <b>findings</b> from <b>analysis</b> ruthlessly. «The oil sample showed 45 ppm of silicon» is a finding. «This indicates air filter bypass» is analysis. Mixing them is what makes a report impossible to challenge — and therefore impossible to trust."
+    },
+    {
+     "h": "Presenting and negotiating"
+    },
+    {
+     "list": [
+      "<b>Signposting</b>: <i>I'll cover three points today.</i> / <i>Let me turn to the second issue.</i> / <i>Coming back to what I mentioned earlier…</i>",
+      "<b>Handling questions</b>: <i>That's outside the scope of this report, but my understanding is…</i> / <i>I'd rather not speculate — let me confirm and come back to you.</i>",
+      "<b>Proposing</b>: <i>What if we…?</i> / <i>Would you be open to…?</i> / <i>One option would be to…</i>",
+      "<b>Conceding ground</b>: <i>That's a fair point.</i> / <i>I take your point on cost, though I'd still argue…</i>",
+      "<b>Holding your position</b>: <i>I understand the constraint, but I can't recommend that on safety grounds.</i>"
+     ]
+    },
+    {
+     "p": "Notice how much of C1 is not vocabulary but <b>stance</b>: conceding, qualifying, refusing without hostility. That is the register that makes a non-native speaker sound senior rather than merely correct."
+    },
+    {
+     "h": "Putting it together"
+    },
+    {
+     "quote": "The failure appears to have originated in the hydraulic circuit rather than the pump itself. Analysis of the oil sample revealed a high silicon content, which points to contamination through a damaged air filter. Had the filter been replaced at the scheduled interval, the damage would in all probability have been avoided. Admittedly, the service records are incomplete. We therefore recommend that the maintenance schedule be reviewed."
+    },
+    {
+     "key": "Five sentences containing hedging, nominalisation, an inverted third conditional (<i>Had the filter been replaced…</i>), a concession and the subjunctive. Nothing exotic — this is simply how a competent technical report reads in English."
+    }
+   ]
+  }
+ ]
+}

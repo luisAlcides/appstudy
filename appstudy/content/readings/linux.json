@@ -1,0 +1,213 @@
+{
+"deck": "linux",
+"chapters": [
+{
+ "level": 1, "minutes": 9, "tags": "básico,shell",
+ "title": "La terminal, sin misterio",
+ "subtitle": "Qué es realmente el shell, cómo moverte y por qué todo en Linux es un archivo.",
+ "body": [
+  {"p": "Cuando abres una terminal no estás abriendo «Linux»: estás abriendo un programa llamado <b>shell</b> (bash o zsh) cuyo único trabajo es leer una línea de texto, interpretarla y ejecutar el programa que le pediste. Nada más. Esa simplicidad es la razón de que la terminal siga siendo la herramienta más poderosa del sistema treinta años después."},
+  {"p": "Un comando tiene siempre la misma forma: <b>programa · opciones · argumentos</b>."},
+  {"code": "ls    -la    /var/log\n│      │       └── argumento: sobre qué actúa\n│      └────────── opciones: cómo actúa\n└───────────────── programa: qué se ejecuta"},
+  {"p": "Las opciones cortas van con un guion y se pueden juntar (<code>-la</code> es lo mismo que <code>-l -a</code>). Las largas van con dos guiones y son más legibles: <code>--all</code>, <code>--human-readable</code>. En un script, prefiere siempre las largas: dentro de seis meses las vas a entender."},
+
+  {"h": "Todo cuelga de una sola raíz"},
+  {"p": "Windows tiene C:, D:, E:. Linux tiene <b>una sola raíz</b>, <code>/</code>, y todo lo demás cuelga de ahí, incluidos los discos externos y las memorias USB, que se «montan» dentro de una carpeta."},
+  {"list": [
+    "<code>/home/tu-usuario</code> — tus archivos. Se abrevia <code>~</code>",
+    "<code>/etc</code> — configuración del sistema, en texto plano",
+    "<code>/var</code> — datos que cambian: logs, bases de datos, colas",
+    "<code>/usr/bin</code> — los programas instalados",
+    "<code>/tmp</code> — temporal, se borra al reiniciar",
+    "<code>/mnt</code> y <code>/media</code> — discos y memorias montados"
+  ]},
+  {"key": "«Todo es un archivo». Un documento es un archivo, pero también lo son tu teclado, tu disco y un proceso en ejecución. Por eso las mismas herramientas de texto sirven para todo el sistema: es el concepto que explica el diseño entero de Unix."},
+
+  {"h": "Moverse: las cuatro órdenes que usarás siempre"},
+  {"steps": [
+    "<code>pwd</code> — «¿dónde estoy?». Te dice la ruta actual completa.",
+    "<code>ls -la</code> — «¿qué hay aquí?». Con <b>-l</b> ves permisos, dueño, tamaño y fecha; con <b>-a</b> ves también los archivos ocultos, los que empiezan con punto.",
+    "<code>cd carpeta</code> — entrar. <code>cd ..</code> sube un nivel, <code>cd</code> solo te lleva a tu home y <code>cd -</code> te devuelve al directorio anterior.",
+    "<code>tree -L 2</code> — ver la estructura en forma de árbol, dos niveles de profundidad."
+  ]},
+  {"p": "Una <b>ruta absoluta</b> empieza en <code>/</code> y significa lo mismo desde cualquier lugar: <code>/home/luis/informe.txt</code>. Una <b>ruta relativa</b> parte de donde estás parado: <code>informe.txt</code>, <code>../fotos/</code>. En scripts usa siempre absolutas; en la terminal, relativas, que se escriben más rápido."},
+
+  {"h": "Crear, copiar, mover y borrar"},
+  {"code": "mkdir proyecto          # crear carpeta\nmkdir -p a/b/c          # crear toda la ruta de una vez\ntouch notas.txt         # crear archivo vacío\ncp origen destino       # copiar (-r para carpetas)\nmv origen destino       # mover... y también RENOMBRAR\nrm archivo              # borrar (-r para carpetas)"},
+  {"p": "Fíjate en <code>mv</code>: mover y renombrar son la misma operación, porque el nombre de un archivo no es más que una entrada dentro de una carpeta. <code>mv viejo.txt nuevo.txt</code> lo renombra; <code>mv viejo.txt /otra/carpeta/</code> lo mueve."},
+  {"warn": "En Linux <b>no hay papelera</b> en la terminal. <code>rm</code> borra de verdad y de inmediato. Antes de escribir <code>rm -rf</code> lee la ruta dos veces, sobre todo si empieza con <code>/</code>. Si quieres red de seguridad, usa <code>rm -i</code>, que pregunta por cada archivo."},
+
+  {"h": "Ver el contenido sin abrir un editor"},
+  {"list": [
+    "<code>cat archivo</code> — lo escupe todo de golpe. Bien para archivos cortos.",
+    "<code>less archivo</code> — paginado: <b>flechas</b> para moverte, <b>/texto</b> para buscar, <b>q</b> para salir.",
+    "<code>head -20</code> / <code>tail -20</code> — las primeras o últimas 20 líneas.",
+    "<code>tail -f archivo.log</code> — se queda mirando el archivo y muestra lo nuevo en vivo. Es lo que usarás para ver un log mientras pasa algo."
+  ]},
+
+  {"h": "Los comodines"},
+  {"p": "El shell expande ciertos símbolos <b>antes</b> de ejecutar el comando. Cuando escribes <code>ls *.log</code>, el programa <code>ls</code> nunca ve el asterisco: recibe ya la lista de archivos."},
+  {"list": [
+    "<code>*</code> — cualquier cantidad de caracteres: <code>*.jpg</code>",
+    "<code>?</code> — exactamente un carácter: <code>foto?.jpg</code>",
+    "<code>[0-9]</code> — un carácter dentro de un rango: <code>informe[0-9].pdf</code>",
+    "<code>{a,b}</code> — alternativas: <code>cp notas.{txt,bak}</code>"
+  ]},
+  {"note": "Antes de un borrado masivo, cambia <code>rm</code> por <code>ls</code> y ejecuta el mismo patrón. Si la lista que aparece es exactamente lo que querías borrar, recién ahí cambias el comando. Este hábito evita el 90% de los desastres."},
+
+  {"h": "Tres teclas que valen por un curso"},
+  {"list": [
+    "<b>Tab</b> — autocompleta rutas y comandos. Pulsada dos veces, muestra las opciones posibles. Además de rapidez, te protege de errores de tipeo en rutas.",
+    "<b>Ctrl+R</b> — busca hacia atrás en tu historial: escribes un pedazo del comando y aparece. Sigue pulsando para ver coincidencias anteriores.",
+    "<b>Ctrl+C</b> — cancela el comando que está corriendo. Y <b>Ctrl+L</b> limpia la pantalla."
+  ]},
+
+  {"h": "Cuando no sabes qué hace algo"},
+  {"code": "comando --help      # resumen rápido de opciones\nman comando         # manual completo (q para salir)\ntype comando        # ¿es un programa, un alias o una función?\nwhich comando       # ¿dónde está el ejecutable?"},
+  {"p": "El manual (<code>man</code>) parece árido, pero tiene siempre la misma estructura: NAME, SYNOPSIS, DESCRIPTION, OPTIONS, EXAMPLES. Muchas veces basta con saltar al final: <code>man tar</code> y buscar los ejemplos con <b>/EXAMPLES</b>."},
+  {"key": "No memorices comandos: memoriza <b>dónde se buscan</b>. Un buen usuario de Linux no es el que se sabe todas las opciones de <code>find</code>, es el que sabe llegar a ellas en veinte segundos."}
+ ]
+},
+{
+ "level": 2, "minutes": 11, "tags": "shell,texto,procesos",
+ "title": "Tuberías: la idea que hace poderosa a la terminal",
+ "subtitle": "Programas pequeños que se conectan entre sí, redirección y el arte de construir una línea que responde una pregunta.",
+ "body": [
+  {"p": "La filosofía de Unix cabe en una frase: <b>haz un programa que haga una sola cosa y la haga bien, y que su salida pueda ser la entrada de otro</b>. No hay un comando gigante que haga todo; hay decenas de comandos diminutos que se encadenan. Aprender a encadenarlos es el salto real de principiante a intermedio."},
+
+  {"h": "Los tres canales"},
+  {"p": "Todo programa tiene tres canales abiertos, identificados por un número:"},
+  {"list": [
+    "<b>0 — entrada estándar (stdin)</b>: por donde recibe datos, normalmente tu teclado.",
+    "<b>1 — salida estándar (stdout)</b>: por donde escribe el resultado, normalmente la pantalla.",
+    "<b>2 — error estándar (stderr)</b>: por donde escribe los errores, también a la pantalla, pero por un canal aparte."
+  ]},
+  {"p": "Que los errores viajen por un canal distinto es deliberado: te permite guardar el resultado limpio en un archivo mientras sigues viendo los errores en pantalla."},
+
+  {"h": "Redirección: cambiar el destino"},
+  {"code": "comando > salida.txt      # escribe (SOBRESCRIBE el archivo)\ncomando >> salida.txt     # añade al final\ncomando 2> errores.txt    # solo los errores\ncomando > todo.txt 2>&1   # salida y errores al mismo archivo\ncomando < entrada.txt     # lee del archivo en vez del teclado\ncomando 2>/dev/null       # descarta los errores"},
+  {"p": "La expresión <code>2>&1</code> se lee «manda el canal 2 al mismo sitio al que va el canal 1». El orden importa: <code>> f 2>&1</code> funciona, pero <code>2>&1 > f</code> no hace lo que esperas, porque cuando se copia el destino del canal 1 este todavía apuntaba a la pantalla."},
+  {"note": "<code>/dev/null</code> es un archivo especial que descarta todo lo que recibe. Se le llama «el agujero negro» del sistema. Úsalo cuando un comando produce ruido que no te interesa."},
+
+  {"h": "La tubería"},
+  {"p": "El carácter <code>|</code> conecta la salida de un programa con la entrada del siguiente, sin pasar por el disco. Esa es la pieza clave. Mira cómo se construye una respuesta paso a paso:"},
+  {"code": "cat acceso.log                      # 1. todo el archivo\ncat acceso.log | awk '{print $1}'   # 2. solo la primera columna (la IP)\n... | sort                          # 3. ordenadas, para agrupar iguales\n... | uniq -c                       # 4. cuenta repeticiones\n... | sort -rn                      # 5. de mayor a menor\n... | head                          # 6. las 10 primeras"},
+  {"p": "El resultado responde una pregunta concreta —«¿qué direcciones visitaron más el servidor?»— y no hizo falta ningún programa especializado: seis herramientas genéricas, encadenadas. Esta es la técnica que vas a repetir para logs, CSV, listados de archivos y cualquier texto."},
+  {"key": "Construye las tuberías <b>de a un tramo</b>, mirando la salida en cada paso. Escribir la línea completa de una vez y depurarla después es mucho más lento."},
+
+  {"h": "Las herramientas del kit"},
+  {"list": [
+    "<code>grep patrón</code> — filtra las líneas que coinciden. <b>-i</b> ignora mayúsculas, <b>-v</b> invierte (las que NO coinciden), <b>-r</b> busca recursivamente en carpetas, <b>-n</b> muestra el número de línea.",
+    "<code>awk '{print $2}'</code> — extrae columnas separadas por espacios. Con <code>-F','</code> cambias el separador para un CSV.",
+    "<code>cut -d':' -f1</code> — corta columnas por un delimitador fijo. Más simple que awk cuando basta.",
+    "<code>sort</code> — ordena. <b>-n</b> numérico, <b>-r</b> inverso, <b>-u</b> quita duplicados, <b>-h</b> entiende 1K/2M/3G.",
+    "<code>uniq -c</code> — cuenta repeticiones consecutivas; por eso casi siempre va después de <code>sort</code>.",
+    "<code>wc -l</code> — cuenta líneas. Perfecto como último eslabón: «¿cuántos?».",
+    "<code>tr</code>, <code>sed</code> — sustituyen caracteres o texto al vuelo."
+  ]},
+
+  {"h": "sed: reemplazar sin abrir el archivo"},
+  {"code": "sed 's/viejo/nuevo/g' archivo        # muestra el resultado\nsed -i 's/viejo/nuevo/g' archivo     # MODIFICA el archivo\nsed -i.bak 's/viejo/nuevo/g' archivo # modifica y deja copia .bak\nsed -n '10,20p' archivo              # imprime solo las líneas 10 a 20"},
+  {"warn": "<code>sed -i</code> reescribe el archivo en el sitio. Ejecuta siempre primero <b>sin</b> <code>-i</code> para ver qué va a cambiar, o usa <code>-i.bak</code> para conservar el original."},
+
+  {"h": "xargs: convertir una lista en argumentos"},
+  {"p": "Algunos programas no leen de la entrada estándar; esperan sus argumentos en la línea de comandos. <code>xargs</code> hace de puente."},
+  {"code": "find . -name '*.log' | xargs rm                 # frágil con espacios\nfind . -name '*.log' -print0 | xargs -0 rm      # correcto\nls *.jpg | xargs -I{} cp {} /respaldo/{}        # {} es cada elemento"},
+  {"p": "La versión con <code>-print0</code> y <code>-0</code> separa los nombres con un carácter nulo en vez de un espacio, de modo que un archivo llamado «mi foto.jpg» no se parta en dos. Acostúmbrate a esa forma."},
+
+  {"h": "Encadenar comandos con lógica"},
+  {"list": [
+    "<code>a ; b</code> — ejecuta b <b>siempre</b>, haya fallado a o no.",
+    "<code>a && b</code> — ejecuta b <b>solo si a tuvo éxito</b>.",
+    "<code>a || b</code> — ejecuta b <b>solo si a falló</b>."
+  ]},
+  {"p": "La diferencia no es cosmética. <code>cd /respaldo && rm *</code> es seguro: si la carpeta no existe, el <code>cd</code> falla y el borrado no ocurre. Con punto y coma, ese mismo error te borra los archivos del directorio donde estabas parado."},
+  {"key": "Cada programa devuelve un <b>código de salida</b>: 0 significa éxito y cualquier otro número, error. Puedes verlo con <code>echo $?</code> justo después de ejecutar algo. Sobre esa convención se apoyan <code>&&</code>, <code>||</code> y todos los scripts."}
+ ]
+},
+{
+ "level": 2, "minutes": 10, "tags": "permisos,procesos,servicios,usuarios",
+ "title": "Permisos, procesos y servicios",
+ "subtitle": "Quién puede hacer qué, qué está corriendo ahora mismo y cómo se administra lo que arranca solo.",
+ "body": [
+  {"p": "Un sistema multiusuario necesita responder tres preguntas todo el tiempo: quién eres, qué puedes tocar y qué está ejecutándose. Este capítulo cubre las tres."},
+
+  {"h": "Leer una línea de permisos"},
+  {"code": "-rwxr-xr--  1  luis  mecanica  4096  Ago 29 10:15  script.sh\n│└┬┘└┬┘└┬┘     │     │\n│ │  │  │      │     └── grupo dueño\n│ │  │  │      └──────── usuario dueño\n│ │  │  └─────────────── otros:   r--  (solo leer)\n│ │  └────────────────── grupo:   r-x  (leer y ejecutar)\n│ └───────────────────── dueño:   rwx  (leer, escribir, ejecutar)\n└─────────────────────── tipo: - archivo, d carpeta, l enlace"},
+  {"p": "Los permisos se agrupan de tres en tres: <b>dueño</b>, <b>grupo</b> y <b>otros</b>. Cada bloque puede tener lectura (r=4), escritura (w=2) y ejecución (x=1). Sumando cada bloque sale la notación octal: <code>rwxr-xr--</code> es <b>754</b>."},
+  {"note": "En una <b>carpeta</b> los permisos significan otra cosa: <b>r</b> permite listar su contenido, <b>w</b> permite crear y borrar archivos dentro, y <b>x</b> permite <i>entrar</i> en ella. Una carpeta sin <b>x</b> es inaccesible aunque tenga <b>r</b>."},
+  {"code": "chmod +x script.sh          # dar permiso de ejecución\nchmod 640 secreto.txt       # dueño rw, grupo r, otros nada\nchmod -R 755 sitio/         # recursivo\nchown luis:mecanica archivo # cambiar dueño y grupo"},
+  {"p": "Si tras copiar archivos con <code>sudo</code> te aparece «Permission denied» al usarlos, la causa casi siempre es que quedaron a nombre de <b>root</b>. Se arregla con <code>sudo chown -R tu-usuario:tu-usuario carpeta/</code>."},
+
+  {"h": "sudo y el usuario root"},
+  {"p": "<b>root</b> es el administrador: no tiene restricciones. Por eso nadie trabaja como root. En su lugar, <code>sudo</code> te presta ese poder para un solo comando y deja registro en el log del sistema."},
+  {"code": "sudo comando                    # ejecutar como root\nsudo !!                         # repetir el último comando con sudo\nsudo usermod -aG sudo usuario   # dar permisos de administrador\ngroups                          # ver a qué grupos perteneces"},
+  {"warn": "La bandera <b>-a</b> en <code>usermod -aG</code> significa «añadir». Sin ella, <code>-G</code> <b>reemplaza</b> todos los grupos del usuario y puedes dejarlo sin acceso a impresoras, audio o docker de un solo golpe."},
+
+  {"h": "Procesos: qué está corriendo"},
+  {"p": "Cada programa en ejecución es un <b>proceso</b> con un número identificador, el PID. Los procesos forman un árbol: cada uno fue lanzado por otro, y todos descienden de systemd (PID 1)."},
+  {"code": "ps aux                       # todos los procesos\nps aux --sort=-%mem | head   # los que más memoria usan\nhtop                         # vista interactiva (F6 ordena, F9 mata)\npgrep -af nginx              # buscar por nombre\nkill PID                     # pedir que termine (SIGTERM)\nkill -9 PID                  # forzar (SIGKILL) — último recurso"},
+  {"p": "La diferencia entre <code>kill</code> y <code>kill -9</code> importa. <b>SIGTERM</b> es un aviso: el programa puede guardar su trabajo, cerrar archivos y salir ordenado. <b>SIGKILL</b> lo fulmina sin darle oportunidad, y puede dejar archivos a medio escribir o bases de datos corruptas."},
+  {"key": "Prueba siempre <code>kill</code> primero y da unos segundos. Solo si el proceso no responde, escala a <code>kill -9</code>."},
+  {"p": "En <code>htop</code>, la columna <b>estado</b> merece atención: <b>R</b> corriendo, <b>S</b> durmiendo (lo normal), <b>Z</b> zombi (terminó pero su padre no lo recogió) y <b>D</b> bloqueado esperando disco. Muchos procesos en <b>D</b> significan que el cuello de botella es el almacenamiento, no la CPU."},
+
+  {"h": "Trabajos de tu terminal"},
+  {"code": "comando &        # lanzar en segundo plano\nCtrl+Z           # pausar el comando actual\nbg               # continuarlo en segundo plano\nfg               # traerlo al frente\njobs             # listar los trabajos de esta terminal\nnohup comando &  # sigue vivo aunque cierres la sesión"},
+  {"p": "Para procesos largos en un servidor remoto, <code>nohup</code> se queda corto. Usa <b>tmux</b>: <code>tmux new -s trabajo</code> crea una sesión, <b>Ctrl+B</b> y luego <b>D</b> te desconecta dejándola viva, y <code>tmux attach -t trabajo</code> te devuelve exactamente donde estabas, incluso desde otra computadora."},
+
+  {"h": "Servicios: lo que arranca solo"},
+  {"p": "Un servicio es un programa que gestiona <b>systemd</b>: lo arranca al iniciar el sistema, lo reinicia si se cae y centraliza sus logs."},
+  {"code": "systemctl status nginx       # ¿está corriendo? últimas líneas de log\nsystemctl start|stop|restart nginx\nsystemctl enable nginx       # que arranque al encender el equipo\nsystemctl disable nginx\nsystemctl list-units --failed  # qué falló en este arranque\njournalctl -u nginx -f       # ver sus logs en vivo"},
+  {"p": "Nota la diferencia entre <b>start</b> y <b>enable</b>: <code>start</code> lo enciende ahora, <code>enable</code> lo deja programado para los próximos arranques. Un servicio puede estar corriendo y no estar habilitado, y viceversa. Cuando algo «funciona hasta que reinicio», casi siempre falta el <code>enable</code>."},
+
+  {"h": "Los logs"},
+  {"code": "journalctl -f                # todo el sistema, en vivo\njournalctl -u servicio -f    # un servicio concreto\njournalctl -p err -b         # solo errores del arranque actual\njournalctl --since '1 hour ago'\njournalctl --vacuum-time=7d  # recortar a los últimos 7 días"},
+  {"key": "Cuando algo falla, el orden es siempre el mismo: <b>estado</b> del servicio, <b>logs</b> del servicio, y solo entonces hipótesis. Casi todos los errores están escritos con letras claras en el log; el problema es que nadie lo lee antes de empezar a cambiar cosas."}
+ ]
+},
+{
+ "level": 3, "minutes": 10, "tags": "scripting,seguridad,diagnóstico,red",
+ "title": "Scripts que no te traicionan",
+ "subtitle": "Automatizar con seguridad, depurar cuando falla y diagnosticar lo que no se ve.",
+ "body": [
+  {"p": "Un script es la forma de convertir algo que hiciste bien una vez en algo que se hace bien siempre. Pero un script mal escrito hace el daño más rápido que tú a mano, así que el orden importa: primero las defensas, después la funcionalidad."},
+
+  {"h": "El encabezado obligatorio"},
+  {"code": "#!/usr/bin/env bash\nset -euo pipefail"},
+  {"list": [
+    "<code>#!/usr/bin/env bash</code> — el <i>shebang</i>: dice con qué intérprete ejecutarlo. Usar <code>env</code> lo hace portable entre sistemas.",
+    "<code>-e</code> — aborta en cuanto un comando falla, en vez de seguir con datos incompletos.",
+    "<code>-u</code> — falla si usas una variable que no existe. Atrapa el clásico error de tipeo en el nombre de una variable.",
+    "<code>-o pipefail</code> — hace que una tubería falle si falla cualquier tramo, no solo el último."
+  ]},
+  {"p": "Sin <code>-e</code>, un script que no pudo hacer <code>cd</code> a la carpeta correcta sigue ejecutando las líneas siguientes en el directorio equivocado. Estas dos líneas son la diferencia entre un error controlado y un desastre silencioso."},
+
+  {"h": "Variables y comillas"},
+  {"code": "nombre=\"informe final\"\nruta=\"/home/luis\"\nhoy=$(date +%F)              # sustitución: guarda la salida del comando\n\nrm \"$ruta/$nombre.txt\"       # correcto\nrm $ruta/$nombre.txt         # ERROR: lo parte en dos argumentos"},
+  {"warn": "Pon <b>siempre</b> las variables entre comillas dobles. Sin ellas, un nombre con espacios se convierte en varios argumentos y un comando de borrado puede afectar a algo que no querías. Es la causa número uno de scripts que funcionan en pruebas y destrozan en producción."},
+
+  {"h": "Condicionales y bucles"},
+  {"code": "if [[ -f \"$archivo\" ]]; then\n    echo \"existe\"\nelif [[ -d \"$archivo\" ]]; then\n    echo \"es una carpeta\"\nelse\n    echo \"no existe\" >&2      # los errores van a stderr\n    exit 1\nfi\n\nfor f in *.log; do\n    gzip \"$f\"\ndone\n\nwhile read -r linea; do\n    echo \"→ $linea\"\ndone < entrada.txt"},
+  {"p": "Las pruebas más usadas: <code>-f</code> es un archivo, <code>-d</code> es una carpeta, <code>-z</code> la cadena está vacía, <code>-n</code> no está vacía, <code>-eq -lt -gt</code> comparaciones numéricas. Usa siempre los corchetes dobles <code>[[ ]]</code> en bash: manejan mejor las variables vacías y los espacios."},
+
+  {"h": "Depurar cuando algo falla"},
+  {"code": "bash -x script.sh          # traza todo lo que ejecuta\nset -x                     # activar la traza a mitad del script\nset +x                     # desactivarla\n\ntrap 'echo \"Error en la línea $LINENO\" >&2' ERR"},
+  {"p": "<code>set -x</code> imprime cada línea con las variables <b>ya sustituidas</b>, que es justo lo que necesitas ver: no lo que escribiste, sino lo que realmente se ejecutó. Combinado con <code>trap ... ERR</code>, sabes en segundos qué línea reventó y con qué valores."},
+  {"key": "Antes de que un script haga algo destructivo, dale un <b>modo simulación</b>: una variable <code>DRY_RUN</code> que, si está activa, imprima el comando en vez de ejecutarlo. Te va a salvar más de una vez."},
+
+  {"h": "Automatizar en el tiempo"},
+  {"code": "crontab -e\n\n# minuto hora día-mes mes día-semana  comando\n  0     3    *       *    1         /home/luis/respaldo.sh\n#       └── todos los lunes a las 3:00 AM"},
+  {"warn": "cron ejecuta con un entorno <b>mínimo</b>: no tiene tu PATH ni tus variables. Usa <b>rutas absolutas</b> para todo y redirige la salida a un log (<code>>> /var/log/mi-script.log 2>&1</code>). El error clásico es «funciona cuando lo ejecuto yo, pero no en cron»."},
+  {"p": "Para tareas críticas, un <b>temporizador de systemd</b> es mejor: admite <code>Persistent=true</code> (recupera ejecuciones perdidas si el equipo estaba apagado), integra sus logs en journalctl y permite declarar dependencias con otros servicios."},
+
+  {"h": "Diagnóstico: ver lo invisible"},
+  {"code": "ss -tulpn                    # qué procesos escuchan en qué puertos\nlsof -p PID                  # archivos y sockets abiertos por un proceso\nlsof +D /carpeta             # quién impide desmontar esa carpeta\nstrace -p PID                # llamadas al sistema: dónde se cuelga\ndf -h  /  df -i              # espacio y también INODOS libres"},
+  {"p": "Un caso que confunde a todo el mundo: <code>df</code> dice que el disco está lleno pero <code>du</code> no encuentra los archivos. Casi siempre es un <b>archivo borrado que un proceso sigue teniendo abierto</b> —el espacio no se libera hasta que ese proceso termina— o los <b>inodos agotados</b> por millones de archivos diminutos. Se comprueba con <code>lsof | grep deleted</code> y <code>df -i</code>."},
+
+  {"h": "Endurecer lo básico"},
+  {"code": "sudo ufw default deny incoming\nsudo ufw allow 22/tcp        # ¡ANTES de activar el firewall!\nsudo ufw enable\nsudo ufw status verbose\n\nfind / -perm -4000 -type f 2>/dev/null   # auditar binarios SUID"},
+  {"p": "Un binario <b>SUID</b> se ejecuta con los permisos de su dueño, no de quien lo lanza. Es lo que permite que <code>passwd</code> modifique <code>/etc/shadow</code> siendo tú un usuario normal. También es el vector clásico de escalada de privilegios, y por eso la lista de binarios SUID es lo primero que se audita en una revisión de seguridad."},
+  {"key": "El orden en un servidor remoto es sagrado: <b>abre SSH antes de activar el firewall</b>. La cantidad de administradores que se han dejado fuera de su propio servidor por invertir esos dos pasos es enorme."}
+ ]
+}
+]}

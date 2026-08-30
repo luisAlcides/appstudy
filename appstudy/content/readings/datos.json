@@ -1,0 +1,186 @@
+{
+"deck": "datos",
+"chapters": [
+{
+ "level": 1, "minutes": 10, "tags": "fundamentos,estadística,pandas,visualización",
+ "title": "Mirar los datos antes de tocarlos",
+ "subtitle": "Tipos de variable, los tres promedios, dispersión y las primeras órdenes ante un archivo nuevo.",
+ "body": [
+  {"p": "El error más común en ciencia de datos no es elegir mal el modelo: es empezar a modelar sin haber mirado los datos. Este capítulo es lo que se hace <b>antes</b> de cualquier análisis, y es donde se resuelve la mayoría de los problemas."},
+
+  {"h": "Cada columna es una variable, y su tipo manda"},
+  {"list": [
+    "<b>Numérica continua</b> — admite decimales: horas de motor, litros, temperatura.",
+    "<b>Numérica discreta</b> — se cuenta: número de fallas, unidades vendidas.",
+    "<b>Categórica nominal</b> — etiquetas sin orden: marca de máquina, ciudad.",
+    "<b>Categórica ordinal</b> — etiquetas con orden: bajo/medio/alto, primaria/secundaria/universidad.",
+    "<b>Fecha</b> — merece su propio tipo: de ella se derivan mes, día de la semana, feriados."
+  ]},
+  {"key": "El tipo de variable decide <b>todo</b> lo que viene después: qué gráfico usar, qué estadístico calcular, qué prueba aplicar y cómo codificarla para un modelo. Numerar categorías sin orden real (CAT=1, Komatsu=2) le inventa al modelo una jerarquía que no existe."},
+
+  {"h": "Los tres promedios y cuándo usar cada uno"},
+  {"code": "Salarios: 1.000  1.200  1.100  1.300  90.000\n\nMedia    = 18.920  ← nadie gana eso\nMediana  =  1.200  ← describe al grupo real\nModa     = el valor más frecuente"},
+  {"list": [
+    "<b>Media</b> — datos simétricos y sin valores extremos.",
+    "<b>Mediana</b> — cuando hay outliers o la distribución está sesgada. Salarios, precios, tiempos de espera.",
+    "<b>Moda</b> — datos categóricos: el color más vendido, la falla más frecuente."
+  ]},
+  {"p": "Cuando la <b>media es mucho mayor que la mediana</b>, tienes una cola larga hacia la derecha: unos pocos valores muy altos. Es el patrón de casi todo lo relacionado con dinero y con tiempo."},
+
+  {"h": "La dispersión cuenta la otra mitad"},
+  {"p": "Dos talleres promedian 5 horas por reparación. En uno la desviación estándar es 0,5 h; en el otro, 4 h. El primero es predecible y se puede programar; el segundo es un caos. <b>El promedio solo no cuenta la historia.</b>"},
+  {"p": "El <b>rango intercuartílico (IQR)</b> es más robusto: es la distancia entre el percentil 25 y el 75, es decir, dónde vive la mitad central de tus datos. Y sirve para detectar atípicos:"},
+  {"code": "IQR = Q3 - Q1\n\nEs outlier si está fuera de:\n   [ Q1 - 1.5×IQR ,  Q3 + 1.5×IQR ]"},
+  {"warn": "Detectar un outlier no autoriza a borrarlo. Primero investiga: ¿es un error de captura (un horómetro con un cero de más) o un caso real e importante (la máquina que efectivamente falló catastróficamente)? Borrar los casos raros suele eliminar justo lo que querías estudiar."},
+
+  {"h": "Los primeros cinco comandos"},
+  {"code": "df.shape          # cuántas filas y columnas\ndf.head()         # ¿cómo se ven realmente los datos?\ndf.info()         # tipos de cada columna y cuántos nulos\ndf.describe()     # resumen numérico: media, min, max, cuartiles\ndf.isna().sum()   # nulos por columna"},
+  {"p": "Estos cinco comandos toman treinta segundos y evitan semanas de trabajo perdido. En <code>info()</code> busca columnas numéricas que aparezcan como <i>object</i>: eso significa que hay texto mezclado, y es una bomba de tiempo."},
+
+  {"h": "Cargar un CSV sin sufrir"},
+  {"code": "pd.read_csv('datos.csv',\n            sep=';',              # separador real del archivo\n            decimal=',',          # decimales con coma\n            encoding='latin-1',   # si UTF-8 falla\n            parse_dates=['fecha'])"},
+  {"p": "Un CSV es texto plano, y por eso mismo es traicionero: el separador puede ser punto y coma, los decimales pueden llevar coma, la codificación puede no ser UTF-8 y las fechas llegan como texto hasta que le digas lo contrario."},
+
+  {"h": "Filtrar, agrupar y pivotar"},
+  {"code": "# filtrar (paréntesis obligatorios, & y | en vez de and/or)\ndf[(df.horas > 500) & (df.marca == 'CAT')]\ndf[df.marca.isin(['CAT', 'Komatsu'])]\n\n# agrupar y agregar\ndf.groupby('maquina')['horas'].agg(['sum', 'mean', 'count'])\n\n# tabla dinámica\ndf.pivot_table(index='maquina', columns='mes',\n               values='horas', aggfunc='sum')"},
+  {"note": "<code>.loc</code> selecciona por <b>etiqueta</b> y <code>.iloc</code> por <b>posición</b>. Regla mnemotécnica: loc = label, iloc = index."},
+
+  {"h": "Los valores faltantes"},
+  {"steps": [
+    "<b>Entender por qué faltan.</b> ¿Al azar, o sistemáticamente? Si los horómetros faltan solo en las máquinas viejas, eso <i>es</i> información.",
+    "<b>Eliminar</b> filas o columnas si son pocas o la columna es inútil.",
+    "<b>Imputar</b> con media, mediana o moda; o con un modelo si vale la pena.",
+    "<b>Marcar</b>: crear una columna «era_nulo». Muchas veces la ausencia predice mejor que el valor."
+  ]},
+
+  {"h": "Gráficos que comunican"},
+  {"list": [
+    "<b>Histograma</b> o <b>boxplot</b> para ver la distribución de una variable numérica.",
+    "<b>Barras</b> para comparar categorías, <b>ordenadas por valor</b> y no alfabéticamente.",
+    "<b>Línea</b> solo para series de tiempo.",
+    "<b>Dispersión</b> para relacionar dos variables numéricas."
+  ]},
+  {"key": "Un mensaje por gráfico, y ese mensaje escrito <b>en el título</b>. Si el título dice «Ventas por mes», el gráfico no dice nada; si dice «Las ventas caen 30% cada febrero», el gráfico ya hizo su trabajo."},
+  {"warn": "La correlación no es causalidad. Los helados y los ahogamientos correlacionan porque ambos suben en verano. Antes de concluir, pregúntate siempre qué <b>tercera variable</b> podría estar detrás de las dos."}
+ ]
+},
+{
+ "level": 2, "minutes": 11, "tags": "modelado,evaluación,preprocesamiento,sql",
+ "title": "Entrenar un modelo sin engañarte",
+ "subtitle": "División de datos, fuga de información, sesgo y varianza, y por qué el accuracy miente.",
+ "body": [
+  {"p": "Un modelo siempre da un número. La habilidad no está en obtenerlo, sino en saber si ese número significa algo. Casi todos los desastres de machine learning son evaluaciones mal hechas, no algoritmos malos."},
+
+  {"h": "Dividir los datos, y en qué orden"},
+  {"code": "TRAIN       ~70%   el modelo aprende aquí\nVALIDACIÓN  ~15%   aquí se ajustan hiperparámetros\nTEST        ~15%   se toca UNA sola vez, al final"},
+  {"key": "Si ajustas mirando el test, el test ya no mide nada. Cada vez que miras ese conjunto y cambias algo, le estás filtrando información al modelo a través de tus propias decisiones."},
+  {"h": "El error de orden que arruina todo"},
+  {"code": "❌ escalar todo el dataset  →  dividir train/test\n✅ dividir train/test       →  fit en TRAIN, transform en test"},
+  {"p": "Si escalas antes de dividir, la media y la desviación se calcularon usando también los datos de prueba: el test ya influyó en el entrenamiento. Se llama <b>fuga de información (data leakage)</b> y es la causa número uno de modelos que brillan en el cuaderno y fracasan en producción."},
+  {"p": "Otras fugas frecuentes: incluir una variable que solo existe <i>después</i> del evento que quieres predecir (usar «fecha de pago» para predecir si pagará), o duplicados que aparecen en train y test a la vez."},
+  {"warn": "Si tu modelo tiene un desempeño sospechosamente perfecto, no celebres: busca la fuga. El 95% de las veces está ahí."},
+
+  {"h": "Series de tiempo: nunca dividir al azar"},
+  {"p": "Con datos temporales, una división aleatoria entrena con días posteriores a los que predice. El modelo ve el futuro y el resultado es un espejismo. Se divide siempre por <b>corte temporal</b>: entrenar con el pasado, probar con el futuro, o usar validación cruzada con ventana deslizante."},
+
+  {"h": "Sesgo y varianza"},
+  {"list": [
+    "<b>Sesgo alto</b> (underfitting) — el modelo es demasiado simple. Falla igual en entrenamiento y en prueba.",
+    "<b>Varianza alta</b> (overfitting) — el modelo memorizó el ruido. Brilla en entrenamiento y fracasa en prueba."
+  ]},
+  {"p": "Todo el ajuste de un modelo es negociar entre los dos. Contra el overfitting: más datos, modelo más simple, <b>regularización</b> (L2 encoge los coeficientes, L1 los lleva a cero y hace selección de variables), validación cruzada y <i>early stopping</i>."},
+
+  {"h": "El accuracy miente"},
+  {"p": "Si el 99% de las transacciones son legítimas, un modelo que siempre diga «no es fraude» tiene 99% de accuracy y cero utilidad. Con clases desbalanceadas necesitas otras métricas."},
+  {"code": "                 PREDICHO\n              positivo  negativo\nREAL positivo    VP        FN   ← los que se te escaparon\n     negativo    FP        VN\n         ↑\n   falsas alarmas\n\nPrecisión = VP/(VP+FP)   de lo que marqué, ¿cuánto acerté?\nRecall    = VP/(VP+FN)   de todo lo real, ¿cuánto atrapé?"},
+  {"list": [
+    "Prioriza <b>precisión</b> cuando una falsa alarma es cara: filtro de spam, detener una línea de producción.",
+    "Prioriza <b>recall</b> cuando dejar pasar un caso es grave: detectar cáncer, una falla crítica de maquinaria.",
+    "<b>F1</b> los combina; <b>AUC-PR</b> es mejor que AUC-ROC cuando los positivos son raros."
+  ]},
+  {"key": "La métrica se elige a partir del <b>costo real de cada tipo de error</b>, no por costumbre. Pregúntate siempre qué cuesta más: una revisión de más o una falla no detectada."},
+
+  {"h": "Validación cruzada"},
+  {"p": "Dividir en k partes, entrenar k veces usando cada parte como prueba una vez y promediar. Da una estimación mucho más estable que una sola división, sobre todo con pocos datos. Típicamente k = 5 o 10."},
+
+  {"h": "Preparar las variables"},
+  {"list": [
+    "<b>Normalización</b> — importa en modelos basados en distancia o gradiente: KNN, SVM, redes neuronales, PCA. <b>No importa</b> en árboles ni random forest.",
+    "<b>One-hot encoding</b> para categóricas sin orden: una columna 0/1 por categoría.",
+    "<b>Feature engineering</b> — casi siempre rinde más que cambiar de algoritmo: de una fecha saca día de la semana y si es feriado; de un horómetro, las horas desde el último mantenimiento; de dos columnas, un ratio."
+  ]},
+  {"note": "Un modelo simple con buenas variables casi siempre le gana a un modelo sofisticado con variables crudas. El 80% del trabajo real es entender y preparar los datos."},
+
+  {"h": "SQL: lo que hay que dominar"},
+  {"code": "SELECT maquina, AVG(horas) AS promedio, COUNT(*) AS n\nFROM registros\nWHERE fecha >= '2026-01-01'     -- filtra FILAS\nGROUP BY maquina\nHAVING COUNT(*) > 5             -- filtra GRUPOS\nORDER BY promedio DESC;"},
+  {"p": "El orden real de ejecución es <b>FROM → JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT</b>. De ahí salen dos consecuencias prácticas: no puedes usar un alias del SELECT dentro del WHERE, y WHERE filtra filas mientras HAVING filtra grupos ya formados."},
+  {"p": "Las <b>funciones de ventana</b> son el siguiente escalón: calculan sobre un grupo sin colapsar las filas. <code>LAG()</code> y <code>LEAD()</code> comparan cada fila con la anterior o la siguiente, que es exactamente lo que necesitas para horómetros, consumos y cualquier serie."},
+
+  {"h": "El árbol de decisión y sus descendientes"},
+  {"p": "Un árbol es una cadena de preguntas sí/no. Se interpreta y se explica a cualquiera, no necesita escalado y maneja mezclas de tipos. Solo, se sobreajusta; por eso se usan <b>Random Forest</b> (muchos árboles votando) o <b>gradient boosting</b> (árboles que corrigen los errores del anterior), que son el estándar para datos tabulares."}
+ ]
+},
+{
+ "level": 3, "minutes": 9, "tags": "producción,series,interpretabilidad,sesgos,experimentos",
+ "title": "De un cuaderno a un sistema",
+ "subtitle": "Drift, interpretabilidad, experimentos honestos y las trampas que sobreviven al entrenamiento.",
+ "body": [
+  {"p": "Un modelo entrenado no es un sistema. Entre el cuaderno que funciona y algo en lo que una empresa apoya decisiones hay una distancia que se mide en monitoreo, versionado y honestidad estadística."},
+
+  {"h": "Lo que un modelo necesita para vivir en producción"},
+  {"steps": [
+    "<b>Pipeline reproducible</b>: exactamente el mismo preprocesamiento en entrenamiento y en predicción. Si se hace a mano en un cuaderno, tarde o temprano divergen.",
+    "<b>Versionado</b> de datos, código y modelo. Tienes que poder responder «¿con qué se entrenó exactamente el modelo que dio esta predicción?».",
+    "<b>Monitoreo de las entradas</b>, no solo de la métrica. La métrica real llega con retraso; las distribuciones de entrada cambian ya.",
+    "<b>Reentrenamiento</b> con criterio de disparo definido: por calendario, por volumen de datos nuevos o por degradación medida.",
+    "<b>Plan de reversión</b> al modelo anterior, probado antes de necesitarlo."
+  ]},
+
+  {"h": "Drift: por qué se degrada un modelo que no cambió"},
+  {"list": [
+    "<b>Data drift</b> — cambian las distribuciones de entrada: llegó una flota de máquinas nuevas, cambió el proveedor, cambió la estacionalidad.",
+    "<b>Concept drift</b> — cambia la relación entre entradas y salida: lo que antes predecía una falla ya no la predice porque cambió el plan de mantenimiento.",
+    "<b>Feedback loop</b> — el propio modelo cambia el mundo que mide. Si predices fallas y por eso intervienes antes, las fallas dejan de ocurrir y el modelo parece equivocarse."
+  ]},
+  {"key": "El feedback loop es el más traicionero, porque el modelo se «equivoca» precisamente cuando funciona. Requiere medir el efecto de la intervención, no solo la precisión de la predicción."},
+
+  {"h": "Series de tiempo"},
+  {"p": "Una serie es <b>estacionaria</b> si su media, varianza y autocorrelación no cambian con el tiempo. Casi todos los modelos clásicos lo exigen. Se consigue diferenciando (<code>y.diff()</code>), quitando tendencia o aplicando logaritmo si la varianza crece con el nivel, y se comprueba con la prueba de Dickey-Fuller aumentada."},
+  {"p": "Antes de modelar, el procedimiento es siempre: <b>graficar la serie completa</b> (tendencia, estacionalidad, huecos), revisar calidad (fechas faltantes, ceros sospechosos, duplicados), <b>descomponer</b> en tendencia + estacionalidad + residuo, y agregar por semana o mes para reducir ruido."},
+
+  {"h": "Experimentos honestos"},
+  {"p": "Una prueba A/B compara dos versiones asignando sujetos <b>al azar</b> y midiendo una métrica definida <i>antes</i> de empezar. Lo que la invalida:"},
+  {"list": [
+    "<b>Peeking</b> — mirar los resultados a diario y parar cuando salen favorables. Si miras suficientes veces, siempre encontrarás un momento significativo por azar.",
+    "<b>Múltiples métricas</b> — probar veinte y reportar la que salió bien. Con veinte métricas al 5%, se espera una «significativa» solo por casualidad.",
+    "<b>Muestra insuficiente</b> — calcula el tamaño necesario antes, no después.",
+    "<b>Grupos no comparables</b> — si la asignación no fue realmente aleatoria, no hay experimento."
+  ]},
+  {"note": "El p-valor es la probabilidad de observar estos datos (o más extremos) <b>si la hipótesis nula fuera cierta</b>. No es la probabilidad de que tu hipótesis sea verdadera, ni mide el tamaño del efecto. Un resultado significativo puede ser irrelevante en la práctica."},
+
+  {"h": "Sesgos que sobreviven a cualquier modelo"},
+  {"list": [
+    "<b>Sesgo de supervivencia</b> — analizar solo lo que quedó. Estudiar únicamente los clientes activos no dice nada de por qué se fueron los demás.",
+    "<b>Paradoja de Simpson</b> — una tendencia presente en cada grupo se invierte al juntarlos. El taller A repara más rápido en máquinas ligeras y en pesadas, pero parece más lento en total porque atiende sobre todo pesadas.",
+    "<b>Sesgo de selección</b> — la muestra no representa a la población sobre la que decidirás.",
+    "<b>Sesgo histórico</b> — si los datos reflejan una práctica discriminatoria, el modelo la aprenderá y la aplicará a escala."
+  ]},
+  {"key": "Contra Simpson, la defensa es siempre la misma: <b>segmenta antes de concluir</b>. Un promedio global casi nunca es la respuesta final."},
+
+  {"h": "Interpretabilidad"},
+  {"p": "<b>SHAP</b> reparte cada predicción entre las variables: cuánto empujó cada una, en esta predicción concreta y en qué dirección. Convierte una caja negra en algo defendible ante un jefe o un auditor: <i>«se predijo falla porque las horas desde el último servicio aportaron +0,3 y la temperatura +0,2»</i>."},
+  {"p": "La importancia global de variables dice qué usa el modelo en promedio; SHAP dice por qué tomó <i>esta</i> decisión. Para explicar un caso individual a una persona afectada, solo sirve el segundo."},
+
+  {"h": "Definir bien un problema real"},
+  {"p": "Predecir fallas de maquinaria parece un problema de modelado. Casi todo el trabajo, sin embargo, está en definirlo:"},
+  {"steps": [
+    "<b>Etiqueta clara</b>: ¿«falla en los próximos 7 días»? Define la ventana y qué cuenta exactamente como falla.",
+    "<b>Fecha de corte</b>: solo información disponible <i>antes</i> del momento a predecir. Aquí es donde se cuela la fuga.",
+    "<b>Desbalance</b>: las fallas son raras. Métricas adecuadas, pesos de clase o remuestreo.",
+    "<b>Costo asimétrico</b>: no detectar una falla cuesta mucho más que una revisión de más. El umbral de decisión se ajusta con ese costo, no en 0,5 por defecto.",
+    "<b>Línea base</b>: ¿le gana al mantenimiento por horas fijas que ya usan? Si no, el modelo no aporta nada aunque su AUC sea bonito."
+  ]},
+  {"key": "Sin línea base no sabes si tu modelo sirve. Es la primera pregunta que debería hacerse y la que más se omite."}
+ ]
+}
+]}

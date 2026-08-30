@@ -1,0 +1,420 @@
+{
+ "key": "datos",
+ "name": "Ciencia de Datos",
+ "icon": "📊",
+ "color": "#9141ac",
+ "pos": 3,
+ "cards": [
+  {
+   "kind": "card",
+   "front": "¿Cuándo usar media, mediana o moda?",
+   "back": "<b>Media</b>: datos simétricos sin valores extremos.\n<b>Mediana</b>: hay <i>outliers</i> o la distribución está sesgada (ej. salarios, precios de casas).\n<b>Moda</b>: datos categóricos (el color más vendido).",
+   "tags": "estadística",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es la correlación y cuál es su trampa clásica?",
+   "back": "Mide qué tan relacionadas van dos variables (-1 a 1).\n<b>Trampa</b>: correlación ≠ causalidad. Helados y ahogamientos correlacionan… porque ambos suben en verano (variable de confusión).",
+   "tags": "estadística",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "Pandas: ¿cómo agrupas y agregas ventas por región?",
+   "back": "<code>df.groupby('region')['ventas'].agg(['sum','mean','count'])</code>\nVarias columnas: <code>df.groupby(['region','mes']).agg(total=('ventas','sum'))</code>",
+   "tags": "pandas",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué hacer con los valores faltantes (NaN)?",
+   "back": "1. <b>Entender por qué faltan</b> (¿al azar o sistemáticamente?)\n2. <b>Eliminar</b> filas/columnas si son pocas o inútiles\n3. <b>Imputar</b>: media/mediana, moda, o modelo\n4. <b>Marcar</b>: crear columna «era_nulo», a veces la ausencia informa",
+   "tags": "limpieza",
+   "level": 1
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué gráfico usarías para ver la distribución de una variable numérica?",
+   "choices": [
+    "Histograma o boxplot",
+    "Gráfico de torta",
+    "Gráfico de barras apiladas",
+    "Mapa de calor"
+   ],
+   "answer": 0,
+   "back": "<b>Histograma</b> muestra la forma; <b>boxplot</b> resume mediana, cuartiles y outliers. La torta solo sirve (a duras penas) para proporciones de pocas categorías.",
+   "tags": "visualización",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "Pandas: diferencia entre <code>loc</code> e <code>iloc</code>",
+   "back": "<b>.loc</b> por <b>etiqueta</b>: <code>df.loc[df.edad>30, 'nombre']</code>\n<b>.iloc</b> por <b>posición</b>: <code>df.iloc[0:5, 2]</code>\nRegla: loc = label, iloc = index.",
+   "tags": "pandas",
+   "level": 1
+  },
+  {
+   "kind": "lesson",
+   "front": "La regla 80/20 de la ciencia de datos",
+   "back": "El <b>80% del trabajo real es limpiar y entender los datos</b>; el modelo es la parte fácil.\nUn modelo simple con datos limpios y buenas variables casi siempre gana a un modelo sofisticado con datos sucios.\nInvierte en <b>feature engineering</b> antes que en algoritmos.",
+   "tags": "práctica",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "Diferencia entre aprendizaje supervisado y no supervisado",
+   "back": "<b>Supervisado</b>: hay etiqueta conocida → clasificación (spam/no spam) y regresión (predecir precio).\n<b>No supervisado</b>: sin etiquetas → clustering (segmentar clientes), reducción de dimensión, detección de anomalías.",
+   "tags": "modelado",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "Pandas: ¿cómo unes dos DataFrames por una columna común?",
+   "back": "<code>pd.merge(df1, df2, on='id', how='left')</code>\n<b>how</b>: 'inner' (default), 'left', 'right', 'outer'.\nSiempre revisa <code>len()</code> antes y después: si crecen las filas, tenías claves duplicadas.",
+   "tags": "pandas",
+   "level": 1
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "¿Qué es una variable y de qué tipos hay?",
+   "back": "Cada columna de tus datos es una variable:\n<b>Numérica continua</b>: horas de motor, litros (admite decimales)\n<b>Numérica discreta</b>: número de fallas (se cuenta)\n<b>Categórica nominal</b>: marca de máquina (sin orden)\n<b>Categórica ordinal</b>: bajo/medio/alto (con orden)\n\nEl tipo decide qué gráfico y qué prueba estadística puedes usar.",
+   "tags": "fundamentos"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "¿Qué es la desviación estándar, en palabras simples?",
+   "back": "Cuánto se alejan los datos de su promedio.\n<b>Pequeña</b> = todos parecidos; <b>grande</b> = muy dispersos.\n\nDos talleres con promedio de 5 h por reparación: uno con σ=0.5 es predecible; otro con σ=4 es un caos. <b>El promedio solo no cuenta la historia.</b>",
+   "tags": "estadística"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Primeros 5 comandos al abrir un dataset nuevo en pandas",
+   "back": "<code>df.shape</code> — cuántas filas y columnas\n<code>df.head()</code> — cómo se ven los datos\n<code>df.info()</code> — tipos y cuántos nulos\n<code>df.describe()</code> — resumen numérico\n<code>df.isna().sum()</code> — nulos por columna\n\nNunca modeles antes de mirar esto.",
+   "tags": "pandas"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "front": "Tienes salarios: 1.000, 1.200, 1.100, 1.300 y 90.000. ¿Qué resumen usas?",
+   "choices": [
+    "La mediana (1.200)",
+    "La media (19.120)",
+    "La moda",
+    "La suma"
+   ],
+   "answer": 0,
+   "back": "Un solo valor extremo arrastra la media a un número que no representa a nadie. Con <b>outliers o distribuciones sesgadas</b>, la <b>mediana</b> describe mejor al grupo.",
+   "tags": "estadística"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "¿Qué es un CSV y cuáles son sus trampas?",
+   "back": "Texto plano con valores separados por comas.\n<b>Trampas</b>: el separador puede ser <code>;</code>, los decimales pueden ir con coma, la codificación puede no ser UTF-8, y las fechas llegan como texto.\n\n<code>pd.read_csv('f.csv', sep=';', decimal=',', encoding='latin-1', parse_dates=['fecha'])</code>",
+   "tags": "pandas"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Filtrar filas en pandas",
+   "back": "<code>df[df.horas > 500]</code>\nVarias condiciones (paréntesis obligatorios):\n<code>df[(df.horas > 500) & (df.marca == 'CAT')]</code>\n\nUsa <b>&</b> y <b>|</b>, no <i>and</i>/<i>or</i>. Para listas: <code>df[df.marca.isin(['CAT','Komatsu'])]</code>",
+   "tags": "pandas"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "¿Qué es una tabla dinámica (pivot) y para qué sirve?",
+   "back": "Reorganiza los datos: una variable a filas, otra a columnas, y un valor agregado en el cruce.\n\n<code>df.pivot_table(index='maquina', columns='mes', values='horas', aggfunc='sum')</code>\n\nEs la forma más rápida de responder «¿cuánto por X y por Y?».",
+   "tags": "pandas"
+  },
+  {
+   "kind": "quiz",
+   "front": "Tu modelo tiene 99% de accuracy detectando fraude. ¿Qué sospechas?",
+   "choices": [
+    "Clases desbalanceadas: casi todo es 'no fraude'",
+    "Que el modelo es excelente",
+    "Que hay pocos datos",
+    "Que faltó normalizar"
+   ],
+   "answer": 0,
+   "back": "Si el 99% de los casos son legítimos, predecir siempre «no fraude» da 99%. Usa <b>precisión, recall, F1</b> o <b>AUC-PR</b>, nunca accuracy con clases desbalanceadas.",
+   "tags": "evaluación",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "Explica <i>overfitting</i> y 3 formas de combatirlo",
+   "back": "El modelo memoriza el ruido del entrenamiento y falla con datos nuevos (train alto, test bajo).\nRemedios: <b>más datos</b>, <b>regularización</b> (L1/L2, dropout), <b>modelo más simple</b>, <b>validación cruzada</b>, <b>early stopping</b>.",
+   "tags": "modelado",
+   "level": 2
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Cuál es el orden correcto al preparar datos?",
+   "choices": [
+    "Dividir train/test y LUEGO escalar con estadísticas del train",
+    "Escalar todo y luego dividir",
+    "Dividir después de entrenar",
+    "No importa el orden"
+   ],
+   "answer": 0,
+   "back": "Escalar antes de dividir causa <b>data leakage</b>: el conjunto de prueba influye en la media/desviación. Usa <code>fit</code> en train y solo <code>transform</code> en test.",
+   "tags": "preprocesamiento",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es un <i>outlier</i> y cómo lo detectas con el rango intercuartílico?",
+   "back": "Valor atípico muy alejado del resto.\n<b>IQR = Q3 − Q1</b>. Es outlier si está fuera de <b>[Q1 − 1.5·IQR, Q3 + 1.5·IQR]</b>.\nNo lo borres por defecto: investiga si es error de captura o un caso real importante.",
+   "tags": "estadística",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "SQL: ¿diferencia entre INNER JOIN y LEFT JOIN?",
+   "back": "<b>INNER</b>: solo filas con coincidencia en ambas tablas.\n<b>LEFT</b>: todas las filas de la izquierda; si no hay pareja, rellena con NULL.\nÚtil para «clientes que NO compraron»: LEFT JOIN + <code>WHERE b.id IS NULL</code>.",
+   "tags": "sql",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es la validación cruzada (k-fold)?",
+   "back": "Divide los datos en k partes; entrena k veces usando cada parte como prueba una vez, y promedia. Da una estimación más estable del desempeño que una sola división train/test. Típico: <b>k = 5 o 10</b>.",
+   "tags": "evaluación",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "Precisión vs. Recall: ¿cuál priorizas en cada caso?",
+   "back": "<b>Precisión</b> = de lo que marqué positivo, ¿cuánto acerté? Prioriza cuando una falsa alarma es cara (filtro de spam).\n<b>Recall</b> = de todos los positivos reales, ¿cuántos atrapé? Prioriza cuando dejar pasar uno es grave (detección de cáncer, fallas críticas).",
+   "tags": "evaluación",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es la normalización y cuándo importa?",
+   "back": "Llevar variables a escalas comparables.\n<b>Min-Max</b> → [0,1]. <b>Estandarización (z-score)</b> → media 0, desv. 1.\nImporta en modelos basados en distancia o gradiente: KNN, SVM, redes neuronales, PCA. No importa en árboles ni random forest.",
+   "tags": "preprocesamiento",
+   "level": 2
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué es el p-valor?",
+   "choices": [
+    "La probabilidad de ver estos datos (o más extremos) si la hipótesis nula fuera cierta",
+    "La probabilidad de que la hipótesis sea verdadera",
+    "El porcentaje de error del modelo",
+    "El tamaño del efecto"
+   ],
+   "answer": 0,
+   "back": "Un p-valor bajo (&lt;0.05) sugiere que los datos son poco compatibles con la hipótesis nula. <b>No</b> mide la probabilidad de que tu hipótesis sea cierta ni la magnitud del efecto.",
+   "tags": "estadística",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "Reto: tienes ventas diarias de 2 años. ¿Cómo empiezas el análisis?",
+   "back": "1. <b>Graficar la serie</b> completa: tendencia, estacionalidad, huecos\n2. <b>Revisar calidad</b>: fechas faltantes, ceros sospechosos, duplicados\n3. <b>Descomponer</b>: tendencia + estacionalidad + residuo\n4. <b>Agregar</b> por semana/mes para reducir ruido\n5. Recién ahí, modelar.",
+   "tags": "series",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "SQL: ¿cuál es el orden de ejecución real de una consulta?",
+   "back": "FROM → JOIN → <b>WHERE</b> → GROUP BY → <b>HAVING</b> → SELECT → ORDER BY → LIMIT\n\nPor eso no puedes usar un alias del SELECT en el WHERE, y por eso <b>WHERE filtra filas</b> mientras <b>HAVING filtra grupos</b>.",
+   "tags": "sql",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es un <i>histograma sesgado a la derecha</i> y qué implica?",
+   "back": "La cola larga está a la derecha: pocos valores muy altos (ingresos, tiempos de espera).\n<b>Media &gt; mediana</b>. Suele convenir la mediana como resumen y una <b>transformación log</b> antes de modelar.",
+   "tags": "estadística",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es el sesgo de supervivencia? Da un ejemplo.",
+   "back": "Analizar solo lo que «sobrevivió» al filtro, ignorando lo que desapareció.\nEjemplo clásico: reforzar los aviones donde tenían impactos… cuando había que reforzar donde <b>no</b> los tenían (esos aviones no volvieron).\nEn negocio: estudiar solo clientes activos ignora por qué se fueron los demás.",
+   "tags": "sesgos",
+   "level": 2
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "SQL: ¿cómo se calcula un agregado por grupo con filtro?",
+   "back": "<code>SELECT maquina, AVG(horas) AS promedio, COUNT(*) AS n\nFROM registros\nWHERE fecha >= '2026-01-01'\nGROUP BY maquina\nHAVING COUNT(*) > 5\nORDER BY promedio DESC;</code>\n\n<b>WHERE</b> filtra filas antes de agrupar; <b>HAVING</b> filtra grupos ya formados.",
+   "tags": "sql"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "¿Qué es una función de ventana en SQL?",
+   "back": "Calcula sobre un grupo <b>sin colapsar las filas</b>:\n<code>SELECT maquina, fecha, horas,\n       AVG(horas) OVER (PARTITION BY maquina) AS promedio_maquina,\n       horas - LAG(horas) OVER (PARTITION BY maquina ORDER BY fecha) AS diferencia\nFROM registros;</code>\n\n<b>LAG/LEAD</b> comparan con la fila anterior o siguiente — perfecto para horómetros y series.",
+   "tags": "sql"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "¿Qué es el sesgo (bias) y la varianza de un modelo?",
+   "back": "<b>Sesgo alto</b> = el modelo es demasiado simple, falla igual en entrenamiento y prueba (<i>underfitting</i>).\n<b>Varianza alta</b> = el modelo es demasiado sensible a los datos concretos, brilla en entrenamiento y falla en prueba (<i>overfitting</i>).\n\nTodo el ajuste de modelos es negociar entre estos dos.",
+   "tags": "modelado"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "¿Qué es una matriz de confusión?",
+   "back": "Tabla de aciertos y errores de una clasificación:\n<b>VP</b> predije falla y hubo falla\n<b>VN</b> predije normal y fue normal\n<b>FP</b> falsa alarma\n<b>FN</b> falla que no detecté ← normalmente el error caro\n\nDe ahí salen: precisión = VP/(VP+FP) · recall = VP/(VP+FN).",
+   "tags": "evaluación"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "¿Qué es <i>feature engineering</i>? Da ejemplos reales",
+   "back": "Crear variables que le faciliten el trabajo al modelo:\n• De una fecha → día de la semana, mes, ¿es feriado?\n• De un horómetro → horas desde el último mantenimiento\n• De dos columnas → ratio (consumo por hora trabajada)\n• Agregados → promedio de fallas de esa máquina en 30 días\n\nSuele dar más mejora que cambiar de algoritmo.",
+   "tags": "modelado"
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "front": "¿Cómo se codifica una variable categórica como «marca» para un modelo?",
+   "choices": [
+    "One-hot encoding: una columna 0/1 por categoría",
+    "Asignando 1, 2, 3… por orden alfabético",
+    "Borrando la columna",
+    "Convirtiéndola a fecha"
+   ],
+   "answer": 0,
+   "back": "Numerar categorías sin orden real inventa una jerarquía falsa (que Komatsu &gt; CAT). <b>One-hot</b> evita eso. Con muchísimas categorías se usan <i>target encoding</i> o <i>embeddings</i>.",
+   "tags": "preprocesamiento"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "¿Qué es un árbol de decisión y por qué es tan usado?",
+   "back": "Una cadena de preguntas sí/no que parte los datos: <i>¿horas &gt; 500? → ¿temperatura &gt; 90? → falla probable</i>.\n\n<b>Ventajas</b>: se interpreta y se explica a cualquiera, no necesita escalado, maneja mezclas de tipos.\n<b>Desventaja</b>: solo, se sobreajusta. Por eso se usan bosques (<b>Random Forest</b>) o <b>gradient boosting</b>.",
+   "tags": "modelado"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "¿Cómo eliges el tamaño de train / validación / test?",
+   "back": "<b>Train</b> (~70%) para aprender · <b>Validación</b> (~15%) para ajustar hiperparámetros · <b>Test</b> (~15%) se toca <b>una sola vez</b>, al final.\n\nSi ajustas mirando el test, ya no mide nada honesto.\nEn series de tiempo, <b>nunca</b> dividas al azar: entrena con el pasado y prueba con el futuro.",
+   "tags": "evaluación"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "Reglas para que un gráfico comunique",
+   "back": "• Un mensaje por gráfico, escrito <b>en el título</b>\n• Eje Y desde cero en gráficos de barras (si no, exageras)\n• Ordena las barras por valor, no alfabéticamente\n• Máximo 5-7 series; el resto agrúpalo en «Otros»\n• Etiqueta directamente en vez de obligar a mirar la leyenda",
+   "tags": "visualización"
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es PCA y para qué sirve?",
+   "back": "<b>Análisis de Componentes Principales</b>: reduce muchas variables correlacionadas a pocas «componentes» que conservan la mayor varianza.\nUsos: visualizar datos de alta dimensión, acelerar modelos, quitar redundancia. Costo: las componentes ya no son interpretables.",
+   "tags": "modelado",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "Tu modelo funciona en pruebas pero falla en producción. ¿Causa más probable?",
+   "choices": [
+    "Data drift: los datos reales cambiaron respecto al entrenamiento",
+    "El servidor es lento",
+    "Faltó documentación",
+    "El código tiene un typo"
+   ],
+   "answer": 0,
+   "back": "Los datos del mundo real cambian con el tiempo (<b>data drift</b>) o la variable objetivo cambia de significado (<b>concept drift</b>). Por eso se monitorean las distribuciones de entrada en producción, no solo la métrica.",
+   "tags": "producción",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es un <i>data leakage</i> y cómo lo detectas?",
+   "back": "Cuando información del futuro o del objetivo se filtra en las variables de entrenamiento.\n<b>Señal de alarma</b>: desempeño sospechosamente perfecto.\nEjemplos: incluir «fecha_de_pago» para predecir si pagará, o escalar antes de dividir train/test.",
+   "tags": "modelado",
+   "level": 3
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "¿Qué es una prueba A/B y qué la invalida?",
+   "back": "Comparas dos versiones asignando usuarios <b>al azar</b> y mides una métrica definida <i>antes</i> de empezar.\n\n<b>La invalidan</b>: parar cuando el resultado te gusta (<i>peeking</i>), mirar 20 métricas hasta que una salga significativa, muestra insuficiente, o grupos que no eran comparables desde el inicio.",
+   "tags": "experimentos"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "¿Qué es la regularización L1 y L2?",
+   "back": "Penalizan coeficientes grandes para evitar sobreajuste:\n<b>L2 (Ridge)</b> los encoge hacia cero suavemente — bueno con variables correlacionadas.\n<b>L1 (Lasso)</b> los lleva <b>exactamente a cero</b> — hace selección de variables por sí solo.\n<b>Elastic Net</b> combina ambas.",
+   "tags": "modelado"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "¿Cómo evalúas un modelo con clases muy desbalanceadas?",
+   "back": "Olvida el accuracy. Usa:\n• <b>AUC-PR</b> (precisión-recall) mejor que AUC-ROC cuando los positivos son raros\n• <b>F1</b> o <b>F-beta</b> si un error pesa más que otro\n• <b>Curva de precisión vs. umbral</b> para elegir el punto de corte según el costo real\n\nY en el entrenamiento: <code>class_weight='balanced'</code>, submuestreo o SMOTE.",
+   "tags": "evaluación"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "¿Qué es la estacionariedad en series de tiempo?",
+   "back": "Una serie es estacionaria si su media, varianza y autocorrelación <b>no cambian con el tiempo</b>. Casi todos los modelos clásicos (ARIMA) la exigen.\n\n<b>Cómo lograrla</b>: diferenciar (<code>y.diff()</code>), quitar tendencia, transformar con logaritmo si la varianza crece.\n<b>Cómo comprobarla</b>: prueba de Dickey-Fuller aumentada (ADF).",
+   "tags": "series"
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "front": "Entrenas con datos de 2024-2025 y validas con una muestra aleatoria. ¿Qué está mal?",
+   "choices": [
+    "En series temporales la división aleatoria filtra el futuro al entrenamiento",
+    "Nada, es lo correcto",
+    "Faltó normalizar",
+    "Deberías usar más árboles"
+   ],
+   "answer": 0,
+   "back": "El modelo aprende de días posteriores a los que predice: rendimiento inflado que se derrumba en producción. Usa <b>división temporal</b> o validación cruzada con ventana deslizante.",
+   "tags": "series"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "¿Qué es SHAP y por qué importa?",
+   "back": "Reparte la predicción entre las variables: dice <b>cuánto empujó cada una</b>, en esta predicción concreta y en qué dirección.\n\nConvierte un modelo «caja negra» en algo defendible ante un jefe o un auditor: <i>«se predijo falla porque las horas desde el último servicio pesaron +0.3 y la temperatura +0.2»</i>.",
+   "tags": "interpretabilidad"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "¿Qué necesita un modelo para vivir en producción?",
+   "back": "1. <b>Pipeline reproducible</b>: mismo preprocesamiento en entrenamiento y en predicción\n2. <b>Versionado</b> de datos, código y modelo\n3. <b>Monitoreo</b> de las distribuciones de entrada (drift), no solo de la métrica\n4. <b>Reentrenamiento</b> programado y con criterio de disparo\n5. <b>Plan de reversión</b> al modelo anterior\n\nUn notebook no es un sistema.",
+   "tags": "producción"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "Reto: predecir fallas de maquinaria. ¿Cómo defines el problema?",
+   "back": "1. <b>Etiqueta clara</b>: ¿«falla en los próximos 7 días»? Define ventana y qué cuenta como falla.\n2. <b>Datos con fecha de corte</b>: solo información disponible <i>antes</i> del momento a predecir (evita fuga).\n3. <b>Desbalance</b>: las fallas son raras → métricas y pesos adecuados.\n4. <b>Costo asimétrico</b>: no detectar una falla cuesta mucho más que una revisión de más → ajusta el umbral.\n5. <b>Línea base</b>: ¿le gana al mantenimiento por horas fijas? Si no, no sirve.",
+   "tags": "aplicación"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "¿Qué es la paradoja de Simpson?",
+   "back": "Una tendencia que aparece en cada grupo por separado <b>se invierte</b> al juntar todos los datos.\n\nEjemplo: el taller A repara más rápido que el B en máquinas ligeras <i>y</i> en pesadas; pero en total parece más lento… porque atiende sobre todo pesadas.\n\nLección: <b>siempre segmenta antes de concluir</b>.",
+   "tags": "sesgos"
+  }
+ ],
+ "levels": [
+  "Básico",
+  "Intermedio",
+  "Avanzado"
+ ]
+}

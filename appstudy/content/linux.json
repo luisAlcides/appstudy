@@ -1,0 +1,434 @@
+{
+ "key": "linux",
+ "name": "Linux",
+ "icon": "🐧",
+ "color": "#26a269",
+ "pos": 2,
+ "cards": [
+  {
+   "kind": "card",
+   "front": "¿Qué significan los permisos <code>rwxr-xr--</code>?",
+   "back": "Tres bloques de 3:\n<b>rwx</b> dueño (leer, escribir, ejecutar)\n<b>r-x</b> grupo (leer, ejecutar)\n<b>r--</b> otros (solo leer)\n\nEn octal: <b>754</b> (r=4, w=2, x=1).",
+   "tags": "permisos",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo buscas texto dentro de archivos de forma recursiva?",
+   "back": "<code>grep -rn \"patrón\" .</code>\n<b>-r</b> recursivo, <b>-n</b> número de línea, <b>-i</b> ignora mayúsculas, <b>-l</b> solo nombres de archivo.",
+   "tags": "búsqueda",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué hace <code>chmod +x script.sh</code> y por qué se necesita?",
+   "back": "Añade permiso de <b>ejecución</b> a todos. Sin él, <code>./script.sh</code> da «Permission denied».\nAlternativa sin permiso: <code>bash script.sh</code>.",
+   "tags": "permisos",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "Diferencia entre ruta absoluta y relativa",
+   "back": "<b>Absoluta</b>: empieza en <code>/</code> — <code>/home/user/doc.txt</code>. Igual desde cualquier lugar.\n<b>Relativa</b>: parte del directorio actual — <code>../doc.txt</code>, <code>./script.sh</code>.",
+   "tags": "básico",
+   "level": 1
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Dónde vive la configuración de un programa para TODO el sistema?",
+   "choices": [
+    "/etc",
+    "/var",
+    "/opt",
+    "/usr/bin"
+   ],
+   "answer": 0,
+   "back": "<b>/etc</b> configuración; <b>/var</b> datos variables (logs, colas); <b>/opt</b> software de terceros; <b>/usr/bin</b> binarios.",
+   "tags": "filesystem",
+   "level": 1
+  },
+  {
+   "kind": "quiz",
+   "front": "En vim, ¿cómo guardas y sales?",
+   "choices": [
+    ":wq o ZZ",
+    ":q!",
+    "Ctrl+S",
+    "Esc Esc"
+   ],
+   "answer": 0,
+   "back": "<code>:w</code> guarda, <code>:q</code> sale, <code>:wq</code> ambos, <code>:q!</code> sale descartando cambios. Pulsa <b>Esc</b> antes para salir del modo inserción.",
+   "tags": "editor",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "Diferencia entre <code>apt update</code> y <code>apt upgrade</code>",
+   "back": "<b>update</b>: refresca la lista de paquetes disponibles (no instala nada).\n<b>upgrade</b>: instala las nuevas versiones.\nSiempre en ese orden: <code>sudo apt update &amp;&amp; sudo apt upgrade</code>",
+   "tags": "paquetes",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo comprimes y descomprimes un directorio con tar?",
+   "back": "Comprimir: <code>tar -czf copia.tar.gz carpeta/</code>\nDescomprimir: <code>tar -xzf copia.tar.gz</code>\nVer contenido: <code>tar -tzf copia.tar.gz</code>\n<b>c</b>reate, e<b>x</b>tract, lis<b>t</b>, <b>z</b> gzip, <b>f</b>ile.",
+   "tags": "archivos",
+   "level": 1
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Los 4 comandos para moverte por el sistema",
+   "back": "<code>pwd</code> — dónde estoy\n<code>ls -la</code> — qué hay aquí (incluidos ocultos)\n<code>cd carpeta</code> — entrar · <code>cd ..</code> subir · <code>cd</code> solo va a tu home\n<code>tree -L 2</code> — ver la estructura\n\nAtajo: <code>cd -</code> vuelve al directorio anterior.",
+   "tags": "básico"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Copiar, mover y borrar: <code>cp</code>, <code>mv</code>, <code>rm</code>",
+   "back": "<code>cp origen destino</code> · carpetas: <code>cp -r</code>\n<code>mv origen destino</code> — mueve <b>y también renombra</b>\n<code>rm archivo</code> · carpetas: <code>rm -r</code>\n\n⚠️ En Linux <b>no hay papelera</b>: <code>rm</code> borra de verdad. Usa <code>rm -i</code> si quieres que pregunte.",
+   "tags": "básico"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Ver el contenido de un archivo sin abrirlo en un editor",
+   "back": "<code>cat archivo</code> — todo de golpe (archivos cortos)\n<code>less archivo</code> — paginado, se sale con <b>q</b>, se busca con <b>/texto</b>\n<code>head -20</code> / <code>tail -20</code> — primeras / últimas líneas\n<code>tail -f</code> — sigue el archivo en vivo",
+   "tags": "básico"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "front": "¿Qué hace <code>rm -rf /home/usuario/proyecto/</code>?",
+   "choices": [
+    "Borra la carpeta y todo su contenido, sin preguntar y sin papelera",
+    "Mueve la carpeta a la papelera",
+    "Borra solo los archivos vacíos",
+    "Comprime la carpeta"
+   ],
+   "answer": 0,
+   "back": "<b>-r</b> recursivo, <b>-f</b> forzado (no pregunta). Es el comando más peligroso del sistema: revisa la ruta <b>dos veces</b> antes de pulsar Enter, sobre todo si empieza con <code>/</code>.",
+   "tags": "básico"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Los comodines: <code>*</code>, <code>?</code> y <code>{}</code>",
+   "back": "<code>*</code> = cualquier cantidad de caracteres → <code>ls *.log</code>\n<code>?</code> = exactamente un carácter → <code>ls foto?.jpg</code>\n<code>{a,b}</code> = alternativas → <code>cp archivo.{txt,bak}</code>\n<code>[0-9]</code> = un rango → <code>ls informe[0-9].pdf</code>",
+   "tags": "básico"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "Tres teclas que te ahorran horas en la terminal",
+   "back": "<b>Tab</b> — autocompleta rutas y comandos (dos veces = ver opciones)\n<b>↑ / ↓</b> — historial de comandos\n<b>Ctrl+R</b> — buscar en el historial escribiendo parte del comando\n\nExtra: <b>Ctrl+C</b> corta el comando actual, <b>Ctrl+L</b> limpia la pantalla.",
+   "tags": "básico"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "¿Cómo averiguas qué hace un comando que no conoces?",
+   "back": "<code>comando --help</code> — resumen rápido\n<code>man comando</code> — manual completo (se sale con <b>q</b>)\n<code>type comando</code> — dice si es binario, alias o función\n<code>apropos palabra</code> — busca comandos por tema",
+   "tags": "básico"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "front": "¿Qué es <code>sudo</code> y cuándo hace falta?",
+   "back": "Ejecuta un comando <b>como administrador (root)</b>. Hace falta para tocar el sistema: instalar paquetes, editar <code>/etc</code>, gestionar servicios.\n\n<code>sudo !!</code> repite el último comando con sudo — útil cuando olvidaste ponerlo.\n⚠️ Nunca ejecutes con sudo un script que no entiendes.",
+   "tags": "básico"
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué comando muestra el uso de disco por directorio, ordenado?",
+   "choices": [
+    "du -sh * | sort -h",
+    "df -h",
+    "ls -la",
+    "free -h"
+   ],
+   "answer": 0,
+   "back": "<b>du</b> mide directorios; <b>df</b> mide sistemas de archivos montados. <code>sort -h</code> ordena tamaños legibles (1K, 2M, 3G).",
+   "tags": "disco",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "Diferencia entre <code>&gt;</code>, <code>&gt;&gt;</code> y <code>2&gt;&amp;1</code>",
+   "back": "<code>&gt;</code> sobrescribe la salida estándar.\n<code>&gt;&gt;</code> añade al final.\n<code>2&gt;&amp;1</code> redirige errores (fd 2) al mismo destino que la salida (fd 1).\n\n<code>cmd &gt; log.txt 2&gt;&amp;1</code> guarda todo.",
+   "tags": "shell",
+   "level": 2
+  },
+  {
+   "kind": "quiz",
+   "front": "Un proceso no responde. ¿Qué señal envías PRIMERO?",
+   "choices": [
+    "SIGTERM (kill PID)",
+    "SIGKILL (kill -9)",
+    "SIGHUP",
+    "SIGSTOP"
+   ],
+   "answer": 0,
+   "back": "<b>SIGTERM</b> pide cerrar ordenadamente (el proceso guarda y limpia). <b>kill -9</b> es el último recurso: no permite limpieza y puede dejar archivos corruptos.",
+   "tags": "procesos",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Para qué sirve <code>systemctl</code>? Da 4 subcomandos.",
+   "back": "Gestiona servicios de systemd:\n<code>systemctl status nginx</code> — ver estado\n<code>systemctl start/stop/restart nginx</code>\n<code>systemctl enable nginx</code> — arrancar al inicio\n<code>journalctl -u nginx -f</code> — logs en vivo",
+   "tags": "servicios",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es un <i>pipe</i>? Encadena: los 5 procesos que más RAM usan.",
+   "back": "El pipe <code>|</code> conecta la salida de un comando con la entrada del siguiente.\n<code>ps aux --sort=-%mem | head -6</code>\n(la primera línea es el encabezado, por eso 6)",
+   "tags": "shell",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo ves los logs del sistema en tiempo real?",
+   "back": "<code>journalctl -f</code> (todo el sistema)\n<code>journalctl -u servicio -f</code> (un servicio)\n<code>journalctl -p err -b</code> (errores del arranque actual)\nClásico: <code>tail -f /var/log/syslog</code>",
+   "tags": "logs",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué hace <code>find . -name \"*.log\" -mtime +7 -delete</code>?",
+   "back": "Busca desde el directorio actual archivos <code>.log</code> <b>modificados hace más de 7 días</b> y los borra.\n⚠️ Ejecuta primero sin <code>-delete</code> para verificar la lista.",
+   "tags": "búsqueda",
+   "level": 2
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué diferencia hay entre <code>$(comando)</code> y <code>\"$variable\"</code>?",
+   "choices": [
+    "El primero ejecuta y sustituye la salida; el segundo expande el valor",
+    "Son equivalentes",
+    "El primero solo funciona en zsh",
+    "El segundo ejecuta un subshell"
+   ],
+   "answer": 0,
+   "back": "<code>hoy=$(date +%F)</code> ejecuta <code>date</code> y guarda su salida. Las comillas dobles en variables evitan problemas con espacios: <code>rm \"$archivo\"</code>.",
+   "tags": "scripting",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo das permisos de sudo a un usuario en Ubuntu?",
+   "back": "<code>sudo usermod -aG sudo usuario</code>\n<b>-a</b> añade (sin él, reemplaza todos los grupos), <b>-G</b> grupos secundarios. Debe cerrar sesión para aplicar.",
+   "tags": "usuarios",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es un enlace simbólico y cómo se crea?",
+   "back": "Un «acceso directo» que apunta a otra ruta:\n<code>ln -s /ruta/real /ruta/enlace</code>\nA diferencia del <i>hard link</i>, cruza sistemas de archivos y apunta a directorios, pero se rompe si el original se mueve.",
+   "tags": "filesystem",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es <code>cron</code> y cómo se lee <code>0 3 * * 1</code>?",
+   "back": "Programador de tareas. Campos: <b>minuto hora día-mes mes día-semana</b>.\n<code>0 3 * * 1</code> = todos los <b>lunes a las 3:00 AM</b>.\nSe edita con <code>crontab -e</code>.",
+   "tags": "automatización",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es el PATH y cómo agregas un directorio?",
+   "back": "Lista de carpetas donde el shell busca ejecutables.\n<code>export PATH=\"$HOME/bin:$PATH\"</code> en <code>~/.bashrc</code> o <code>~/.zshrc</code>.\nVer dónde está un comando: <code>which comando</code>.",
+   "tags": "shell",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo copias archivos a un servidor remoto por SSH?",
+   "back": "<code>scp archivo usuario@host:/ruta/</code>\nCarpeta completa: <code>scp -r carpeta/ usuario@host:/ruta/</code>\nMejor para sincronizar: <code>rsync -avz --progress carpeta/ usuario@host:/ruta/</code>",
+   "tags": "red",
+   "level": 2
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "<code>sed</code>: reemplazar texto en un archivo",
+   "back": "<code>sed 's/viejo/nuevo/g' archivo</code> — muestra el resultado\n<code>sed -i 's/viejo/nuevo/g' archivo</code> — <b>modifica el archivo</b>\n<code>sed -i.bak 's/…/…/g' archivo</code> — modifica y deja copia <code>.bak</code>\n\nSiempre prueba sin <code>-i</code> primero.",
+   "tags": "texto"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "<code>cut</code>, <code>sort</code>, <code>uniq</code>, <code>wc</code>: el kit de datos en texto",
+   "back": "<code>cut -d',' -f2 datos.csv</code> — columna 2 separada por comas\n<code>sort -u</code> — ordena y quita duplicados\n<code>uniq -c</code> — cuenta repeticiones (requiere estar ordenado)\n<code>wc -l</code> — cuenta líneas",
+   "tags": "texto"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "¿Qué hace <code>xargs</code>?",
+   "back": "Convierte una lista en argumentos para otro comando:\n<code>find . -name \"*.log\" | xargs rm</code>\n\nA prueba de espacios en los nombres:\n<code>find . -name \"*.log\" -print0 | xargs -0 rm</code>\n\nCon <code>-I{}</code> controlas dónde va cada elemento:\n<code>ls *.jpg | xargs -I{} cp {} /respaldo/</code>",
+   "tags": "shell"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "Trabajos en segundo plano: <code>&</code>, <code>jobs</code>, <code>fg</code>, <code>nohup</code>",
+   "back": "<code>comando &</code> — lanza en segundo plano\n<code>Ctrl+Z</code> — pausa · <code>bg</code> continúa en segundo plano · <code>fg</code> lo trae al frente\n<code>jobs</code> — lista los trabajos de esta terminal\n<code>nohup comando &</code> — sigue corriendo aunque cierres la sesión",
+   "tags": "procesos"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "¿Cómo entras a un servidor por SSH sin escribir la contraseña?",
+   "back": "1. Generar el par de llaves: <code>ssh-keygen -t ed25519</code>\n2. Copiar la pública: <code>ssh-copy-id usuario@host</code>\n3. Entrar: <code>ssh usuario@host</code>\n\nLa <b>privada</b> (<code>~/.ssh/id_ed25519</code>) no sale nunca de tu máquina. Atajos por servidor en <code>~/.ssh/config</code>.",
+   "tags": "red"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "¿Qué es un alias y dónde se guarda?",
+   "back": "Un atajo para un comando largo:\n<code>alias ll='ls -lah'</code>\n<code>alias update='sudo apt update && sudo apt upgrade'</code>\n\nEn la terminal dura solo esa sesión; para que sea permanente ponlo en <code>~/.bashrc</code> (o <code>~/.zshrc</code>) y recarga con <code>source ~/.bashrc</code>.",
+   "tags": "shell"
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "front": "¿Cuál es la diferencia entre <code>&&</code> y <code>;</code>?",
+   "choices": [
+    "&& ejecuta el segundo solo si el primero tuvo éxito; ; lo ejecuta siempre",
+    "Son idénticos",
+    "&& ejecuta en paralelo",
+    "; ejecuta en segundo plano"
+   ],
+   "answer": 0,
+   "back": "<code>cd /carpeta && rm *</code> es seguro: si el <code>cd</code> falla, no borra nada.\n<code>cd /carpeta ; rm *</code> borraría en el directorio equivocado. Existe también <code>||</code>: ejecuta solo <b>si falló</b>.",
+   "tags": "shell"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "<code>chown</code>: cambiar dueño y grupo",
+   "back": "<code>sudo chown usuario:grupo archivo</code>\nRecursivo: <code>sudo chown -R usuario:grupo carpeta/</code>\n\nCausa típica de «Permission denied» tras copiar archivos con sudo o restaurar un respaldo: los archivos quedaron a nombre de <b>root</b>.",
+   "tags": "permisos"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "<code>top</code> / <code>htop</code>: leer la carga del sistema",
+   "back": "<b>load average</b> 1/5/15 min: si supera el número de núcleos, hay cola.\n<b>%CPU</b> y <b>%MEM</b> por proceso · <b>RES</b> = RAM real usada\n<b>estado</b>: R corriendo, S durmiendo, <b>D</b> bloqueado en disco (mala señal), Z zombi\n\nEn htop: <b>F6</b> ordena, <b>F9</b> mata, <b>F5</b> vista de árbol.",
+   "tags": "procesos"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "front": "¿Cómo mantienes un proceso vivo al cerrar SSH? (tmux)",
+   "back": "<code>tmux new -s trabajo</code> — crear sesión\n<b>Ctrl+B</b> luego <b>D</b> — salir dejándola corriendo\n<code>tmux attach -t trabajo</code> — volver a entrar\n<code>tmux ls</code> — listar sesiones\n\nImprescindible para procesos largos en servidores remotos.",
+   "tags": "shell"
+  },
+  {
+   "kind": "card",
+   "front": "Explica: <code>awk '{print $1}' log | sort | uniq -c | sort -rn | head</code>",
+   "back": "Cuenta los valores más frecuentes del primer campo de un log:\n<b>awk</b> extrae la columna 1 → <b>sort</b> agrupa → <b>uniq -c</b> cuenta → <b>sort -rn</b> ordena de mayor a menor → <b>head</b> muestra el top 10.",
+   "tags": "shell",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo ver qué proceso usa el puerto 8080?",
+   "back": "<code>ss -tulpn | grep 8080</code>\no <code>sudo lsof -i :8080</code>\n<b>ss</b> reemplaza al viejo <code>netstat</code>. <b>-t</b> TCP, <b>-u</b> UDP, <b>-l</b> escuchando, <b>-p</b> proceso, <b>-n</b> numérico.",
+   "tags": "red",
+   "level": 3
+  },
+  {
+   "kind": "lesson",
+   "front": "Las 3 líneas que todo script bash debería tener",
+   "back": "<code>#!/usr/bin/env bash\nset -euo pipefail</code>\n\n<b>-e</b> aborta ante un error, <b>-u</b> falla si usas una variable indefinida, <b>-o pipefail</b> detecta errores dentro de pipes. Evitan que un script siga corriendo con datos corruptos.",
+   "tags": "scripting",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "Reto: liberar espacio. ¿Cuál es SEGURO ejecutar en Ubuntu?",
+   "choices": [
+    "sudo apt autoremove && sudo journalctl --vacuum-time=7d",
+    "sudo rm -rf /var/*",
+    "sudo rm -rf /usr/lib",
+    "sudo rm -rf ~/.*"
+   ],
+   "answer": 0,
+   "back": "<b>autoremove</b> quita kernels y dependencias huérfanas; <b>vacuum-time</b> recorta los logs a 7 días. Las otras opciones destruyen el sistema.",
+   "tags": "mantenimiento",
+   "level": 3
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "Permisos especiales: SUID, SGID y sticky bit",
+   "back": "<b>SUID</b> (4xxx): el programa corre con los permisos de su <b>dueño</b> — así <code>passwd</code> puede editar <code>/etc/shadow</code>.\n<b>SGID</b> (2xxx): en una carpeta, los archivos nuevos heredan el <b>grupo</b>.\n<b>Sticky</b> (1xxx): en <code>/tmp</code>, solo el dueño puede borrar sus archivos.\n\nAuditar SUID es el primer paso de una revisión de seguridad:\n<code>find / -perm -4000 -type f 2>/dev/null</code>",
+   "tags": "seguridad"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "Crear un servicio propio con systemd",
+   "back": "En <code>/etc/systemd/system/mi-app.service</code>:\n<code>[Unit]\nDescription=Mi app\nAfter=network.target\n\n[Service]\nExecStart=/usr/bin/python3 /opt/app.py\nRestart=always\nUser=luis\n\n[Install]\nWantedBy=multi-user.target</code>\n\nLuego: <code>sudo systemctl daemon-reload && sudo systemctl enable --now mi-app</code>",
+   "tags": "servicios"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "Diagnóstico profundo: <code>lsof</code>, <code>strace</code> y <code>/proc</code>",
+   "back": "<code>lsof -p PID</code> — qué archivos y sockets tiene abiertos un proceso\n<code>lsof +D /carpeta</code> — quién impide desmontar\n<code>strace -p PID</code> — qué llamadas al sistema hace (dónde se cuelga)\n<code>cat /proc/PID/environ | tr '\\0' '\\n'</code> — con qué entorno arrancó\n\nCuando «no se sabe qué hace», esto lo dice.",
+   "tags": "diagnóstico"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "Firewall con <code>ufw</code>",
+   "back": "<code>sudo ufw status verbose</code>\n<code>sudo ufw default deny incoming</code>\n<code>sudo ufw allow 22/tcp</code> ← <b>antes</b> de activarlo, o te quedas fuera\n<code>sudo ufw enable</code>\n<code>sudo ufw delete allow 8080</code>\n\nRegla de oro: abre SSH primero, siempre.",
+   "tags": "seguridad"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "<code>rsync</code>: las banderas que importan",
+   "back": "<code>rsync -avh --progress origen/ destino/</code>\n<b>-a</b> preserva permisos y fechas · <b>-v</b> detallado · <b>-h</b> legible\n<b>--dry-run</b> simula sin copiar ← úsalo siempre la primera vez\n<b>--delete</b> borra en destino lo que ya no está en origen (peligroso)\n\n⚠️ La <b>barra final</b> en el origen cambia todo: <code>origen/</code> copia el contenido; <code>origen</code> copia la carpeta.",
+   "tags": "archivos"
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "front": "Un script falla y no sabes en qué línea. ¿Qué agregas?",
+   "choices": [
+    "set -x al inicio (traza cada comando ejecutado)",
+    "echo al final",
+    "sudo delante",
+    "rm del log"
+   ],
+   "answer": 0,
+   "back": "<code>set -x</code> imprime cada comando con sus variables ya expandidas. Combinado con <code>set -euo pipefail</code> y <code>trap 'echo Error en línea $LINENO' ERR</code>, encuentras el fallo en segundos.",
+   "tags": "scripting"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "Espacio en disco: cuando <code>df</code> y <code>du</code> no coinciden",
+   "back": "Si <code>df</code> dice «lleno» pero <code>du</code> no encuentra los archivos:\n1. <b>Archivo borrado pero aún abierto</b> por un proceso → <code>lsof | grep deleted</code>, se libera al reiniciar el servicio.\n2. <b>Inodos agotados</b> (millones de archivos diminutos) → <code>df -i</code>.\n3. Algo montado <b>encima</b> de una carpeta que ya tenía datos.",
+   "tags": "disco"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "front": "<code>cron</code> vs. temporizadores de systemd",
+   "back": "<b>cron</b>: simple, universal. Ojo: corre con un <b>PATH mínimo</b> y sin tu entorno — usa rutas absolutas y redirige la salida a un log.\n<b>systemd timer</b>: <code>OnCalendar=</code>, admite <code>Persistent=true</code> (recupera ejecuciones perdidas si el equipo estaba apagado), integra logs en journalctl y permite dependencias.\n\nPara tareas críticas, timer; para un respaldo diario, cron basta.",
+   "tags": "automatización"
+  }
+ ],
+ "levels": [
+  "Básico",
+  "Intermedio",
+  "Avanzado"
+ ]
+}
