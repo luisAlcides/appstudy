@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Icono de AppStudy: la tarjeta que estudias, con el asterisco de Bit encima.
+     Mismo dibujo que la mascota: once rayos en punta y el acento terracota. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E28A63"/>
+      <stop offset="1" stop-color="#C4522C"/>
+    </linearGradient>
+    <linearGradient id="papel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FDFBF6"/>
+      <stop offset="1" stop-color="#F0EADD"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="4" y="4" width="120" height="120" rx="29" fill="url(#fondo)"/>
+
+  <!-- La tarjeta de atrás, asomando por el lomo -->
+  <rect x="34" y="30" width="62" height="70" rx="11"
+        fill="#8F3A11" opacity="0.30" transform="rotate(-9 64 64)"/>
+
+  <!-- La tarjeta de delante -->
+  <g transform="rotate(3.5 64 64)">
+    <rect x="33" y="31" width="64" height="70" rx="12" fill="url(#papel)"/>
+    <path d="M 64.10 53.69 Q 62.44 45.66 65.00 37.00 Q 67.56 45.66 65.90 53.69 Z M 66.58 53.89 Q 69.51 46.24 76.35 40.33 Q 73.83 49.01 68.08 54.86 Z M 68.55 55.40 Q 75.16 50.54 84.10 49.28 Q 77.29 55.21 69.29 57.03 Z M 69.39 57.73 Q 77.58 57.22 85.79 60.99 Q 76.85 62.29 69.14 59.50 Z M 68.84 60.14 Q 76.00 64.14 80.87 71.75 Q 72.64 68.02 67.67 61.50 Z M 67.07 61.88 Q 70.94 69.11 70.92 78.15 Q 66.01 70.56 65.35 62.39 Z M 64.65 62.39 Q 63.99 70.56 59.08 78.15 Q 59.06 69.11 62.93 61.88 Z M 62.33 61.50 Q 57.36 68.02 49.13 71.75 Q 54.00 64.14 61.16 60.14 Z M 60.86 59.50 Q 53.15 62.29 44.21 60.99 Q 52.42 57.22 60.61 57.73 Z M 60.71 57.03 Q 52.71 55.21 45.90 49.28 Q 54.84 50.54 61.45 55.40 Z M 61.92 54.86 Q 56.17 49.01 53.65 40.33 Q 60.49 46.24 63.42 53.89 Z" fill="#D97757"/>
+    <circle cx="65" cy="58" r="4.6" fill="#D97757"/>
+    <rect x="46" y="82" width="38" height="5.5" rx="2.75" fill="#C6BDA9"/>
+    <rect x="46" y="92" width="24" height="5.5" rx="2.75" fill="#D5CDBA"/>
+  </g>
+</svg>

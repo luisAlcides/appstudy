@@ -146,11 +146,36 @@
   border-radius: 12px;
 }
 
+/* El nombre del lenguaje, arriba a la derecha del bloque de código */
+.as-code-lang {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.42;
+  margin: 9px 14px -8px 0;
+}
+
+/* Una fórmula suelta, centrada */
+.as-math {
+  font-size: 1.2rem;
+  line-height: 1.5;
+  padding: 4px 12px;
+}
+
 .as-read-code {
   font-family: monospace;
   font-size: 0.95rem;
   line-height: 1.55;
   padding: 14px 16px;
+}
+
+/* El párrafo al que te lleva Bit desde el globo: marcado como con rotulador */
+.as-read-hit {
+  background: alpha(#e5a50a, 0.16);
+  box-shadow: inset 3px 0 0 #e5a50a;
+  border-radius: 8px;
+  padding: 6px 12px;
 }
 
 .as-callout {
@@ -181,3 +206,116 @@
   border-radius: 999px;
   min-height: 6px;
 }
+
+/* ---------------------------------------------------------- Bit, la mascota */
+
+/* La ventana de la mascota no tiene fondo: solo se ve lo que dibuja Cairo
+   y el globo de diálogo. Se nombra también .background porque es la clase con
+   la que el tema pinta el fondo de la ventana. */
+window.as-pet,
+window.as-pet.background,
+window.as-pet > widget,
+window.as-pet box,
+window.as-pet windowhandle,
+window.as-pet drawingarea,
+window.as-pet revealer {
+  background-color: transparent;
+  background-image: none;
+  box-shadow: none;
+  border: none;
+}
+
+/* Más específico que la regla que quita el fondo a la ventana */
+window.as-pet box.as-bubble {
+  background-color: @card_bg_color;
+  border: 1px solid alpha(currentColor, 0.10);
+  border-radius: 16px;
+  padding: 12px 14px 12px 14px;
+  margin: 0 4px 6px 4px;
+  box-shadow: 0 6px 20px alpha(black, 0.35);
+}
+
+.as-bubble-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.as-bubble-front {
+  font-size: 1.0rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.as-bubble-text {
+  font-size: 0.92rem;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+
+.as-bubble-sep { margin: 2px 0; opacity: 0.35; }
+
+/* El pie de una frase de libro: autor y obra */
+.as-bubble-cita {
+  font-size: 0.82rem;
+  opacity: 0.65;
+  margin-top: -2px;
+}
+
+.as-bubble button.pill {
+  padding: 4px 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.as-bubble-link {
+  font-size: 0.82rem;
+  opacity: 0.7;
+  padding: 0;
+  min-height: 0;
+}
+
+/* --------------------------------------------------------- retos de Bit */
+
+.as-reto-tiempo,
+.as-reto-tiempo trough,
+.as-reto-tiempo progress {
+  min-height: 6px;
+  border-radius: 6px;
+}
+
+.as-reto-tiempo progress { background-color: #D97757; }
+
+/* Cuando queda un tercio del tiempo, la barra avisa */
+.as-reto-tiempo.urgente progress { background-color: #e01b24; }
+
+.as-reto-reloj {
+  font-size: 0.78rem;
+  font-weight: 800;
+  opacity: 0.7;
+  min-width: 30px;
+}
+
+.as-bubble button.as-reto-opcion {
+  padding: 7px 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: alpha(currentColor, 0.07);
+}
+
+.as-bubble button.as-reto-opcion:hover { background: alpha(currentColor, 0.14); }
+
+.as-reto-afirma {
+  font-style: italic;
+  font-size: 0.95rem;
+  background: alpha(currentColor, 0.07);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.as-reto-entrada { font-size: 0.95rem; }
+
+.as-reto-ok  { color: #2ec27e; opacity: 1; }
+.as-reto-mal { color: #e01b24; opacity: 1; }

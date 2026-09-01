@@ -6,6 +6,8 @@ import gi
 gi.require_version("Pango", "1.0")
 from gi.repository import GLib, Pango  # noqa: E402
 
+from . import mates, sintaxis  # noqa: E402
+
 # Etiquetas permitidas en el contenido de una tarjeta. <code> es un alias cómodo
 # de <tt>, la que entiende Pango.
 _TAG = re.compile(r"</?(?:b|i|tt|code|s|u|big|small|sub|sup|span)(?:\s[^<>]*)?/?>",
@@ -19,6 +21,39 @@ def _escapar(segmento: str) -> str:
             .replace("<", "&lt;").replace(">", "&gt;"))
 
 
+# Un <code> de varias líneas dentro de una tarjeta es un bloque de código de
+# verdad: se colorea. El de una sola línea es una palabra suelta y se deja.
+_CODIGO = re.compile(r"<(code|tt)>(.*?)</\1>", re.S | re.I)
+_MARCA_CODIGO = "\ue002{}\ue003"
+_MARCA_CODIGO_RE = re.compile("\ue002(\\d+)\ue003")
+
+
+def _tema_oscuro() -> bool:
+    try:
+        gi.require_version("Adw", "1")
+        from gi.repository import Adw
+        return Adw.StyleManager.get_default().get_dark()
+    except (ValueError, ImportError, AttributeError):
+        return False
+
+
+def _apartar_codigo(texto: str):
+    """Saca los bloques de código, ya coloreados, y deja marcas en su sitio."""
+    piezas: list[str] = []
+
+    def guarda(m):
+        cuerpo = m.group(2)
+        if "\n" not in cuerpo:
+            return m.group(0)          # código en línea: se queda como estaba
+        crudo = cuerpo
+        for entidad, caracter in _ENTIDADES:
+            crudo = crudo.replace(entidad, caracter)
+        piezas.append("<tt>" + sintaxis.resaltar(crudo, oscuro=_tema_oscuro()) + "</tt>")
+        return _MARCA_CODIGO.format(len(piezas) - 1)
+
+    return _CODIGO.sub(guarda, texto), piezas
+
+
 def to_markup(text: str) -> str:
     """Convierte el texto de una tarjeta a markup válido de Pango.
 
@@ -26,9 +61,14 @@ def to_markup(text: str) -> str:
     texto con <code>&</code>, <code>&lt;</code> o <code>&gt;</code> sueltos se
     muestra tal cual en vez de romper el markup y aparecer con las etiquetas
     visibles.
+
+    Las fórmulas en LaTeX ($E=mc^2$) y los bloques de código se apartan antes de
+    escapar y se devuelven ya dibujados al final.
     """
     if not text:
         return ""
+    text, codigos = _apartar_codigo(text)
+    text, formulas = mates.extraer(text)
     partes, pos = [], 0
     for m in _TAG.finditer(text):
         partes.append(_escapar(text[pos:m.start()]))
@@ -36,12 +76,15 @@ def to_markup(text: str) -> str:
         partes.append(etiqueta.replace("code", "tt").replace("CODE", "tt"))
         pos = m.end()
     partes.append(_escapar(text[pos:]))
-    resultado = "".join(partes)
+    resultado = mates.restaurar("".join(partes), formulas)
+    if codigos:
+        resultado = _MARCA_CODIGO_RE.sub(lambda m: codigos[int(m.group(1))], resultado)
     try:
         Pango.parse_markup(resultado, -1, "\x00")
         return resultado
     except GLib.GError:
-        return GLib.markup_escape_text(text)
+        # Si algo salió mal, texto plano: mejor sin adornos que sin texto
+        return GLib.markup_escape_text(plain(text))
 
 
 _ENTIDADES = (("&lt;", "<"), ("&gt;", ">"), ("&quot;", '"'), ("&#39;", "'"), ("&amp;", "&"))
@@ -53,6 +96,18 @@ def plain(text: str) -> str:
     for entidad, caracter in _ENTIDADES:
         t = t.replace(entidad, caracter)
     return t
+
+
+def lines(text: str) -> list[str]:
+    """Como plain(), pero respetando los saltos: una lista de líneas con texto.
+
+    Muchas respuestas son una lista («cat — todo de golpe / less — paginado»);
+    juntarlas en un párrafo las vuelve ilegibles.
+    """
+    t = re.sub(r"<[^>]+>", "", text or "")
+    for entidad, caracter in _ENTIDADES:
+        t = t.replace(entidad, caracter)
+    return [linea.strip() for linea in t.splitlines() if linea.strip()]
 
 
 def as_label(text: str) -> str:

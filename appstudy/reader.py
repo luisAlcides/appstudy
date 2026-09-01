@@ -1,5 +1,7 @@
 """Modo lectura: capítulos que se leen de corrido, como un documento."""
 import json
+import re
+import unicodedata
 
 import gi
 
@@ -7,18 +9,69 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, GLib, Gtk  # noqa: E402
 
-from . import db, util  # noqa: E402
+from . import db, mates, sintaxis, util  # noqa: E402
 
 
-def render_body(body: list[dict]) -> Gtk.Widget:
-    """Convierte los bloques de un capítulo en widgets con jerarquía tipográfica."""
+def render_body(body: list[dict], buscar: str | None = None):
+    """Convierte los bloques de un capítulo en widgets con jerarquía tipográfica.
+
+    Si se pasa `buscar` (el texto de una tarjeta), se marca el bloque que mejor
+    encaja y se devuelve para poder desplazarse hasta él.
+    """
     col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+    bloques = []
     for bloque in body:
         for tipo, contenido in bloque.items():
             w = _bloque(tipo, contenido)
             if w is not None:
                 col.append(w)
-    return col
+                bloques.append((w, _texto(contenido)))
+    diana = _mejor_bloque(bloques, buscar) if buscar else None
+    if diana is not None:
+        diana.add_css_class("as-read-hit")
+    return col, diana
+
+
+_PALABRA = re.compile(r"[a-z0-9ñ]{4,}")
+
+
+def _str(contenido) -> str:
+    """El texto de un bloque, venga suelto o dentro de un objeto con lenguaje."""
+    if isinstance(contenido, dict):
+        return contenido.get("text") or contenido.get("code") or contenido.get("latex", "")
+    return str(contenido)
+
+
+def _texto(contenido) -> str:
+    if isinstance(contenido, list):
+        return " ".join(util.plain(_str(x)) for x in contenido)
+    return util.plain(_str(contenido))
+
+
+def _clave(texto: str) -> set:
+    """Palabras con significado, sin acentos: para comparar sin afinar de más."""
+    t = unicodedata.normalize("NFD", (texto or "").lower())
+    t = "".join(c for c in t if unicodedata.category(c) != "Mn")
+    return set(_PALABRA.findall(t))
+
+
+def _mejor_bloque(bloques, buscar):
+    """El bloque que más palabras comparte con la tarjeta, si comparte bastantes."""
+    quiero = _clave(buscar)
+    if not quiero:
+        return None
+    mejor, puntos = None, 0.0
+    for widget, texto in bloques:
+        tengo = _clave(texto)
+        if not tengo:
+            continue
+        # Cuenta lo que cubre de la tarjeta, con un empujón a los bloques cortos
+        # para que gane el párrafo concreto y no el capítulo entero.
+        comunes = len(quiero & tengo)
+        p = comunes / len(quiero) + 0.15 * comunes / (len(tengo) ** 0.5)
+        if p > puntos:
+            mejor, puntos = widget, p
+    return mejor if puntos >= 0.35 else None
 
 
 def _label(texto, css, xalign=0.0, top=0, bottom=0):
@@ -28,6 +81,32 @@ def _label(texto, css, xalign=0.0, top=0, bottom=0):
     lab.set_margin_top(top)
     lab.set_margin_bottom(bottom)
     return lab
+
+
+def _codigo(contenido):
+    """Un bloque de código: resaltado si se sabe de qué lenguaje es."""
+    texto = _str(contenido)
+    lang = contenido.get("lang") if isinstance(contenido, dict) else None
+    lang = lang or sintaxis.adivinar(texto)
+    oscuro = Adw.StyleManager.get_default().get_dark()
+
+    vista = Gtk.Label(label=sintaxis.resaltar(texto, lang, oscuro), use_markup=True,
+                      xalign=0, selectable=True, css_classes=["as-read-code"])
+    scroll = Gtk.ScrolledWindow(vscrollbar_policy=Gtk.PolicyType.NEVER,
+                                propagate_natural_height=True)
+    scroll.set_child(vista)
+
+    caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL,
+                   css_classes=["as-read-codebox"])
+    if lang:
+        # El nombre del lenguaje, arriba a la derecha, como en un cuaderno
+        etiqueta = Gtk.Label(label=lang, halign=Gtk.Align.END,
+                             css_classes=["as-code-lang"])
+        caja.append(etiqueta)
+    caja.append(scroll)
+    caja.set_margin_top(8)
+    caja.set_margin_bottom(12)
+    return caja
 
 
 def _bloque(tipo, contenido):
@@ -60,17 +139,15 @@ def _bloque(tipo, contenido):
             caja.append(fila)
         return caja
     if tipo == "code":
-        vista = Gtk.Label(label=util.to_markup(contenido), use_markup=True, xalign=0,
-                          selectable=True, css_classes=["as-read-code"])
-        vista.set_margin_top(6)
-        vista.set_margin_bottom(6)
-        scroll = Gtk.ScrolledWindow(vscrollbar_policy=Gtk.PolicyType.NEVER,
-                                    propagate_natural_height=True,
-                                    css_classes=["as-read-codebox"])
-        scroll.set_child(vista)
-        scroll.set_margin_top(8)
-        scroll.set_margin_bottom(12)
-        return scroll
+        return _codigo(contenido)
+    if tipo == "math":
+        # Una fórmula suelta, centrada y en grande
+        lab = Gtk.Label(label=mates.a_markup(_str(contenido)), use_markup=True,
+                        selectable=True, wrap=True, justify=Gtk.Justification.CENTER,
+                        css_classes=["as-math"])
+        lab.set_margin_top(14)
+        lab.set_margin_bottom(16)
+        return lab
     if tipo in ("note", "warn", "key"):
         icono = {"note": "💡", "warn": "⚠️", "key": "🔑"}[tipo]
         caja = Gtk.Box(spacing=12, css_classes=["as-callout", f"as-callout-{tipo}"])
@@ -101,12 +178,14 @@ def _bloque(tipo, contenido):
 class ChapterView(Gtk.Box):
     """Un capítulo abierto: portada, cuerpo y pie con la navegación."""
 
-    def __init__(self, app, con, chapter, hermanos):
+    def __init__(self, app, con, chapter, hermanos, buscar=None):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.app = app
         self.con = con
         self.ch = chapter
         self.hermanos = hermanos           # todos los capítulos del mismo mazo
+        self.buscar = buscar               # texto de la tarjeta que trae aquí
+        self.diana = None                  # el bloque que lo explica
         self.on_navigate = None            # lo fija la ventana principal
         self.on_back = None
 
@@ -130,6 +209,12 @@ class ChapterView(Gtk.Box):
         keys = Gtk.EventControllerKey()
         keys.connect("key-pressed", self.on_key)
         self.add_controller(keys)
+
+        if self.diana is not None:
+            # Hay que esperar a que el capítulo tenga tamaño para saber a qué
+            # altura quedó el bloque; se reintenta hasta que lo tenga.
+            self.intentos = 0
+            GLib.timeout_add(120, self.ir_a_la_diana)
 
     # ------------------------------------------------------------------ armado
 
@@ -157,8 +242,21 @@ class ChapterView(Gtk.Box):
         cab.append(sep)
         self.columna.append(cab)
 
-        self.columna.append(render_body(json.loads(ch["body"] or "[]")))
+        cuerpo, self.diana = render_body(json.loads(ch["body"] or "[]"), self.buscar)
+        self.columna.append(cuerpo)
         self.columna.append(self.pie())
+
+    def ir_a_la_diana(self):
+        """Desplaza la lectura hasta el bloque que explica la tarjeta."""
+        self.intentos += 1
+        ajuste = self.scroll.get_vadjustment()
+        ok, caja = self.diana.compute_bounds(self.columna)
+        if not ok or ajuste.get_upper() <= ajuste.get_page_size():
+            # Todavía sin repartir el espacio: se vuelve a intentar enseguida
+            return self.intentos < 25
+        destino = caja.origin.y - ajuste.get_page_size() * 0.28
+        ajuste.set_value(max(0, min(destino, ajuste.get_upper() - ajuste.get_page_size())))
+        return False
 
     def pie(self):
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)

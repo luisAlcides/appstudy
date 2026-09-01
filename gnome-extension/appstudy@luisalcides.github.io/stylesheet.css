@@ -1,0 +1,43 @@
+/* La barra superior */
+.appstudy-indicator { spacing: 5px; }
+
+.appstudy-count {
+  font-weight: bold;
+  font-feature-settings: "tnum";
+}
+.appstudy-count.appstudy-due { color: #f6d32d; }
+
+/* El menú */
+.appstudy-stats {
+  spacing: 6px;
+  padding: 4px 2px 8px 2px;
+}
+
+.appstudy-stat {
+  padding: 6px 10px;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.07);
+}
+
+.appstudy-stat-value {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.appstudy-stat-label {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.appstudy-quote {
+  font-style: italic;
+  padding: 2px 4px 0 4px;
+  max-width: 320px;
+}
+
+.appstudy-quote-by {
+  font-size: 11px;
+  opacity: 0.6;
+  padding: 0 4px 4px 4px;
+  max-width: 320px;
+}

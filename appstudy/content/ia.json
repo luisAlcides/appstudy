@@ -410,6 +410,104 @@
    "front": "¿Qué preguntas legales y éticas debes resolver antes de desplegar?",
    "back": "• ¿Los datos que envías incluyen información personal o confidencial?\n• ¿Quién responde si el sistema se equivoca y alguien actúa según eso?\n• ¿El usuario sabe que habla con una IA?\n• ¿Puedes explicar una decisión si te la reclaman?\n• ¿Guardas registro de entradas y salidas para auditar?",
    "tags": "ética"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "arquitectura,producción",
+   "front": "¿Por qué repetir el mismo prompt largo sale más barato la segunda vez?",
+   "back": "Por la <b>caché de prefijo</b>: el modelo guarda los estados internos (KV cache) de los tokens que ya procesó. Si tu siguiente petición empieza exactamente igual, se salta ese trabajo y cobra esos tokens a una fracción del precio.\n\nDe ahí una regla práctica: pon lo <b>fijo primero</b> (instrucciones, documentos, ejemplos) y lo que cambia al final. Cambiar una coma al principio invalida toda la caché."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "arquitectura",
+   "front": "¿Cómo se compara la cercanía entre dos embeddings?",
+   "back": "Con la <b>similitud del coseno</b>: el ángulo entre los dos vectores, ignorando su longitud.\n\n$\\cos(\\theta) = \\frac{a \\cdot b}{\\lVert a \\rVert\\, \\lVert b \\rVert}$\n\nVa de -1 a 1; en la práctica, entre 0 y 1. Si los vectores están normalizados, el producto punto ya <b>es</b> el coseno, y por eso las bases vectoriales normalizan al indexar: una multiplicación en vez de una raíz por consulta."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "arquitectura,evaluación",
+   "front": "Tu RAG recupera trozos que no vienen a cuento. ¿Qué arreglas primero?",
+   "choices": [
+    "El troceado y el reordenado de resultados",
+    "Subir la temperatura",
+    "Cambiar a un modelo más grande",
+    "Ampliar la ventana de contexto"
+   ],
+   "answer": 0,
+   "back": "Si lo que entra es basura, ningún modelo lo salva. Primero <b>recuperación</b>: trozos con sentido propio, solape suficiente, búsqueda híbrida (palabra clave + vectorial) y un <b>reranker</b> que ordene los 50 candidatos y se quede con 5.\n\nUn modelo más grande te saldrá más caro respondiendo con las mismas fuentes malas."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "arquitectura",
+   "front": "¿Cómo se trocea un documento para RAG?",
+   "back": "Por <b>estructura</b> antes que por número de caracteres: sección, apartado, tabla. Un trozo debe entenderse solo, sin el anterior.\n\nPuntos de partida: 300–800 tokens con un 10–20 % de solape, y guardar en los metadatos el título y la página para poder citar.\nTrozo demasiado pequeño → pierde el contexto y no significa nada; demasiado grande → el ruido tapa la frase que importaba."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "arquitectura",
+   "front": "¿Qué es la búsqueda híbrida y por qué gana a la vectorial sola?",
+   "back": "Combina <b>BM25</b> (palabras exactas) con <b>vectorial</b> (significado) y fusiona ambas listas (RRF suele bastar).\n\nLa vectorial falla justo donde más duele en un manual: códigos de error, referencias, siglas, nombres de pieza — <i>P0420</i> y <i>P0430</i> son casi el mismo vector, pero para BM25 son términos distintos.\nY la de palabras falla cuando el usuario pregunta con otras palabras. Juntas se tapan los agujeros."
+  },
+  {
+   "kind": "lesson",
+   "level": 3,
+   "tags": "prompting",
+   "front": "Temperatura y top-p: uno de los dos, no los dos",
+   "back": "<b>Temperatura</b> aplana o afila la distribución de probabilidad antes de sortear el siguiente token. <b>Top-p</b> corta la cola: solo se sortea entre los tokens que suman esa probabilidad.\n\nMover ambos a la vez hace que no sepas a qué se debe el cambio. Deja uno fijo.\nExtracción, clasificación, código → temperatura baja (0–0,3). Lluvia de ideas, redacción → 0,7–1.\nY si necesitas resultados reproducibles: temperatura 0 y semilla fija, cuando el proveedor la ofrezca."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "evaluación",
+   "front": "Usas un LLM como juez de tus respuestas. ¿Qué sesgos tiene?",
+   "back": "<b>De posición</b>: tiende a preferir la primera opción (o la última). Evalúa en los dos órdenes y promedia.\n<b>De verbosidad</b>: premia la respuesta más larga aunque no diga más.\n<b>De familia</b>: se prefiere a sí mismo y a modelos parecidos.\n\nMitigación: rúbrica explícita con criterios y escala, ejemplos de lo que es un 1 y un 5, y un puñado de casos etiquetados a mano para comprobar que el juez coincide con un humano."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "fundamentos,límites",
+   "front": "¿Por qué un modelo falla al contar letras o al sumar números largos?",
+   "back": "Porque no ve letras ni cifras: ve <b>tokens</b>. «arándano» puede ser dos o tres piezas, y dentro de una pieza no puede mirar. Contar las erres de «ferrocarril» es pedirle que cuente algo que no percibe.\n\nCon los números pasa igual: la suma no es una operación, es una predicción de la secuencia más probable — acierta en lo visto mil veces y se despeña en cuentas largas.\nSolución: dale una <b>herramienta</b> (una calculadora, código que se ejecuta) en vez de más instrucciones."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "arquitectura,producción",
+   "front": "¿Por qué el contexto largo no es gratis?",
+   "back": "La atención compara cada token con todos los demás: el coste crece con el <b>cuadrado</b> de la longitud.\n\n$\\text{coste} \\propto n^2$\n\nDoblar el contexto no dobla el trabajo: lo cuadruplica (las implementaciones modernas lo alivian, pero la tendencia manda). Además, la calidad no crece igual: con miles de tokens el modelo atiende peor a lo del medio.\nMás contexto es la última carta, no la primera: antes, recuperar mejor y resumir."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "producción,entrenamiento",
+   "front": "Tu asistente debe conocer los manuales internos, que cambian cada mes. ¿RAG o fine-tuning?",
+   "choices": [
+    "RAG: el conocimiento cambia y hay que citar la fuente",
+    "Fine-tuning: así se lo aprende de memoria",
+    "Fine-tuning y luego RAG sobre el mismo texto",
+    "Ninguno: basta con un prompt más largo"
+   ],
+   "answer": 0,
+   "back": "<b>RAG</b> para <i>conocimiento</i>: cambia sin reentrenar, se puede citar y se borra un documento y desaparece.\n<b>Fine-tuning</b> para <i>comportamiento</i>: formato de salida, tono, seguir un procedimiento fijo, o meter en un modelo pequeño lo que hace uno grande.\n\nSon complementarios, pero para manuales que cambian cada mes, reentrenar es tirar dinero."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "agentes,producción",
+   "front": "¿Cómo consigues que la salida del modelo sea siempre un JSON válido?",
+   "back": "No pidiéndolo por favor: usando <b>salida estructurada</b> o <i>tool calling</i> con un esquema JSON. El servidor restringe el muestreo a lo que el esquema permite, así que el resultado <b>no puede</b> ser inválido.\n\nAun así, valida siempre al recibir (Pydantic, jsonschema): el JSON puede ser correcto y el contenido absurdo — una fecha imposible, un enum inventado.\nY si tienes que parsear texto libre, es señal de que te falta el esquema."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "producción",
+   "front": "El asistente responde bien pero tarda seis segundos. ¿Qué haces?",
+   "back": "<b>Streaming</b>: el usuario ve la primera palabra en 300 ms y la espera se vuelve tolerable. Es lo que más cambia la percepción.\n<b>Enruta por dificultad</b>: un modelo pequeño clasifica o responde lo fácil; el grande solo entra cuando hace falta.\n<b>Recorta el prompt</b>: menos tokens de entrada, menos latencia; y aprovecha la caché de prefijo.\n<b>Paraleliza</b> lo que no dependa entre sí, y cachea las preguntas repetidas."
   }
  ],
  "levels": [

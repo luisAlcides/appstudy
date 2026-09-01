@@ -1,0 +1,350 @@
+{
+ "key": "electricidad",
+ "name": "Electricidad y Electrónica",
+ "icon": "⚡",
+ "color": "#00838f",
+ "pos": 7,
+ "levels": [
+  "Básico",
+  "Intermedio",
+  "Avanzado"
+ ],
+ "cards": [
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "fundamentos",
+   "front": "Tensión, corriente y resistencia: ¿qué es cada una?",
+   "back": "<b>Tensión (V, voltios)</b>: la diferencia de potencial, el «empuje». Se mide <b>entre</b> dos puntos.\n<b>Corriente (I, amperios)</b>: cuántos electrones pasan por segundo. Se mide <b>a través</b> del circuito.\n<b>Resistencia (R, ohmios)</b>: lo que se opone al paso.\n\nLa analogía del agua: tensión = presión, corriente = caudal, resistencia = lo estrecho del tubo. Y las tres se relacionan con una sola fórmula: $V = I \\times R$."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "fundamentos,cálculo",
+   "front": "Ley de Ohm: despeja las tres formas",
+   "back": "$V = I \\times R \\qquad I = \\frac{V}{R} \\qquad R = \\frac{V}{I}$\n\nEjemplo: una bombilla de 12 V que consume 2 A tiene $R = 12/2 = 6\\ \\Omega$.\n\nSi conoces dos, siempre puedes calcular la tercera. Es la herramienta que convierte «esto no funciona» en un número comparable con el que debería ser."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "fundamentos,cálculo",
+   "front": "¿Cómo se calcula la potencia y por qué importa?",
+   "back": "$P = V \\times I$ (vatios)\n\nCombinada con Ohm: $P = I^2 R$ y $P = \\frac{V^2}{R}$.\n\nLa potencia es <b>calor</b>: un cable con 10 A y 0,2 Ω de resistencia disipa $10^2 \\times 0.2 = 20$ W dentro del aislante. Por eso un empalme flojo se quema: su resistencia sube y la potencia perdida ahí crece con el <b>cuadrado</b> de la corriente."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "fundamentos,cálculo",
+   "front": "Un faro de 55 W en un vehículo de 12 V. ¿Cuánta corriente pide?",
+   "choices": [
+    "≈ 4,6 A",
+    "≈ 55 A",
+    "≈ 0,22 A",
+    "≈ 12 A"
+   ],
+   "answer": 0,
+   "back": "$I = P / V = 55 / 12 \\approx 4.6$ A.\n\nDos faros son ~9 A: por eso el circuito de luces lleva fusible de 10 o 15 A y no de 5.\nRegla útil en 12 V: <b>divide los vatios entre 12</b> y tendrás los amperios de cabeza."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "circuitos",
+   "front": "Serie y paralelo: ¿en qué se diferencian?",
+   "back": "<b>Serie</b>: un solo camino. La misma corriente por todos, las tensiones se reparten. $R_{eq} = R_1 + R_2$. Si uno se abre, se apaga todo (las luces de navidad antiguas).\n<b>Paralelo</b>: varios caminos. La misma tensión en todos, las corrientes se suman. $\\frac{1}{R_{eq}} = \\frac{1}{R_1} + \\frac{1}{R_2}$.\n\nTodo lo de una casa o un vehículo va en <b>paralelo</b>: cada aparato ve los mismos 12 V o 230 V y funciona aunque los demás estén apagados."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "medición",
+   "front": "¿Cómo se conecta el multímetro para medir tensión y para medir corriente?",
+   "back": "<b>Tensión</b>: en <b>paralelo</b>, con el circuito funcionando. Las puntas a los dos puntos entre los que quieres saber la diferencia.\n<b>Corriente</b>: en <b>serie</b>, abriendo el circuito y haciendo pasar la corriente por el multímetro (y cambiando el cable rojo al borne de amperios).\n\nMedir corriente en paralelo sobre una batería es un cortocircuito a través del aparato: se funde el fusible interno, con suerte. Es el error número uno con el multímetro."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "medición,diagnóstico",
+   "front": "¿Qué es la prueba de continuidad y cuándo se usa?",
+   "back": "El multímetro pita cuando la resistencia entre las puntas es casi cero: hay camino.\n\nSe usa <b>siempre sin tensión</b>, con el circuito desconectado: si hay corriente, la medida no vale (y puedes dañar el aparato).\nSirve para: comprobar un fusible sin sacarlo del todo, seguir un cable de punta a punta en un mazo, verificar un interruptor, y encontrar un conductor partido dentro de su aislante."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "protecciones,seguridad",
+   "front": "Se funde un fusible de 10 A. No tienes otro igual. ¿Qué haces?",
+   "choices": [
+    "Esperar y poner uno de 10 A: nunca uno mayor",
+    "Poner uno de 20 A, total es lo mismo",
+    "Puentearlo con un alambre hasta llegar al taller",
+    "Poner dos de 5 A en serie"
+   ],
+   "answer": 0,
+   "back": "El fusible protege el <b>cable</b>, no el aparato: está calculado para fundirse antes de que el conductor se caliente. Uno mayor deja pasar más corriente de la que el cable aguanta — así empiezan los incendios.\n\nY un fusible fundido es un <b>síntoma</b>: si el nuevo también se va, hay un cortocircuito o un consumo excesivo que hay que buscar.\n(Dos de 5 A en serie siguen abriendo a 5 A; en paralelo sí sumarían, y por eso tampoco se hace.)"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "fundamentos",
+   "front": "Corriente continua y alterna: ¿en qué se usan?",
+   "back": "<b>CC (DC)</b>: la corriente va siempre en el mismo sentido. Baterías, paneles solares, electrónica. Tiene polaridad: + y −, y equivocarla puede destruir el aparato.\n<b>CA (AC)</b>: cambia de sentido 50 o 60 veces por segundo. Es lo que llega a los enchufes, porque se transporta y se transforma con muchas menos pérdidas.\n\nUn cargador lo que hace es <b>rectificar</b>: pasar de alterna a continua. Y un inversor, al revés."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "circuitos,diagnóstico",
+   "front": "Circuito abierto y cortocircuito: los dos fallos básicos",
+   "back": "<b>Abierto</b>: se rompió el camino (cable partido, fusible fundido, conector suelto). No pasa corriente: el aparato no hace nada y midiendo continuidad no hay pitido.\n<b>Corto</b>: aparece un camino que no debería existir, normalmente a masa. La corriente se dispara y salta la protección.\n\nSíntoma que los separa: <b>abierto</b> = no funciona nada, todo tranquilo; <b>corto</b> = fusible que se funde una y otra vez, cables calientes, olor."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "cables,cálculo",
+   "front": "¿Por qué un cable largo y fino hace que el aparato funcione mal?",
+   "back": "Porque el propio cable tiene resistencia y se «come» parte de la tensión:\n\n$V_{\\text{caída}} = I \\times R_{\\text{cable}}$\n\nCon 10 A y 0,3 Ω de ida y vuelta se pierden 3 V: al aparato le llegan 9 en vez de 12 y trabaja forzado (un motor pide más corriente, se calienta más, y la caída empeora).\n\nRegla: la caída no debería pasar del <b>3 %</b>. Si el tramo es largo, sube la sección — no hay otra solución."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "seguridad",
+   "front": "Masa, tierra y neutro: tres cosas distintas",
+   "back": "<b>Masa</b> (vehículos y máquinas): el chasis metálico usado como conductor de retorno. El negativo de la batería va ahí.\n<b>Neutro</b> (instalación de CA): el conductor de retorno de la corriente de trabajo. <b>Lleva corriente.</b>\n<b>Tierra</b> (protección): un conductor que normalmente <b>no</b> lleva corriente; solo existe para que, si un aparato se derrama a su carcasa, la corriente huya por ahí y salte la protección en vez de pasar por ti.\n\nConfundir neutro y tierra —usar el neutro como tierra— es de los errores más peligrosos que existen."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "baterías,cálculo",
+   "front": "¿Qué significa que una batería sea de 12 V y 70 Ah?",
+   "back": "<b>12 V</b> es su tensión; <b>70 Ah</b>, la carga que puede entregar: 70 A durante una hora, 7 A durante diez, etc. (en la práctica algo menos: cuanto más rápido la descargas, menos capacidad útil).\n\nEnergía almacenada: $E = V \\times Ah = 12 \\times 70 = 840$ Wh.\n\nEn arranque manda otro número, la <b>CCA</b> (amperios de arranque en frío): los cientos de amperios que puede dar unos segundos a baja temperatura."
+  },
+  {
+   "kind": "lesson",
+   "level": 1,
+   "tags": "seguridad",
+   "front": "Las cinco reglas de oro antes de tocar nada",
+   "back": "<b>1.</b> Desconectar y <b>abrir</b> el circuito por todos los lados.\n<b>2.</b> Bloquear y señalizar (que nadie lo reconecte mientras tú estás dentro).\n<b>3.</b> Verificar <b>ausencia de tensión</b> con un aparato que sepas que funciona: compruébalo antes y después en algo con tensión.\n<b>4.</b> Poner a tierra y en cortocircuito si la instalación lo requiere.\n<b>5.</b> Delimitar y proteger los elementos con tensión próximos.\n\nY una costumbre que salva: <b>una mano en el bolsillo</b> al medir. La corriente que mata es la que cruza el pecho de una mano a la otra."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "circuitos,cálculo",
+   "front": "¿Qué es un divisor de tensión y para qué se usa?",
+   "back": "Dos resistencias en serie reparten la tensión en proporción a su valor:\n\n$V_{salida} = V_{entrada} \\times \\frac{R_2}{R_1 + R_2}$\n\nCon 12 V, $R_1 = R_2$ salen 6 V.\n\nEs cómo un sensor de nivel o de temperatura convierte una resistencia variable en una tensión que la ECU puede leer. No sirve para alimentar cargas: en cuanto pides corriente, la salida se hunde."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "componentes",
+   "front": "¿Qué hace un condensador y cómo se prueba?",
+   "back": "Almacena carga y se opone a los <b>cambios</b> de tensión: filtra rizado, aguanta picos de arranque y, con una resistencia, marca tiempos.\n\nConstante de tiempo: $\\tau = R \\times C$ — a los $5\\tau$ está prácticamente cargado.\n\nPrueba rápida con el multímetro en ohmios y el condensador descargado: la lectura debe <b>subir</b> desde valores bajos hasta infinito según se carga. Si marca 0 fijo, está en corto; si marca infinito desde el principio, está abierto (o es muy pequeño para esa escala)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "componentes,diagnóstico",
+   "front": "¿Cómo se prueba un diodo con el multímetro?",
+   "back": "En la posición de diodo (símbolo ▷|):\n<b>Directo</b> (rojo al ánodo): debe marcar la caída de unión — <b>0,5–0,7 V</b> en silicio, 0,2–0,3 en Schottky, 1,8–3,3 en un LED según el color.\n<b>Inverso</b>: OL / infinito.\n\nMarca casi 0 en ambos sentidos = en corto. Marca OL en ambos = abierto.\nEl diodo solo deja pasar en un sentido: por eso se usa para rectificar y para proteger de la inversión de polaridad."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "componentes,cálculo",
+   "front": "Un LED de 2 V y 20 mA alimentado a 12 V. ¿Qué resistencia lleva en serie?",
+   "choices": [
+    "500 Ω",
+    "100 Ω",
+    "12 Ω",
+    "Ninguna, el LED se regula solo"
+   ],
+   "answer": 0,
+   "back": "La resistencia tiene que absorber lo que sobra:\n\n$R = \\frac{V_{fuente} - V_{LED}}{I} = \\frac{12 - 2}{0.02} = 500\\ \\Omega$\n\nSe pone el valor comercial más cercano por encima (560 Ω) para no pasarse de corriente.\nSin resistencia, el LED no limita nada: conduce hasta que se destruye en un instante."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "componentes",
+   "front": "¿Por qué un relé lleva un diodo en paralelo con la bobina?",
+   "back": "Al cortar la corriente, la bobina intenta mantenerla y genera un pico de tensión inverso de cientos de voltios que fríe el transistor o el contacto que la gobierna.\n\nEl <b>diodo volante</b> (rueda libre), montado al revés sobre la bobina, ofrece a esa corriente un camino donde extinguirse.\nEn un relé de vehículo, ese diodo tiene polaridad: montarlo al revés provoca un cortocircuito franco en cuanto energizas la bobina."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "componentes",
+   "front": "Un transistor como interruptor: ¿qué hay que entender?",
+   "back": "Una corriente (o tensión) pequeña en la puerta controla una grande en la carga.\n<b>BJT</b>: se manda con <b>corriente</b> de base y siempre cae ~0,2–0,7 V al conducir (calor).\n<b>MOSFET</b>: se manda con <b>tensión</b> de puerta, no consume corriente para mantenerse y al conducir se comporta como una resistencia pequeñísima ($R_{DS(on)}$), así que calienta mucho menos.\n\nPor eso todo lo de potencia moderno es MOSFET: motores, PWM, fuentes conmutadas."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "señales,control",
+   "front": "¿Qué es el PWM y por qué no calienta?",
+   "back": "En vez de bajar la tensión, se enciende y apaga muy rápido y se cambia el <b>ciclo de trabajo</b> (el porcentaje encendido). La carga «promedia» y ve menos potencia.\n\n$V_{medio} = V \\times D$ — al 30 % de ciclo, 12 V se comportan como 3,6 V.\n\nComo el interruptor está o del todo abierto o del todo cerrado, casi no disipa: por eso un regulador PWM no se calienta y una resistencia en serie sí.\nSe usa para atenuar luces, controlar ventiladores, servos e inyectores."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "medición,diagnóstico",
+   "front": "¿Cuándo usar pinza amperimétrica en vez de multímetro en serie?",
+   "back": "Siempre que no puedas o no debas abrir el circuito: un motor de arranque de 300 A, la línea de una máquina en marcha, o cualquier consumo que no quieras interrumpir.\n\nMide el <b>campo magnético</b> del conductor, así que hay que abrazar <b>un solo cable</b>: si abrazas fase y neutro juntos, la lectura es cero (y eso justamente es lo que hace un diferencial).\nPara continua hace falta pinza de <b>efecto Hall</b>: las de solo alterna no leen CC."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "protecciones,seguridad",
+   "front": "¿Qué protege un diferencial (RCD) que un magnetotérmico no protege?",
+   "choices": [
+    "A las personas: detecta la corriente que se fuga a tierra",
+    "El cable frente a sobrecargas",
+    "Los aparatos frente a subidas de tensión",
+    "La instalación frente a rayos"
+   ],
+   "answer": 0,
+   "back": "El <b>diferencial</b> compara lo que entra por la fase con lo que vuelve por el neutro; si faltan 30 mA es que se están yendo por otro sitio (por ejemplo, por una persona) y corta en milisegundos.\nEl <b>magnetotérmico</b> protege el <b>cable</b>: sobrecarga (térmico, lento) y cortocircuito (magnético, instantáneo).\n\nSon complementarios: uno cuida de ti, el otro de la instalación."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "alimentación",
+   "front": "Fuente lineal vs conmutada: ¿qué diferencia hay?",
+   "back": "<b>Lineal</b>: transformador grande, rectificador y regulador que quema la diferencia en forma de calor. Rendimiento del 30–50 %, pesada, pero con muy poco ruido eléctrico.\n<b>Conmutada</b>: trocea la entrada a decenas de kHz, usa un transformador diminuto y regula con PWM. Rendimiento del 85–95 %, ligera y barata, pero mete ruido en la línea.\n\nTodo cargador moderno es conmutado. En instrumentación sensible todavía se usan lineales."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "componentes",
+   "front": "¿Para qué sirve una resistencia de pull-up?",
+   "back": "Para que una entrada digital nunca quede «al aire». Sin ella, un pin sin conectar flota y lee ceros y unos al azar por el ruido.\n\nLa pull-up (típicamente 4,7–10 kΩ a +V) lo mantiene en alto; el pulsador o el sensor lo lleva a masa cuando actúa. Por eso la mayoría de entradas trabajan con <b>lógica invertida</b>: 0 = pulsado.\n\nEs también el motivo de las dos resistencias de 120 Ω del bus CAN: sin ellas la línea rebota y el bus se cae."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "componentes",
+   "front": "Código de colores de una resistencia de cuatro bandas",
+   "back": "Negro 0 · Marrón 1 · Rojo 2 · Naranja 3 · Amarillo 4 · Verde 5 · Azul 6 · Violeta 7 · Gris 8 · Blanco 9.\n\nDos primeras bandas = cifras · tercera = ceros (multiplicador) · cuarta = tolerancia (dorado ±5 %, plateado ±10 %).\n\n<b>Rojo-violeta-naranja-dorado</b> = 2, 7 y tres ceros = <b>27.000 Ω</b> (27 kΩ) ±5 %.\nY el truco de siempre: si dudas, mídela — la tolerancia también te dice hacia qué lado leerla."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "diagnóstico,medición",
+   "front": "¿Qué es una prueba de caída de tensión y por qué gana a medir resistencia?",
+   "back": "Se mide la tensión <b>entre los dos extremos de un tramo mientras circula corriente</b>: si un cable o una conexión están bien, ahí no debe caer casi nada.\n\nReferencias: menos de <b>0,2 V</b> en un cable, menos de 0,1 V en una conexión, menos de 0,5 V en todo el circuito de masa.\n\nUn contacto corroído puede medir 0,2 Ω en frío y parecer bueno, pero con 20 A pasando cae 4 V y el aparato no arranca. La resistencia miente; la caída con carga, no."
+  },
+  {
+   "kind": "lesson",
+   "level": 2,
+   "tags": "diagnóstico",
+   "front": "El orden que resuelve el 90 % de las fallas eléctricas",
+   "back": "<b>1. Alimentación</b>: ¿le llega tensión al aparato? (mide en su conector, no en la batería)\n<b>2. Masa</b>: ¿tiene retorno? (caída de tensión contra el negativo, con carga)\n<b>3. Señal de mando</b>: ¿le llega la orden? (interruptor, relé, salida de la ECU)\n<b>4. El aparato</b>: aliméntalo directo y mira si funciona.\n\nEn ese orden, y midiendo — no suponiendo. El aparato es lo último que se cambia porque es lo último que suele fallar: casi siempre es masa o conector."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "alterna,cálculo",
+   "front": "En alterna, ¿por qué la resistencia no basta y hablamos de impedancia?",
+   "back": "Porque bobinas y condensadores se oponen al paso de forma que depende de la <b>frecuencia</b>:\n\n$X_L = 2\\pi f L \\qquad X_C = \\frac{1}{2\\pi f C}$\n\nY se combinan con la resistencia en cuadratura:\n\n$Z = \\sqrt{R^2 + (X_L - X_C)^2}$\n\nPor eso una bobina que en continua mide 2 Ω puede presentar 60 Ω a 50 Hz. Medir un motor con el óhmetro dice poco de cómo se comportará conectado."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "alterna,cálculo",
+   "front": "¿Qué es el factor de potencia y por qué lo cobra la compañía?",
+   "back": "$\\cos\\varphi = \\frac{P}{S}$ — la parte de la potencia aparente (kVA) que realmente hace trabajo (kW).\n\nUn motor con $\\cos\\varphi = 0.7$ pidiendo 10 kW mueve 14 kVA por la línea: cables, transformadores y protecciones tienen que soportar esos 14 aunque solo se aproveche el 70 %.\n\nSe corrige con <b>baterías de condensadores</b>, que devuelven la energía reactiva que la bobina del motor pide y suelta cada ciclo. Por debajo de 0,9 suele haber penalización en la factura."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "alterna,cálculo",
+   "front": "Trifásico: ¿por qué aparece ese √3 en todas las fórmulas?",
+   "back": "Porque las tres fases están desfasadas 120°, y la tensión entre dos de ellas no es el doble de la de fase sino:\n\n$V_{línea} = \\sqrt{3} \\times V_{fase}$ — de ahí 400 V entre fases con 230 V de fase.\n\nY la potencia total:\n\n$P = \\sqrt{3} \\times V_L \\times I_L \\times \\cos\\varphi$\n\nVentaja práctica: la suma de las tres corrientes es constante, así que el par del motor no pulsa y no hace falta neutro para una carga equilibrada."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "motores,cálculo",
+   "front": "¿Qué es el deslizamiento de un motor de inducción?",
+   "back": "El campo del estátor gira a la velocidad de sincronismo:\n\n$n_s = \\frac{120 f}{p}$ — con 50 Hz y 4 polos, 1.500 rpm.\n\nEl rotor gira algo más despacio (por ejemplo 1.440): esa diferencia es el <b>deslizamiento</b>, y es lo que induce corriente en el rotor y genera par. Un motor de inducción a la velocidad de sincronismo no daría par ninguno.\n\nDeslizamiento típico a plena carga: 2–5 %. Si crece mucho, está sobrecargado o le falta tensión en una fase."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "motores,diagnóstico",
+   "front": "Un motor trifásico zumba, no arranca y se calienta rápido. ¿Primera sospecha?",
+   "choices": [
+    "Falta una fase (fusible, contacto o cable abierto)",
+    "Le sobra tensión",
+    "El condensador de arranque está gastado",
+    "El sentido de giro está invertido"
+   ],
+   "answer": 0,
+   "back": "Es el fallo clásico de <b>marcha en dos fases</b>: sin la tercera no hay campo giratorio, así que no arranca; y la corriente que pasa por las dos que quedan se dispara, con lo que se quema en minutos si el relé térmico no salta.\n\nSe comprueba midiendo las tres tensiones entre fases y las tres corrientes con pinza: si una es cero o muy distinta, ahí está.\n(El condensador de arranque es cosa de motores monofásicos.)"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "motores,control",
+   "front": "¿Para qué sirve un variador de frecuencia y qué es la relación V/f?",
+   "back": "Cambia la velocidad de un motor de inducción variando la <b>frecuencia</b>. Pero si solo bajara la frecuencia, el flujo se dispararía y saturaría el hierro, así que baja también la tensión manteniendo constante $V/f$.\n\nVentajas: arranque suave (nada de picos de 6–8 veces la corriente nominal), control de par y ahorro enorme en bombas y ventiladores, donde la potencia varía con el <b>cubo</b> de la velocidad: al 80 % de vueltas, la mitad de consumo.\n\nA cambio, genera armónicos y exige cable apantallado."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "motores,arranque",
+   "front": "Arranque estrella-triángulo: ¿qué consigue y qué sacrifica?",
+   "back": "En <b>estrella</b>, cada bobina recibe $V_L/\\sqrt{3}$: la corriente de arranque baja a un <b>tercio</b>... y el par también. Pasados unos segundos, el contactor conmuta a <b>triángulo</b> y el motor trabaja a plena tensión.\n\nSirve para no hundir la instalación al arrancar, pero solo vale si la carga arranca floja (ventiladores, bombas sin carga). Con una cinta cargada, en estrella no arranca y se pasa el rato calentándose.\nHoy lo sustituyen el arrancador suave y el variador."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "protecciones",
+   "front": "Curvas B, C y D de un magnetotérmico: ¿cuál va dónde?",
+   "back": "Definen a cuántas veces la corriente nominal dispara la parte <b>magnética</b> (la instantánea):\n<b>B</b> — 3 a 5 veces: cargas resistivas, iluminación, líneas largas de vivienda.\n<b>C</b> — 5 a 10: uso general con motores pequeños y fuentes conmutadas.\n<b>D</b> — 10 a 20: transformadores y motores con picos de arranque grandes.\n\nCurva demasiado baja para un motor = disparos cada vez que arranca. Demasiado alta = el cable puede sufrir antes de que el interruptor se entere."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "seguridad,medición",
+   "front": "¿Qué mide un megóhmetro y por qué no vale el multímetro?",
+   "back": "La <b>resistencia de aislamiento</b>: aplica 250, 500 o 1.000 V continuos entre el conductor y tierra (o entre bobinados) y mide la fuga en megaohmios.\n\nUn multímetro mide con 3 V: un aislante degradado o húmedo puede parecer perfecto a 3 V y derramar a 500.\nReferencia práctica en un motor: por encima de <b>1 MΩ</b> aceptable, decenas de MΩ sano; y lo que importa es la <b>tendencia</b> entre revisiones.\nSiempre con el equipo desconectado y descargándolo después: la prueba deja carga almacenada."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "instalación,seguridad",
+   "front": "¿Por qué se mide la resistencia de la puesta a tierra?",
+   "back": "Porque de ella depende que la protección salte: si la tierra tiene mucha resistencia, la corriente de fuga no llega a ser suficiente y la carcasa se queda con tensión peligrosa.\n\nLa condición es que la tensión de contacto no pase de 50 V (24 V en local húmedo):\n\n$R_{tierra} \\leq \\frac{50}{I_{\\Delta n}}$ — con un diferencial de 30 mA, hasta unos 1.666 Ω; con uno de 300 mA, 166 Ω.\n\nLa pica sola casi nunca basta en terreno seco: hay que mejorar el terreno o poner más electrodos."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "electrónica,señales",
+   "front": "I²C, SPI y UART: ¿en qué se diferencian?",
+   "back": "<b>UART</b> — dos hilos (TX/RX), sin reloj: los dos extremos deben acordar la velocidad (9600, 115200…). Punto a punto.\n<b>I²C</b> — dos hilos (SDA/SCL) compartidos por muchos dispositivos, cada uno con su dirección. Necesita <b>pull-ups</b>. Lento pero muy económico en pines.\n<b>SPI</b> — cuatro hilos (MOSI, MISO, SCK, CS), un CS por dispositivo. Rápido, sin direcciones, pero gasta pines.\n\nRegla: pocos pines y poca prisa → I²C; mucha velocidad (pantallas, memorias) → SPI; enlace largo con un solo aparato → UART."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "electrónica,diagnóstico",
+   "front": "Un sensor da lecturas erráticas solo cuando arranca el motor de al lado. ¿Qué haces?",
+   "choices": [
+    "Apantallar el cable y aterrizar la malla en un solo extremo",
+    "Subir la tensión de alimentación del sensor",
+    "Alargar el cable para alejarlo",
+    "Cambiar el sensor"
+   ],
+   "answer": 0,
+   "back": "Es interferencia electromagnética: el arranque genera transitorios que se acoplan al cable de señal.\n\nLa malla se conecta a tierra <b>en un solo extremo</b> (normalmente el del control); en los dos se forma un bucle de masa que puede empeorarlo.\nOtras medidas: separar los cables de señal de los de potencia, usar par trenzado, y filtrar con un condensador cerca de la entrada."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "medición,electrónica",
+   "front": "¿Qué ves en un osciloscopio que el multímetro no puede enseñarte?",
+   "back": "El multímetro promedia; el osciloscopio enseña la <b>forma</b> y el <b>tiempo</b>.\n\nAsí se ven: la caída de tensión del instante exacto del arranque, el rizado de un alternador con un diodo abierto (que en continua sigue midiendo 13,8 V), un pulso de inyector que se acorta, ruido montado sobre una señal de sensor, o una comunicación CAN sin terminar.\n\nLos tres ajustes que hay que dominar: <b>V/div</b>, <b>tiempo/div</b> y el <b>trigger</b> — sin un disparo bien puesto, la pantalla es un borrón."
+  },
+  {
+   "kind": "lesson",
+   "level": 3,
+   "tags": "alterna,cálculo",
+   "front": "Por qué se transporta en alta tensión",
+   "back": "La pérdida en la línea depende del <b>cuadrado de la corriente</b>:\n\n$P_{pérdida} = I^2 R$\n\nPara llevar la misma potencia, $P = V \\times I$: si multiplicas la tensión por 100, la corriente se divide por 100 y las pérdidas caen <b>10.000 veces</b>.\n\nPor eso se transporta a 132, 220 o 400 kV y se va bajando con transformadores hasta los 230 V del enchufe. Y por eso mismo, en 12 V un cable fino es un problema serio y en 230 V el mismo aparato apenas lo nota."
+  }
+ ]
+}

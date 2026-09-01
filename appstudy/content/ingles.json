@@ -731,6 +731,104 @@
    "front": "VOCABULARY — shades of meaning in “broken”",
    "back": "<b>faulty</b> = works badly, has a defect\n<b>defective</b> = faulty from manufacture\n<b>worn</b> = degraded by normal use\n<b>damaged</b> = harmed by an external event\n<b>seized</b> = locked solid, won’t move\n<b>obsolete</b> = still works, but no longer supported\n\nChoosing the right one tells the whole story of a failure in a single word.",
    "tags": "vocabulary"
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "grammar,writing",
+   "front": "Participle clauses — writing two ideas in one line",
+   "back": "<b>Having checked the pressure, we replaced the valve.</b> (after doing it)\n<b>Working under load, the pump overheats.</b> (while doing it)\n<b>Damaged by vibration, the bracket failed.</b> (passive)\n\nThe hidden subject must be the same as the main clause. Otherwise you get a <i>dangling participle</i>:\n❌ <i>Having replaced the seal, the machine worked.</i> (the machine didn't replace it)\n✅ <i>Having replaced the seal, we saw the machine work.</i>"
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "grammar,register",
+   "front": "The passive with reporting verbs — the impersonal report",
+   "back": "<b>It is believed that the seal failed.</b>\n<b>The seal is believed to have failed.</b>\n\nBoth avoid naming who believes it: standard in reports and investigations, where blame is not the point.\nOthers: <i>is said to · is thought to · is expected to · is reported to</i>.\n<b>Past reference</b> takes the perfect infinitive: <i>is believed <b>to have</b> failed</i>."
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "vocabulary,writing",
+   "front": "VOCABULARY — the language of cause and consequence",
+   "back": "<b>Cause → effect</b>: <i>led to · resulted in · brought about · gave rise to · triggered</i>\n<b>Effect → cause</b>: <i>resulted from · stemmed from · was attributable to · arose from</i>\n<b>Contribution, not the whole cause</b>: <i>contributed to · was a factor in · compounded</i>\n\n<i>The overload <b>gave rise to</b> excessive heat, which in turn <b>brought about</b> premature wear.</i>\nNote: <b>result in</b> = cause; <b>result from</b> = be caused by. Mixing them reverses your sentence."
+  },
+  {
+   "kind": "quiz",
+   "level": 4,
+   "tags": "grammar",
+   "front": "Choose the sentence a professional report would use.",
+   "choices": [
+    "Had the filter been replaced on time, the failure would not have occurred.",
+    "If the filter was replaced on time, the failure would not happen.",
+    "If the filter would have been replaced, the failure not occurred.",
+    "When the filter is replaced on time, the failure would not have occurred."
+   ],
+   "answer": 0,
+   "back": "<b>Had + past participle</b> is the inverted third conditional: formal, and very common in written reports.\nTwo rules it respects: <i>if</i> never takes <b>would</b>, and a past unreal result needs <b>would have + participle</b>."
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "vocabulary,phrasal verbs",
+   "front": "PHRASAL VERBS (C1) — meetings and decisions: <i>talk through, push back, sign off on, walk back</i>",
+   "back": "<b>talk through</b> = discuss in detail → <i>Let's talk the plan through before Friday.</i>\n<b>push back (on)</b> = disagree, resist → <i>The team pushed back on the deadline.</i>\n<b>sign off on</b> = approve formally → <i>Who signs off on the budget?</i>\n<b>walk back</b> = withdraw something you said → <i>He walked back his estimate after seeing the data.</i>\n\nAlso: <b>circle back</b> (return to a topic), <b>flag up</b> (raise an issue early)."
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "grammar,writing",
+   "front": "<i>Which</i> vs <i>that</i>, and the comma that changes the meaning",
+   "back": "<b>Defining</b> (no comma, <i>that</i> or <i>which</i>): <i>The pumps <b>that</b> failed were replaced.</i> — only those ones.\n<b>Non-defining</b> (commas, only <i>which</i>): <i>The pumps, <b>which</b> failed, were replaced.</i> — all of them failed.\n\nThe comma is not decoration: it decides whether you replaced two pumps or the whole fleet.\nFor people: <i>who</i>; <b>never</b> <i>that</i> after a comma."
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "register,writing",
+   "front": "Softening bad news in writing",
+   "back": "<b>Direct</b>: <i>We can't deliver on Friday.</i>\n<b>Professional</b>: <i>Unfortunately, we won't be able to deliver on Friday.</i>\n<b>Most diplomatic</b>: <i>I'm afraid Friday is looking unlikely — would Monday work for you?</i>\n\nThree moves: an apologetic opener (<i>I'm afraid · Unfortunately · Regrettably</i>), a distancing verb (<i>looks like · seems · appears</i>) and, always, <b>an alternative</b>. Bad news without an option reads as a wall."
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "vocabulary",
+   "front": "VOCABULARY — precision about quantity and change",
+   "back": "<b>Small change</b>: <i>a slight/marginal increase · edged up · tailed off</i>\n<b>Big change</b>: <i>a sharp/steep rise · soared · plummeted</i>\n<b>Steady</b>: <i>a steady/gradual decline · levelled off · plateaued</i>\n<b>Approximation</b>: <i>roughly · in the region of · just under · upwards of</i>\n\n<i>Downtime <b>edged up</b> in March, then <b>plateaued</b> at <b>just under</b> 40 hours.</i>\nAdverb before adjective: <i>a <b>sharply</b> higher figure</i>, not <i>a sharp higher figure</i>."
+  },
+  {
+   "kind": "quiz",
+   "level": 4,
+   "tags": "vocabulary,grammar",
+   "front": "Complete: “The delay was largely ___ a shortage of spare parts.”",
+   "choices": [
+    "attributable to",
+    "attributed by",
+    "resulted in",
+    "due of"
+   ],
+   "answer": 0,
+   "back": "<b>attributable to</b> = that can be explained by. <i>The delay was attributable to a shortage.</i>\n<b>attributed by</b> would need a person doing the attributing.\n<b>resulted in</b> points the other way (cause → effect), and <b>due of</b> doesn't exist: it's <b>due to</b>."
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "grammar,writing",
+   "front": "Emphasis without shouting: <i>what</i>-clauses and <i>do</i>",
+   "back": "<b>What surprised us was the cost, not the delay.</b>\n<b>What we need is a second pump.</b>\n<b>The vibration did stop after the alignment.</b> (auxiliary <i>do</i> for emphasis)\n<b>It was only after the third test that the fault appeared.</b>\n\nIn writing you have no tone of voice; these structures are how English puts stress on the page. Use one per paragraph — more than that and the emphasis stops working."
+  },
+  {
+   "kind": "lesson",
+   "level": 4,
+   "tags": "writing,register",
+   "front": "The four-line structure of a professional email",
+   "back": "<b>1. Purpose</b> — <i>I'm writing to confirm the delivery date for the hydraulic kit.</i>\n<b>2. Context</b> — <i>As discussed on Tuesday, the original date was 12 March.</i>\n<b>3. Request or action</b> — <i>Could you confirm whether the revised date works on your side?</i>\n<b>4. Close</b> — <i>Happy to call if that's easier. Best regards, …</i>\n\nOne idea per paragraph, the request in its own line, and never bury the ask at the bottom: most people read the first two lines and the last one."
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "vocabulary,phrasal verbs",
+   "front": "VOCABULARY — verbs that make a report sound expert",
+   "back": "<i>establish</i> (find out for certain) · <i>ascertain</i> (formal version) · <i>corroborate</i> (confirm with other evidence) · <i>preclude</i> (make impossible) · <i>mitigate</i> (reduce the harm) · <i>warrant</i> (justify) · <i>defer</i> (postpone deliberately) · <i>escalate</i> (pass to a higher level)\n\n<i>The evidence did not <b>corroborate</b> the operator's account, but the wear pattern <b>warrants</b> a full inspection.</i>\nCareful: <b>mitigate</b> ≠ <b>militate</b>, and it's <i>mitigate <b>against</b></i> only in the second one."
   }
  ]
 }

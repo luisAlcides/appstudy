@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import re
 import sqlite3
 import time
 from pathlib import Path
@@ -188,6 +189,70 @@ def chapters(con, deck_id=None):
         args = (deck_id,)
     sql += " ORDER BY d.pos, c.level, c.pos"
     return [dict(r) for r in con.execute(sql, args)]
+
+
+# Para emparejar una tarjeta con el capítulo que la explica: se comparan
+# palabras de cuatro letras o más, que son las que llevan el significado.
+_ETIQUETA = re.compile(r"<[^>]+>")
+_PALABRA = re.compile(r"[a-z0-9áéíóúüñ]{4,}")
+
+
+def _palabras(texto: str) -> set:
+    return set(_PALABRA.findall(_ETIQUETA.sub(" ", (texto or "").lower())))
+
+
+def _texto_body(body: str) -> str:
+    """Todo el texto suelto de los bloques de un capítulo, sin la estructura JSON."""
+    try:
+        datos = json.loads(body or "[]")
+    except ValueError:
+        return body or ""
+    trozos = []
+    pila = [datos]
+    while pila:
+        actual = pila.pop()
+        if isinstance(actual, str):
+            trozos.append(actual)
+        elif isinstance(actual, dict):
+            pila.extend(actual.values())
+        elif isinstance(actual, list):
+            pila.extend(actual)
+    return " ".join(trozos)
+
+
+def card_by_id(con, card_id):
+    row = con.execute(
+        """SELECT c.*, d.key AS deck_key, d.name AS deck_name, d.icon AS deck_icon,
+                  d.color AS deck_color, d.levels AS deck_levels
+           FROM cards c JOIN decks d ON d.id = c.deck_id WHERE c.id=?""",
+        (card_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def chapter_for_card(con, card):
+    """El capítulo que explica esa tarjeta, o None si no hay ninguno que encaje.
+
+    Se puntúa por este orden: etiquetas en común (que es el vínculo explícito
+    entre capítulo y tarjetas), estar en el mismo nivel y cuántas palabras de la
+    tarjeta aparecen en el texto del capítulo.
+    """
+    if not card:
+        return None
+    etiquetas = {t.strip().lower() for t in (card["tags"] or "").split(",") if t.strip()}
+    busca = _palabras(f"{card['front']} {card['back']}")
+    mejor, mejor_puntos = None, 0.0
+    for cap in chapters(con, card["deck_id"]):
+        suyas = {t.strip().lower() for t in (cap["tags"] or "").split(",") if t.strip()}
+        puntos = 3.0 * len(etiquetas & suyas)
+        if cap["level"] == card["level"]:
+            puntos += 1.5
+        if busca:
+            texto = _palabras(f"{cap['title']} {cap['subtitle']} {_texto_body(cap['body'])}")
+            puntos += 4.0 * len(busca & texto) / len(busca)
+        if puntos > mejor_puntos:
+            mejor, mejor_puntos = cap, puntos
+    # Por debajo de esto el parecido es casualidad y más vale no prometer nada
+    return mejor if mejor_puntos >= 1.5 else None
 
 
 def mark_read(con, chapter_id, leido=True):

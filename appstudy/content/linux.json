@@ -424,6 +424,104 @@
    "front": "<code>cron</code> vs. temporizadores de systemd",
    "back": "<b>cron</b>: simple, universal. Ojo: corre con un <b>PATH mínimo</b> y sin tu entorno — usa rutas absolutas y redirige la salida a un log.\n<b>systemd timer</b>: <code>OnCalendar=</code>, admite <code>Persistent=true</code> (recupera ejecuciones perdidas si el equipo estaba apagado), integra logs en journalctl y permite dependencias.\n\nPara tareas críticas, timer; para un respaldo diario, cron basta.",
    "tags": "automatización"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "red,ssh",
+   "front": "Túneles SSH: ¿qué hacen <code>-L</code>, <code>-R</code> y <code>-D</code>?",
+   "back": "<b>-L</b> local: <code>ssh -L 8080:localhost:80 servidor</code> → tu <i>localhost:8080</i> sale por el servidor. Para llegar a algo que solo el servidor ve.\n<b>-R</b> remoto: al revés, expones un puerto tuyo en el servidor.\n<b>-D</b> SOCKS: <code>ssh -D 1080 servidor</code> convierte la conexión en proxy para el navegador.\n\nAñade <code>-N</code> (no ejecutes shell) y <code>-f</code> (al fondo) cuando solo quieras el túnel."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "red,diagnóstico",
+   "front": "<code>ss -tulpn</code>: ¿qué significa cada letra y por qué ya no se usa netstat?",
+   "back": "<b>-t</b> TCP · <b>-u</b> UDP · <b>-l</b> solo los que escuchan · <b>-p</b> qué proceso · <b>-n</b> números, sin resolver nombres (mucho más rápido).\n\n<code>ss</code> lee directamente del kernel por netlink; <code>netstat</code> recorría <code>/proc</code> y viene de un paquete obsoleto (net-tools).\nPara ver conexiones establecidas hacia fuera: <code>ss -tnp state established</code>."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "procesos",
+   "front": "Lanzas un proceso largo por SSH y se te va a caer la conexión. ¿Cuál sobrevive?",
+   "choices": [
+    "<code>nohup comando &</code>",
+    "<code>comando &</code>",
+    "<code>bg</code> tras Ctrl+Z",
+    "Ejecutarlo con <code>sudo</code>"
+   ],
+   "answer": 0,
+   "back": "<b>nohup</b> lo desliga de la señal HUP que llega al cerrar la terminal y manda la salida a <code>nohup.out</code>.\nLas otras siguen colgando de tu sesión: al cerrarla reciben HUP y mueren.\nMejor todavía: <code>tmux</code> o un servicio de systemd, que además te dejan volver a mirar."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "shell,texto",
+   "front": "<code>find -exec</code> vs <code>xargs</code>: ¿cuándo cada uno y qué es <code>-print0</code>?",
+   "back": "<code>find . -name '*.log' -exec rm {} +</code> — el <b>+</b> junta muchos archivos en una sola llamada; con <b>\\;</b> lanza un proceso por archivo (lento).\n<code>find . -name '*.log' -print0 | xargs -0 rm</code> — igual de rápido y encadenable.\n\n<b>-print0 / -0</b> separan con un byte nulo en vez de con salto de línea: es lo único que aguanta nombres con espacios o saltos. Sin eso, «mi informe.log» se parte en dos."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "servicios,diagnóstico",
+   "front": "<code>journalctl</code>: las cinco opciones que resuelven el 90 % de los casos",
+   "back": "<code>journalctl -u nginx -f</code> seguir un servicio en vivo\n<code>journalctl -b -p err</code> errores del arranque actual\n<code>journalctl --since '1 hour ago'</code> ventana de tiempo\n<code>journalctl -u app --since today -o cat</code> solo el mensaje, sin metadatos\n<code>journalctl --disk-usage</code> y <code>--vacuum-time=7d</code> para recortar\n\n<b>-b -1</b> es el arranque anterior: lo que necesitas tras un cuelgue."
+  },
+  {
+   "kind": "lesson",
+   "level": 3,
+   "tags": "almacenamiento",
+   "front": "LVM en cuatro ideas",
+   "back": "<b>PV</b> (disco o partición) → <b>VG</b> (bolsa de espacio) → <b>LV</b> (el «disco» que montas).\n\nAmpliar en caliente, sin desmontar:\n<code>lvextend -L +20G -r /dev/vg0/datos</code>\n\nEl <b>-r</b> redimensiona también el sistema de archivos; sin él amplías el volumen pero el sistema sigue viendo el tamaño viejo.\nY lo mejor: <b>snapshots</b> antes de una actualización arriesgada."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "servicios,procesos",
+   "front": "Un servicio se come la RAM del servidor. ¿Cómo lo limitas sin tocar su código?",
+   "back": "En su unidad de systemd:\n<code>[Service]\nMemoryMax=512M\nCPUQuota=50%\nTasksMax=100</code>\n\nSon cgroups v2 por debajo. <code>systemctl daemon-reload &amp;&amp; systemctl restart app</code> y a mirar con <code>systemd-cgtop</code>.\nSi pasa de <b>MemoryMax</b>, el kernel lo mata a él y no al resto del sistema — que es justo lo que quieres."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "seguridad,ssh",
+   "front": "¿Qué línea de <code>sshd_config</code> mejora de verdad la seguridad del servidor?",
+   "choices": [
+    "<code>PasswordAuthentication no</code>",
+    "<code>Port 2222</code>",
+    "<code>Compression yes</code>",
+    "<code>PrintMotd no</code>"
+   ],
+   "answer": 0,
+   "back": "Sin contraseñas no hay fuerza bruta que valga: solo entra quien tenga la clave.\nCambiar el puerto (<i>security by obscurity</i>) quita ruido de los logs, pero cualquier escaneo lo encuentra en segundos.\n\nPack mínimo: <code>PasswordAuthentication no</code>, <code>PermitRootLogin no</code> y <b>fail2ban</b>. Y prueba la clave <b>antes</b> de reiniciar sshd, con una segunda sesión abierta."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "scripting",
+   "front": "¿Cómo garantizas que un script limpie sus temporales aunque falle o lo interrumpan?",
+   "back": "<code>tmp=$(mktemp -d)\ntrap 'rm -rf \"$tmp\"' EXIT INT TERM</code>\n\n<b>trap</b> engancha una orden a una señal; <b>EXIT</b> cubre también la salida por error de <code>set -e</code>.\n<b>mktemp -d</b> crea el directorio con un nombre único y permisos 700 — nunca uses <code>/tmp/mi_script</code> a pelo: es una puerta abierta y un choque seguro entre dos ejecuciones."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "shell,procesos",
+   "front": "tmux: los cuatro comandos que te dejan cerrar el portátil sin miedo",
+   "back": "<code>tmux new -s obra</code> crear una sesión con nombre\n<b>Ctrl+b d</b> soltarla (sigue viva en el servidor)\n<code>tmux ls</code> ver qué hay abierto\n<code>tmux a -t obra</code> volver a entrar\n\nDentro: <b>Ctrl+b %</b> parte vertical, <b>Ctrl+b \"</b> horizontal, <b>Ctrl+b o</b> cambia de panel.\nEs la diferencia entre perder tres horas de proceso y retomarlo donde estaba."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "servicios,diagnóstico",
+   "front": "El equipo tarda un minuto en arrancar. ¿Cómo averiguas quién se lo come?",
+   "back": "<code>systemd-analyze</code> el reparto total (firmware, kernel, userspace)\n<code>systemd-analyze blame</code> ranking de servicios por tiempo\n<code>systemd-analyze critical-chain</code> la cadena que <b>de verdad</b> retrasa el arranque\n\nOjo: en <i>blame</i> sale muy arriba lo que tarda aunque nadie lo espere. Solo la cadena crítica dice qué toca arreglar."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "texto,shell",
+   "front": "¿Qué diferencia hay entre <code>sed -i</code> y <code>sed -i.bak</code>?",
+   "back": "Los dos editan el archivo en el sitio; <b>-i.bak</b> además guarda el original como <code>archivo.bak</code>. En un servidor ajeno, siempre con sufijo.\n\n<code>sed -i.bak 's/DEBUG/INFO/g' app.conf</code>\n\nY antes de tocar nada, prueba sin <code>-i</code>: la salida va a pantalla y ves qué habría cambiado. En macOS/BSD el sufijo es obligatorio (<code>sed -i '' ...</code>)."
   }
  ],
  "levels": [

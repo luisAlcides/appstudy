@@ -1,9 +1,27 @@
 #!/usr/bin/env python3
 """Lanzador de AppStudy."""
+import os
 import sys
 from pathlib import Path
 
+# La mascota necesita el backend X11 para pedirle al gestor de ventanas que la
+# deje siempre encima (Wayland no lo permite). Hay que elegirlo antes de que
+# PyGObject importe GTK y abra la pantalla, así que se hace aquí.
+if "--pet" in sys.argv:
+    os.environ.setdefault("GDK_BACKEND", "x11")
+    # La mascota es una ventanita de 168x194 dibujada a mano con Cairo. Medido
+    # en este escritorio, el renderizador de software gasta 3,3 % de un núcleo
+    # frente al 8,1 % del acelerado (que además se lleva 60 MB más de memoria),
+    # porque el coste está en subir la textura cada fotograma, no en pintarla.
+    os.environ.setdefault("GSK_RENDERER", "cairo")
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+# Consultar el estado no necesita interfaz: se responde sin tocar GTK.
+if "--status" in sys.argv or "--pet-off" in sys.argv:
+    from appstudy.status import run_status  # noqa: E402
+
+    sys.exit(run_status(sys.argv))
 
 from appstudy.app import main  # noqa: E402
 

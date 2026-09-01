@@ -7,9 +7,9 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gtk, Pango  # noqa: E402
+from gi.repository import Adw, GLib, Gtk, Pango  # noqa: E402
 
-from . import db, hotkey, scheduler, seed, util  # noqa: E402
+from . import db, hotkey, pet, scheduler, util  # noqa: E402
 from .reader import ChapterView  # noqa: E402
 
 
@@ -31,7 +31,13 @@ class MainWindow(Adw.ApplicationWindow):
                                         "view-list-symbolic")
         self.stack.add_titled_with_icon(self.build_settings(), "ajustes", "Ajustes",
                                         "preferences-system-symbolic")
-        self.stack.connect("notify::visible-child-name", lambda *_: self.refresh())
+        # Refrescar las cuatro secciones cuesta más de un segundo (el explorador
+        # rehace cientos de filas), así que solo se refresca la que se está
+        # mirando; las demás quedan apuntadas y se ponen al día al abrirlas.
+        self.sucias: set[str] = set()
+        self.tanda = 0               # relleno por tandas del explorador
+        self.pendientes: list = []
+        self.stack.connect("notify::visible-child-name", lambda *_: self.on_switch())
 
         header = Adw.HeaderBar()
         switcher = Adw.ViewSwitcher(stack=self.stack,
@@ -154,10 +160,12 @@ class MainWindow(Adw.ApplicationWindow):
         boton.connect("clicked", lambda *_: self.abrir_lectura(cap))
         return boton
 
-    def abrir_lectura(self, cap):
+    def abrir_lectura(self, cap, buscar=None):
+        """Abre un capítulo en la sección Leer; `buscar` lleva al párrafo exacto."""
         self.stack.set_visible_child_name("leer")
+        self.nav.pop_to_tag("biblioteca")   # por si había otro capítulo abierto
         hermanos = db.chapters(self.con, cap["deck_id"])
-        self.open_chapter(cap, hermanos)
+        self.open_chapter(cap, hermanos, buscar)
 
     def saludo(self):
         h = time.localtime().tm_hour
@@ -306,11 +314,12 @@ class MainWindow(Adw.ApplicationWindow):
         row.add_suffix(Gtk.Image.new_from_icon_name("go-next-symbolic"))
         return row
 
-    def open_chapter(self, cap, hermanos):
-        vista = ChapterView(self.get_application(), self.con, dict(cap), hermanos)
+    def open_chapter(self, cap, hermanos, buscar=None):
+        vista = ChapterView(self.get_application(), self.con, dict(cap), hermanos, buscar)
         # Al saltar a otro capítulo se reemplaza la página en vez de apilarla:
         # así «volver» siempre lleva a la biblioteca, no al capítulo anterior.
         vista.on_navigate = lambda c: (self.nav.pop(), self.open_chapter(c, hermanos))
+
         vista.on_back = lambda: self.nav.pop()
 
         pagina = Adw.NavigationPage(title=util.plain(cap["title"])[:60])
@@ -428,29 +437,47 @@ class MainWindow(Adw.ApplicationWindow):
                 subtitle="Prueba otra búsqueda o crea una tarjeta nueva."))
             return
 
-        for f in filas:
-            row = Adw.ActionRow(title=util.as_label(f["front"])[:140])
-            row.set_title_lines(2)
-            estado = ("sin ver" if f["reps"] == 0
-                      else f"repaso en {scheduler.due_label(f['due'])}")
-            tipo = {"quiz": "Reto", "lesson": "Lección"}.get(f["kind"], "Tarjeta")
-            row.set_subtitle(f"{f['icon']} {f['deck_name']} · "
-                             f"{db.level_name(f['deck_levels'], f['level'])} · "
-                             f"{tipo} · {estado}")
-            row.set_activatable(True)
-            row.connect("activated", lambda _r, cid=f["id"]: self.card_editor(cid))
+        # Cientos de filas de golpe congelan la ventana casi dos segundos, así
+        # que se llena por tandas: la primera se ve al instante y el resto entra
+        # en los ratos libres. Cada refresco estrena número de tanda para que un
+        # relleno a medias se abandone si cambias el filtro mientras tanto.
+        self.tanda += 1
+        self.pendientes = list(filas)
+        self.llenar_browser(self.tanda, 30)
 
-            edit = Gtk.Button(icon_name="document-edit-symbolic", css_classes=["flat"],
-                              valign=Gtk.Align.CENTER, tooltip_text="Editar")
-            edit.connect("clicked", lambda _b, cid=f["id"]: self.card_editor(cid))
-            row.add_suffix(edit)
+    def llenar_browser(self, tanda, cuantas=60):
+        if tanda != self.tanda:
+            return False               # otro filtro mandó: este relleno ya no vale
+        for f in self.pendientes[:cuantas]:
+            self.browser_list.append(self.card_row(f))
+        del self.pendientes[:cuantas]
+        if self.pendientes:
+            GLib.idle_add(self.llenar_browser, tanda)
+        return False
 
-            rm = Gtk.Button(icon_name="user-trash-symbolic",
-                            css_classes=["flat", "error"], valign=Gtk.Align.CENTER,
-                            tooltip_text="Eliminar")
-            rm.connect("clicked", lambda _b, cid=f["id"]: self.confirm_delete(cid))
-            row.add_suffix(rm)
-            self.browser_list.append(row)
+    def card_row(self, f):
+        row = Adw.ActionRow(title=util.as_label(f["front"])[:140])
+        row.set_title_lines(2)
+        estado = ("sin ver" if f["reps"] == 0
+                  else f"repaso en {scheduler.due_label(f['due'])}")
+        tipo = {"quiz": "Reto", "lesson": "Lección"}.get(f["kind"], "Tarjeta")
+        row.set_subtitle(f"{f['icon']} {f['deck_name']} · "
+                         f"{db.level_name(f['deck_levels'], f['level'])} · "
+                         f"{tipo} · {estado}")
+        row.set_activatable(True)
+        row.connect("activated", lambda _r, cid=f["id"]: self.card_editor(cid))
+
+        edit = Gtk.Button(icon_name="document-edit-symbolic", css_classes=["flat"],
+                          valign=Gtk.Align.CENTER, tooltip_text="Editar")
+        edit.connect("clicked", lambda _b, cid=f["id"]: self.card_editor(cid))
+        row.add_suffix(edit)
+
+        rm = Gtk.Button(icon_name="user-trash-symbolic",
+                        css_classes=["flat", "error"], valign=Gtk.Align.CENTER,
+                        tooltip_text="Eliminar")
+        rm.connect("clicked", lambda _b, cid=f["id"]: self.confirm_delete(cid))
+        row.add_suffix(rm)
+        return row
 
     def confirm_delete(self, card_id):
         dlg = Adw.AlertDialog(heading="¿Eliminar la tarjeta?",
@@ -631,10 +658,38 @@ class MainWindow(Adw.ApplicationWindow):
         g.add(quitar)
         page.add(g)
 
+        gp = Adw.PreferencesGroup(
+            title=f"{pet.NOMBRE}, la mascota",
+            description="Una criatura que vive encima de todo en el escritorio: te "
+                        "recuerda estudiar y te enseña una tarjeta sin abrir nada.")
+
+        soltar = Adw.ActionRow(
+            title=f"Soltar a {pet.NOMBRE} ahora",
+            subtitle="Clic para que te enseñe algo · clic derecho para su menú")
+        sb = Gtk.Button(label="Soltar", valign=Gtk.Align.CENTER,
+                        css_classes=["suggested-action"])
+        sb.connect("clicked", lambda *_: self.launch_pet())
+        soltar.add_suffix(sb)
+        gp.add(soltar)
+
+        self.pet_auto = Adw.SwitchRow(
+            title="Aparecer al iniciar sesión",
+            subtitle="Deja la mascota en el escritorio desde que entras")
+        self.pet_auto.connect("notify::active", self.on_pet_autostart)
+        gp.add(self.pet_auto)
+
+        self.pet_every = Adw.SpinRow.new_with_range(5, 240, 5)
+        self.pet_every.set_title("Cada cuántos minutos te habla")
+        self.pet_every.set_subtitle("Solo insiste si tienes algo pendiente")
+        self.pet_every.connect("notify::value", self.on_pet_every)
+        gp.add(self.pet_every)
+        page.add(gp)
+
         g2 = Adw.PreferencesGroup(title="Contenido")
         recargar = Adw.ActionRow(
             title="Recargar contenido incluido",
-            subtitle="Reimporta tarjetas y capítulos de fábrica sin borrar tu progreso")
+            subtitle="Reimporta tarjetas y capítulos de fábrica sin borrar tu "
+                     "progreso · Ctrl+R o F5 en cualquier ventana")
         rb = Gtk.Button(label="Recargar", valign=Gtk.Align.CENTER)
         rb.connect("clicked", lambda *_: self.reload_content())
         recargar.add_suffix(rb)
@@ -646,7 +701,8 @@ class MainWindow(Adw.ApplicationWindow):
         page.add(g2)
 
         g3 = Adw.PreferencesGroup(title="Atajos dentro del popup")
-        for tecla, desc in (("Espacio", "Mostrar la respuesta"),
+        for tecla, desc in (("Ctrl+R", "Recargar el contenido (también F5)"),
+                            ("Espacio", "Mostrar la respuesta"),
                             ("1 – 4", "Responder un reto o calificar el repaso"),
                             ("N", "Saltar a otra tarjeta"),
                             ("A", "Abrir esta ventana"),
@@ -657,6 +713,16 @@ class MainWindow(Adw.ApplicationWindow):
             g3.add(r)
         page.add(g3)
         return page
+
+    def launch_pet(self):
+        self.get_application().launch_pet()
+        self.notify_user(f"{pet.NOMBRE} ya anda por el escritorio")
+
+    def on_pet_autostart(self, fila, _p):
+        self.notify_user(pet.set_autostart(fila.get_active()))
+
+    def on_pet_every(self, fila, _p):
+        db.set_meta(self.con, "pet_every", int(fila.get_value()))
 
     def refresh_settings(self):
         b = hotkey.current_binding("")
@@ -669,6 +735,14 @@ class MainWindow(Adw.ApplicationWindow):
             self.hotkey_row.set_subtitle(
                 f"Escritorio «{entorno}»: configúralo manualmente con el comando "
                 f"{self.get_application().launch_command()}")
+
+        self.pet_auto.handler_block_by_func(self.on_pet_autostart)
+        self.pet_auto.set_active(pet.autostart_enabled())
+        self.pet_auto.handler_unblock_by_func(self.on_pet_autostart)
+        self.pet_every.handler_block_by_func(self.on_pet_every)
+        self.pet_every.set_value(float(db.get_meta(self.con, "pet_every",
+                                                   pet.DEFAULT_EVERY_MIN)))
+        self.pet_every.handler_unblock_by_func(self.on_pet_every)
 
     def capture_hotkey(self):
         dlg = Adw.Dialog(title="Nuevo atajo")
@@ -726,17 +800,26 @@ class MainWindow(Adw.ApplicationWindow):
         self.refresh()
 
     def reload_content(self):
-        _, nuevas, retiradas, capitulos = seed.load_all(self.con)
-        detalle = f"{nuevas} tarjetas nuevas · {capitulos} capítulos"
-        if retiradas:
-            detalle += f" · {retiradas} retiradas"
-        self.notify_user(f"Contenido actualizado · {detalle}")
-        self.refresh()
+        # Lo mismo que Ctrl+R o `appstudy --reload`
+        self.get_application().reload_content()
 
     # ----------------------------------------------------------------- general
 
+    SECCIONES = ("panel", "leer", "tarjetas", "ajustes")
+
+    def refrescar_seccion(self, nombre):
+        {"panel": self.refresh_panel, "leer": self.refresh_reader,
+         "tarjetas": self.refresh_browser, "ajustes": self.refresh_settings}[nombre]()
+
+    def on_switch(self):
+        """Al cambiar de pestaña, se pone al día solo si quedó pendiente."""
+        nombre = self.stack.get_visible_child_name()
+        if nombre in self.sucias:
+            self.sucias.discard(nombre)
+            self.refrescar_seccion(nombre)
+
     def refresh(self):
-        self.refresh_panel()
-        self.refresh_reader()
-        self.refresh_browser()
-        self.refresh_settings()
+        """Los datos han cambiado: se rehace lo que se ve y se apunta el resto."""
+        visible = self.stack.get_visible_child_name() or "panel"
+        self.sucias = set(self.SECCIONES) - {visible}
+        self.refrescar_seccion(visible)

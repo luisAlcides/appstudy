@@ -1117,6 +1117,44 @@
      "key": "Five sentences containing hedging, nominalisation, an inverted third conditional (<i>Had the filter been replaced…</i>), a concession and the subjunctive. Nothing exotic — this is simply how a competent technical report reads in English."
     }
    ]
-  }
+  },
+{
+ "level": 4, "minutes": 12, "tags": "writing,register,grammar,vocabulary",
+ "title": "Writing that gets read",
+ "subtitle": "Participle clauses, impersonal reporting, cause-and-effect vocabulary and the structure of an email people actually answer.",
+ "body": [
+  {"p": "At C1 the grammar is mostly behind you. What separates a good report from a bad one is <b>structure</b> and <b>precision</b>: saying exactly how strong your claim is, and putting the important part where the reader will actually see it."},
+  {"h": "Two ideas in one line"},
+  {"p": "<b>Participle clauses</b> compress a sentence without losing meaning — the backbone of technical writing."},
+  {"code": "Having checked the pressure, we replaced the valve.   (after)\nWorking under load, the pump overheats.               (while)\nDamaged by vibration, the bracket failed.             (passive)"},
+  {"warn": "The hidden subject must match the main clause. <i>Having replaced the seal, the machine worked</i> says the machine replaced its own seal. That is a <b>dangling participle</b>, and in a report it reads as carelessness."},
+  {"h": "Saying it without saying who"},
+  {"p": "Investigations rarely want to name a person. English has a ready-made structure for that:"},
+  {"code": "It is believed that the seal failed.\nThe seal is believed to have failed.\nThe delay is thought to have been caused by a parts shortage."},
+  {"p": "Past reference takes the perfect infinitive: <i>is believed <b>to have</b> failed</i>. The same pattern works with <i>is said to</i>, <i>is expected to</i>, <i>is reported to</i>."},
+  {"h": "Cause and effect, in both directions"},
+  {"p": "Half the mistakes in technical English are a reversed causal chain. Keep the two families apart:"},
+  {"list": ["<b>Cause → effect</b>: <i>led to · resulted in · brought about · gave rise to · triggered</i>", "<b>Effect → cause</b>: <i>resulted from · stemmed from · was attributable to · arose from</i>", "<b>Partial cause</b>: <i>contributed to · was a factor in · compounded</i>"]},
+  {"key": "<b>result in</b> = cause. <b>result from</b> = be caused by. One preposition turns your sentence around, and nobody will tell you."},
+  {"h": "The comma that changes the fleet"},
+  {"code": "The pumps that failed were replaced.     → only those ones\nThe pumps, which failed, were replaced.  → all of them failed"},
+  {"p": "Defining clauses take no comma (<i>that</i> or <i>which</i>); non-defining ones take commas and only <i>which</i>. This is not decoration: it decides whether you replaced two pumps or twenty."},
+  {"h": "Precision about size and change"},
+  {"p": "Vague quantities make a report sound unreliable. English is rich here, so use it:"},
+  {"code": "small    a slight / marginal increase · edged up · tailed off\nlarge    a sharp / steep rise · soared · plummeted\nsteady   a gradual decline · levelled off · plateaued\nabout    roughly · in the region of · just under · upwards of"},
+  {"p": "<i>Downtime <b>edged up</b> in March, then <b>plateaued</b> at <b>just under</b> 40 hours.</i> Three precise words carry more authority than a paragraph of hedging."},
+  {"h": "Emphasis on the page"},
+  {"p": "In writing you have no tone of voice. English puts stress with structure instead:"},
+  {"code": "What surprised us was the cost, not the delay.\nWhat we need is a second pump.\nThe vibration did stop after the alignment.\nIt was only after the third test that the fault appeared."},
+  {"note": "One per paragraph. Used twice in a row, emphasis stops being emphasis."},
+  {"h": "Bad news, professionally"},
+  {"p": "Three moves, always in this order: an apologetic opener, a distancing verb, and — this is the one people forget — <b>an alternative</b>."},
+  {"code": "Direct:      We can't deliver on Friday.\nProfessional: Unfortunately, we won't be able to deliver on Friday.\nDiplomatic:  I'm afraid Friday is looking unlikely — would Monday work?"},
+  {"h": "The four-line email"},
+  {"steps": ["<b>Purpose</b> — <i>I'm writing to confirm the delivery date for the hydraulic kit.</i>", "<b>Context</b> — <i>As discussed on Tuesday, the original date was 12 March.</i>", "<b>Request</b> — <i>Could you confirm whether the revised date works on your side?</i>", "<b>Close</b> — <i>Happy to call if that's easier. Best regards, …</i>"]},
+  {"p": "One idea per paragraph and the request on its own line. Most people read the first two lines and the last one — so never bury the ask at the bottom."},
+  {"key": "Verbs that make you sound like you know what you are doing: <i>establish · ascertain · corroborate · preclude · mitigate · warrant · defer · escalate</i>. <i>The evidence did not <b>corroborate</b> the operator's account, but the wear pattern <b>warrants</b> a full inspection.</i>"}
  ]
+}
+]
 }

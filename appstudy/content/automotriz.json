@@ -410,6 +410,104 @@
    "front": "Vehículos híbridos y eléctricos: la regla de seguridad no negociable",
    "back": "El sistema de alta tensión trabaja a <b>200-800 V DC</b>, suficiente para matar, y <b>no hay cero natural</b>: la corriente continua no cruza por cero como la alterna.\n\nProcedimiento: cables <b>naranjas</b> = alta tensión; desconectar el <b>service plug</b>, esperar el tiempo del fabricante a que se descarguen los condensadores, verificar ausencia de tensión con guantes dieléctricos certificados y multímetro categoría III. Ninguna reparación justifica saltarse esto.",
    "tags": "seguridad"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "motor",
+   "front": "¿Qué es la detonación (pistoneo) y en qué se diferencia de la preignición?",
+   "back": "<b>Detonación</b>: la mezcla se autoenciende <b>después</b> de la chispa, en un frente aparte que choca con el de la bujía. Suena a canicas y la ECU la ve con el sensor de picado, retrasando el avance.\n<b>Preignición</b>: algo caliente (carbonilla, bujía de grado equivocado) enciende la mezcla <b>antes</b> de la chispa. No hay sensor que la salve y perfora un pistón en minutos.\n\nCausas de detonación: octanaje bajo, avance excesivo, exceso de temperatura, mezcla pobre o carbonilla."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "diagnóstico,electrónica",
+   "front": "MAF y MAP: ¿qué mide cada uno y cómo se prueban?",
+   "back": "<b>MAF</b> mide la masa de aire que entra (g/s). En ralentí, un motor de 2.0 sano ronda <b>3–5 g/s</b>; a fondo, aproximadamente la cilindrada en litros × 55 g/s.\n<b>MAP</b> mide la presión en el múltiple. En ralentí debe marcar <b>20–35 kPa</b> (vacío alto); con el motor parado y contacto puesto, la presión atmosférica (~100 kPa).\n\nSi el MAP en ralentí marca casi atmosférica, hay fuga de vacío o la mariposa no cierra. Comparar el valor real con el esperado vale más que cualquier código."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "diagnóstico",
+   "front": "El escáner muestra STFT +18 % y LTFT +22 %. ¿Qué significa?",
+   "choices": [
+    "La ECU añade mucho combustible: hay entrada de aire sin medir o falta presión de combustible",
+    "La ECU quita combustible porque la mezcla está rica",
+    "El catalizador está saturado",
+    "Es normal en ralentí con el aire acondicionado puesto"
+   ],
+   "answer": 0,
+   "back": "Los ajustes de combustible (<i>fuel trims</i>) positivos = la ECU <b>suma</b> gasolina para corregir una mezcla pobre.\nSumados por encima del ±10 % ya es falla; +40 % es grave.\n\nSi empeora en ralentí y se corrige a alta carga → <b>fuga de vacío</b>. Si empeora a alta carga → falta caudal: filtro, bomba o inyectores.\nNegativos (mezcla rica): inyector que gotea, presión alta, MAF sucio leyendo de menos."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "electrónica,diagnóstico",
+   "front": "Sonda lambda de conmutación vs de banda ancha (AFR)",
+   "back": "<b>De conmutación</b> (la clásica de 1–4 hilos): solo dice «rica o pobre». Su señal oscila entre 0,1 y 0,9 V varias veces por segundo — <b>si se queda plana, está muerta</b>.\n<b>De banda ancha</b> (5–6 hilos): mide el valor real de lambda en un rango ancho; no se lee en voltios sino como corriente de bombeo, y el escáner la muestra como λ o AFR.\n\n$\\lambda = \\frac{\\text{AFR real}}{14{,}7}$ — λ 1,00 es la mezcla justa; 0,90 rica; 1,10 pobre.\nNunca juzgues una de banda ancha con el multímetro como si fuera de conmutación."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "motor",
+   "front": "Turbo de geometría variable: qué es y cómo falla",
+   "back": "Unos álabes móviles cambian el ángulo de entrada a la turbina: cerrados dan respuesta a bajas vueltas, abiertos dejan pasar caudal arriba. Así no hace falta wastegate para todo el rango.\n\nFallo típico: los álabes se <b>pegan con carbonilla</b> — se nota como falta de fuerza arriba (quedan cerrados) o abajo (quedan abiertos), a menudo con código de sobrepresión o baja presión de soplado.\nY el consejo real que sí importa: <b>déjalo enfriar</b> al ralentí un minuto tras un tramo exigente, o el aceite se carboniza en el eje."
+  },
+  {
+   "kind": "lesson",
+   "level": 3,
+   "tags": "motor,diagnóstico",
+   "front": "DPF: lo que nunca hay que hacer",
+   "back": "El filtro de partículas se limpia solo <b>quemando</b> el hollín a más de 550 °C, y para eso necesita un rato de conducción sostenida. En ciudad no regenera: se satura y entra en modo taller.\n\n<b>No</b> apagues el motor en mitad de una regeneración (el aceite se diluye con gasóleo sin quemar).\n<b>No</b> uses aceite que no sea <i>low SAPS</i>: las cenizas no se queman y tapan el filtro para siempre.\n<b>No</b> lo vacíes: además de ilegal, el motor sigue con la falla que llenó el filtro antes de tiempo.\nSí: 20 minutos a régimen medio cuando avise, y buscar por qué se ensucia (EGR, inyectores, muchos arranques cortos)."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "frenos",
+   "front": "El volante vibra al frenar. ¿Disco «alabeado»?",
+   "back": "Casi nunca. En la mayoría de casos es <b>depósito irregular de material</b> de pastilla sobre el disco (DTV, variación de espesor): frenadas fuertes y luego parar con el pie en el pedal dejan una huella de material que después se siente como pulsación.\n\nSe mide con micrómetro en ocho puntos (variación de espesor) y con reloj comparador montado (descentramiento). Si el descentramiento está en tolerancia, el problema es el depósito: rectificado o disco nuevo <b>y un asentado correcto</b> de la pastilla.\nY revisa el par y el orden de apriete de las tuercas: mal apretadas deforman el disco de verdad."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "suspensión,electrónica",
+   "front": "Tras una alineación, el volante queda torcido y salta el testigo de estabilidad. ¿Qué falta?",
+   "back": "Calibrar el <b>sensor de ángulo de dirección</b>. El ESP compara ese ángulo con lo que hacen las ruedas; si la referencia de «recto» se movió, el sistema se declara en falla.\n\nSe hace con escáner, con el vehículo en plano, ruedas rectas y a veces tras un recorrido corto de aprendizaje. En dirección eléctrica (EPS), además, puede requerir aprendizaje del punto medio.\nSíntoma parecido: asistencia desigual a un lado — el par asistido se calcula con ese mismo ángulo."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "eléctrico,electrónica",
+   "front": "Cambias la batería de un coche moderno con gestión eléctrica. ¿Qué hace falta además?",
+   "choices": [
+    "Registrar la batería nueva en el módulo de gestión de energía",
+    "Nada: se conecta y ya está",
+    "Desconectar los fusibles antes",
+    "Cargarla al 50 % antes de montarla"
+   ],
+   "answer": 0,
+   "back": "El sistema de gestión (BMS/IBS) lleva la cuenta del envejecimiento de la batería para decidir la tensión de carga. Si no lo registras, sigue cargando como si fuera la vieja y gastada: sobrecarga la nueva y le acorta la vida.\n\nSe hace con escáner e indicando tipo (AGM/EFB/plomo) y capacidad. Y si cambias de plomo a AGM sin decírselo, peor todavía: las curvas de carga son distintas."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "eléctrico,diagnóstico",
+   "front": "¿Cómo se mide un consumo parásito de verdad?",
+   "back": "Multímetro en <b>amperios</b>, en serie con el borne negativo (o con pinza amperimétrica de mA sobre el cable).\n\nLa clave es la <b>espera</b>: los módulos tardan entre 20 y 45 minutos en dormirse. Medir antes es medir un coche despierto y perseguir un fantasma.\nDormido, lo normal es <b>20–50 mA</b>. Por encima, ve sacando fusibles de uno en uno y mira cuál hace caer la lectura.\nOjo: abrir una puerta despierta todo y hay que volver a empezar; usa el pestillo engañado o la ventanilla."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "motor,diagnóstico",
+   "front": "Prueba de compresión en seco y en húmedo: ¿qué distingue una de otra?",
+   "back": "En <b>seco</b>, con el motor a temperatura, acelerador abierto y todas las bujías fuera: interesa el valor y, sobre todo, que no haya más de un <b>10 %</b> de diferencia entre cilindros.\n\nEn <b>húmedo</b> se echan unas gotas de aceite por la bujía y se repite:\n<b>Sube mucho</b> → el aceite selló los aros: desgaste de segmentos o cilindro.\n<b>No cambia</b> → la fuga está arriba: válvulas o junta de culata.\n\nEs la prueba que decide si el motor se abre por arriba o por abajo — y cuesta diez minutos."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "electrónica",
+   "front": "Cambias piezas y el motor va peor que antes. ¿Qué se te olvidó?",
+   "back": "Las <b>adaptaciones</b>. Muchas piezas necesitan que la ECU aprenda o reciba su calibración:\n<b>Cuerpo de aceleración</b> — aprendizaje de tope y ralentí.\n<b>Inyectores diésel</b> — hay que grabar el código IMA/IQA de cada uno, o inyectarán de más o de menos.\n<b>Volante bimasa / cigüeñal</b> — aprendizaje de irregularidad para el diagnóstico de fallo de encendido.\n<b>Turbo VGT y EGR</b> — puesta a cero de posición.\n\nBorrar códigos no es adaptar: son menús distintos del escáner."
   }
  ],
  "levels": [

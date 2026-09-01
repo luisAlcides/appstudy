@@ -200,5 +200,37 @@
   ]},
   {"key": "Ninguna reparación, por urgente que sea, justifica saltarse estos pasos. Es el único procedimiento de este curso donde el error no se paga con dinero."}
  ]
+},
+{
+ "level": 3, "minutes": 10, "tags": "diagnóstico,motor,electrónica,eléctrico",
+ "title": "Gestión del motor: mezcla, aire y adaptaciones",
+ "subtitle": "Fuel trims, MAF y MAP, sondas de banda ancha, detonación, turbo VGT y por qué cambiar la pieza no siempre termina el trabajo.",
+ "body": [
+  {"p": "El escáner no diagnostica: describe. Los códigos dicen qué se salió de rango, no por qué. Lo que de verdad diagnostica son los <b>datos en vivo</b> comparados con lo que deberían valer — y para eso hay que saberse cuatro números."},
+  {"h": "Los ajustes de combustible cuentan la historia"},
+  {"p": "Los <i>fuel trims</i> son la corrección que la ECU aplica sobre su cálculo base. <b>STFT</b> es la corrección inmediata; <b>LTFT</b>, lo que ha ido aprendiendo. Positivos = está <b>añadiendo</b> gasolina porque la mezcla le sale pobre; negativos = está quitando porque sale rica."},
+  {"key": "Sumados por encima del ±10 % ya es falla. Y el patrón importa: si empeora <b>en ralentí</b> y se corrige a alta carga, es entrada de aire sin medir (fuga de vacío). Si empeora <b>a alta carga</b>, es falta de caudal: filtro, bomba o inyectores."},
+  {"p": "Negativos grandes (mezcla rica) apuntan a un inyector que gotea, presión de combustible alta o un MAF sucio que lee de menos."},
+  {"h": "MAF y MAP: los números que debes reconocer"},
+  {"p": "El <b>MAF</b> mide la masa de aire que entra: en ralentí, un motor de 2.0 sano ronda 3–5 g/s; a plena carga, aproximadamente la cilindrada en litros por 55. El <b>MAP</b> mide presión en el múltiple: 20–35 kPa en ralentí (vacío alto) y la presión atmosférica, unos 100 kPa, con el motor parado y contacto puesto."},
+  {"p": "Si el MAP en ralentí marca casi atmosférica, hay fuga de vacío o la mariposa no cierra. Comparar el valor real con el esperado vale más que cualquier código guardado."},
+  {"h": "La sonda lambda, según cuál sea"},
+  {"p": "La <b>de conmutación</b> (1–4 hilos) solo dice rica o pobre: su señal oscila entre 0,1 y 0,9 V varias veces por segundo, y si se queda plana está muerta. La <b>de banda ancha</b> (5–6 hilos) mide el valor real y no se lee en voltios sino como corriente de bombeo; el escáner la muestra como λ o AFR."},
+  {"math": "\\lambda = \\frac{\\text{AFR real}}{14{,}7}"},
+  {"warn": "Juzgar una sonda de banda ancha con el multímetro como si fuera de conmutación es el error que hace cambiar sondas buenas. λ 1,00 es la mezcla justa; 0,90 rica; 1,10 pobre."},
+  {"h": "Cuando el problema es la combustión"},
+  {"p": "La <b>detonación</b> es autoencendido <b>después</b> de la chispa: un segundo frente de llama que choca con el de la bujía. Suena a canicas, el sensor de picado la detecta y la ECU retrasa el avance. La <b>preignición</b> es lo contrario y mucho peor: algo caliente enciende la mezcla <b>antes</b> de la chispa. No hay sensor que la salve y perfora un pistón en minutos."},
+  {"p": "Causas de detonación, por orden de frecuencia: octanaje bajo, avance excesivo, temperatura alta, mezcla pobre y carbonilla acumulada."},
+  {"h": "Turbo y filtro de partículas"},
+  {"p": "Un turbo de <b>geometría variable</b> mueve unos álabes para cambiar el ángulo de entrada a la turbina. Cuando se pegan con carbonilla, la falta de fuerza aparece arriba (quedan cerrados) o abajo (quedan abiertos), casi siempre con código de sobrepresión o de presión insuficiente. Y el consejo de siempre sigue siendo cierto: un minuto al ralentí tras un tramo exigente, o el aceite se carboniza en el eje."},
+  {"p": "El <b>DPF</b> se limpia quemando el hollín a más de 550 °C, y para eso necesita conducción sostenida. En ciudad no regenera: se satura y entra en modo taller."},
+  {"steps": ["No apagues el motor en mitad de una regeneración: el aceite se diluye con gasóleo sin quemar.", "Usa aceite <i>low SAPS</i>: las cenizas de otro aceite no se queman y tapan el filtro para siempre.", "No lo vacíes. Además de ilegal, el motor sigue con la falla que llenó el filtro antes de tiempo.", "Sí: veinte minutos a régimen medio cuando avise, y buscar el porqué — EGR, inyectores o muchos arranques cortos."]},
+  {"h": "Eléctrica fina"},
+  {"p": "Para un consumo parásito, multímetro en amperios en serie con el negativo (o pinza de mA) y, sobre todo, <b>paciencia</b>: los módulos tardan entre 20 y 45 minutos en dormirse. Dormido, lo normal son 20–50 mA. Abrir una puerta despierta todo y hay que volver a empezar."},
+  {"p": "Y al cambiar la batería en un vehículo con gestión de energía hay que <b>registrarla</b> en el módulo: el sistema lleva la cuenta del envejecimiento para decidir la tensión de carga, y si cree que sigue montada la vieja, sobrecarga la nueva."},
+  {"h": "Cambiar la pieza no siempre termina el trabajo"},
+  {"p": "Muchas piezas necesitan que la ECU aprenda o reciba su calibración: el <b>cuerpo de aceleración</b> (tope y ralentí), los <b>inyectores diésel</b> (grabar el código IMA/IQA de cada uno), el <b>volante bimasa o el cigüeñal</b> (aprendizaje de irregularidad para el diagnóstico de fallo de encendido), el <b>turbo VGT y la EGR</b> (puesta a cero de posición)."},
+  {"note": "Borrar códigos no es adaptar: son menús distintos del escáner. Un motor que va peor después de la reparación suele ser una adaptación pendiente, no una pieza mala."}
+ ]
 }
 ]}

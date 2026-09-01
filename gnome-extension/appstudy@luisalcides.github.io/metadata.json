@@ -1,0 +1,7 @@
+{
+  "uuid": "appstudy@luisalcides.github.io",
+  "name": "AppStudy",
+  "description": "Lo que tienes pendiente de estudiar, siempre a la vista en la barra superior: repasos, racha, una frase de libro y el interruptor de Bit, la mascota.",
+  "shell-version": ["45", "46", "47", "48"],
+  "version": 1
+}

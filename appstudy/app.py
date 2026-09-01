@@ -9,11 +9,14 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
-from . import db, hotkey, seed  # noqa: E402
+from . import db, hotkey, pet, seed  # noqa: E402
 from .main_window import MainWindow  # noqa: E402
 from .popup import PopupWindow  # noqa: E402
 
 APP_ID = "io.github.appstudy.AppStudy"
+# El icono se llama igual que la aplicación: así el escritorio empareja la
+# ventana con su lanzador (y con lo que hayas anclado al dock).
+ICON_NAME = APP_ID
 
 
 class AppStudy(Adw.Application):
@@ -30,6 +33,17 @@ class AppStudy(Adw.Application):
         self.add_main_option("install-hotkey", 0, GLib.OptionFlags.NONE,
                              GLib.OptionArg.STRING,
                              "Registrar el atajo global (ej. '<Super><Shift>e')", "ATAJO")
+        self.add_main_option("pet", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+                             f"Soltar a {pet.NOMBRE}, la mascota de escritorio", None)
+        self.add_main_option("status", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+                             "Imprimir el estado en JSON (lo usa la extensión de GNOME)",
+                             None)
+        self.add_main_option("read-card", 0, GLib.OptionFlags.NONE, GLib.OptionArg.STRING,
+                             "Abrir en Leer el capítulo que explica esa tarjeta", "ID")
+        self.add_main_option("reload", ord("r"), GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE,
+                             "Reimportar el contenido incluido y refrescar la ventana",
+                             None)
 
     # ------------------------------------------------------------------ arranque
 
@@ -38,14 +52,18 @@ class AppStudy(Adw.Application):
         self.con = db.connect()
         seed.ensure_seeded(self.con)
         self.load_css()
+        Gtk.Window.set_default_icon_name(ICON_NAME)
 
         for nombre, cb in (("quit", lambda *_: self.quit()),
                            ("popup", lambda *_: self.show_popup()),
-                           ("main", lambda *_: self.show_main_window())):
+                           ("main", lambda *_: self.show_main_window()),
+                           ("reload", lambda *_: self.reload_content())):
             a = Gio.SimpleAction.new(nombre, None)
             a.connect("activate", cb)
             self.add_action(a)
         self.set_accels_for_action("app.quit", ["<Control>q"])
+        # Recargar: sirve en cualquier ventana de la aplicación, popup incluido
+        self.set_accels_for_action("app.reload", ["<Control>r", "F5"])
 
     def load_css(self):
         css = Gtk.CssProvider()
@@ -61,7 +79,16 @@ class AppStudy(Adw.Application):
             ok, mensaje = hotkey.install(self.launch_command(), opts["install-hotkey"])
             cmdline.print_literal(mensaje + "\n")
             return 0 if ok else 1
-        if opts.get("popup"):
+        if opts.get("pet"):
+            # No debería llegar aquí: main() lo atiende antes de arrancar GTK
+            self.launch_pet()
+            return 0
+        if opts.get("reload"):
+            cmdline.print_literal(self.reload_content() + "\n")
+            return 0
+        if "read-card" in opts:
+            self.show_reading_for_card(opts["read-card"])
+        elif opts.get("popup"):
             self.show_popup(opts.get("deck"))
         else:
             self.show_main_window()
@@ -92,11 +119,50 @@ class AppStudy(Adw.Application):
         self.main_window.refresh()
         self.main_window.present()
 
+    def reload_content(self) -> str:
+        """Reimporta los mazos y capítulos incluidos y pone al día lo que se ve.
+
+        Es lo que hay detrás de Ctrl+R, de F5 y de `appstudy --reload`: si
+        editaste un JSON de `content/`, esto lo mete en la base sin tocar tu
+        progreso y refresca la ventana abierta.
+        """
+        _, nuevas, retiradas, capitulos = seed.load_all(self.con)
+        detalle = f"{nuevas} tarjetas nuevas · {capitulos} capítulos"
+        if retiradas:
+            detalle += f" · {retiradas} retiradas"
+        mensaje = f"Contenido actualizado · {detalle}"
+        if self.main_window:
+            self.main_window.refresh()
+            self.main_window.notify_user(mensaje)
+        if self.popup:
+            self.popup.load_card()      # que la tarjeta a la vista ya sea la nueva
+        return mensaje
+
+    def show_reading_for_card(self, card_id):
+        """Abre la lectura donde se explica una tarjeta (lo pide Bit desde el globo)."""
+        try:
+            card = db.card_by_id(self.con, int(card_id))
+        except (TypeError, ValueError):
+            card = None
+        cap = db.chapter_for_card(self.con, card) if card else None
+        self.show_main_window()
+        if cap:
+            self.main_window.abrir_lectura(cap, buscar=f"{card['front']} {card['back']}")
+        else:
+            # Sin capítulo que lo explique, al menos se abre la biblioteca
+            self.main_window.stack.set_visible_child_name("leer")
+
     def on_main_closed(self, *_):
         self.main_window = None
         return False
 
     # ------------------------------------------------------------------ utilidad
+
+    def launch_pet(self):
+        """Arranca la mascota en su propio proceso (necesita el backend X11)."""
+        import subprocess
+        env = {k: v for k, v in os.environ.items() if k != "GDK_BACKEND"}
+        subprocess.Popen([pet.launcher(), "--pet"], env=env, start_new_session=True)
 
     def launch_command(self) -> str:
         """Comando absoluto que el atajo del escritorio debe ejecutar."""
@@ -110,4 +176,12 @@ class AppStudy(Adw.Application):
 
 
 def main():
+    # La mascota vive en su propio proceso y con su propio backend gráfico, así
+    # que se atiende antes de que GTK abra la pantalla.
+    if "--status" in sys.argv or "--pet-off" in sys.argv:
+        from .status import run_status
+        return run_status(sys.argv)
+    if "--pet" in sys.argv:
+        from .pet import run_pet
+        return run_pet(sys.argv)
     return AppStudy().run(sys.argv)

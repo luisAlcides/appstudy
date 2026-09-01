@@ -169,7 +169,7 @@
   {
    "kind": "card",
    "front": "¿Qué es un <i>outlier</i> y cómo lo detectas con el rango intercuartílico?",
-   "back": "Valor atípico muy alejado del resto.\n<b>IQR = Q3 − Q1</b>. Es outlier si está fuera de <b>[Q1 − 1.5·IQR, Q3 + 1.5·IQR]</b>.\nNo lo borres por defecto: investiga si es error de captura o un caso real importante.",
+   "back": "Valor atípico muy alejado del resto.\n$IQR = Q_3 - Q_1$. Es outlier si está fuera de $[\\,Q_1 - 1.5 \\times IQR,\\ Q_3 + 1.5 \\times IQR\\,]$.\nNo lo borres por defecto: investiga si es error de captura o un caso real importante.",
    "tags": "estadística",
    "level": 2
   },
@@ -268,7 +268,7 @@
    "level": 2,
    "kind": "card",
    "front": "¿Qué es una matriz de confusión?",
-   "back": "Tabla de aciertos y errores de una clasificación:\n<b>VP</b> predije falla y hubo falla\n<b>VN</b> predije normal y fue normal\n<b>FP</b> falsa alarma\n<b>FN</b> falla que no detecté ← normalmente el error caro\n\nDe ahí salen: precisión = VP/(VP+FP) · recall = VP/(VP+FN).",
+   "back": "Tabla de aciertos y errores de una clasificación:\n<b>VP</b> predije falla y hubo falla\n<b>VN</b> predije normal y fue normal\n<b>FP</b> falsa alarma\n<b>FN</b> falla que no detecté ← normalmente el error caro\n\nDe ahí salen $\\text{precisión} = \\frac{VP}{VP+FP}$ y $\\text{recall} = \\frac{VP}{VP+FN}$.",
    "tags": "evaluación"
   },
   {
@@ -410,6 +410,97 @@
    "front": "¿Qué es la paradoja de Simpson?",
    "back": "Una tendencia que aparece en cada grupo por separado <b>se invierte</b> al juntar todos los datos.\n\nEjemplo: el taller A repara más rápido que el B en máquinas ligeras <i>y</i> en pesadas; pero en total parece más lento… porque atiende sobre todo pesadas.\n\nLección: <b>siempre segmenta antes de concluir</b>.",
    "tags": "sesgos"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "estadística,experimentos",
+   "front": "¿Qué significa exactamente un p-valor de 0,03?",
+   "back": "Que, <b>si la hipótesis nula fuera cierta</b>, verías un efecto así de grande (o mayor) el 3 % de las veces por puro azar.\n\nNo significa: que haya un 97 % de probabilidad de que tu hipótesis sea cierta, ni que el efecto sea grande, ni que sea importante para el negocio.\nUn efecto minúsculo con muchísimos datos da p pequeñísimos. Mira siempre el <b>tamaño del efecto</b> y su intervalo de confianza."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "experimentos,estadística",
+   "front": "¿Cuánta muestra necesita un A/B para detectar una mejora del 2 %?",
+   "back": "Regla de bolsillo por grupo, con 80 % de potencia y 95 % de confianza:\n$n \\approx \\frac{16\\,\\sigma^2}{\\delta^2}$\n\nCon proporciones, $\\sigma^2 = p(1-p)$. Si $p = 0.10$ y quieres ver $\\delta = 0.02$: $n \\approx 16 \\times 0.09 / 0.0004 = 3600$ por grupo.\n\nCalcula esto <b>antes</b> de lanzar y fija la duración. Ir mirando hasta que salga significativo (<i>peeking</i>) multiplica los falsos positivos."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "producción,evaluación",
+   "front": "¿Qué es la deriva de datos y en qué se diferencia de la deriva de concepto?",
+   "back": "<b>Deriva de datos</b>: cambia la distribución de entrada (llegan máquinas nuevas, otro rango de horas). El mundo se movió.\n<b>Deriva de concepto</b>: cambia la relación entre entrada y salida (el mismo síntoma ya no significa la misma falla). Tu modelo aprendió una regla que ya no rige.\n\nSe vigilan con PSI o el test KS por variable, y sobre todo con la <b>métrica real</b> cuando llega la etiqueta. Sin monitoreo, un modelo se pudre en silencio."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "producción,modelado",
+   "front": "¿Qué es el <i>training-serving skew</i>?",
+   "back": "Que las variables se calculan de una forma al entrenar y de otra al predecir: en el cuaderno usaste el promedio de todo el histórico y en producción solo tienes los últimos 30 días; o el <code>StandardScaler</code> se reajusta en vez de reutilizarse.\n\nSe evita con <b>una sola función</b> de transformación compartida por ambos caminos (un <code>Pipeline</code> serializado, o un <i>feature store</i>).\nSíntoma típico: métricas buenísimas en pruebas y mediocres el primer día."
+  },
+  {
+   "kind": "lesson",
+   "level": 3,
+   "tags": "modelado,evaluación",
+   "front": "Antes del modelo, el baseline",
+   "back": "Siempre mide primero lo tonto:\n<b>Regresión</b> → predecir la media (o el valor de ayer, en series).\n<b>Clasificación</b> → predecir la clase mayoritaria.\n<b>Reglas</b> → lo que ya hace el experto a ojo.\n\nSi tu modelo con 40 variables no le gana por un margen claro al baseline, no tienes un modelo: tienes complejidad. Y el baseline es lo que te dice si el problema es difícil o si tus datos no sirven."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "modelado,evaluación",
+   "front": "AUC 0,99 en entrenamiento y 0,62 en prueba. ¿Qué haces primero?",
+   "choices": [
+    "Simplificar el modelo y regularizar",
+    "Entrenar más épocas",
+    "Añadir más variables",
+    "Subir la profundidad de los árboles"
+   ],
+   "answer": 0,
+   "back": "Es sobreajuste de libro: el modelo memorizó. Menos capacidad, más regularización, y valida bien.\nLas otras tres opciones <b>agrandan</b> la brecha.\n\nAntes de tocar nada, descarta también fuga de datos: una brecha así de brutal suele venir de una variable que no existirá en producción."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "modelado",
+   "front": "<i>Random forest</i> vs <i>gradient boosting</i>: ¿cuándo cada uno?",
+   "back": "<b>Random forest</b>: árboles profundos e independientes, promediados. Casi no hay que afinarlo, es difícil de sobreajustar y va en paralelo. Perfecto como segundo baseline.\n<b>Gradient boosting</b> (XGBoost, LightGBM): árboles pequeños en cadena, cada uno corrigiendo el error del anterior. Suele ganar en datos tabulares, pero exige afinar <i>learning rate</i>, profundidad y número de árboles, y sobreajusta si te descuidas.\n\nEn tabular, ambos siguen ganándole a una red neuronal casi siempre."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "evaluación",
+   "front": "¿Cómo eliges el umbral de decisión de un clasificador?",
+   "back": "No con 0,5 por defecto: con <b>costes</b>. Pon precio a cada error y elige el umbral que minimiza el coste esperado:\n$\\text{coste} = FP \\times c_{FP} + FN \\times c_{FN}$\n\nSi no detectar una falla cuesta 5.000 € y una revisión de más cuesta 80 €, el umbral tiene que ser bajo aunque lluevan falsas alarmas.\nEnseña la curva precisión-recall al que paga y que elija él el punto: es una decisión de negocio, no estadística."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "sql",
+   "front": "Tu consulta tarda minutos. ¿Qué miras antes de pedir más servidor?",
+   "back": "<code>EXPLAIN ANALYZE</code>: si ves <i>Seq Scan</i> sobre una tabla grande con un filtro selectivo, falta índice.\n\nY que el filtro pueda usarlo: <code>WHERE fecha &gt;= '2026-01-01'</code> sí; <code>WHERE YEAR(fecha) = 2026</code> no (la función tapa el índice).\nOtros clásicos: <code>SELECT *</code> trayendo columnas que nadie usa, un JOIN sin condición, y ordenar millones de filas para quedarte con diez."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "preprocesamiento,evaluación",
+   "front": "¿Por qué <code>train_test_split(..., stratify=y)</code>?",
+   "back": "Mantiene la proporción de clases en ambos lados. Con un 3 % de positivos y una división aleatoria, puedes acabar con un conjunto de prueba casi sin positivos: la métrica saldrá preciosa y no significará nada.\n\nMismo motivo para <code>StratifiedKFold</code> en validación cruzada.\nExcepción: en series de tiempo <b>no</b> se estratifica ni se baraja — se corta por fecha."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "estadística,visualización",
+   "front": "Un intervalo de confianza del 95 % para la media es [4,2 · 5,8]. ¿Qué afirma?",
+   "choices": [
+    "Si repitieras el muestreo muchas veces, el 95 % de los intervalos así construidos contendrían la media real",
+    "Hay un 95 % de probabilidad de que la media real esté entre 4,2 y 5,8",
+    "El 95 % de los datos está entre 4,2 y 5,8",
+    "La media real es 5,0 con un error del 5 %"
+   ],
+   "answer": 0,
+   "back": "El intervalo es lo aleatorio, no el parámetro: la media real es un número fijo que no se mueve.\nEl 95 % describe el <b>procedimiento</b>, no ese intervalo concreto.\n\nY cuidado con la tercera: el rango donde cae el 95 % de los <b>datos</b> es el intervalo de predicción, mucho más ancho."
   }
  ],
  "levels": [

@@ -20,6 +20,7 @@
 
   {"h": "Los tres promedios y cuándo usar cada uno"},
   {"code": "Salarios: 1.000  1.200  1.100  1.300  90.000\n\nMedia    = 18.920  ← nadie gana eso\nMediana  =  1.200  ← describe al grupo real\nModa     = el valor más frecuente"},
+  {"math": "\\bar{x} = \\frac{1}{n}\\sum x_i \\qquad \\sigma = \\sqrt{\\frac{\\sum (x_i-\\bar{x})^2}{n}}"},
   {"list": [
     "<b>Media</b> — datos simétricos y sin valores extremos.",
     "<b>Mediana</b> — cuando hay outliers o la distribución está sesgada. Salarios, precios, tiempos de espera.",
@@ -30,7 +31,9 @@
   {"h": "La dispersión cuenta la otra mitad"},
   {"p": "Dos talleres promedian 5 horas por reparación. En uno la desviación estándar es 0,5 h; en el otro, 4 h. El primero es predecible y se puede programar; el segundo es un caos. <b>El promedio solo no cuenta la historia.</b>"},
   {"p": "El <b>rango intercuartílico (IQR)</b> es más robusto: es la distancia entre el percentil 25 y el 75, es decir, dónde vive la mitad central de tus datos. Y sirve para detectar atípicos:"},
-  {"code": "IQR = Q3 - Q1\n\nEs outlier si está fuera de:\n   [ Q1 - 1.5×IQR ,  Q3 + 1.5×IQR ]"},
+  {"math": "IQR = Q_3 - Q_1"},
+  {"p": "Y un dato es atípico cuando se sale de este intervalo:"},
+  {"math": "[\\,Q_1 - 1.5 \\times IQR,\\ \\ Q_3 + 1.5 \\times IQR\\,]"},
   {"warn": "Detectar un outlier no autoriza a borrarlo. Primero investiga: ¿es un error de captura (un horómetro con un cero de más) o un caso real e importante (la máquina que efectivamente falló catastróficamente)? Borrar los casos raros suele eliminar justo lo que querías estudiar."},
 
   {"h": "Los primeros cinco comandos"},
@@ -92,7 +95,11 @@
 
   {"h": "El accuracy miente"},
   {"p": "Si el 99% de las transacciones son legítimas, un modelo que siempre diga «no es fraude» tiene 99% de accuracy y cero utilidad. Con clases desbalanceadas necesitas otras métricas."},
-  {"code": "                 PREDICHO\n              positivo  negativo\nREAL positivo    VP        FN   ← los que se te escaparon\n     negativo    FP        VN\n         ↑\n   falsas alarmas\n\nPrecisión = VP/(VP+FP)   de lo que marqué, ¿cuánto acerté?\nRecall    = VP/(VP+FN)   de todo lo real, ¿cuánto atrapé?"},
+  {"code": "                 PREDICHO\n              positivo  negativo\nREAL positivo    VP        FN   ← los que se te escaparon\n     negativo    FP        VN\n         ↑\n   falsas alarmas"},
+  {"p": "De esa tabla salen las dos métricas que de verdad se miran:"},
+  {"math": "\\text{Precisión} = \\frac{VP}{VP+FP} \\qquad \\text{Recall} = \\frac{VP}{VP+FN}"},
+  {"p": "La precisión responde «de lo que marqué, ¿cuánto acerté?»; el recall, «de todo lo real, ¿cuánto atrapé?». El <b>F1</b> los junta en un solo número, castigando que una de las dos se hunda:"},
+  {"math": "F_1 = 2 \\times \\frac{\\text{precisión} \\times \\text{recall}}{\\text{precisión} + \\text{recall}}"},
   {"list": [
     "Prioriza <b>precisión</b> cuando una falsa alarma es cara: filtro de spam, detener una línea de producción.",
     "Prioriza <b>recall</b> cuando dejar pasar un caso es grave: detectar cáncer, una falla crítica de maquinaria.",
@@ -181,6 +188,37 @@
     "<b>Línea base</b>: ¿le gana al mantenimiento por horas fijas que ya usan? Si no, el modelo no aporta nada aunque su AUC sea bonito."
   ]},
   {"key": "Sin línea base no sabes si tu modelo sirve. Es la primera pregunta que debería hacerse y la que más se omite."}
+ ]
+},
+{
+ "level": 3, "minutes": 9, "tags": "estadística,experimentos,producción,evaluación,sql",
+ "title": "Decidir con números sin engañarse",
+ "subtitle": "Qué dice y qué no dice un p-valor, cuánta muestra necesita un experimento, cómo se elige un umbral y por qué los modelos se pudren.",
+ "body": [
+  {"p": "Un modelo con buenas métricas no es una decisión. Entre el cuaderno y la reunión donde alguien firma hay un puñado de conceptos que se malinterpretan una y otra vez, y cada malentendido cuesta dinero."},
+  {"h": "El p-valor no dice lo que crees"},
+  {"p": "Un p-valor de 0,03 significa: <i>si la hipótesis nula fuera cierta, vería un efecto así de grande o mayor el 3 % de las veces por puro azar</i>. Nada más. No es la probabilidad de que tu hipótesis sea verdad, no mide la importancia del efecto y desde luego no dice que el cambio valga la pena."},
+  {"warn": "Con muchísimos datos, un efecto minúsculo da p ridículamente pequeños. Un test puede ser «significativo» y a la vez completamente irrelevante para el negocio. Enseña siempre el <b>tamaño del efecto</b> con su intervalo."},
+  {"p": "Y ese intervalo tampoco dice lo que parece. Un intervalo de confianza del 95 % describe el <b>procedimiento</b>: si repitieras el muestreo muchas veces, el 95 % de los intervalos así construidos contendría el valor real. El parámetro es fijo; lo aleatorio es el intervalo."},
+  {"h": "Cuánta muestra hace falta"},
+  {"p": "La pregunta correcta antes de lanzar un A/B no es «cuándo lo miro» sino «cuánta gente necesito». Con 80 % de potencia y 95 % de confianza, la regla de bolsillo por grupo es:"},
+  {"math": "n \\approx \\frac{16\\,\\sigma^2}{\\delta^2}"},
+  {"p": "Con proporciones, $\\sigma^2 = p(1-p)$. Si conviertes al 10 % y quieres detectar una mejora de dos puntos: $n \\approx 16 \\times 0.09 / 0.0004 = 3600$ por grupo. Ese número decide si el experimento dura tres días o tres meses — y a veces decide que no se puede hacer."},
+  {"key": "Fija el tamaño y la duración <b>antes</b> de empezar. Ir mirando hasta que salga significativo (<i>peeking</i>) dispara los falsos positivos: si miras cada día, tarde o temprano el azar te dará la razón."},
+  {"h": "El umbral es una decisión de negocio"},
+  {"p": "Un clasificador no decide: entrega una probabilidad. El 0,5 por defecto solo es correcto si equivocarse en un sentido cuesta lo mismo que en el otro, y eso casi nunca pasa. Pon precio a cada error y minimiza:"},
+  {"math": "\\text{coste} = FP \\times c_{FP} + FN \\times c_{FN}"},
+  {"p": "Si no detectar una falla cuesta 5.000 € y una revisión de más cuesta 80, el umbral tiene que ser bajo y habrá muchas falsas alarmas: es lo correcto. Enseña la curva precisión-recall a quien paga y que elija él el punto de trabajo."},
+  {"h": "Por qué un modelo se pudre"},
+  {"p": "Dos cosas distintas se llaman «deriva». La <b>deriva de datos</b> es que cambia lo que entra: llegan máquinas nuevas, otro rango de horas, otro cliente. La <b>deriva de concepto</b> es peor: cambia la relación entre entrada y salida, y la regla que aprendió tu modelo ya no rige."},
+  {"p": "Se vigilan con PSI o el test KS por variable, pero lo único que de verdad cuenta es la métrica real cuando llega la etiqueta. Sin monitoreo, un modelo se degrada en silencio y nadie se entera hasta que alguien se queja."},
+  {"p": "Y hay un fallo más tonto y más común que la deriva: el <b>training-serving skew</b>. Las variables se calculan de una forma al entrenar y de otra al predecir — el promedio del histórico completo frente a los últimos 30 días, o un escalador que se reajusta en vez de reutilizarse. Síntoma: métricas magníficas en pruebas y mediocres el primer día. Cura: una sola función de transformación, serializada, compartida por ambos caminos."},
+  {"h": "Antes del modelo, el baseline"},
+  {"p": "Mide siempre lo tonto primero: predecir la media, predecir la clase mayoritaria, o replicar la regla que el experto ya aplica a ojo. Si tu modelo con cuarenta variables no le gana con claridad, no tienes un modelo: tienes complejidad. El baseline es también lo que te dice si el problema es difícil o si tus datos no sirven."},
+  {"h": "Y cuando la consulta tarda"},
+  {"code": "EXPLAIN ANALYZE\nSELECT maquina, AVG(horas)\nFROM registros\nWHERE fecha >= '2026-01-01'\nGROUP BY maquina;"},
+  {"p": "Si aparece un <i>Seq Scan</i> sobre una tabla grande con un filtro selectivo, falta índice. Y que el filtro pueda usarlo: <code>WHERE fecha &gt;= '2026-01-01'</code> sí, <code>WHERE YEAR(fecha) = 2026</code> no — la función tapa el índice. Antes de pedir más servidor, mira el plan."},
+  {"note": "Una última costumbre: al partir en entrenamiento y prueba, <code>stratify=y</code> si hay clases raras, y <b>corte por fecha</b> si hay tiempo de por medio. Barajar una serie temporal es entrenar con el futuro."}
  ]
 }
 ]}

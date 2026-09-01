@@ -209,5 +209,37 @@
   {"p": "Un binario <b>SUID</b> se ejecuta con los permisos de su dueño, no de quien lo lanza. Es lo que permite que <code>passwd</code> modifique <code>/etc/shadow</code> siendo tú un usuario normal. También es el vector clásico de escalada de privilegios, y por eso la lista de binarios SUID es lo primero que se audita en una revisión de seguridad."},
   {"key": "El orden en un servidor remoto es sagrado: <b>abre SSH antes de activar el firewall</b>. La cantidad de administradores que se han dejado fuera de su propio servidor por invertir esos dos pasos es enorme."}
  ]
+},
+{
+ "level": 3, "minutes": 9, "tags": "red,ssh,servicios,almacenamiento,diagnóstico",
+ "title": "El servidor por dentro: red, servicios y recursos",
+ "subtitle": "Túneles SSH, journalctl, límites de systemd, LVM y las herramientas para saber qué está pasando ahora mismo.",
+ "body": [
+  {"p": "Administrar una máquina remota es, casi siempre, responder tres preguntas: qué está escuchando, qué se está comiendo los recursos y qué dijo el sistema cuando aquello falló. Hay una herramienta buena para cada una."},
+  {"h": "Qué está escuchando"},
+  {"code": "ss -tulpn                    # todo lo que escucha, con su proceso\nss -tnp state established    # conexiones vivas hacia fuera\nss -s                        # resumen por protocolo"},
+  {"p": "<code>ss</code> sustituyó a <code>netstat</code>: lee del kernel por netlink en vez de recorrer <code>/proc</code>, y por eso es instantáneo incluso con miles de conexiones. Las banderas se leen solas: <b>t</b>cp, <b>u</b>dp, <b>l</b>istening, <b>p</b>rocess, <b>n</b>umeric."},
+  {"p": "Y cuando el puerto que necesitas solo es visible desde el servidor, no hace falta abrirlo al mundo: se trae por el túnel de SSH."},
+  {"code": "ssh -N -L 8080:localhost:80 servidor    # su puerto 80, en tu localhost:8080\nssh -N -R 9000:localhost:3000 servidor  # tu 3000, publicado en el servidor\nssh -N -D 1080 servidor                 # proxy SOCKS para el navegador"},
+  {"key": "El <b>-L</b> es la herramienta más infravalorada de la administración remota: te deja abrir el panel de una base de datos o de un servicio interno en tu navegador sin exponer nada en internet."},
+  {"h": "Qué dijo el sistema"},
+  {"code": "journalctl -u nginx -f              # en vivo, solo ese servicio\njournalctl -b -p err               # errores del arranque actual\njournalctl -b -1                   # el arranque ANTERIOR (tras un cuelgue)\njournalctl --since '1 hour ago' -o cat\njournalctl --disk-usage && journalctl --vacuum-time=7d"},
+  {"p": "El truco que más veces salva es <code>-b -1</code>: cuando una máquina se cuelga y reinicia, lo que quieres leer es lo que pasó <b>antes</b> del reinicio, y ahí está guardado."},
+  {"h": "Quién se come los recursos"},
+  {"p": "Si un servicio se descontrola, no hace falta parchear su código: systemd puede encerrarlo. Por debajo son cgroups v2, y funciona con cualquier programa."},
+  {"code": "[Service]\nMemoryMax=512M\nCPUQuota=50%\nTasksMax=100"},
+  {"p": "Tras <code>systemctl daemon-reload &amp;&amp; systemctl restart app</code>, mira el reparto con <code>systemd-cgtop</code>. Si el servicio pasa de <b>MemoryMax</b>, el kernel lo mata a él y el resto del sistema sigue en pie — que es justo la diferencia entre un servicio caído y un servidor caído."},
+  {"p": "Para el arranque lento hay dos comandos, y solo uno sirve:"},
+  {"code": "systemd-analyze                 # firmware / kernel / userspace\nsystemd-analyze blame           # ranking por tiempo\nsystemd-analyze critical-chain  # lo que DE VERDAD retrasa el arranque"},
+  {"note": "En <i>blame</i> sale muy arriba lo que tarda aunque nadie lo esté esperando. Solo la <b>cadena crítica</b> dice qué merece la pena arreglar."},
+  {"h": "El disco: LVM y el espacio que no aparece"},
+  {"p": "LVM son tres capas: el disco físico (<b>PV</b>) entra en una bolsa de espacio (<b>VG</b>), y de ahí se cortan los volúmenes que montas (<b>LV</b>). Ampliar es una línea, y en caliente:"},
+  {"code": "lvextend -L +20G -r /dev/vg0/datos"},
+  {"p": "El <b>-r</b> redimensiona también el sistema de archivos; sin él, el volumen crece y el sistema sigue viendo el tamaño viejo — el error clásico de la primera vez. Y antes de una actualización arriesgada, un <b>snapshot</b> cuesta un segundo."},
+  {"warn": "Si <code>df</code> dice que el disco está lleno pero <code>du</code> no encuentra los archivos, casi siempre hay un proceso con un fichero borrado pero aún abierto. <code>lsof +L1</code> lo señala; reiniciar ese servicio libera el espacio de golpe."},
+  {"h": "Y no perder el trabajo por una desconexión"},
+  {"code": "tmux new -s obra     # crear con nombre\n# Ctrl+b d            soltar (sigue viva en el servidor)\ntmux ls              # ver qué hay abierto\ntmux a -t obra       # volver a entrar"},
+  {"p": "Un proceso largo dentro de tmux sobrevive a que se caiga tu conexión, a que cierres el portátil y a que te vayas a comer. Es la diferencia entre retomar una migración donde estaba y empezarla de cero."}
+ ]
 }
 ]}

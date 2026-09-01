@@ -7,6 +7,12 @@ from . import db
 CONTENT_DIR = Path(__file__).parent / "content"
 READINGS_DIR = CONTENT_DIR / "readings"
 
+# Se sube cuando cambia el contenido incluido. Así una instalación que ya
+# existía recibe las correcciones al arrancar, sin tener que recargar a mano:
+# reimportar respeta el progreso porque las tarjetas se identifican por su
+# enunciado y los capítulos por su título.
+CONTENT_VERSION = "3"
+
 
 def load_builtin(con) -> tuple[int, int, int]:
     """Importa los mazos de fábrica. Devuelve (mazos, tarjetas nuevas, retiradas).
@@ -77,6 +83,9 @@ def ensure_seeded(con):
     if not db.get_meta(con, "seeded"):
         load_all(con)
         db.set_meta(con, "seeded", "1")
+    elif db.get_meta(con, "content_version") != CONTENT_VERSION:
+        load_all(con)                        # contenido nuevo o corregido
     elif not db.get_meta(con, "readings"):   # bases anteriores al modo lectura
         load_readings(con)
     db.set_meta(con, "readings", "1")
+    db.set_meta(con, "content_version", CONTENT_VERSION)

@@ -8,7 +8,7 @@
   {
    "kind": "card",
    "front": "¿Qué es la ley de Pascal y por qué manda en todo sistema hidráulico?",
-   "back": "La presión aplicada a un fluido confinado se transmite <b>igual en todas direcciones</b>.\n<b>F = P × A</b>: por eso un cilindro con más área levanta más fuerza a la misma presión. Toda la potencia de una excavadora sale de ahí.",
+   "back": "La presión aplicada a un fluido confinado se transmite <b>igual en todas direcciones</b>.\n$F = P \\times A$: por eso un cilindro con más área levanta más fuerza a la misma presión. Toda la potencia de una excavadora sale de ahí.",
    "tags": "hidráulica",
    "level": 1
   },
@@ -410,6 +410,104 @@
    "front": "Reto: llega una excavadora sin fuerza en todos los movimientos. Ordena el diagnóstico.",
    "back": "1. <b>Verificar la queja</b> y las condiciones (¿en frío o caliente? ¿todos los movimientos o algunos?)\n2. <b>Lo barato primero</b>: nivel y estado del aceite, filtro de succión, restricción del filtro de aire\n3. <b>Motor</b>: ¿alcanza las rpm nominales bajo carga? Si el motor cae de vueltas, el problema no es hidráulico\n4. <b>Presión</b> en el puerto de prueba vs. manual → válvula de alivio\n5. <b>Caudal</b> con flow meter → desgaste de bomba\n6. Si todo lo general está bien y solo un movimiento falla, la causa es local (cilindro, válvula)\n\nDe lo global a lo particular, midiendo en cada paso.",
    "tags": "diagnóstico"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "hidráulica,diagnóstico",
+   "front": "¿Cómo distingues una válvula de alivio principal de una secundaria de puerto?",
+   "back": "La <b>principal</b> limita la presión de todo el sistema: si falla, <b>todos</b> los movimientos pierden fuerza.\nLas <b>secundarias</b> (una por puerto de cilindro o motor) protegen un actuador concreto de picos por choque. Si falla una, pierde fuerza <b>solo ese movimiento</b> y normalmente en un solo sentido.\n\nPor eso la primera pregunta del diagnóstico es siempre «¿le pasa a todo o a un movimiento?»: separa la mitad del circuito de un plumazo."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "lubricación,mantenimiento",
+   "front": "¿Qué significa ISO VG 46 y por qué importa en frío?",
+   "back": "Es la viscosidad del aceite a <b>40 °C</b>, en centistokes: un VG 46 tiene 46 cSt a esa temperatura.\n\nEn frío se espesa muchísimo: arrancar y mover de golpe con el aceite a -5 °C es la receta de la <b>cavitación</b> — la bomba no consigue llenarse. De ahí el ritual de calentar moviendo suave sin carga hasta que el aceite pase de unos 25 °C.\nDemasiado espeso: pérdidas y calor. Demasiado fluido: fugas internas y desgaste. El manual manda, no el proveedor de turno."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "hidráulica,diagnóstico",
+   "front": "La excavadora tiene fuerza en frío y la pierde a la media hora. ¿Qué sospechas?",
+   "choices": [
+    "Fuga interna: al calentarse baja la viscosidad y se escapa por las holguras",
+    "Filtro de aire tapado",
+    "Aceite de más en el depósito",
+    "Batería en mal estado"
+   ],
+   "answer": 0,
+   "back": "Es el patrón clásico de bomba o distribuidor gastados: en frío el aceite espeso todavía sella las holguras; caliente, se cuela por ellas y el caudal útil cae.\n\nSe confirma midiendo caudal <b>a temperatura de trabajo</b> y comparándolo con el de la máquina fría. Si a 50 °C entrega mucho menos que a 20 °C con la misma presión, ahí está."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "hidráulica,diagnóstico",
+   "front": "La excavadora sigue girando un poco después de soltar el joystick. ¿Qué pasa?",
+   "back": "El motor de giro no está frenando. Dos culpables:\n<b>Válvulas de freno/antichoque</b> del motor de giro gastadas: no absorben la inercia y la deja escapar.\n<b>Freno de estacionamiento del giro</b> que no aplica — es de resorte y se libera con presión piloto; si esa presión no cae, el freno no muerde.\n\nUn poco de deriva es normal en una máquina caliente y con la torre inclinada. Media vuelta sola, no."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "hidráulica",
+   "front": "¿Cómo decide una bomba de pistones de caudal variable cuánto entregar?",
+   "back": "Inclinando el <b>plato oscilante</b>: más ángulo, más carrera del pistón, más caudal.\n\nDos reguladores mandan sobre ese ángulo:\n<b>Compensador de presión</b> — al llegar a la presión de corte reduce el ángulo casi a cero: mantiene la presión sin quemar caudal.\n<b>Control de potencia</b> — limita presión × caudal para no ahogar el motor diésel.\nPor eso una bomba puede estar «bien» de presión y muy mal de caudal: son dos medidas distintas."
+  },
+  {
+   "kind": "lesson",
+   "level": 3,
+   "tags": "mantenimiento,hidráulica",
+   "front": "Cambiar una bomba hidráulica sin matarla en el primer arranque",
+   "back": "<b>1.</b> Llena la carcasa de la bomba con aceite limpio antes de montarla: arrancar en seco la mata en segundos.\n<b>2.</b> Purga el aire por el punto más alto y con el motor a ralentí.\n<b>3.</b> Aceite y filtros nuevos: si la anterior se destruyó, el circuito está lleno de limalla.\n<b>4.</b> Primeros minutos sin carga y vigilando temperatura y ruido.\n<b>5.</b> Cambia el filtro otra vez a las 50 horas.\n\nSaltarse el paso 3 es lo que hace que la bomba nueva dure una semana."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "tren de rodaje,mantenimiento",
+   "front": "¿Por qué una cadena mal tensada te cuesta el doble de tren de rodaje?",
+   "back": "<b>Muy tensa</b>: multiplica la carga sobre pasadores, bujes y rodillos — se calienta y se come el buje.\n<b>Muy floja</b>: la cadena golpea y se sale, y el desgaste se concentra en los dientes de la rueda motriz.\n\nEl juego se mide con la cadena a la altura correcta y comparando con la tabla del fabricante (típico 30–50 mm, según máquina). Y se mide <b>en el terreno de trabajo</b>: en barro, la tierra empaquetada tensa la cadena sola."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "seguridad,eléctrico",
+   "front": "Vas a soldar en el chasis de una máquina con ECU. ¿Qué haces antes?",
+   "choices": [
+    "Desconectar ambos bornes de la batería y poner la masa de la soldadora junto al punto a soldar",
+    "Solo desconectar el borne positivo",
+    "Nada: la ECU está protegida",
+    "Arrancar la máquina para que el alternador estabilice"
+   ],
+   "answer": 0,
+   "back": "La corriente de soldadura busca el camino más corto a la masa: si la pinza está lejos, atraviesa arneses y módulos y se los lleva por delante.\n\nAmbos bornes fuera (y, si el fabricante lo pide, los conectores de la ECU), pinza de masa a menos de un metro del cordón, y nunca a través de un rodamiento o un pasador."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "hidráulica,diagnóstico",
+   "front": "¿Qué te dice la temperatura del aceite hidráulico?",
+   "back": "Zona sana: <b>50–80 °C</b>. Por encima de <b>85–90 °C</b> el aceite se oxida, pierde película y los sellos se endurecen: cada 10 °C de más, aproximadamente, <b>la mitad de vida</b> del aceite.\n\nSi sube sin motivo, busca dónde se está convirtiendo la energía en calor: alivio abierto todo el rato, fuga interna, enfriador tapado de tierra o ventilador que no gira.\nEl aceite caliente es un síntoma, no una avería en sí."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "hidráulica",
+   "front": "Los cuatro símbolos que hay que reconocer en un plano hidráulico",
+   "back": "<b>Triángulo relleno</b> apuntando hacia fuera del círculo = <b>bomba</b> (hacia dentro, motor).\n<b>Cuadrados en fila</b> = distribuidor; cada cuadrado es una posición y las flechas dentro, por dónde pasa el aceite.\n<b>Muelle contra una flecha inclinada</b> = válvula de alivio (limitadora de presión).\n<b>Línea continua</b> = presión · <b>discontinua</b> = pilotaje · <b>punteada larga</b> = drenaje.\n\nCon eso ya puedes seguir el camino del aceite en el 80 % de los planos de una máquina."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "motor,mantenimiento",
+   "front": "¿Por qué el separador de agua es la pieza más rentable del motor?",
+   "back": "El gasóleo moderno lleva biodiésel: absorbe agua y la mantiene en suspensión. Esa agua entra a la bomba de alta y a los inyectores, que trabajan a más de 1.500 bar con tolerancias de micras y se lubrican con el <b>propio combustible</b>.\n\nEl agua rompe la película, raya y gripa. Un juego de inyectores cuesta lo que muchos meses de filtros.\nDrena el separador a diario, cambia el filtro a las horas que diga el manual y nunca reutilices combustible del fondo del tanque."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "gestión,mantenimiento",
+   "front": "¿Por qué el plan de mantenimiento va por horas y no por meses?",
+   "back": "Porque el desgaste lo produce el <b>trabajo</b>, no el calendario. Una excavadora en cantera hace 250 h en cinco semanas; la misma máquina en obra urbana tarda cuatro meses.\n\nEscalones típicos: <b>10 h</b> (inspección diaria) · <b>250 h</b> (aceite motor y filtros) · <b>500 h</b> (hidráulico, combustible) · <b>1.000/2.000 h</b> (aceite hidráulico, refrigerante, válvulas).\nY el horómetro cuenta también el <b>ralentí</b>: por eso las horas de una máquina mal operada engañan al alza."
   }
  ],
  "levels": [

@@ -69,7 +69,7 @@
  "title": "Cómo funciona el sistema hidráulico",
  "subtitle": "Presión y caudal, los cinco componentes, el aceite como pieza de precisión y los síntomas que hay que saber leer.",
  "body": [
-  {"p": "Toda la fuerza de una excavadora sale de un principio que Pascal enunció en 1653: <b>la presión aplicada a un fluido confinado se transmite igual en todas direcciones</b>. Si conoces la presión y el área del pistón, conoces la fuerza: <b>F = P × A</b>. Por eso un cilindro más grueso levanta más con la misma bomba."},
+  {"p": "Toda la fuerza de una excavadora sale de un principio que Pascal enunció en 1653: <b>la presión aplicada a un fluido confinado se transmite igual en todas direcciones</b>. Si conoces la presión y el área del pistón, conoces la fuerza: $F = P \\times A$. Por eso un cilindro más grueso levanta más con la misma bomba."},
 
   {"h": "La distinción que lo explica casi todo"},
   {"key": "La bomba genera <b>CAUDAL</b>, no presión. La presión la crea la <b>RESISTENCIA</b> a ese caudal. Sin carga no hay presión, aunque la bomba esté perfecta."},
@@ -251,6 +251,35 @@
     "<b>Inspecciones estructuradas</b> con historial: la misma lista, siempre, y anotada."
   ]},
   {"key": "El objetivo del predictivo no es cambiar piezas antes: es <b>planificar el paro</b> en vez de sufrirlo. Una bomba cambiada un sábado programado cuesta una fracción de la misma bomba cambiada un martes con la obra detenida."}
+ ]
+},
+{
+ "level": 3, "minutes": 9, "tags": "hidráulica,lubricación,mantenimiento,diagnóstico",
+ "title": "Hidráulica fina: bombas, alivios y temperatura",
+ "subtitle": "Cómo se reparte la presión, qué hace de verdad una bomba de caudal variable y por qué el aceite caliente es un síntoma.",
+ "body": [
+  {"p": "Un diagnóstico hidráulico bien hecho empieza siempre con la misma pregunta: <b>¿le pasa a todo o a un solo movimiento?</b> Esa respuesta parte el circuito por la mitad antes de sacar un solo manómetro."},
+  {"h": "Alivio principal y alivios de puerto"},
+  {"p": "La <b>válvula de alivio principal</b> limita la presión de todo el sistema: si se queda baja o abierta, todos los movimientos pierden fuerza a la vez. Las <b>secundarias</b>, una por puerto de cilindro o motor, protegen a cada actuador de los picos por choque; si falla una, pierde fuerza <b>solo ese movimiento</b> y normalmente en un solo sentido."},
+  {"key": "Todos los movimientos flojos → principal, bomba o falta de caudal. Un solo movimiento flojo → su alivio de puerto, su carrete o sus sellos. Media hora de diagnóstico ahorrada por una pregunta."},
+  {"h": "La bomba no es solo presión"},
+  {"p": "Una bomba de pistones de caudal variable inclina su <b>plato oscilante</b> para decidir cuánto entrega: más ángulo, más carrera, más caudal. Dos reguladores mandan sobre ese ángulo — el <b>compensador de presión</b>, que reduce el ángulo casi a cero al llegar a la presión de corte, y el <b>control de potencia</b>, que limita presión × caudal para no ahogar el motor diésel."},
+  {"warn": "Por eso una bomba puede dar la presión correcta y estar acabada: la presión se alcanza sin caudal. Sin medir <b>litros por minuto a temperatura de trabajo</b>, no has medido la bomba."},
+  {"p": "Y ahí aparece el síntoma más revelador de todos: la máquina que tiene fuerza en frío y la pierde a la media hora. Con el aceite frío y espeso, las holguras todavía sellan; caliente y fluido, el aceite se cuela por ellas y el caudal útil se desploma. Es el patrón clásico de bomba o distribuidor gastados."},
+  {"h": "El aceite: viscosidad y temperatura"},
+  {"p": "Un ISO VG 46 tiene 46 centistokes a 40 °C. En frío se espesa muchísimo, y ahí está el motivo real del ritual de calentar: mover suave y sin carga hasta pasar de unos 25 °C. Arrancar y trabajar con el aceite helado es pedirle a la bomba que aspire melaza — y eso es <b>cavitación</b>."},
+  {"p": "En marcha, la zona sana está entre <b>50 y 80 °C</b>. Por encima de 85–90 el aceite se oxida, pierde película y los sellos se endurecen: por cada 10 °C de más, aproximadamente la mitad de vida del aceite."},
+  {"note": "La temperatura alta no es una avería: es energía que se está convirtiendo en calor en algún sitio. Búscalo: alivio abierto todo el rato, fuga interna, enfriador tapado de tierra o ventilador que no gira."},
+  {"h": "Leer un plano"},
+  {"p": "Con cuatro símbolos sigues el aceite en la mayoría de los esquemas: <b>triángulo relleno</b> apuntando hacia fuera del círculo es una bomba (hacia dentro, un motor); <b>cuadrados en fila</b>, un distribuidor, donde cada cuadrado es una posición; <b>muelle contra flecha inclinada</b>, una válvula de alivio. Y las líneas: continua es presión, discontinua es pilotaje, punteada larga es drenaje."},
+  {"h": "Cambiar una bomba sin matarla"},
+  {"steps": ["Llena la carcasa de la bomba con aceite limpio antes de montarla: arrancar en seco la destruye en segundos.", "Purga el aire por el punto más alto, con el motor a ralentí.", "Aceite y filtros nuevos. Si la anterior se destruyó, el circuito está lleno de limalla y la nueva se la va a comer.", "Primeros minutos sin carga, vigilando temperatura y ruido.", "Cambia el filtro otra vez a las 50 horas."]},
+  {"p": "Saltarse el tercer paso es lo que explica casi todas las bombas nuevas que duran una semana."},
+  {"h": "El tren de rodaje se gasta por la tensión"},
+  {"p": "Una cadena <b>muy tensa</b> multiplica la carga sobre pasadores, bujes y rodillos: se calienta y se come el buje. <b>Muy floja</b>, golpea, se sale y concentra el desgaste en la rueda motriz. El juego se mide con la máquina en el terreno real de trabajo, porque en barro la tierra empaquetada tensa la cadena sola."},
+  {"h": "Y el combustible, que es lubricante"},
+  {"p": "En un common rail moderno, los inyectores trabajan a más de 1.500 bar con tolerancias de micras y se lubrican con el <b>propio gasóleo</b>. El biodiésel absorbe agua, y el agua rompe esa película: raya y gripa. Drenar el separador a diario y cambiar el filtro a las horas del manual es, en euros por hora, el mantenimiento más rentable de la máquina."},
+  {"key": "El plan va por <b>horas</b>, no por meses: 10 h inspección diaria, 250 h aceite de motor y filtros, 500 h hidráulico y combustible, 1.000/2.000 h aceite hidráulico, refrigerante y válvulas. Y el horómetro cuenta también el ralentí, así que las horas de una máquina mal operada engañan al alza."}
  ]
 }
 ]}

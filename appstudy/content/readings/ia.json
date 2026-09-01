@@ -183,5 +183,37 @@
   ]},
   {"p": "Nota cuánto de esto es ingeniería de datos, evaluación y diseño de producto, y qué poco es «elegir el modelo». Esa proporción es la realidad de construir con IA."}
  ]
+},
+{
+ "level": 3, "minutes": 10, "tags": "arquitectura,producción,evaluación,prompting",
+ "title": "Construir un RAG que no se inventa las cosas",
+ "subtitle": "Trocear, recuperar, reordenar y evaluar: dónde está el trabajo de verdad, y cómo se controla el coste y la latencia.",
+ "body": [
+  {"p": "Casi todos los sistemas con LLM que fallan no fallan por el modelo: fallan por lo que le entra. Si la recuperación es mala, cambiar a un modelo más caro solo consigue respuestas equivocadas más elegantes."},
+  {"h": "Trocear con cabeza"},
+  {"p": "El troceado decide qué puede llegar a saber tu sistema. Trocea por <b>estructura</b> —sección, apartado, tabla— antes que por número de caracteres, y asegúrate de que cada trozo se entienda solo, sin el anterior."},
+  {"p": "Puntos de partida razonables: 300–800 tokens con un 10–20 % de solape, guardando en los metadatos el título, la página y la fecha para poder citar. Un trozo pequeño pierde el contexto y no significa nada; uno enorme entierra la frase que importaba entre ruido."},
+  {"h": "Recuperar: dos búsquedas mejor que una"},
+  {"p": "La búsqueda vectorial entiende el significado, y por eso falla justo donde más duele en un manual técnico: códigos de error, referencias, siglas, nombres de pieza. <i>P0420</i> y <i>P0430</i> son casi el mismo vector."},
+  {"key": "La <b>búsqueda híbrida</b> combina BM25 (palabra exacta) con la vectorial y fusiona las dos listas. Cada una tapa el agujero de la otra: es la mejora más barata que puedes hacerle a un RAG."},
+  {"p": "Después conviene un <b>reranker</b>: recupera 50 candidatos, ordénalos con un modelo que compare pregunta y trozo de verdad, y pásale al LLM los cinco mejores. Recuperar mucho y filtrar bien gana casi siempre a recuperar poco y rezar."},
+  {"p": "Por debajo, la cercanía entre dos embeddings se mide con la similitud del coseno: el ángulo entre vectores, ignorando su longitud."},
+  {"math": "\\cos(\\theta) = \\frac{a \\cdot b}{\\lVert a \\rVert\\, \\lVert b \\rVert}"},
+  {"p": "Si los vectores están normalizados, el producto punto ya es el coseno — por eso las bases vectoriales normalizan al indexar: una multiplicación por consulta en vez de una raíz."},
+  {"h": "El contexto no es gratis"},
+  {"p": "La atención compara cada token con todos los demás, así que el coste crece con el cuadrado de la longitud:"},
+  {"math": "\\text{coste} \\propto n^2"},
+  {"p": "Doblar el contexto no dobla el trabajo: lo cuadruplica. Y la calidad no acompaña: con muchos miles de tokens, el modelo atiende peor a lo que está en el medio. Meterlo todo en el prompt es la última carta, no la primera."},
+  {"warn": "Ordena el prompt de <b>fijo a variable</b>: instrucciones, documentos y ejemplos primero; la pregunta del usuario al final. Así la <b>caché de prefijo</b> reutiliza el trabajo ya hecho y esos tokens cuestan una fracción. Cambiar una coma al principio invalida toda la caché."},
+  {"h": "Que la salida sea utilizable"},
+  {"p": "Si otro programa va a consumir la respuesta, no la pidas «en JSON, por favor»: usa <b>salida estructurada</b> o <i>tool calling</i> con un esquema. El servidor restringe el muestreo a lo que el esquema permite, así que el resultado no <b>puede</b> ser inválido."},
+  {"p": "Aun así, valida al recibir: el JSON puede ser correcto y el contenido absurdo — una fecha imposible, un enum inventado, una referencia que no existe. La validación de esquema es sintaxis; la de negocio la pones tú."},
+  {"h": "Evaluar sin autoengaño"},
+  {"p": "Un LLM como juez es práctico, pero tiene sesgos conocidos: prefiere la <b>primera</b> opción, premia la respuesta <b>más larga</b> y se prefiere a sí mismo frente a otras familias de modelos."},
+  {"steps": ["Evalúa en los dos órdenes y promedia, para anular el sesgo de posición.", "Escribe una rúbrica explícita con criterios y ejemplos de lo que es un 1 y un 5.", "Guarda un puñado de casos etiquetados a mano y comprueba de vez en cuando que el juez coincide con el humano.", "Mide también lo aburrido: porcentaje de respuestas con cita válida, y cuántas veces contesta cuando debería decir «no lo sé»."]},
+  {"h": "Latencia y coste"},
+  {"p": "Seis segundos de espera hunden un producto por bueno que sea. En orden de impacto: <b>streaming</b> (la primera palabra en 300 ms cambia la percepción por completo), <b>enrutar por dificultad</b> (un modelo pequeño resuelve lo fácil y clasifica el resto), <b>recortar el prompt</b> y aprovechar la caché, <b>paralelizar</b> lo independiente y <b>cachear</b> las preguntas repetidas."},
+  {"note": "Y una limitación que conviene tener presente: el modelo no ve letras ni cifras, ve tokens. Contar las erres de una palabra o sumar números largos no es «pensar poco», es pedirle algo que no percibe. Para eso, una herramienta — una calculadora o código que se ejecute — y no un prompt más insistente."}
+ ]
 }
 ]}
