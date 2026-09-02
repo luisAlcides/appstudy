@@ -7,9 +7,9 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, GLib, Gtk, Pango  # noqa: E402
+from gi.repository import Adw, Gio, GLib, Gtk, Pango  # noqa: E402
 
-from . import db, hotkey, ia, libros, pet, scheduler, sonido, util  # noqa: E402
+from . import db, hotkey, ia, libros, pet, respaldo, scheduler, sonido, util  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
 
 MAX_FILAS = 120        # tarjetas que se pintan a la vez en el explorador
@@ -782,6 +782,46 @@ class MainWindow(Adw.ApplicationWindow):
         gpr.add(self.racha_row)
         page.add(gpr)
 
+        gres = Adw.PreferencesGroup(
+            title="Respaldo",
+            description="Todo tu progreso vive en un solo archivo. Una copia "
+                        "consistente se hace en un segundo y te ahorra perder meses.")
+
+        self.resp_crear_row = Adw.ActionRow(title="Crear un respaldo ahora")
+        cb_ = Gtk.Button(label="Respaldar", valign=Gtk.Align.CENTER,
+                         css_classes=["suggested-action"])
+        cb_.connect("clicked", lambda *_: self.hacer_respaldo())
+        self.resp_crear_row.add_suffix(cb_)
+        gres.add(self.resp_crear_row)
+
+        self.resp_auto = Adw.SwitchRow(
+            title="Respaldo automático diario",
+            subtitle="Al abrir la aplicación, si el último ya tiene más de un día")
+        self.resp_auto.connect("notify::active", self.on_respaldo_auto)
+        gres.add(self.resp_auto)
+
+        self.resp_restaurar_row = Adw.ActionRow(
+            title="Restaurar un respaldo",
+            subtitle="Reemplaza tu progreso actual · antes se guarda una copia de seguridad")
+        rb_ = Gtk.Button(label="Restaurar\u2026", valign=Gtk.Align.CENTER)
+        rb_.connect("clicked", lambda *_: self.elegir_respaldo())
+        self.resp_restaurar_row.add_suffix(rb_)
+        gres.add(self.resp_restaurar_row)
+
+        exportar = Adw.ActionRow(
+            title="Guardar una copia donde tú digas",
+            subtitle="Para llevártela a otro equipo o a un disco externo")
+        eb_ = Gtk.Button(label="Exportar\u2026", valign=Gtk.Align.CENTER)
+        eb_.connect("clicked", lambda *_: self.exportar_respaldo())
+        exportar.add_suffix(eb_)
+        gres.add(exportar)
+
+        self.resp_carpeta_row = Adw.ActionRow(title="Carpeta de respaldos",
+                                              subtitle=str(respaldo.CARPETA))
+        self.resp_carpeta_row.set_subtitle_selectable(True)
+        gres.add(self.resp_carpeta_row)
+        page.add(gres)
+
         g2 = Adw.PreferencesGroup(title="Contenido")
         recargar = Adw.ActionRow(
             title="Recargar contenido incluido",
@@ -978,6 +1018,136 @@ class MainWindow(Adw.ApplicationWindow):
             self.notify_user(f"Borrados {n} repasos · el día empieza de cero")
             self.refresh()
 
+    # ---------------------------------------------------------------- respaldo
+
+    def hacer_respaldo(self):
+        try:
+            ruta = respaldo.crear(self.con, "manual")
+        except Exception as e:                       # se enseña, no se traga
+            self.notify_user(f"No se pudo respaldar: {e}")
+            return
+        self.notify_user(f"Respaldo guardado · {respaldo.tamano(ruta.stat().st_size)}")
+        self.refresh_settings()
+
+    def on_respaldo_auto(self, fila, _p):
+        db.set_meta(self.con, "respaldo_auto", int(fila.get_active()))
+
+    def exportar_respaldo(self):
+        dlg = Gtk.FileDialog(title="Guardar una copia de tu progreso")
+        dlg.set_initial_name(f"appstudy-{time.strftime('%Y%m%d')}.db")
+        dlg.save(self, None, self.on_exportar)
+
+    def on_exportar(self, dlg, resultado):
+        try:
+            destino = dlg.save_finish(resultado)
+        except GLib.Error:
+            return                                   # canceló
+        if not destino or not destino.get_path():
+            return
+        try:
+            respaldo.copiar(self.con, destino.get_path())
+        except Exception as e:
+            self.notify_user(f"No se pudo guardar: {e}")
+            return
+        self.notify_user(f"Copia guardada en {destino.get_path()}")
+
+    def elegir_respaldo(self):
+        """Lista los respaldos que hay, y deja traer uno de fuera."""
+        disponibles = respaldo.listar()
+        dlg = Adw.Dialog(title="Restaurar un respaldo")
+        dlg.set_content_width(560)
+        dlg.set_content_height(460)
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        caja.append(Adw.HeaderBar())
+        scroll = Gtk.ScrolledWindow(vexpand=True)
+        dentro = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12,
+                         margin_top=12, margin_bottom=12,
+                         margin_start=12, margin_end=12)
+
+        if disponibles:
+            grupo = Adw.PreferencesGroup(
+                title="Respaldos guardados",
+                description="Al restaurar, tu progreso actual se guarda antes en "
+                            "un respaldo nuevo.")
+            for r in disponibles:
+                fila = Adw.ActionRow(title=respaldo.cuando(r["ts"]),
+                                     subtitle=respaldo.describir(r))
+                boton = Gtk.Button(label="Restaurar", valign=Gtk.Align.CENTER)
+                boton.connect("clicked",
+                              lambda _b, ruta=r["ruta"]: self.confirm_restaurar(ruta, dlg))
+                fila.add_suffix(boton)
+                grupo.add(fila)
+            dentro.append(grupo)
+        else:
+            dentro.append(Adw.StatusPage(
+                title="Todavía no hay respaldos",
+                description="Pulsa «Respaldar» en Ajustes, o activa el respaldo "
+                            "automático diario.",
+                icon_name="document-save-symbolic", vexpand=True))
+
+        otro = Adw.PreferencesGroup()
+        fila = Adw.ActionRow(title="Traer un archivo de fuera",
+                             subtitle="Una copia que te llevaste a otro equipo o a un disco")
+        boton = Gtk.Button(label="Abrir\u2026", valign=Gtk.Align.CENTER)
+        boton.connect("clicked", lambda *_: self.importar_respaldo(dlg))
+        fila.add_suffix(boton)
+        otro.add(fila)
+        dentro.append(otro)
+
+        scroll.set_child(dentro)
+        caja.append(scroll)
+        dlg.set_child(caja)
+        dlg.present(self)
+
+    def importar_respaldo(self, padre=None):
+        dlg = Gtk.FileDialog(title="Elige el respaldo")
+        filtro = Gtk.FileFilter()
+        filtro.set_name("Bases de AppStudy")
+        filtro.add_pattern("*.db")
+        filtros = Gio.ListStore.new(Gtk.FileFilter)
+        filtros.append(filtro)
+        dlg.set_filters(filtros)
+        dlg.set_default_filter(filtro)
+        dlg.open(self, None, lambda d, r: self.on_importar(d, r, padre))
+
+    def on_importar(self, dlg, resultado, padre):
+        try:
+            elegido = dlg.open_finish(resultado)
+        except GLib.Error:
+            return
+        if elegido and elegido.get_path():
+            self.confirm_restaurar(elegido.get_path(), padre)
+
+    def confirm_restaurar(self, ruta, padre=None):
+        try:
+            resumen = respaldo.revisar(ruta)
+        except ValueError as e:
+            self.notify_user(str(e))
+            return
+        dlg = Adw.AlertDialog(
+            heading="¿Restaurar este respaldo?",
+            body=f"Contiene {resumen}.\n\nTu progreso actual se reemplaza por el de "
+                 "esta copia. Antes se guarda un respaldo de lo que tienes ahora, "
+                 "por si te arrepientes.")
+        dlg.add_response("cancel", "Cancelar")
+        dlg.add_response("go", "Restaurar")
+        dlg.set_response_appearance("go", Adw.ResponseAppearance.DESTRUCTIVE)
+        dlg.connect("response", self.on_restaurar, ruta, padre)
+        dlg.present(self)
+
+    def on_restaurar(self, _d, respuesta, ruta, padre):
+        if respuesta != "go":
+            return
+        try:
+            red = respaldo.restaurar(self.con, ruta)
+        except Exception as e:
+            self.notify_user(f"No se pudo restaurar: {e}")
+            return
+        if padre:
+            padre.close()
+        self.notify_user(f"Progreso restaurado · lo anterior quedó en {red.name}")
+        self.refresh()
+
     def confirm_reset_streak(self):
         dlg = Adw.AlertDialog(
             heading="¿Reiniciar la racha?",
@@ -1049,6 +1219,18 @@ class MainWindow(Adw.ApplicationWindow):
                                   "vuelven a como estaban")
         self.racha_row.set_subtitle(f"Ahora: {t['racha']} días seguidos. Vuelve a cero "
                                     "sin tocar las tarjetas")
+
+        copias = respaldo.listar()
+        if copias:
+            self.resp_crear_row.set_subtitle(
+                f"El último, {respaldo.cuando(copias[0]['ts'])} · "
+                f"{len(copias)} guardados")
+        else:
+            self.resp_crear_row.set_subtitle("Todavía no has hecho ninguno")
+        self.resp_restaurar_row.set_visible(True)
+        self.resp_auto.handler_block_by_func(self.on_respaldo_auto)
+        self.resp_auto.set_active(bool(int(db.get_meta(self.con, "respaldo_auto", 1))))
+        self.resp_auto.handler_unblock_by_func(self.on_respaldo_auto)
 
     def capture_hotkey(self):
         dlg = Adw.Dialog(title="Nuevo atajo")

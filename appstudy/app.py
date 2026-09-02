@@ -9,7 +9,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
-from . import db, hotkey, ia, pet, seed  # noqa: E402
+from . import db, hotkey, ia, pet, respaldo, seed  # noqa: E402
 from .main_window import MainWindow  # noqa: E402
 from .popup import PopupWindow  # noqa: E402
 
@@ -51,6 +51,10 @@ class AppStudy(Adw.Application):
         Adw.Application.do_startup(self)
         self.con = db.connect()
         seed.ensure_seeded(self.con)
+        # Un respaldo al día, al abrir. Si falla no se dice nada: no poder
+        # respaldar no debe impedirte estudiar.
+        if str(db.get_meta(self.con, "respaldo_auto", "1")) not in ("0", "False"):
+            respaldo.auto_si_toca(self.con)
         self.load_css()
         Gtk.Window.set_default_icon_name(ICON_NAME)
 

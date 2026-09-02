@@ -2,9 +2,9 @@
 
 Aplicación de escritorio con **tres formas de estudiar**:
 
-- **Modo lectura** — 31 capítulos que se leen de corrido, como un libro: portada, títulos,
+- **Modo lectura** — 67 capítulos que se leen de corrido, como un libro: portada, títulos,
   ejemplos, avisos y navegación entre capítulos. Para aprender algo desde cero.
-  Los cinco de inglés son los más extensos (104 min, y casi la mitad en A2).
+  Los ocho de inglés son los más extensos (152 min, casi un tercio en A2).
 - **Modo repaso** — un popup que aparece con un atajo de teclado, te enseña algo o te pone
   un reto de lo que ya estudiaste, lo calificas en un segundo y desaparece. Para no olvidarlo.
 
@@ -24,17 +24,18 @@ abre el capítulo que la explica, en el párrafo exacto.
 Las fórmulas se escriben en **LaTeX** y el código sale **coloreado**; los detalles,
 en [Fórmulas y código](#fórmulas-y-código).
 
-Temas incluidos (**450 tarjetas** de fábrica, ordenadas **de básico a avanzado**):
+Temas incluidos (**678 tarjetas** de fábrica, ordenadas **de básico a avanzado**):
 
 | Mazo | Niveles | Contenido |
 |---|---|---|
-| 🗣️ Inglés (98) | A2 · B1 · B2 · C1 | **todo en inglés**: gramática, phrasal verbs, vocabulario y escritura profesional |
-| 🐧 Linux (63) | Básico · Intermedio · Avanzado | shell, permisos, procesos, systemd, red, SSH, LVM, scripting |
-| 📊 Ciencia de Datos (61) | Básico · Intermedio · Avanzado | estadística, pandas, SQL, modelado, experimentos, producción |
-| 🤖 Inteligencia Artificial (62) | Básico · Intermedio · Avanzado | LLM, RAG, embeddings, agentes, evaluación, coste y criterio |
-| 🚜 Maquinaria Amarilla y Volquete (62) | Básico · Intermedio · Avanzado | hidráulica, tren de rodaje, diagnóstico, seguridad, gestión |
-| 🔧 Mecánica Automotriz (62) | Básico · Intermedio · Avanzado | motor, frenos, eléctrico, diagnóstico OBD2, common rail, híbridos |
-| ⚡ Electricidad y Electrónica (42) | Básico · Intermedio · Avanzado | Ohm, medición, componentes, PWM, alterna, motores, protecciones |
+| 🗣️ Inglés (125) | A2 · B1 · B2 · C1 | **todo en inglés**: gramática, phrasal verbs, vocabulario, registro y escritura profesional |
+| 🐧 Linux (87) | Básico · Intermedio · Avanzado | shell, permisos, procesos, systemd, red, SSH, LVM, scripting |
+| 📊 Ciencia de Datos (83) | Básico · Intermedio · Avanzado | estadística, pandas, SQL, modelado, experimentos, producción |
+| 🤖 Inteligencia Artificial (82) | Básico · Intermedio · Avanzado | LLM, RAG, embeddings, agentes, evaluación, coste y criterio |
+| 🚜 Maquinaria Amarilla y Volquete (82) | Básico · Intermedio · Avanzado | hidráulica, tren de rodaje, diagnóstico, seguridad, gestión |
+| 🔧 Mecánica Automotriz (82) | Básico · Intermedio · Avanzado | motor, frenos, eléctrico, diagnóstico OBD2, common rail, híbridos |
+| 🧮 Matemáticas y Cálculo Rápido (73) | Básico · Intermedio · Avanzado | complementos, multiplicación védica, porcentajes, cuadrados, prueba del 9 |
+| ⚡ Electricidad y Electrónica (64) | Básico · Intermedio · Avanzado | Ohm, medición, componentes, PWM, alterna, motores, protecciones |
 
 ### Niveles
 
@@ -317,17 +318,18 @@ así el atajo nunca queda vacío.
 
 ## Las lecturas
 
-31 capítulos, **362 minutos** de material, ordenados por nivel dentro de cada mazo:
+67 capítulos, **774 minutos** de material, ordenados por nivel dentro de cada mazo:
 
 | Mazo | Capítulos |
 |---|---|
-| 🗣️ Inglés | Building a sentence (A2) · Getting things done (A2) · Present Perfect and phrasal verbs (B1) · Conditionals and professional writing (B2) · Register (C1) · Writing that gets read (C1) |
-| 🐧 Linux | La terminal sin misterio · Tuberías · Permisos, procesos y servicios · Scripts que no te traicionan · El servidor por dentro |
-| 📊 Ciencia de Datos | Mirar los datos antes de tocarlos · Entrenar sin engañarte · De un cuaderno a un sistema · Decidir con números sin engañarse |
-| 🤖 Inteligencia Artificial | Qué es un modelo de lenguaje · RAG, herramientas y agentes · Seguridad, límites y criterio · Construir un RAG que no se inventa las cosas |
-| 🚜 Maquinaria | Antes de mover la máquina · El sistema hidráulico · Tren de rodaje y volquete · Diagnóstico y predictivo · Hidráulica fina |
-| 🔧 Automotriz | Cómo funciona un motor · Diagnóstico: leer los síntomas · Electrónica, common rail e híbridos · Gestión del motor |
-| ⚡ Electricidad | Cuatro magnitudes y una sola ley · Los componentes y lo que hace cada uno · Alterna, motores y protecciones |
+| 🗣️ Inglés (8 · 152 min) | Building a sentence in English · Getting things done in English · Present Perfect and the logic of phrasal verbs · Technical procedures, passive voice and instructions · Conditionals, reported speech and professional writing · Professional correspondence, incident reports and data commentary · Register: sounding like a professional · Writing that gets read |
+| 🐧 Linux (10 · 107 min) | La terminal, sin misterio · Edición de texto, configuración y paquetes · Tuberías: la idea que hace poderosa a la terminal · Permisos, usuarios y control de procesos · Almacenamiento: discos, sistemas de archivos y fstab · Redes, diagnóstico profundo y túneles SSH · Servicios systemd, temporizadores y journalctl · Scripts defensivos que no te traicionan · El kernel por dentro, hardware y contenedores · Almacenamiento avanzado: LVM, RAID y recuperación |
+| 📊 Ciencia de Datos (16 · 165 min) | Mirar los datos antes de tocarlos · Limpieza, transformación y consultas: Pandas y SQL · Motores analíticos modernos: DuckDB, Polars y Parquet · Visualización que cuenta historias y evita engaños · Entrenar un modelo sin engañarte · Ingeniería de variables (Feature Engineering) y Pipelines · Los algoritmos esenciales: de Lineales a Gradient Boosting · Evaluación rigurosa: métricas de Regresión y Curvas Avanzadas · Aprendizaje no supervisado: Clustering y Detección de Anomalías · Sistemas de recomendación y búsqueda vectorial · Series temporales y pronósticos en el mundo real · Estadística inferencial y diseño de experimentos A/B · Inferencia causal: Más allá de la correlación · MLOps: De cuadernos a sistemas en producción · Interpretabilidad, calibración y decisiones de negocio · Ética, equidad algorítmica y gobernanza de datos |
+| 🤖 Inteligencia Artificial (8 · 86 min) | Qué es realmente un modelo de lenguaje · El mapa de la IA: de las reglas al Deep Learning · RAG, bases vectoriales y búsqueda híbrida · Agentes autónomos y llamada a herramientas · Evaluación, observabilidad y optimización de costes · La arquitectura Transformer y la atención · Entrenamiento, Fine-Tuning y Modelos Abiertos · Seguridad, Prompt Injection y Guardrails |
+| 🚜 Maquinaria (8 · 86 min) | La familia de maquinaria y la inspección pre-operacional · El volquete: componentes, tolva y operación segura · Fundamentos y circuitos del sistema hidráulico · Tren de rodaje, mandos finales y neumáticos gigantes · Sistema neumático, frenos de aire y tren motriz del volquete · Hidráulica avanzada: bombas de caudal variable, Load Sensing y pilotaje · Motores diésel pesados, inyección Common Rail y emisiones Tier 4 / Stage V · Mantenimiento predictivo, tribología y gestión de flotas |
+| 🔧 Automotriz (8 · 87 min) | El motor de combustión y el mantenimiento preventivo · Frenos, suspensión, dirección y transmisión · Diagnóstico ordenado: del síntoma a la causa raíz · Inyección electrónica, sensores y escáner OBD2 · Gestión de combustible: Fuel Trims y calibración estequiométrica · Sobrealimentación, distribución variable y emisiones anticontaminación · Inyección Diésel Common Rail de alta presión · Redes CAN Bus, osciloscopio y seguridad en alta tensión (EV / HEV) |
+| ⚡ Electricidad (3 · 31 min) | Cuatro magnitudes y una sola ley · Los componentes y lo que hace cada uno · Alterna, motores y protecciones |
+| 🧮 Matemáticas (6 · 60 min) | Suma, resta y complementos relámpago · Multiplicaciones relámpago y atajos directos · Porcentajes instantáneos y la regla reversible · Multiplicación védica cruzada y método de la base 100 · Cuadrados, raíces y productos notables mentales · Verificación por prueba del 9 y la Regla del 72 |
 
 Los capítulos viven en `appstudy/content/readings/*.json`. Cada uno tiene `level`,
 `minutes`, `tags` (define qué tarjetas se practican al final) y un `body` de bloques:
@@ -506,7 +508,7 @@ responde bastante más despacio.
 
 ## Empezar de cero
 
-En Ajustes → **Progreso** hay dos botones que piden confirmación:
+En Ajustes → **Apariencia y progreso** hay dos botones que piden confirmación:
 
 - **Borrar lo estudiado hoy** — quita los repasos de las últimas 24 h (lo que cuenta
   como «hoy») y deja cada tarjeta como estaba antes: el estado no se puede restar, así
@@ -515,9 +517,48 @@ En Ajustes → **Progreso** hay dos botones que piden confirmación:
 - **Reiniciar la racha** — vuelve a cero sin tocar ninguna tarjeta: a partir de ese
   momento solo cuentan los repasos nuevos (`racha_desde` en la tabla `meta`).
 
-## Dónde se guardan tus datos
+## Respaldo
 
-`~/.local/share/appstudy/appstudy.db` (SQLite). Para respaldar, copia ese archivo.
+Todo tu progreso —tarjetas, repasos, racha, libros y por dónde ibas— vive en un
+solo archivo SQLite: `~/.local/share/appstudy/appstudy.db`.
+
+En **Ajustes → Respaldo**:
+
+| Qué | Para qué |
+|---|---|
+| **Respaldar** | una copia ahora mismo, en `~/.local/share/appstudy/backups` |
+| **Respaldo automático diario** | al abrir la aplicación, si el último ya tiene más de un día (activado de fábrica) |
+| **Restaurar…** | la lista de tus respaldos, con su fecha y su tamaño, o un archivo que traigas de fuera |
+| **Exportar…** | guardar una copia donde tú digas, para llevártela a otro equipo o a un disco |
+
+Copiar el archivo con `cp` mientras la aplicación escribe puede dejarte una copia
+a medias, y más con WAL, donde parte de lo reciente está en otro archivo. Por eso
+se usa la API de respaldo de SQLite, que copia una base abierta y en uso sin
+partirla, y se escribe primero a un archivo temporal: si algo falla a mitad no
+queda un respaldo cortado con nombre de bueno.
+
+**Restaurar no reinicia nada.** El archivo elegido se vuelca *dentro* de la
+conexión viva, así que las otras ventanas y la mascota siguen funcionando y ven
+los datos nuevos. Antes de pisar nada se guarda un respaldo de lo que tienes en
+ese momento (`-antes` en el nombre), así que restaurar por error tiene vuelta
+atrás. Y no se restaura cualquier cosa: si el archivo no es una base de AppStudy
+se dice y no se toca nada.
+
+Se guardan los **40 respaldos automáticos** más recientes; los que haces a mano y
+los de «antes de restaurar» no se borran nunca.
+
+## Pruebas
+
+```bash
+./pruebas.sh              # todas
+./pruebas.sh scheduler    # solo las del planificador
+```
+
+126 pruebas sobre lo que no lleva interfaz: el algoritmo de repetición espaciada,
+los seis formatos de reto, las fórmulas en LaTeX, el respaldo y la validez del
+contenido incluido. No hace falta instalar nada más — son `unittest` de la
+biblioteca estándar — y ninguna toca tu progreso real: cada caso arranca con una
+base vacía en un directorio temporal. Los detalles, en `tests/README.md`.
 
 ## Desinstalar
 
