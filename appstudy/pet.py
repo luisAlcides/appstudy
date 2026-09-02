@@ -1269,9 +1269,10 @@ class PetWindow(Gtk.ApplicationWindow):
             # hay que reescribirlas, así que te lo recuerda de vez en cuando.
             self.ultimo_aviso_leech = time.time()
             cuantas = t["sanguijuelas"]
-            self.say(f"Hay {cuantas} "
-                     f"{'tarjeta que se te atraganta' if cuantas == 1 else 'tarjetas que se te atragantan'}. "
-                     "Reescribirlas cuesta menos que seguir fallándolas.",
+            cuales = ("una tarjeta que se te atraganta" if cuantas == 1
+                      else f"{cuantas} tarjetas que se te atragantan")
+            self.say(f"Hay {cuales}. Reescribirlas cuesta menos que seguir "
+                     "fallándolas una y otra vez.",
                      titulo="Se te atragantan",
                      boton=("Verlas", self.abrir_sanguijuelas))
             return True

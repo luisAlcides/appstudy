@@ -167,19 +167,29 @@ class PopupWindow(Adw.Window):
         m.append_section("Tamaño de visualización", tamano)
         acciones = Gio.Menu()
         acciones.append("Otra tarjeta (N)", "win.skip")
+        acciones.append("Deshacer el último repaso (Z)", "win.undo")
+        acciones.append("Tarjetas que se me atragantan", "win.leeches")
         acciones.append("Abrir AppStudy completo (A)", "win.open")
         m.append_section(None, acciones)
 
+        # Las acciones van en un grupo propio insertado como «win». Adw.Window no
+        # es un GActionMap (solo Gtk.ApplicationWindow lo es), así que llamar a
+        # self.add_action aquí levanta un AttributeError y el popup no llega a
+        # abrirse.
+        grupo = Gio.SimpleActionGroup()
         for nombre, cb in (("card_bigger", lambda *_: self.cambiar_tamano_tarjeta(0.15)),
                            ("card_smaller", lambda *_: self.cambiar_tamano_tarjeta(-0.15)),
                            ("card_size_100", lambda *_: self.fijar_tamano_tarjeta(1.0)),
                            ("card_size_125", lambda *_: self.fijar_tamano_tarjeta(1.25)),
                            ("card_size_150", lambda *_: self.fijar_tamano_tarjeta(1.50)),
                            ("skip", lambda *_: self.load_card()),
+                           ("undo", lambda *_: self.deshacer()),
+                           ("leeches", lambda *_: self.abrir_sanguijuelas()),
                            ("open", lambda *_: self.open_main())):
             a = Gio.SimpleAction.new(nombre, None)
             a.connect("activate", cb)
-            self.add_action(a)
+            grupo.add_action(a)
+        self.insert_action_group("win", grupo)
         return m
 
     def on_right_click(self, _gesture, _n_press, x, y):
