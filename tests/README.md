@@ -20,6 +20,9 @@ también las corre (`pytest tests/`), porque reconoce las clases de `unittest`.
 | `test_respaldo.py` | Que una copia sirva para volver atrás, que no se restaure cualquier archivo encima de tus datos y que restaurar tenga vuelta atrás |
 | `test_estadisticas.py` | Las series de la pestaña Progreso: que cada repaso caiga en su día (donde se cuelan los errores de zona horaria) y que las medias no se midan sobre repasos que no significan nada |
 | `test_logros.py` | Que los logros se den cuando toca, una sola vez, y nunca antes de tiempo |
+| `test_lecturas.py` | El Markdown de tus capítulos: que cada cosa acabe en su bloque, la ida y vuelta sin pérdidas, y que recargar lo de fábrica no borre lo tuyo |
+| `test_buscador.py` | La búsqueda de Ctrl+K: que exija todas las palabras, ignore acentos y ordene por relevancia |
+| `test_notas.py` | Los subrayados (coordenadas relativas, colores, notas) y la lectura de EPUB, incluido que un ZIP con rutas de escape no escriba fuera de su carpeta |
 | `test_contenido.py` | Que los JSON de fábrica sean importables: niveles en rango, enunciados sin repetir, retos con respuesta correcta, huecos con hueco |
 
 Varias pruebas de `test_fsrs.py` comprueban **propiedades**, no números

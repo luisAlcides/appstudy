@@ -2,7 +2,7 @@
 
 Aplicación de escritorio con **tres formas de estudiar**:
 
-- **Modo lectura** — 67 capítulos que se leen de corrido, como un libro: portada, títulos,
+- **Modo lectura** — 101 capítulos que se leen de corrido, como un libro: portada, títulos,
   ejemplos, avisos y navegación entre capítulos. Para aprender algo desde cero.
   Los ocho de inglés son los más extensos (152 min, casi un tercio en A2).
 - **Modo repaso** — un popup que aparece con un atajo de teclado, te enseña algo o te pone
@@ -24,13 +24,13 @@ abre el capítulo que la explica, en el párrafo exacto.
 Las fórmulas se escriben en **LaTeX** y el código sale **coloreado**; los detalles,
 en [Fórmulas y código](#fórmulas-y-código).
 
-Temas incluidos (**697 tarjetas** de fábrica, ordenadas **de básico a avanzado**):
+Temas incluidos (**864 tarjetas** de fábrica, ordenadas **de básico a avanzado**):
 
 | Mazo | Niveles | Contenido |
 |---|---|---|
 | 🗣️ Inglés (129) | A2 · B1 · B2 · C1 | **todo en inglés**: gramática, phrasal verbs, vocabulario, registro y escritura profesional |
 | 🐧 Linux (94) | Básico · Intermedio · Avanzado | shell, permisos, procesos, systemd, red, SSH, LVM, scripting |
-| 📊 Ciencia de Datos (83) | Básico · Intermedio · Avanzado | estadística, pandas, SQL, modelado, experimentos, producción |
+| 📊 Ciencia de Datos (250) | Básico · Intermedio · Avanzado | estadística, pandas, SQL, modelado, experimentos, producción |
 | 🤖 Inteligencia Artificial (82) | Básico · Intermedio · Avanzado | LLM, RAG, embeddings, agentes, evaluación, coste y criterio |
 | 🚜 Maquinaria Amarilla y Volquete (82) | Básico · Intermedio · Avanzado | hidráulica, tren de rodaje, diagnóstico, seguridad, gestión |
 | 🔧 Mecánica Automotriz (82) | Básico · Intermedio · Avanzado | motor, frenos, eléctrico, diagnóstico OBD2, common rail, híbridos |
@@ -60,8 +60,9 @@ instala la extensión de la barra superior. Se puede repetir sin miedo: no dupli
 nada.
 
 Requiere Python 3 con GTK4 y libadwaita, que ya vienen en Ubuntu/Mint con GNOME
-(`sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1` si faltaran), y
-`python3-pygments` para los colores del código. La IA local es opcional y va
+(`sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1` si faltaran),
+`python3-pygments` para los colores del código y `gir1.2-webkit-6.0` para leer
+EPUB (sin él, todo lo demás funciona igual). La IA local es opcional y va
 aparte (ver [Preguntarle a Bit](#preguntarle-a-bit-ia-local)).
 
 El lanzador se llama `io.github.appstudy.AppStudy.desktop`, igual que el id de la
@@ -100,6 +101,8 @@ solo volver a abrir lo que estuviera corriendo.
 | Popup de repaso | el atajo global, desde cualquier aplicación |
 | Ventana completa | `appstudy`, o «AppStudy» en el menú de aplicaciones |
 | Ver tu progreso en gráficas | pestaña **Progreso** |
+| Buscar en todo a la vez | **Ctrl+K** desde cualquier ventana |
+| Escribir un capítulo tuyo | pestaña **Leer** → «Escribir un capítulo» |
 | Leer un capítulo | pestaña **Leer**, o «Continuar leyendo» en el panel |
 | Estudiar un solo tema | `appstudy --popup --deck linux` |
 | Soltar la mascota | `appstudy --pet`, o Ajustes → **Bit, la mascota**, o el interruptor de la barra superior |
@@ -118,6 +121,9 @@ ventana sin perder tu progreso. Y si el cambio viene con la aplicación, basta c
 |---|---|
 | `←` `→` | capítulo anterior o siguiente |
 | `Esc` | volver a la biblioteca |
+
+Los capítulos que escribas tú llevan un lápiz al lado para editarlos, y en la
+cabecera de la pestaña está **«Escribir un capítulo»**.
 
 Un capítulo se marca como leído solo cuando llegas al final, o a mano con el botón.
 
@@ -377,16 +383,16 @@ memoria de una repasada tres veces seguidas.
 
 ## Las lecturas
 
-67 capítulos, **774 minutos** de material, ordenados por nivel dentro de cada mazo:
+101 capítulos, **1.128 minutos** de material, ordenados por nivel dentro de cada mazo:
 
 | Mazo | Capítulos |
 |---|---|
-| 🗣️ Inglés (8 · 152 min) | Building a sentence in English · Getting things done in English · Present Perfect and the logic of phrasal verbs · Technical procedures, passive voice and instructions · Conditionals, reported speech and professional writing · Professional correspondence, incident reports and data commentary · Register: sounding like a professional · Writing that gets read |
-| 🐧 Linux (10 · 107 min) | La terminal, sin misterio · Edición de texto, configuración y paquetes · Tuberías: la idea que hace poderosa a la terminal · Permisos, usuarios y control de procesos · Almacenamiento: discos, sistemas de archivos y fstab · Redes, diagnóstico profundo y túneles SSH · Servicios systemd, temporizadores y journalctl · Scripts defensivos que no te traicionan · El kernel por dentro, hardware y contenedores · Almacenamiento avanzado: LVM, RAID y recuperación |
-| 📊 Ciencia de Datos (16 · 165 min) | Mirar los datos antes de tocarlos · Limpieza, transformación y consultas: Pandas y SQL · Motores analíticos modernos: DuckDB, Polars y Parquet · Visualización que cuenta historias y evita engaños · Entrenar un modelo sin engañarte · Ingeniería de variables (Feature Engineering) y Pipelines · Los algoritmos esenciales: de Lineales a Gradient Boosting · Evaluación rigurosa: métricas de Regresión y Curvas Avanzadas · Aprendizaje no supervisado: Clustering y Detección de Anomalías · Sistemas de recomendación y búsqueda vectorial · Series temporales y pronósticos en el mundo real · Estadística inferencial y diseño de experimentos A/B · Inferencia causal: Más allá de la correlación · MLOps: De cuadernos a sistemas en producción · Interpretabilidad, calibración y decisiones de negocio · Ética, equidad algorítmica y gobernanza de datos |
-| 🤖 Inteligencia Artificial (8 · 86 min) | Qué es realmente un modelo de lenguaje · El mapa de la IA: de las reglas al Deep Learning · RAG, bases vectoriales y búsqueda híbrida · Agentes autónomos y llamada a herramientas · Evaluación, observabilidad y optimización de costes · La arquitectura Transformer y la atención · Entrenamiento, Fine-Tuning y Modelos Abiertos · Seguridad, Prompt Injection y Guardrails |
-| 🚜 Maquinaria (8 · 86 min) | La familia de maquinaria y la inspección pre-operacional · El volquete: componentes, tolva y operación segura · Fundamentos y circuitos del sistema hidráulico · Tren de rodaje, mandos finales y neumáticos gigantes · Sistema neumático, frenos de aire y tren motriz del volquete · Hidráulica avanzada: bombas de caudal variable, Load Sensing y pilotaje · Motores diésel pesados, inyección Common Rail y emisiones Tier 4 / Stage V · Mantenimiento predictivo, tribología y gestión de flotas |
-| 🔧 Automotriz (8 · 87 min) | El motor de combustión y el mantenimiento preventivo · Frenos, suspensión, dirección y transmisión · Diagnóstico ordenado: del síntoma a la causa raíz · Inyección electrónica, sensores y escáner OBD2 · Gestión de combustible: Fuel Trims y calibración estequiométrica · Sobrealimentación, distribución variable y emisiones anticontaminación · Inyección Diésel Common Rail de alta presión · Redes CAN Bus, osciloscopio y seguridad en alta tensión (EV / HEV) |
+| 🗣️ Inglés (8 · 152 min) | Building a sentence in English · Getting things done in English · Present Perfect and the logic of phrasal verbs · Technical procedures, passive voice and instructions · Conditionals, reported speech and professional writing · … y 3 más |
+| 🐧 Linux (10 · 107 min) | La terminal, sin misterio · Edición de texto, configuración y paquetes · Tuberías: la idea que hace poderosa a la terminal · Permisos, usuarios y control de procesos · Almacenamiento: discos, sistemas de archivos y fstab · … y 5 más |
+| 📊 Ciencia de Datos (50 · 519 min) | Mirar los datos antes de tocarlos · Limpieza, transformación y consultas: Pandas y SQL · Motores analíticos modernos: DuckDB, Polars y Parquet · Visualización que cuenta historias y evita engaños · Álgebra lineal y optimización para ciencia de datos · … y 45 más |
+| 🤖 Inteligencia Artificial (8 · 86 min) | Qué es realmente un modelo de lenguaje · El mapa de la IA: de las reglas al Deep Learning · RAG, bases vectoriales y búsqueda híbrida · Agentes autónomos y llamada a herramientas · Evaluación, observabilidad y optimización de costes · … y 3 más |
+| 🚜 Maquinaria (8 · 86 min) | La familia de maquinaria y la inspección pre-operacional · El volquete: componentes, tolva y operación segura · Fundamentos y circuitos del sistema hidráulico · Tren de rodaje, mandos finales y neumáticos gigantes · Sistema neumático, frenos de aire y tren motriz del volquete · … y 3 más |
+| 🔧 Automotriz (8 · 87 min) | El motor de combustión y el mantenimiento preventivo · Frenos, suspensión, dirección y transmisión · Diagnóstico ordenado: del síntoma a la causa raíz · Inyección electrónica, sensores y escáner OBD2 · Gestión de combustible: Fuel Trims y calibración estequiométrica · … y 3 más |
 | ⚡ Electricidad (3 · 31 min) | Cuatro magnitudes y una sola ley · Los componentes y lo que hace cada uno · Alterna, motores y protecciones |
 | 🧮 Matemáticas (6 · 60 min) | Suma, resta y complementos relámpago · Multiplicaciones relámpago y atajos directos · Porcentajes instantáneos y la regla reversible · Multiplicación védica cruzada y método de la base 100 · Cuadrados, raíces y productos notables mentales · Verificación por prueba del 9 y la Regla del 72 |
 
@@ -494,9 +500,9 @@ su historial. Tus tarjetas propias nunca se tocan.
 ## Tu biblioteca
 
 La pestaña **Biblioteca** organiza los libros que ya tienes y los abre **dentro de
-AppStudy**, con un lector de PDF que recuerda por dónde ibas. Los libros no se
-copian ni se tocan: se leen donde están, y en la base solo queda su ruta, la
-página y los minutos leídos.
+AppStudy**: un lector de PDF y otro de EPUB, los dos recuerdan por dónde ibas.
+Los libros no se copian ni se tocan: se leen donde están, y en la base solo
+queda su ruta, la página y los minutos leídos.
 
 **El estante**
 
@@ -520,6 +526,7 @@ página y los minutos leídos.
 | Ctrl+F | buscar en todo el libro |
 | M | marcador en esta página |
 | N | modo noche |
+| S | rotulador: arrastra sobre el texto para subrayar |
 
 - **Zoom de verdad**: la hoja pide su tamaño y el lector la deja desplazarse. Se
   recuerda por libro cómo lo estabas leyendo (ajuste y escala).
@@ -530,6 +537,50 @@ página y los minutos leídos.
   reprocesar la imagen ni gastar memoria.
 - **Copiar el texto de la página** y **✦ Tarjetas** de las páginas que tienes
   delante, desde el mismo menú.
+
+**Subrayar y anotar**
+
+Pulsa **S** (o el rotulador de la barra) y arrastra sobre el texto. Lo subrayado
+se queda: al soltar, AppStudy le pregunta a poppler **qué texto hay justo debajo
+de ese rectángulo**, así que el subrayado no es una mancha de color sino una
+cita que se puede leer, buscar y copiar.
+
+- Los rectángulos se guardan **de 0 a 1**, relativos a la página. Por eso siguen
+  en su sitio con cualquier zoom, en cualquier pantalla y aunque cambies el
+  ajuste de ancho a página.
+- Al tocar un subrayado se abre su ficha: la cita, un hueco para **tu nota**,
+  cuatro colores, y **✦ Hacer tarjeta**, que abre el editor con la cita ya en la
+  respuesta y la página del libro en la pista. La pregunta la escribes tú, que es
+  lo que obliga a entender lo leído en vez de copiarlo.
+- Los que llevan nota se marcan con una pestañita azul al margen.
+- El botón de la lista enseña **todo lo subrayado del libro**, salta a su página
+  y lo copia entero **en Markdown** con un clic.
+- Lo subrayado también sale en la búsqueda global (Ctrl+K), y desde ahí se abre
+  el libro en esa misma página.
+
+**Los EPUB**
+
+Un EPUB es HTML comprimido, así que lo lee un navegador: **WebKitGTK**, que en
+Ubuntu y Mint ya viene instalado (`sudo apt install gir1.2-webkit-6.0` si
+faltara). Sin él, el resto de la biblioteca funciona igual y solo se avisa al
+abrir uno.
+
+El libro se descomprime una vez en la caché para que las imágenes y las hojas de
+estilo resuelvan sus rutas solas; después, cada capítulo abre al instante. El
+orden lo manda el *spine* del libro y los títulos salen de su índice.
+
+| Tecla | |
+|---|---|
+| ← → · AvPág/RePág | capítulo anterior o siguiente |
+| Inicio / Fin | primero y último |
+| + / − | letra más grande o más pequeña |
+| M | marcador en este capítulo |
+| N | modo noche |
+
+El índice completo está en el botón de la cabecera, el modo noche se aplica **sin
+recargar** (no parpadea ni pierdes por dónde ibas) y **✦ Tarjetas** saca tarjetas
+del capítulo que tienes delante. Los enlaces internos del libro se siguen dentro;
+los que apuntan fuera se abren en tu navegador.
 
 **El progreso se guarda solo**, en cada cambio de página: cierras el libro,
 vuelves mañana y sigues en la 77. Al salir también se anotan los minutos leídos.
@@ -601,6 +652,66 @@ En Ajustes → **Apariencia y progreso** hay dos botones que piden confirmación
   racha se recalcula sola.
 - **Reiniciar la racha** — vuelve a cero sin tocar ninguna tarjeta: a partir de ese
   momento solo cuentan los repasos nuevos (`racha_desde` en la tabla `meta`).
+
+## Escribir tus propios capítulos
+
+Los 101 capítulos de fábrica vienen en JSON porque es lo que come la base, pero
+escribir JSON a mano es un castigo. Los tuyos se escriben en **Markdown**.
+
+Desde la pestaña **Leer**, «Escribir un capítulo». O directamente, dejando un
+`.md` en `~/.local/share/appstudy/lecturas/` y pulsando **Ctrl+R**.
+
+````markdown
+---
+mazo: linux
+nivel: 2
+etiquetas: permisos, procesos
+---
+
+# Lo que aprendí de los permisos
+
+Un párrafo con **negrita**, *cursiva* y `código`.
+
+## Los tres tríos
+
+- dueño
+- grupo
+- resto
+
+```bash
+chmod 755 script.sh
+```
+
+> [!CLAVE] El primer dígito es siempre el dueño.
+````
+
+La cabecera entre tres guiones dice de qué **mazo** es y en qué **nivel** va; el
+primer `#` es el título. Si no pones `minutos`, se estiman contando las palabras.
+Los recuadros destacados son `> [!NOTA]`, `> [!AVISO]` y `> [!CLAVE]`; una
+fórmula suelta va entre `$$…$$`.
+
+El archivo es la fuente y la base solo una copia: editar el `.md` y recargar
+basta. Tus capítulos se marcan como **«escrito por ti»**, aparecen junto a los de
+fábrica en su mazo y su nivel, y **recargar el contenido incluido no se los
+lleva** — solo desaparecen si borras el archivo o pulsas Borrar en el editor. Un
+capítulo tuyo puede llamarse igual que uno de fábrica sin pisarlo.
+
+## Buscar en todo · Ctrl+K
+
+Una caja que busca a la vez en **tus tarjetas, los capítulos, tus libros y lo que
+hayas subrayado**. La gracia no es buscar en cada sitio, que ya se podía, sino no
+tener que acordarse de dónde estaba: escribes «systemd» y salen la tarjeta, el
+capítulo que lo explica, el libro que tienes a medias y el párrafo que marcaste.
+
+- Se exigen **todas** las palabras, y no distingue acentos ni mayúsculas: «ingles»
+  encuentra «inglés».
+- Lo que aparece en el título pesa más que lo que aparece en el cuerpo, y el
+  nombre del mazo cuenta también, así que «inglés» saca ese mazo entero.
+- Enter abre el primer resultado; pulsando uno se va a donde esté: la tarjeta se
+  abre en su editor, el capítulo en el lector, el libro por donde ibas y un
+  subrayado **en su página exacta**.
+- Con la caja vacía ofrece por dónde ibas: lo último que estudiaste y lo último
+  que leíste.
 
 ## La pestaña Progreso
 
@@ -696,11 +807,12 @@ los de «antes de restaurar» no se borran nunca.
 ./pruebas.sh scheduler    # solo las del planificador
 ```
 
-321 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
+416 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
 calibración, el planificador, las sanguijuelas, el deshacer, el objetivo diario,
 las tarjetas de huecos, las series de la pestaña Progreso, los logros, los seis
-formatos de reto, las fórmulas en LaTeX, el respaldo y la validez del contenido
-incluido. No hace falta instalar nada más — son `unittest` de la
+formatos de reto, las fórmulas en LaTeX, los subrayados, la lectura de EPUB, el
+Markdown de tus capítulos, la búsqueda global, el respaldo y la validez del
+contenido incluido. No hace falta instalar nada más — son `unittest` de la
 biblioteca estándar — y ninguna toca tu progreso real: cada caso arranca con una
 base vacía en un directorio temporal. Los detalles, en `tests/README.md`.
 

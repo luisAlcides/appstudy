@@ -11,7 +11,7 @@ READINGS_DIR = CONTENT_DIR / "readings"
 # existía recibe las correcciones al arrancar, sin tener que recargar a mano:
 # reimportar respeta el progreso porque las tarjetas se identifican por su
 # enunciado y los capítulos por su título.
-CONTENT_VERSION = "12"
+CONTENT_VERSION = "16"
 
 
 # Etiqueta con la que se marca la cara inversa, para poder filtrarla después
@@ -101,8 +101,10 @@ def load_readings(con) -> tuple[int, int]:
             _, uid = db.upsert_chapter(con, deck_id, data["deck"], ch)
             vigentes.add(uid)
             total += 1
+        # Solo se retiran capítulos de fábrica: los que has escrito tú no están
+        # en el JSON y desaparecerían en la primera recarga.
         obsoletos = [r["id"] for r in con.execute(
-            "SELECT id, uid FROM chapters WHERE deck_id=?", (deck_id,))
+            "SELECT id, uid FROM chapters WHERE deck_id=? AND propio=0", (deck_id,))
             if r["uid"] not in vigentes]
         for cid in obsoletos:
             con.execute("DELETE FROM chapters WHERE id=?", (cid,))
@@ -113,9 +115,13 @@ def load_readings(con) -> tuple[int, int]:
 
 def load_all(con):
     """Mazos y lecturas: el orden importa, los capítulos cuelgan de un mazo."""
+    from . import lecturas
     mazos, nuevas, retiradas = load_builtin(con)
     capitulos, _ = load_readings(con)
-    return mazos, nuevas, retiradas, capitulos
+    # Y después los tuyos, que cuelgan de los mismos mazos
+    lecturas.limpiar_huerfanos(con)
+    propios, _ = lecturas.importar(con)
+    return mazos, nuevas, retiradas, capitulos + propios
 
 
 def ensure_seeded(con):

@@ -69,7 +69,27 @@ CREATE TABLE IF NOT EXISTS chapters (
     subtitle TEXT NOT NULL DEFAULT '',
     minutes  INTEGER NOT NULL DEFAULT 5,
     tags     TEXT NOT NULL DEFAULT '',   -- para practicar solo estas tarjetas
-    body     TEXT NOT NULL DEFAULT '[]'  -- JSON: lista de bloques
+    body     TEXT NOT NULL DEFAULT '[]', -- JSON: lista de bloques
+    propio   INTEGER NOT NULL DEFAULT 0, -- escrito por ti, no viene de fábrica
+    fuente   TEXT NOT NULL DEFAULT ''    -- el archivo Markdown del que salió
+);
+
+-- Lo que subrayas y anotas en un libro. Las coordenadas van de 0 a 1, relativas
+-- a la página: así el subrayado sigue en su sitio con cualquier zoom y en
+-- cualquier pantalla.
+CREATE TABLE IF NOT EXISTS notas (
+    id      INTEGER PRIMARY KEY,
+    ruta    TEXT NOT NULL,
+    pagina  INTEGER NOT NULL DEFAULT 1,
+    x0      REAL NOT NULL DEFAULT 0,
+    y0      REAL NOT NULL DEFAULT 0,
+    x1      REAL NOT NULL DEFAULT 0,
+    y1      REAL NOT NULL DEFAULT 0,
+    color   TEXT NOT NULL DEFAULT 'amarillo',
+    texto   TEXT NOT NULL DEFAULT '',   -- lo que hay debajo del subrayado
+    nota    TEXT NOT NULL DEFAULT '',   -- lo que tú escribes al lado
+    card_id INTEGER,                    -- la tarjeta que salió de aquí, si la hubo
+    ts      REAL NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS reading (
@@ -107,6 +127,7 @@ CREATE INDEX IF NOT EXISTS idx_state_leech ON state(leech);
 CREATE INDEX IF NOT EXISTS idx_log_ts      ON log(ts);
 CREATE INDEX IF NOT EXISTS idx_chap_deck   ON chapters(deck_id, level, pos);
 CREATE INDEX IF NOT EXISTS idx_books_abierto ON books(abierto DESC);
+CREATE INDEX IF NOT EXISTS idx_notas_libro  ON notas(ruta, pagina);
 """
 
 
@@ -135,7 +156,9 @@ def migrate(con):
             ("books", "zoom", "TEXT NOT NULL DEFAULT ''"),
             ("state", "stability", "REAL NOT NULL DEFAULT 0"),
             ("state", "difficulty", "REAL NOT NULL DEFAULT 0"),
-            ("state", "leech", "INTEGER NOT NULL DEFAULT 0")):
+            ("state", "leech", "INTEGER NOT NULL DEFAULT 0"),
+            ("chapters", "propio", "INTEGER NOT NULL DEFAULT 0"),
+            ("chapters", "fuente", "TEXT NOT NULL DEFAULT ''")):
         existentes = {r["name"] for r in con.execute(f"PRAGMA table_info({tabla})")}
         # Sin columnas es que la tabla no existe: pasa al restaurar el respaldo
         # de una versión anterior, y no es motivo para dejar de arrancar.
@@ -218,21 +241,41 @@ def add_card(con, deck_id, deck_key, kind, front, back="", hint="", choices=None
     return cid, 0 if ya_existia else 1
 
 
+def uid_capitulo(deck_key: str, titulo: str, propio: bool = False) -> str:
+    """La identidad de un capítulo: su título dentro de su mazo.
+
+    Los tuyos llevan su propia semilla para que no puedan chocar con uno de
+    fábrica que se llame igual.
+    """
+    marca = "cap-propio" if propio else "cap"
+    return hashlib.sha1(
+        f"{deck_key}\x00{marca}\x00{titulo}".encode()).hexdigest()[:16]
+
+
 def upsert_chapter(con, deck_id, deck_key, ch):
-    uid = hashlib.sha1(f"{deck_key}\x00cap\x00{ch['title']}".encode()).hexdigest()[:16]
+    propio = 1 if ch.get("propio") else 0
+    uid = uid_capitulo(deck_key, ch["title"], bool(propio))
     datos = (deck_id, uid, ch.get("level", 1), ch.get("pos", 0), ch["title"],
              ch.get("subtitle", ""), ch.get("minutes", 5), ch.get("tags", ""),
-             json.dumps(ch.get("body", []), ensure_ascii=False))
+             json.dumps(ch.get("body", []), ensure_ascii=False),
+             propio, ch.get("fuente", ""))
     con.execute(
-        """INSERT INTO chapters(deck_id,uid,level,pos,title,subtitle,minutes,tags,body)
-           VALUES(?,?,?,?,?,?,?,?,?)
+        """INSERT INTO chapters(deck_id,uid,level,pos,title,subtitle,minutes,tags,
+                                body,propio,fuente)
+           VALUES(?,?,?,?,?,?,?,?,?,?,?)
            ON CONFLICT(uid) DO UPDATE SET
                deck_id=excluded.deck_id, level=excluded.level, pos=excluded.pos,
                subtitle=excluded.subtitle, minutes=excluded.minutes,
-               tags=excluded.tags, body=excluded.body""", datos)
+               tags=excluded.tags, body=excluded.body, propio=excluded.propio,
+               fuente=excluded.fuente""", datos)
     cid = con.execute("SELECT id FROM chapters WHERE uid=?", (uid,)).fetchone()["id"]
     con.execute("INSERT OR IGNORE INTO reading(chapter_id) VALUES(?)", (cid,))
     return cid, uid
+
+
+def borrar_capitulo(con, chapter_id: int):
+    con.execute("DELETE FROM chapters WHERE id=?", (chapter_id,))
+    con.commit()
 
 
 def chapters(con, deck_id=None):
@@ -403,6 +446,65 @@ def books_leyendo(con, cuantos: int = 12) -> list:
         """SELECT * FROM books WHERE abierto > 0 ORDER BY abierto DESC LIMIT ?""",
         (cuantos,)).fetchall()
     return [dict(f) for f in filas]
+
+
+# ------------------------------------------------------- subrayados y notas
+
+COLORES_NOTA = {
+    "amarillo": (0.98, 0.85, 0.20),
+    "verde":    (0.35, 0.80, 0.45),
+    "azul":     (0.35, 0.62, 0.92),
+    "rosa":     (0.95, 0.45, 0.65),
+}
+
+
+def nota_add(con, ruta: str, pagina: int, rect, texto: str = "",
+             nota: str = "", color: str = "amarillo") -> int:
+    """Guarda un subrayado. `rect` va de 0 a 1, relativo a la página."""
+    x0, y0, x1, y1 = rect
+    cur = con.execute(
+        """INSERT INTO notas(ruta,pagina,x0,y0,x1,y1,color,texto,nota,ts)
+           VALUES(?,?,?,?,?,?,?,?,?,?)""",
+        (str(ruta), int(pagina), min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1),
+         color if color in COLORES_NOTA else "amarillo", texto.strip(), nota.strip(),
+         time.time()))
+    con.commit()
+    return cur.lastrowid
+
+
+def notas_de(con, ruta: str, pagina: int | None = None) -> list[dict]:
+    """Los subrayados de un libro, o solo los de una página."""
+    sql = "SELECT * FROM notas WHERE ruta=?"
+    args: tuple = (str(ruta),)
+    if pagina is not None:
+        sql += " AND pagina=?"
+        args += (int(pagina),)
+    sql += " ORDER BY pagina, y0, x0"
+    return [dict(f) for f in con.execute(sql, args)]
+
+
+def nota_editar(con, nota_id: int, **campos):
+    """Cambia el comentario, el color o la tarjeta asociada de un subrayado."""
+    permitidos = {"nota", "color", "texto", "card_id"}
+    cambios = {k: v for k, v in campos.items() if k in permitidos}
+    if not cambios:
+        return
+    asignaciones = ", ".join(f"{k}=?" for k in cambios)
+    con.execute(f"UPDATE notas SET {asignaciones} WHERE id=?",
+                (*cambios.values(), nota_id))
+    con.commit()
+
+
+def nota_borrar(con, nota_id: int):
+    con.execute("DELETE FROM notas WHERE id=?", (nota_id,))
+    con.commit()
+
+
+def notas_totales(con) -> dict:
+    """Cuántos subrayados hay y en cuántos libros, para enseñarlo de un vistazo."""
+    fila = con.execute(
+        "SELECT COUNT(*) AS n, COUNT(DISTINCT ruta) AS libros FROM notas").fetchone()
+    return {"n": fila["n"] or 0, "libros": fila["libros"] or 0}
 
 
 def books_todos(con) -> dict:

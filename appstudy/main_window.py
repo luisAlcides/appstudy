@@ -2,6 +2,7 @@
 import json
 import sys
 import time
+from pathlib import Path
 
 import gi
 
@@ -9,7 +10,8 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, Gtk, Pango  # noqa: E402
 
-from . import cloze, db, estadisticas, fsrs, graficas, hotkey, ia  # noqa: E402
+from . import buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: E402
+from . import hotkey, ia, lecturas  # noqa: E402
 from . import libros, logros, pet, respaldo, scheduler  # noqa: E402
 from . import sonido, util  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
@@ -62,6 +64,11 @@ class MainWindow(Adw.ApplicationWindow):
         nueva = Gtk.Button(icon_name="list-add-symbolic", tooltip_text="Nueva tarjeta")
         nueva.connect("clicked", lambda *_: self.card_editor())
         header.pack_end(nueva)
+
+        buscar = Gtk.Button(icon_name="system-search-symbolic",
+                            tooltip_text="Buscar en todo (Ctrl+K)")
+        buscar.connect("clicked", lambda *_: self.buscador_global())
+        header.pack_end(buscar)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.append(header)
@@ -324,6 +331,17 @@ class MainWindow(Adw.ApplicationWindow):
             f"{t['minutos']} min de material")
         resumen.append(titulo)
         resumen.append(self.progress_bar(t["leidos"], max(t["total"], 1)))
+        fila_acciones = Gtk.Box(spacing=8)
+        escribir = Gtk.Button(label="✎ Escribir un capítulo", css_classes=["pill"])
+        escribir.connect("clicked", lambda *_: self.editor_capitulo())
+        fila_acciones.append(escribir)
+        propios = self.con.execute(
+            "SELECT COUNT(*) FROM chapters WHERE propio=1").fetchone()[0]
+        if propios:
+            fila_acciones.append(Gtk.Label(
+                label=f"{propios} {'capítulo tuyo' if propios == 1 else 'capítulos tuyos'}",
+                css_classes=["as-dim"], valign=Gtk.Align.CENTER))
+        resumen.append(fila_acciones)
         box.append(resumen)
 
         por_mazo: dict[int, list] = {}
@@ -363,8 +381,11 @@ class MainWindow(Adw.ApplicationWindow):
 
     def chapter_row(self, cap, hermanos):
         row = Adw.ActionRow(title=util.as_label(cap["title"]))
-        row.set_subtitle(f"{util.plain(cap['subtitle'])} · {cap['minutes']} min"
-                         if cap["subtitle"] else f"{cap['minutes']} min")
+        pie = f"{util.plain(cap['subtitle'])} · " if cap["subtitle"] else ""
+        pie += f"{cap['minutes']} min"
+        if cap.get("propio"):
+            pie += " · escrito por ti"
+        row.set_subtitle(pie)
         row.set_subtitle_lines(2)
         row.set_activatable(True)
         row.connect("activated", lambda *_: self.open_chapter(cap, hermanos))
@@ -373,6 +394,13 @@ class MainWindow(Adw.ApplicationWindow):
             "object-select-symbolic" if cap["leido"] else "media-playback-start-symbolic")
         marca.add_css_class("success" if cap["leido"] else "dim-label")
         row.add_prefix(marca)
+        if cap.get("propio"):
+            editar = Gtk.Button(icon_name="document-edit-symbolic",
+                                valign=Gtk.Align.CENTER, css_classes=["flat"])
+            util.tooltip_perezoso(editar, "Editar este capítulo")
+            editar.connect("clicked",
+                           lambda _b, cid=cap["id"]: self.editor_capitulo(cid))
+            row.add_suffix(editar)
         row.add_suffix(Gtk.Image.new_from_icon_name("go-next-symbolic"))
         return row
 
@@ -567,7 +595,25 @@ class MainWindow(Adw.ApplicationWindow):
 
     # ------------------------------------------------------------------ editor
 
-    def card_editor(self, card_id=None):
+    def editor_desde_nota(self, nota, mazo, libro):
+        """Abre el editor con lo que subrayaste ya puesto.
+
+        La respuesta es la cita; la pregunta la escribes tú, que es lo que
+        obliga a entender lo leído en vez de copiarlo.
+        """
+        texto = util.plain(nota["texto"]).strip()
+        comentario = util.plain(nota["nota"]).strip()
+        etiquetas = ", ".join(filter(None, ["libro", util.plain(libro.get("tema") or "")]))
+        self.card_editor(inicial={
+            "deck_key": mazo["key"] if mazo else None,
+            "front": comentario or "",
+            "back": texto,
+            "hint": f"{util.plain(libro['nombre'])[:70]} · pág. {nota['pagina']}",
+            "tags": etiquetas,
+            "nota_id": nota["id"],
+        })
+
+    def card_editor(self, card_id=None, inicial=None):
         decks = db.deck_stats(self.con)
         card = None
         if card_id:
@@ -580,10 +626,16 @@ class MainWindow(Adw.ApplicationWindow):
         page = Adw.PreferencesPage()
         g1 = Adw.PreferencesGroup(title="Clasificación")
 
+        inicial = inicial or {}
         deck_dd = Adw.ComboRow(title="Mazo",
                                model=Gtk.StringList.new([f"{d['icon']} {d['name']}" for d in decks]))
         if card:
             deck_dd.set_selected(next(i for i, d in enumerate(decks) if d["id"] == card["deck_id"]))
+        elif inicial.get("deck_key"):
+            posicion = next((i for i, d in enumerate(decks)
+                             if d["key"] == inicial["deck_key"]), None)
+            if posicion is not None:
+                deck_dd.set_selected(posicion)
         g1.add(deck_dd)
 
         tipos = ["Tarjeta (pregunta y respuesta)", "Reto (opción múltiple)",
@@ -606,7 +658,7 @@ class MainWindow(Adw.ApplicationWindow):
         g1.add(nivel_dd)
 
         tags = Adw.EntryRow(title="Etiquetas (separadas por coma)")
-        tags.set_text(card["tags"] if card else "")
+        tags.set_text(card["tags"] if card else inicial.get("tags", ""))
         g1.add(tags)
         page.add(g1)
 
@@ -615,13 +667,15 @@ class MainWindow(Adw.ApplicationWindow):
                        "«El comando {{chmod}} cambia los permisos». Puedes poner "
                        "varios huecos, y una pista con {{755::en octal}}.")
         g2 = Adw.PreferencesGroup(title="Contenido", description=AYUDA_NORMAL)
-        front_view, front_frame = self.text_area(card["front"] if card else "", 90)
+        front_view, front_frame = self.text_area(
+            card["front"] if card else inicial.get("front", ""), 90)
         etiqueta_front = self.labeled("Pregunta / enunciado", front_frame)
         g2.add(etiqueta_front)
-        back_view, back_frame = self.text_area(card["back"] if card else "", 150)
+        back_view, back_frame = self.text_area(
+            card["back"] if card else inicial.get("back", ""), 150)
         g2.add(self.labeled("Respuesta / explicación", back_frame))
         hint = Adw.EntryRow(title="Pista (opcional)")
-        hint.set_text(card["hint"] if card else "")
+        hint.set_text(card["hint"] if card else inicial.get("hint", ""))
         g2.add(hint)
         page.add(g2)
 
@@ -657,7 +711,7 @@ class MainWindow(Adw.ApplicationWindow):
             dlg, card, decks[deck_dd.get_selected()], kinds[kind_dd.get_selected()],
             front_view, back_view, hint.get_text(), tags.get_text(),
             [o.get_text() for o in opciones], int(correcta.get_value()) - 1,
-            nivel_dd.get_selected() + 1))
+            nivel_dd.get_selected() + 1, inicial.get("nota_id")))
 
         header = Adw.HeaderBar()
         header.pack_end(guardar)
@@ -688,7 +742,7 @@ class MainWindow(Adw.ApplicationWindow):
         return b.get_text(b.get_start_iter(), b.get_end_iter(), False).strip()
 
     def save_card(self, dlg, card, deck, kind, front_view, back_view, hint, tags,
-                  opciones, correcta, nivel):
+                  opciones, correcta, nivel, nota_id=None):
         front = self.buffer_text(front_view)
         back = self.buffer_text(back_view)
         if not front:
@@ -714,9 +768,13 @@ class MainWindow(Adw.ApplicationWindow):
                  correcta if kind == "quiz" else -1, tags, nivel, card["id"]))
             self.con.commit()
         else:
-            db.add_card(self.con, deck["id"], deck["key"], kind, front, back, hint,
-                        choices, correcta if kind == "quiz" else -1, tags, level=nivel)
+            cid, _ = db.add_card(self.con, deck["id"], deck["key"], kind, front, back,
+                                 hint, choices, correcta if kind == "quiz" else -1,
+                                 tags, level=nivel)
             self.con.commit()
+            if nota_id:
+                # Queda apuntado de qué subrayado salió, por si vuelves a él
+                db.nota_editar(self.con, nota_id, card_id=cid)
         dlg.close()
         self.notify_user("Tarjeta guardada")
         self.refresh()
@@ -1140,6 +1198,254 @@ class MainWindow(Adw.ApplicationWindow):
             n = scheduler.undo_recent(self.con)
             self.notify_user(f"Borrados {n} repasos · el día empieza de cero")
             self.refresh()
+
+    # ------------------------------------------------------ capítulos propios
+
+    PLANTILLA = """---
+mazo: {mazo}
+nivel: 1
+etiquetas:
+---
+
+# {titulo}
+
+Escribe aquí. Un párrafo normal, con **negrita**, *cursiva* y `código`.
+
+## Una sección
+
+- una lista
+- con dos cosas
+
+```bash
+echo hola
+```
+
+> [!CLAVE] Lo que no hay que olvidar.
+"""
+
+    def editor_capitulo(self, chapter_id=None):
+        """Escribir un capítulo propio en Markdown, que es lo que se puede teclear.
+
+        Se guarda como archivo en la carpeta de lecturas y se importa acto
+        seguido: el archivo es la fuente, la base solo una copia.
+        """
+        capitulo = None
+        if chapter_id:
+            fila = self.con.execute(
+                """SELECT c.*, d.key AS deck_key FROM chapters c
+                   JOIN decks d ON d.id = c.deck_id WHERE c.id=?""",
+                (chapter_id,)).fetchone()
+            capitulo = dict(fila) if fila else None
+
+        dlg = Adw.Dialog(title="Editar capítulo" if capitulo else "Escribir un capítulo")
+        dlg.set_content_width(760)
+        dlg.set_content_height(700)
+
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        cabecera = Adw.HeaderBar()
+        guardar = Gtk.Button(label="Guardar", css_classes=["suggested-action"])
+        cabecera.pack_end(guardar)
+        if capitulo and capitulo["propio"]:
+            borrar = Gtk.Button(label="Borrar", css_classes=["destructive-action"])
+            borrar.connect("clicked", lambda *_: self.borrar_capitulo(capitulo, dlg))
+            cabecera.pack_start(borrar)
+        caja.append(cabecera)
+
+        pista = Gtk.Label(
+            label="Se escribe en Markdown. Arriba, entre tres guiones, va el mazo "
+                  "y el nivel; el primer # es el título. Los avisos son "
+                  "«> [!NOTA]», «> [!AVISO]» y «> [!CLAVE]».",
+            xalign=0, wrap=True, css_classes=["as-dim"])
+        for lado in ("top", "start", "end"):
+            getattr(pista, f"set_margin_{lado}")(12)
+        caja.append(pista)
+
+        if capitulo:
+            texto = ""
+            fuente = capitulo["fuente"]
+            if fuente and Path(fuente).exists():
+                texto = Path(fuente).read_text(encoding="utf-8")
+            else:
+                texto = lecturas.a_markdown({
+                    "deck": capitulo["deck_key"], "title": capitulo["title"],
+                    "subtitle": capitulo["subtitle"], "level": capitulo["level"],
+                    "minutes": capitulo["minutes"], "tags": capitulo["tags"],
+                    "body": json.loads(capitulo["body"] or "[]")})
+        else:
+            primer_mazo = self.con.execute(
+                "SELECT key FROM decks WHERE enabled=1 ORDER BY pos LIMIT 1").fetchone()
+            texto = self.PLANTILLA.format(
+                mazo=primer_mazo["key"] if primer_mazo else "linux",
+                titulo="Mi capítulo")
+
+        vista = Gtk.TextView(monospace=True, wrap_mode=Gtk.WrapMode.WORD_CHAR,
+                             top_margin=10, bottom_margin=10,
+                             left_margin=12, right_margin=12)
+        vista.get_buffer().set_text(texto)
+        marco = Gtk.ScrolledWindow(vexpand=True)
+        marco.set_child(vista)
+        for lado in ("top", "bottom", "start", "end"):
+            getattr(marco, f"set_margin_{lado}")(12)
+        caja.append(marco)
+
+        guardar.connect("clicked", lambda *_: self.guardar_capitulo(
+            dlg, vista, capitulo))
+        dlg.set_child(caja)
+        dlg.present(self)
+
+    def guardar_capitulo(self, dlg, vista, capitulo):
+        contenido = self.buffer_text(vista)
+        if not contenido.strip():
+            self.notify_user("El capítulo está vacío")
+            return
+        datos = lecturas.analizar(contenido)
+        if not datos["deck"]:
+            self.notify_user("Falta el mazo en la cabecera: «mazo: linux»")
+            return
+        fila = self.con.execute("SELECT id FROM decks WHERE key=?",
+                                (datos["deck"],)).fetchone()
+        if not fila:
+            claves = ", ".join(d["key"] for d in db.deck_stats(self.con))
+            self.notify_user(f"No existe el mazo «{datos['deck']}». Hay: {claves}")
+            return
+        if not datos["body"]:
+            self.notify_user("El capítulo no tiene contenido debajo del título")
+            return
+        fuente = capitulo["fuente"] if capitulo and capitulo["propio"] else ""
+        ruta = lecturas.guardar(datos["title"], contenido, fuente)
+        datos["fuente"] = str(ruta)
+        datos["pos"] = 500
+        db.upsert_chapter(self.con, fila["id"], datos["deck"], datos)
+        self.con.commit()
+        dlg.close()
+        self.notify_user(f"Guardado en {ruta.name} · {datos['minutes']} min de lectura")
+        self.refresh()
+
+    def borrar_capitulo(self, capitulo, dlg):
+        aviso = Adw.AlertDialog(
+            heading="¿Borrar este capítulo?",
+            body=f"Se borra «{capitulo['title']}» y su archivo Markdown. "
+                 "No se puede deshacer.")
+        aviso.add_response("cancel", "Cancelar")
+        aviso.add_response("go", "Borrar")
+        aviso.set_response_appearance("go", Adw.ResponseAppearance.DESTRUCTIVE)
+
+        def responder(_d, respuesta):
+            if respuesta != "go":
+                return
+            if capitulo["fuente"]:
+                Path(capitulo["fuente"]).unlink(missing_ok=True)
+            db.borrar_capitulo(self.con, capitulo["id"])
+            dlg.close()
+            self.notify_user("Capítulo borrado")
+            self.refresh()
+
+        aviso.connect("response", responder)
+        aviso.present(self)
+
+    # -------------------------------------------------------- búsqueda global
+
+    def buscador_global(self):
+        """Ctrl+K: una caja que busca en tarjetas, capítulos, libros y subrayados."""
+        dlg = Adw.Dialog(title="Buscar")
+        dlg.set_content_width(680)
+        dlg.set_content_height(520)
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+        entrada = Gtk.SearchEntry(placeholder_text="Buscar en todo…", hexpand=True)
+        entrada.set_margin_top(14)
+        entrada.set_margin_bottom(6)
+        entrada.set_margin_start(14)
+        entrada.set_margin_end(14)
+        caja.append(entrada)
+
+        scroll = Gtk.ScrolledWindow(vexpand=True)
+        contenido = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8,
+                            margin_top=6, margin_bottom=14,
+                            margin_start=14, margin_end=14)
+        scroll.set_child(contenido)
+        caja.append(scroll)
+        dlg.set_child(caja)
+
+        estado = {"tarde": None, "filas": []}
+
+        def pintar(resultados, titulo=None):
+            while (hijo := contenido.get_first_child()) is not None:
+                contenido.remove(hijo)
+            estado["filas"] = []
+            if not resultados:
+                texto = entrada.get_text().strip()
+                contenido.append(Adw.StatusPage(
+                    title="Nada por aquí" if texto else "¿Qué buscas?",
+                    description=("Prueba con otra palabra: se buscan tarjetas, "
+                                 "capítulos, libros y lo que hayas subrayado."
+                                 if texto else
+                                 "Escribe y se busca a la vez en tus tarjetas, los "
+                                 "capítulos, tus libros y tus subrayados."),
+                    icon_name="system-search-symbolic", vexpand=True))
+                return
+            grupo = Adw.PreferencesGroup(title=titulo or f"{len(resultados)} resultados")
+            for r in resultados:
+                detalle = " · ".join(filter(None, [r["contexto"], r["detalle"]]))
+                fila = Adw.ActionRow(title=util.as_label(r["titulo"])[:120],
+                                     subtitle=util.as_label(detalle)[:150])
+                fila.set_subtitle_lines(2)
+                fila.add_prefix(Gtk.Label(label=r["icono"], valign=Gtk.Align.CENTER))
+                fila.set_activatable(True)
+                fila.connect("activated", lambda _f, res=r: (dlg.close(),
+                                                             self.abrir_resultado(res)))
+                grupo.add(fila)
+                estado["filas"].append(r)
+            contenido.append(grupo)
+
+        def buscar_ahora():
+            estado["tarde"] = None
+            texto = entrada.get_text().strip()
+            if not texto:
+                pintar(buscador.recientes(self.con), "Por dónde ibas")
+                return False
+            catalogo = getattr(self.biblioteca, "estante", None)
+            pintar(buscador.buscar(self.con, texto, catalogo))
+            return False
+
+        def al_escribir(*_):
+            # Un respiro antes de buscar: con mil libros y setecientas tarjetas,
+            # buscar en cada tecla se nota.
+            if estado["tarde"]:
+                GLib.source_remove(estado["tarde"])
+            estado["tarde"] = GLib.timeout_add(160, buscar_ahora)
+
+        entrada.connect("search-changed", al_escribir)
+        entrada.connect("activate", lambda *_: (
+            dlg.close(), self.abrir_resultado(estado["filas"][0]))
+            if estado["filas"] else None)
+
+        teclas = Gtk.EventControllerKey()
+        teclas.connect("key-pressed", lambda _c, k, *_: (
+            dlg.close(), True)[1] if Gdk.keyval_name(k) == "Escape" else False)
+        dlg.add_controller(teclas)
+
+        buscar_ahora()
+        dlg.present(self)
+        entrada.grab_focus()
+
+    def abrir_resultado(self, r):
+        """Lleva a donde esté lo que encontraste, sea del tipo que sea."""
+        if r["tipo"] == "tarjeta":
+            self.card_editor(r["id"])
+        elif r["tipo"] == "capitulo":
+            cap = next((c for c in db.chapters(self.con) if c["id"] == r["id"]), None)
+            if cap:
+                self.abrir_lectura(cap)
+        elif r["tipo"] in ("libro", "nota"):
+            self.stack.set_visible_child_name("biblioteca")
+            libro = r.get("libro")
+            if not libro:
+                return
+            if r["tipo"] == "nota":
+                self.biblioteca.abrir_en_pagina(libro, r.get("pagina", 1))
+            else:
+                self.biblioteca.abrir(libro)
 
     # ------------------------------------------------------------ estadísticas
 

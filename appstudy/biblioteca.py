@@ -18,7 +18,17 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 gi.require_version("Gsk", "4.0")
-from gi.repository import Adw, Gdk, GLib, Graphene, Gsk, Gtk  # noqa: E402
+from gi.repository import Adw, Gdk, GLib, Graphene, Gsk, Gtk, Pango  # noqa: E402
+
+# WebKit solo hace falta para los EPUB, y no está en todas las máquinas: si
+# falta, el resto de la biblioteca funciona igual y solo se avisa al abrir uno.
+try:
+    gi.require_version("WebKit", "6.0")
+    from gi.repository import WebKit  # noqa: E402
+    HAY_WEBKIT = True
+except (ValueError, ImportError):      # pragma: sin WebKit instalado
+    WebKit = None
+    HAY_WEBKIT = False
 
 from . import db, ia, libros, reto, util  # noqa: E402
 
@@ -287,12 +297,335 @@ class Biblioteca(Adw.Bin):
     # ==================================================== abrir el lector
 
     def abrir(self, libro):
-        if libro["ext"] != "pdf":
-            self.ventana.notify_user("El lector abre PDF; de los otros formatos puedo "
-                                     "sacar tarjetas, pero no pasarte las hojas")
+        if libro["ext"] == "pdf":
+            self.nav.push(Lector(self, libro).pagina)
             return
-        lector = Lector(self, libro)
-        self.nav.push(lector.pagina)
+        if libro["ext"] == "epub":
+            if not HAY_WEBKIT:
+                self.ventana.notify_user(
+                    "Para leer EPUB falta WebKitGTK: sudo apt install "
+                    "gir1.2-webkit-6.0")
+                return
+            try:
+                lector = LectorEpub(self, libro)
+            except libros.LibroError as e:
+                self.ventana.notify_user(str(e))
+                return
+            self.nav.push(lector.pagina)
+            return
+        self.ventana.notify_user("El lector abre PDF y EPUB; de los otros formatos "
+                                 "puedo sacar tarjetas, pero no pasarte las hojas")
+
+    def abrir_en_pagina(self, libro, pagina):
+        """Abre el libro directamente en una página: es a donde lleva un subrayado."""
+        if libro["ext"] == "pdf":
+            lector = Lector(self, libro)
+            self.nav.push(lector.pagina)
+            GLib.idle_add(lector.ir, pagina)
+            return
+        self.abrir(libro)
+
+
+# Lo que se le inyecta al EPUB para que se lea bien: márgenes cómodos, imágenes
+# que no se salgan y un ancho de línea que no obligue a mover la cabeza. No se
+# tocan los colores salvo en modo noche: la maquetación del libro es suya.
+CSS_EPUB = """
+html { -webkit-text-size-adjust: none; }
+body {
+  max-width: 42em; margin: 0 auto; padding: 2.2em 1.6em 4em 1.6em;
+  line-height: 1.65; font-size: %(tam)dpx;
+}
+img, svg, table { max-width: 100%%; height: auto; }
+pre, code { white-space: pre-wrap; word-wrap: break-word; }
+pre { overflow-x: auto; padding: .7em; border-radius: 6px; }
+"""
+
+CSS_EPUB_NOCHE = """
+html, body { background: #1b1b1b !important; color: #ddd !important; }
+* { background-color: transparent !important; border-color: #444 !important; }
+a { color: #78aeed !important; }
+pre, code { background: #262626 !important; }
+img { filter: brightness(.85); }
+"""
+
+
+class LectorEpub:
+    """Un EPUB abierto: capítulo a capítulo, con su índice y su modo noche.
+
+    Un EPUB es HTML comprimido, así que lo que hace falta para leerlo bien es un
+    navegador. Se descomprime una vez en la caché —para que las imágenes y las
+    hojas de estilo resuelvan sus rutas relativas solas— y cada capítulo se
+    carga como un archivo local. El progreso es en qué capítulo ibas.
+    """
+
+    TAMANOS = (14, 16, 18, 20, 23, 26)
+
+    def __init__(self, biblioteca, libro):
+        self.bib = biblioteca
+        self.con = biblioteca.con
+        self.libro = libro
+        self.desde = time.time()
+        self.guardar_en = None
+
+        self.carpeta = libros.desplegar(libro["ruta"])
+        self.capitulos = libros.capitulos_epub(libro["ruta"])
+        self.total = len(self.capitulos)
+
+        guardado = db.book_abrir(self.con, libro["ruta"], libro["nombre"],
+                                 libro["tema"], self.total)
+        self.n = min(max(1, guardado["pagina"]), self.total)
+        self.marcas = db.book_marcas(self.con, libro["ruta"])
+
+        try:
+            self.tam = int(db.book_zoom(self.con, libro["ruta"]) or 0) or 18
+        except (TypeError, ValueError):
+            self.tam = 18
+        self.noche = False
+
+        self.vista = WebKit.WebView(vexpand=True, hexpand=True)
+        ajustes = self.vista.get_settings()
+        ajustes.set_enable_javascript(False)      # un libro no necesita ejecutar nada
+        ajustes.set_enable_developer_extras(False)
+        self.vista.connect("decide-policy", self.on_navegar)
+
+        cuerpo = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        cuerpo.append(self.vista)
+        cuerpo.append(self.barra())
+
+        self.pagina = Adw.NavigationPage(title=util.plain(libro["nombre"])[:60])
+        tv = Adw.ToolbarView()
+        tv.add_top_bar(self.cabecera())
+        tv.set_content(cuerpo)
+        self.pagina.set_child(tv)
+        self.pagina.connect("hidden", lambda *_: self.cerrar())
+
+        teclas = Gtk.EventControllerKey()
+        teclas.connect("key-pressed", self.on_key)
+        self.pagina.add_controller(teclas)
+
+        self.ir(self.n)
+
+    # ------------------------------------------------------------ estructura
+
+    def cabecera(self):
+        cab = Adw.HeaderBar()
+        self.titulo = Adw.WindowTitle(title=util.plain(self.libro["nombre"])[:48],
+                                      subtitle="")
+        cab.set_title_widget(self.titulo)
+
+        indice = Gtk.MenuButton(icon_name="view-list-symbolic")
+        util.tooltip_perezoso(indice, "Índice del libro")
+        indice.set_popover(self.popover_indice())
+        cab.pack_start(indice)
+
+        self.btn_marca = Gtk.ToggleButton(icon_name="bookmark-new-symbolic")
+        self.btn_marca.connect("toggled", self.on_marcar)
+        util.tooltip_perezoso(self.btn_marca, "Marcador en este capítulo (M)")
+        cab.pack_end(self.btn_marca)
+
+        noche = Gtk.ToggleButton(icon_name="weather-clear-night-symbolic")
+        noche.connect("toggled", lambda b: self.poner_noche(b.get_active()))
+        util.tooltip_perezoso(noche, "Modo noche (N)")
+        cab.pack_end(noche)
+
+        tarjetas = Gtk.Button(label="✦ Tarjetas")
+        util.tooltip_perezoso(tarjetas, "Generar tarjetas de este capítulo")
+        tarjetas.connect("clicked", lambda *_: self.hacer_tarjetas())
+        cab.pack_end(tarjetas)
+        return cab
+
+    def popover_indice(self):
+        pop = Gtk.Popover()
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_size_request(340, min(460, 44 * min(self.total, 10) + 20))
+        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                            css_classes=["boxed-list"])
+        for i, cap in enumerate(self.capitulos, start=1):
+            fila = Adw.ActionRow(title=util.as_label(cap["titulo"])[:80])
+            fila.set_activatable(True)
+            fila.connect("activated", lambda _f, k=i: (pop.popdown(), self.ir(k)))
+            lista.append(fila)
+        scroll.set_child(lista)
+        pop.set_child(scroll)
+        return pop
+
+    def barra(self):
+        caja = Gtk.Box(spacing=8, css_classes=["toolbar"])
+        for lado, v in (("top", 6), ("bottom", 8), ("start", 12), ("end", 12)):
+            getattr(caja, f"set_margin_{lado}")(v)
+
+        anterior = Gtk.Button(icon_name="go-previous-symbolic")
+        anterior.connect("clicked", lambda *_: self.ir(self.n - 1))
+        util.tooltip_perezoso(anterior, "Capítulo anterior (←)")
+        caja.append(anterior)
+
+        self.etiqueta = Gtk.Label(label="", css_classes=["as-dim"], hexpand=True,
+                                  ellipsize=Pango.EllipsizeMode.END, xalign=0)
+        caja.append(self.etiqueta)
+
+        siguiente = Gtk.Button(icon_name="go-next-symbolic")
+        siguiente.connect("clicked", lambda *_: self.ir(self.n + 1))
+        util.tooltip_perezoso(siguiente, "Capítulo siguiente (→)")
+        caja.append(siguiente)
+
+        self.avance = Gtk.ProgressBar(valign=Gtk.Align.CENTER, show_text=True,
+                                      css_classes=["as-progress"])
+        self.avance.set_size_request(140, -1)
+        caja.append(self.avance)
+
+        menos = Gtk.Button(icon_name="zoom-out-symbolic")
+        menos.connect("clicked", lambda *_: self.letra(-1))
+        util.tooltip_perezoso(menos, "Letra más pequeña (−)")
+        caja.append(menos)
+        mas = Gtk.Button(icon_name="zoom-in-symbolic")
+        mas.connect("clicked", lambda *_: self.letra(1))
+        util.tooltip_perezoso(mas, "Letra más grande (+)")
+        caja.append(mas)
+        return caja
+
+    # -------------------------------------------------------------- contenido
+
+    def estilo(self) -> str:
+        css = CSS_EPUB % {"tam": self.tam}
+        return css + (CSS_EPUB_NOCHE if self.noche else "")
+
+    def aplicar_estilo(self):
+        """Cambia la hoja de estilo del libro en caliente.
+
+        Sin recargar: recargar competía con la carga del capítulo que estuviera
+        en marcha y acababa enseñando el anterior. Las hojas de usuario de
+        WebKit se aplican al documento que ya está delante, así que además no
+        parpadea ni se pierde por dónde ibas.
+        """
+        gestor = self.vista.get_user_content_manager()
+        gestor.remove_all_style_sheets()
+        gestor.add_style_sheet(WebKit.UserStyleSheet(
+            self.estilo(), WebKit.UserContentInjectedFrames.ALL_FRAMES,
+            WebKit.UserStyleLevel.USER, None, None))
+
+    def ir(self, n):
+        n = max(1, min(int(n), self.total))
+        self.n = n
+        cap = self.capitulos[n - 1]
+        destino = self.carpeta / cap["href"]
+        if not destino.exists():
+            self.bib.ventana.notify_user(f"Falta un capítulo del EPUB: {cap['href']}")
+            return
+        self.aplicar_estilo()
+        self.vista.load_uri(destino.as_uri())
+        self.titulo.set_subtitle(f"{n} de {self.total} · {cap['titulo'][:40]}")
+        self.etiqueta.set_text(cap["titulo"])
+        self.avance.set_fraction(n / self.total)
+        self.avance.set_text(f"{n / self.total * 100:.0f} %")
+        self.btn_marca.handler_block_by_func(self.on_marcar)
+        self.btn_marca.set_active(n in self.marcas)
+        self.btn_marca.handler_unblock_by_func(self.on_marcar)
+        self.apuntar_luego(n)
+
+    def poner_noche(self, si):
+        self.noche = bool(si)
+        self.aplicar_estilo()
+
+    def letra(self, paso):
+        opciones = list(self.TAMANOS)
+        actual = min(opciones, key=lambda t: abs(t - self.tam))
+        i = opciones.index(actual) + (1 if paso > 0 else -1)
+        self.tam = opciones[max(0, min(len(opciones) - 1, i))]
+        db.book_zoom(self.con, self.libro["ruta"], str(self.tam))
+        self.aplicar_estilo()
+
+    def on_navegar(self, _vista, decision, tipo):
+        """Los enlaces dentro del libro se siguen; los de fuera, al navegador."""
+        if tipo != WebKit.PolicyDecisionType.NAVIGATION_ACTION:
+            return False
+        uri = decision.get_navigation_action().get_request().get_uri()
+        if uri.startswith("file://"):
+            return False
+        decision.ignore()
+        Gtk.UriLauncher(uri=uri).launch(self.bib.ventana, None, None, None)
+        return True
+
+    def apuntar_luego(self, n):
+        if self.guardar_en:
+            GLib.source_remove(self.guardar_en)
+
+        def guardar():
+            self.guardar_en = None
+            db.book_progreso(self.con, self.libro["ruta"], n)
+            return False
+
+        self.guardar_en = GLib.timeout_add(500, guardar)
+
+    # --------------------------------------------------------------- acciones
+
+    def on_marcar(self, _boton):
+        self.marcas = db.book_marcar(self.con, self.libro["ruta"], self.n)
+        self.bib.ventana.notify_user(
+            f"Capítulo {self.n} marcado" if self.n in self.marcas
+            else "Marcador quitado")
+
+    def hacer_tarjetas(self):
+        """Genera tarjetas del capítulo que tienes delante."""
+        cap = self.capitulos[self.n - 1]
+        destino = self.carpeta / cap["href"]
+        try:
+            crudo = destino.read_text(encoding="utf-8", errors="replace")
+        except OSError as e:
+            self.bib.ventana.notify_user(f"No pude leer el capítulo: {e}")
+            return
+        if not ia.config(self.con)["activa"]:
+            self.bib.ventana.notify_user("Activa la IA en Ajustes para sacar tarjetas")
+            return
+        texto = libros.limpiar_texto(libros._html_a_texto(crudo), 9000)
+        if len(texto) < 400:
+            self.bib.ventana.notify_user("Este capítulo casi no tiene texto.")
+            return
+        cfg = ia.config(self.con)
+        libro, titulo = self.libro, cap["titulo"]
+        self.bib.ventana.notify_user(f"Leyendo «{titulo[:40]}»…")
+
+        util.hilo(
+            lambda: ia.generar_desde_texto(cfg, texto, f"{libro['nombre']} · {titulo}", 5),
+            lambda tarjetas: (self.bib.ventana.revisar_generadas(
+                tarjetas, libros.mazo_para(self.con, libro),
+                f"{libro['nombre']} · {titulo}", etiquetas="libro,ia"),
+                ia.hilo(lambda: ia.descargar(cfg))),
+            lambda e: (self.bib.ventana.notify_user(f"No pude: {e}"),
+                       ia.hilo(lambda: ia.descargar(cfg))),
+            largo=True)          # la IA tarda: hilo propio, no la cola
+
+    def on_key(self, _c, keyval, _code, estado):
+        tecla = Gdk.keyval_name(keyval)
+        if tecla in ("Left", "Page_Up", "BackSpace"):
+            self.ir(self.n - 1)
+            return True
+        if tecla in ("Right", "Page_Down"):
+            self.ir(self.n + 1)
+            return True
+        if tecla in ("Home", "End"):
+            self.ir(1 if tecla == "Home" else self.total)
+            return True
+        if tecla in ("plus", "equal", "KP_Add"):
+            self.letra(1)
+            return True
+        if tecla in ("minus", "KP_Subtract"):
+            self.letra(-1)
+            return True
+        if tecla in ("m", "M"):
+            self.btn_marca.set_active(not self.btn_marca.get_active())
+            return True
+        if tecla in ("n", "N"):
+            self.poner_noche(not self.noche)
+            return True
+        return False
+
+    def cerrar(self):
+        if self.guardar_en:
+            GLib.source_remove(self.guardar_en)
+            self.guardar_en = None
+        minutos = (time.time() - self.desde) / 60.0
+        db.book_progreso(self.con, self.libro["ruta"], self.n, minutos)
+        self.bib.refrescar()
 
 
 class Pagina(Gtk.Widget):
@@ -309,6 +642,8 @@ class Pagina(Gtk.Widget):
         super().__init__()
         self.textura = None
         self.invertido = False
+        self.notas = []              # subrayados de esta página, en 0..1
+        self.trazo = None            # el rectángulo que estás arrastrando ahora
         self.ancho, self.alto = 600, 800
         self.set_halign(Gtk.Align.CENTER)
         self.set_valign(Gtk.Align.CENTER)
@@ -322,6 +657,24 @@ class Pagina(Gtk.Widget):
         self.invertido = bool(si)
         self.queue_draw()
 
+    def poner_notas(self, notas):
+        self.notas = list(notas)
+        self.queue_draw()
+
+    def poner_trazo(self, rect):
+        self.trazo = rect
+        self.queue_draw()
+
+    def rect_en(self, x, y):
+        """El subrayado que hay bajo ese punto del widget, o None."""
+        w, h = self.get_width() or 1, self.get_height() or 1
+        rx, ry = x / w, y / h
+        # De atrás hacia delante: gana el último dibujado, que es el de encima
+        for nota in reversed(self.notas):
+            if nota["x0"] <= rx <= nota["x1"] and nota["y0"] <= ry <= nota["y1"]:
+                return nota
+        return None
+
     def do_measure(self, orientacion, _para):
         v = self.ancho if orientacion == Gtk.Orientation.HORIZONTAL else self.alto
         return (v, v, -1, -1)
@@ -329,16 +682,50 @@ class Pagina(Gtk.Widget):
     def do_snapshot(self, snapshot):
         if self.textura is None:
             return
-        rect = Graphene.Rect().init(0, 0, self.get_width(), self.get_height())
+        w, h = self.get_width(), self.get_height()
+        rect = Graphene.Rect().init(0, 0, w, h)
         if not self.invertido:
             snapshot.append_texture(self.textura, rect)
+        else:
+            # |blanco − página| = página invertida, y lo hace la GPU
+            snapshot.push_blend(Gsk.BlendMode.DIFFERENCE)
+            snapshot.append_color(BLANCO, rect)
+            snapshot.pop()
+            snapshot.append_texture(self.textura, rect)
+            snapshot.pop()
+
+        # Los subrayados van encima, translúcidos: se lee el texto por debajo.
+        # Se multiplica en vez de mezclar para que el papel blanco tome el color
+        # y las letras negras sigan siendo negras, como un rotulador de verdad.
+        for nota in self.notas:
+            self._pintar_marca(snapshot, nota, w, h,
+                               db.COLORES_NOTA.get(nota["color"],
+                                                   db.COLORES_NOTA["amarillo"]),
+                               0.34 if not nota.get("nota") else 0.46)
+            if nota.get("nota"):
+                # Una pestañita a la izquierda avisa de que hay algo escrito
+                self._pestaña(snapshot, nota, w, h)
+        if self.trazo:
+            self._pintar_marca(snapshot, self.trazo, w, h,
+                               db.COLORES_NOTA["amarillo"], 0.28)
+
+    @staticmethod
+    def _pintar_marca(snapshot, r, w, h, color, alfa):
+        x0, x1 = sorted((r["x0"] * w, r["x1"] * w))
+        y0, y1 = sorted((r["y0"] * h, r["y1"] * h))
+        if x1 - x0 < 1 or y1 - y0 < 1:
             return
-        # |blanco − página| = página invertida, y lo hace la GPU
-        snapshot.push_blend(Gsk.BlendMode.DIFFERENCE)
-        snapshot.append_color(BLANCO, rect)
-        snapshot.pop()
-        snapshot.append_texture(self.textura, rect)
-        snapshot.pop()
+        snapshot.append_color(
+            Gdk.RGBA(red=color[0], green=color[1], blue=color[2], alpha=alfa),
+            Graphene.Rect().init(x0, y0, x1 - x0, y1 - y0))
+
+    @staticmethod
+    def _pestaña(snapshot, r, w, h):
+        y0, y1 = sorted((r["y0"] * h, r["y1"] * h))
+        x = max(0, r["x0"] * w - 6)
+        snapshot.append_color(
+            Gdk.RGBA(red=0.20, green=0.40, blue=0.85, alpha=0.95),
+            Graphene.Rect().init(x, y0, 3, max(8, y1 - y0)))
 
 
 class Lector:
@@ -361,6 +748,9 @@ class Lector:
         self.n = min(max(1, guardado["pagina"]), self.total)
         self.marcas = db.book_marcas(self.con, libro["ruta"])
         self.tam_pt = libros.tamano_pagina(libro["ruta"])
+        self.notas = []                  # los subrayados de la página actual
+        self.subrayando = False          # el modo rotulador, con la tecla S
+        self.color_nota = "amarillo"
 
         ajuste, escala = "ancho", 1.0       # cómo lo estabas leyendo
         try:
@@ -380,6 +770,18 @@ class Lector:
         rueda = Gtk.EventControllerScroll(flags=Gtk.EventControllerScrollFlags.BOTH_AXES)
         rueda.connect("scroll", self.on_rueda)
         self.scroll.add_controller(rueda)
+
+        # Arrastrar sobre la hoja subraya, pero solo con el rotulador activado:
+        # si no, cualquier arrastre despistado dejaría una marca.
+        arrastre = Gtk.GestureDrag()
+        arrastre.connect("drag-begin", self.on_arrastre_inicio)
+        arrastre.connect("drag-update", self.on_arrastre)
+        arrastre.connect("drag-end", self.on_arrastre_fin)
+        self.hoja.add_controller(arrastre)
+
+        toque = Gtk.GestureClick()
+        toque.connect("released", self.on_clic_hoja)
+        self.hoja.add_controller(toque)
 
         cuerpo = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         cuerpo.append(self.barra_busqueda())
@@ -579,6 +981,19 @@ class Lector:
             "pagina" if self.ajuste != "pagina" else "ancho"))
         util.tooltip_perezoso(ajustar, "Ajustar a la página o al ancho (F)")
         caja.append(ajustar)
+
+        self.btn_subrayar = Gtk.ToggleButton(icon_name="edit-select-all-symbolic")
+        self.btn_subrayar.connect("toggled", self.on_toggle_subrayar)
+        util.tooltip_perezoso(self.btn_subrayar,
+                              "Rotulador: arrastra sobre el texto (S)")
+        caja.append(self.btn_subrayar)
+
+        self.btn_notas = Gtk.MenuButton(icon_name="view-list-bullet-symbolic")
+        self.btn_notas.set_popover(self.panel_notas())
+        self.btn_notas.connect("notify::active", lambda *_: (
+            self.btn_notas.set_popover(self.panel_notas())
+            if self.btn_notas.get_active() else None))
+        caja.append(self.btn_notas)
         return caja
 
     # ------------------------------------------------------------ zoom
@@ -640,6 +1055,7 @@ class Lector:
         self.btn_marca.handler_block_by_func(self.on_marcar)
         self.btn_marca.set_active(n in self.marcas)
         self.btn_marca.handler_unblock_by_func(self.on_marcar)
+        self.cargar_notas()
         self.apuntar_luego(n)
 
         ruta = self.libro["ruta"]
@@ -697,6 +1113,219 @@ class Lector:
         self.guardar_en = GLib.timeout_add(500, guardar)
 
     # ------------------------------------------------------------ acciones
+
+    # ------------------------------------------------- subrayados y notas
+
+    def cargar_notas(self):
+        """Trae los subrayados de la página actual y los pinta en la hoja."""
+        self.notas = db.notas_de(self.con, self.libro["ruta"], self.n)
+        self.hoja.poner_notas(self.notas)
+        if hasattr(self, "btn_subrayar"):
+            total = db.notas_de(self.con, self.libro["ruta"])
+            self.btn_notas.set_tooltip_text(
+                f"{len(total)} subrayados en este libro" if total
+                else "Todavía no has subrayado nada")
+
+    def _relativo(self, x, y):
+        w = self.hoja.get_width() or 1
+        h = self.hoja.get_height() or 1
+        return min(1.0, max(0.0, x / w)), min(1.0, max(0.0, y / h))
+
+    def alternar_subrayado(self, activo=None):
+        self.subrayando = (not self.subrayando) if activo is None else bool(activo)
+        self.btn_subrayar.handler_block_by_func(self.on_toggle_subrayar)
+        self.btn_subrayar.set_active(self.subrayando)
+        self.btn_subrayar.handler_unblock_by_func(self.on_toggle_subrayar)
+        self.hoja.set_cursor_from_name("crosshair" if self.subrayando else None)
+        if self.subrayando:
+            self.bib.ventana.notify_user(
+                "Rotulador activado: arrastra sobre el texto. S para salir.")
+
+    def on_toggle_subrayar(self, boton):
+        self.alternar_subrayado(boton.get_active())
+
+    def on_arrastre_inicio(self, gesto, x, y):
+        if not self.subrayando:
+            return
+        self._ancla = self._relativo(x, y)
+
+    def on_arrastre(self, gesto, dx, dy):
+        if not self.subrayando or not getattr(self, "_ancla", None):
+            return
+        ok, x0, y0 = gesto.get_start_point()
+        if not ok:
+            return
+        x1, y1 = self._relativo(x0 + dx, y0 + dy)
+        self.hoja.poner_trazo({"x0": self._ancla[0], "y0": self._ancla[1],
+                               "x1": x1, "y1": y1})
+
+    def on_arrastre_fin(self, gesto, dx, dy):
+        if not self.subrayando or not getattr(self, "_ancla", None):
+            return
+        self.hoja.poner_trazo(None)
+        ancla, self._ancla = self._ancla, None
+        ok, x0, y0 = gesto.get_start_point()
+        if not ok:
+            return
+        x1, y1 = self._relativo(x0 + dx, y0 + dy)
+        rect = (ancla[0], ancla[1], x1, y1)
+        # Un arrastre de dos píxeles es un clic torpe, no un subrayado
+        if abs(rect[2] - rect[0]) < 0.02 or abs(rect[3] - rect[1]) < 0.008:
+            return
+        texto = libros.texto_region(self.libro["ruta"], self.n, rect, self.tam_pt)
+        nota_id = db.nota_add(self.con, self.libro["ruta"], self.n, rect,
+                              texto=texto, color=self.color_nota)
+        self.cargar_notas()
+        aviso = Adw.Toast(title=util.plain(texto)[:70] if texto else "Subrayado",
+                          timeout=4)
+        aviso.set_button_label("Anotar")
+        aviso.connect("button-clicked", lambda *_: self.abrir_nota(nota_id))
+        self.bib.ventana.toast.add_toast(aviso)
+
+    def on_clic_hoja(self, gesto, _n, x, y):
+        """Tocar un subrayado abre su ficha; tocar el papel no hace nada."""
+        if self.subrayando:
+            return
+        nota = self.hoja.rect_en(x, y)
+        if nota:
+            self.abrir_nota(nota["id"], ancla=(x, y))
+
+    def abrir_nota(self, nota_id, ancla=None):
+        """La ficha de un subrayado: lo que dice, tu comentario y qué hacer con él."""
+        nota = next((n for n in db.notas_de(self.con, self.libro["ruta"])
+                     if n["id"] == nota_id), None)
+        if not nota:
+            return
+        pop = Gtk.Popover(autohide=True)
+        pop.set_parent(self.hoja)
+        if ancla:
+            rect = Gdk.Rectangle()
+            rect.x, rect.y, rect.width, rect.height = int(ancla[0]), int(ancla[1]), 1, 1
+            pop.set_pointing_to(rect)
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        for lado in ("top", "bottom", "start", "end"):
+            getattr(caja, f"set_margin_{lado}")(12)
+        caja.set_size_request(360, -1)
+
+        if nota["texto"]:
+            cita = Gtk.Label(label=f"«{util.plain(nota['texto'])[:400]}»",
+                             wrap=True, xalign=0, css_classes=["as-dim"])
+            caja.append(cita)
+        else:
+            caja.append(Gtk.Label(label="Sin texto debajo (una figura, o un escaneo)",
+                                  xalign=0, css_classes=["as-dim"]))
+
+        entrada = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD, top_margin=6,
+                               bottom_margin=6, left_margin=8, right_margin=8)
+        entrada.get_buffer().set_text(nota["nota"])
+        marco = Gtk.Frame()
+        marco.set_child(entrada)
+        marco.set_size_request(-1, 90)
+        caja.append(Gtk.Label(label="Tu nota", xalign=0, css_classes=["heading"]))
+        caja.append(marco)
+
+        colores = Gtk.Box(spacing=6)
+        for nombre, rgb in db.COLORES_NOTA.items():
+            b = Gtk.Button(css_classes=["circular"], width_request=26, height_request=26)
+            css = Gtk.CssProvider()
+            css.load_from_data(
+                f"button {{ background: rgb({int(rgb[0]*255)},{int(rgb[1]*255)},"
+                f"{int(rgb[2]*255)}); }}".encode())
+            b.get_style_context().add_provider(css,
+                                               Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+            b.connect("clicked", lambda _b, c=nombre: self.cambiar_color(nota_id, c))
+            colores.append(b)
+        caja.append(colores)
+
+        fila = Gtk.Box(spacing=6, homogeneous=True)
+        tarjeta = Gtk.Button(label="✦ Hacer tarjeta")
+        tarjeta.connect("clicked", lambda *_: (self.guardar_nota(nota_id, entrada),
+                                               pop.popdown(),
+                                               self.tarjeta_de_nota(nota_id)))
+        fila.append(tarjeta)
+        borrar = Gtk.Button(label="Borrar", css_classes=["destructive-action"])
+        borrar.connect("clicked", lambda *_: (db.nota_borrar(self.con, nota_id),
+                                              self.cargar_notas(), pop.popdown()))
+        fila.append(borrar)
+        guardar = Gtk.Button(label="Guardar", css_classes=["suggested-action"])
+        guardar.connect("clicked", lambda *_: (self.guardar_nota(nota_id, entrada),
+                                               pop.popdown()))
+        fila.append(guardar)
+        caja.append(fila)
+
+        pop.set_child(caja)
+        pop.connect("closed", lambda *_: pop.unparent())
+        pop.popup()
+
+    def guardar_nota(self, nota_id, vista):
+        buf = vista.get_buffer()
+        texto = buf.get_text(buf.get_start_iter(), buf.get_end_iter(), False)
+        db.nota_editar(self.con, nota_id, nota=texto.strip())
+        self.cargar_notas()
+
+    def cambiar_color(self, nota_id, color):
+        self.color_nota = color
+        db.nota_editar(self.con, nota_id, color=color)
+        self.cargar_notas()
+
+    def tarjeta_de_nota(self, nota_id):
+        """Abre el editor con lo subrayado ya puesto: es el paso natural."""
+        nota = next((n for n in db.notas_de(self.con, self.libro["ruta"])
+                     if n["id"] == nota_id), None)
+        if not nota:
+            return
+        mazo = libros.mazo_para(self.con, self.libro)
+        self.bib.ventana.editor_desde_nota(nota, mazo, self.libro)
+
+    def panel_notas(self):
+        """La lista de todo lo subrayado en este libro, para repasarlo de un vistazo."""
+        pop = Gtk.Popover()
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        for lado in ("top", "bottom", "start", "end"):
+            getattr(caja, f"set_margin_{lado}")(10)
+        caja.set_size_request(430, -1)
+        todas = db.notas_de(self.con, self.libro["ruta"])
+        caja.append(Gtk.Label(
+            label=f"{len(todas)} subrayados" if todas else "Todavía no has subrayado nada",
+            xalign=0, css_classes=["heading"]))
+        if not todas:
+            caja.append(Gtk.Label(
+                label="Pulsa S o el rotulador de arriba y arrastra sobre el texto.",
+                xalign=0, wrap=True, css_classes=["as-dim"]))
+        scroll = Gtk.ScrolledWindow(vexpand=True)
+        scroll.set_size_request(-1, min(420, 60 + 66 * min(len(todas), 6)))
+        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                            css_classes=["boxed-list"])
+        for nota in todas:
+            resumen = util.plain(nota["texto"])[:90] or "(sin texto)"
+            fila = Adw.ActionRow(title=util.as_label(resumen),
+                                 subtitle=f"pág. {nota['pagina']}"
+                                          + (f" · {util.plain(nota['nota'])[:60]}"
+                                             if nota["nota"] else ""))
+            fila.set_subtitle_lines(2)
+            fila.set_activatable(True)
+            fila.connect("activated",
+                         lambda _f, n=nota: (pop.popdown(), self.ir(n["pagina"])))
+            lista.append(fila)
+        scroll.set_child(lista)
+        caja.append(scroll)
+        if todas:
+            exportar = Gtk.Button(label="Copiar todo en Markdown")
+            exportar.connect("clicked", lambda *_: self.copiar_notas(todas))
+            caja.append(exportar)
+        pop.set_child(caja)
+        return pop
+
+    def copiar_notas(self, notas):
+        """Todo lo subrayado, en Markdown, listo para pegarlo donde quieras."""
+        lineas = [f"# {util.plain(self.libro['nombre'])}", ""]
+        for n in notas:
+            lineas.append(f"**pág. {n['pagina']}** — {util.plain(n['texto']) or '(sin texto)'}")
+            if n["nota"]:
+                lineas.append(f"> {util.plain(n['nota'])}")
+            lineas.append("")
+        self.pagina.get_clipboard().set("\n".join(lineas))
+        self.bib.ventana.notify_user(f"{len(notas)} subrayados copiados")
 
     def on_marcar(self, boton):
         self.marcas = db.book_marcar(self.con, self.libro["ruta"], self.n)
@@ -765,6 +1394,9 @@ class Lector:
             return True
         if tecla in ("n", "N"):
             self.hoja.invertir(not self.hoja.invertido)
+            return True
+        if tecla in ("s", "S"):
+            self.alternar_subrayado()
             return True
         return False
 

@@ -304,6 +304,174 @@
    ]
   },
   {
+   "level": 1,
+   "minutes": 11,
+   "tags": "álgebra,optimización,fundamentos,matemáticas",
+   "title": "Álgebra lineal y optimización para ciencia de datos",
+   "subtitle": "Vectores, transformaciones matriciales, autovalores, SVD y descenso de gradiente desde cero.",
+   "body": [
+    {
+     "p": "Bajo la interfaz de cualquier biblioteca como Scikit-Learn, PyTorch o XGBoost no hay magia: hay operaciones sistemáticas de álgebra lineal y optimización numérica multivariada. Comprender qué le ocurre geométricamente a los datos cuando se multiplican por una matriz o cómo se desliza un optimizador por una superficie de pérdida es la diferencia entre copiar recetas y dominar la disciplina."
+    },
+    {
+     "h": "Vectores, producto punto y normas en el espacio de datos"
+    },
+    {
+     "p": "Cada fila de un dataset con $p$ columnas es un punto o vector en un espacio vectorial $\\mathbb{R}^p$. Dos operaciones fundamentales gobiernan casi todo el machine learning basado en distancias:"
+    },
+    {
+     "list": [
+      "<b>Producto punto (Dot Product)</b> — para dos vectores $u$ y $v$, $u \\cdot v = \\sum u_i v_i = \\lVert u \\rVert \\lVert v \\rVert \\cos(\\theta)$. Mide la alineación direccional: si dos vectores son perpendiculares (ortogonales), su producto punto es 0 exacto; si apuntan en la misma dirección, es máximo positivo.",
+      "<b>Norma $L_2$ (Euclidiana)</b> — $\\lVert x \\rVert_2 = \\sqrt{\\sum x_i^2}$, la distancia recta geométrica en el espacio. Muy sensible a valores extremos.",
+      "<b>Norma $L_1$ (Manhattan)</b> — $\\lVert x \\rVert_1 = \\sum |x_i|$, la suma de diferencias absolutas por coordenada. Base de la regularización Lasso y las distancias robustas."
+     ]
+    },
+    {
+     "code": "import numpy as np\n\nu = np.array([2.0, 3.0, 1.0])\nv = np.array([1.0, -1.0, 4.0])\n\n# Producto escalar y ángulo\ndot = np.dot(u, v)                         # 2*1 + 3*(-1) + 1*4 = 3.0\ncos_theta = dot / (np.linalg.norm(u) * np.linalg.norm(v))\nangulo_grados = np.degrees(np.arccos(cos_theta))"
+    },
+    {
+     "h": "Matrices como transformaciones del espacio"
+    },
+    {
+     "p": "Una matriz no es solo una tabla de números: es una <b>función de transformación lineal</b> que estira, rota, refleja o comprime el espacio geométrico. Cuando multiplicas una matriz $A$ por un vector $x$ ($A x$), estás trasladando el vector a un nuevo sistema de coordenadas definido por las columnas de $A$."
+    },
+    {
+     "list": [
+      "<b>Determinante $\\det(A)$</b> — factor por el cual la matriz escala las áreas o volúmenes del espacio. Si $\\det(A) = 0$, la matriz colapsa el espacio a una dimensión inferior (de 3D a un plano o una línea), perdiendo información de forma irreversible (matriz no invertible / singular).",
+      "<b>Rango (Rank)</b> — número de filas o columnas linealmente independientes. Si tienes 10 columnas pero el rango es 6, hay 4 columnas que son combinaciones redundantes exactas de las otras (multicolinealidad perfecta)."
+     ]
+    },
+    {
+     "h": "Autovalores y autovectores: las direcciones invariantes"
+    },
+    {
+     "p": "Cuando una matriz lineal transforma el espacio, la mayoría de los vectores cambian tanto de longitud como de dirección (giran). Sin embargo, existen unos pocos vectores especiales que <b>solo cambian de escala sin cambiar de dirección</b>:"
+    },
+    {
+     "math": "A v = \\lambda v"
+    },
+    {
+     "p": "El vector $v$ es un <b>autovector (eigenvector)</b> y el escalar $\\lambda$ es su <b>autovalor (eigenvalue)</b> correspondiente. En análisis de datos:"
+    },
+    {
+     "key": "Al calcular los autovectores de la <b>matriz de covarianza</b> de los datos, el autovector con el mayor autovalor señala exactamente el eje de <b>máxima dispersión y variabilidad de las observaciones</b>. Este principio matemático es la base exacta del Análisis de Componentes Principales (PCA)."
+    },
+    {
+     "h": "Descomposición en Valores Singulares (SVD)"
+    },
+    {
+     "p": "Mientras que los autovalores solo aplican a matrices cuadradas, la <b>SVD</b> funciona sobre <i>cualquier</i> matriz rectangular $X$ de tamaño $n \\times p$:"
+    },
+    {
+     "math": "X = U \\,\\Sigma\\, V^T"
+    },
+    {
+     "list": [
+      "<b>$U$ ($n \\times n$)</b> — matriz ortogonal con los vectores singulares izquierdos (representación de filas/observaciones).",
+      "<b>$\\Sigma$ ($n \\times p$)</b> — matriz diagonal con los <i>valores singulares</i> ordenados de mayor a menor (fuerza de cada componente latente).",
+      "<b>$V^T$ ($p \\times p$)</b> — matriz ortogonal con los vectores singulares derechos (representación de columnas/variables)."
+     ]
+    },
+    {
+     "p": "Truncar $\\Sigma$ conservando solo los primeros $k$ valores singulares genera la mejor aproximación de bajo rango posible (teorema de Eckart-Young). Se utiliza universalmente para comprimir datos, eliminar ruido espectral y en sistemas de recomendación por factorización matricial."
+    },
+    {
+     "h": "Optimización: el Descenso de Gradiente"
+    },
+    {
+     "p": "Ajustar un modelo de machine learning consiste en encontrar los parámetros $w$ que minimizan una función de coste $L(w)$. El <b>gradiente $\\nabla L(w)$</b> es el vector de derivadas parciales que apunta en la dirección de máximo ascenso; por ende, avanzar en la dirección opuesta al gradiente reduce el error:"
+    },
+    {
+     "math": "w_{t+1} = w_t - \\eta \\,\\nabla L(w_t)"
+    },
+    {
+     "list": [
+      "<b>Batch Gradient Descent</b> — calcula el gradiente exacto promediando sobre la totalidad de los datos. Trayectoria suave y determinista, pero prohibitivamente lento con millones de registros.",
+      "<b>Stochastic Gradient Descent (SGD)</b> — calcula el gradiente usando una sola observación elegida al azar en cada paso. Muy rápido y ayuda a escapar de mínimos locales, pero su trayectoria oscila ruidosamente alrededor del óptimo.",
+      "<b>Mini-batch Gradient Descent</b> — calcula el gradiente sobre un lote pequeño (ej. 32, 64, 256 filas). Es el estándar absoluto: aprovecha la vectorización paralela en GPU/CPU y estabiliza la convergencia."
+     ]
+    },
+    {
+     "h": "Optimizadores modernos: Momentum y Adam"
+    },
+    {
+     "p": "El descenso de gradiente simple con tasa fija $\\eta$ sufre en superficies con forma de valle estrecho o mesetas planas. Los optimizadores modernos introducen dos mecanismos:"
+    },
+    {
+     "steps": [
+      "<b>Momentum (Inercia)</b>: añade una fracción del paso anterior a la actualización actual, como una bola pesada rodando colina abajo. Acelera en direcciones continuas y amortigua oscilaciones transversales.",
+      "<b>Adam (Adaptive Moment Estimation)</b>: combina momentum con una tasa de aprendizaje adaptativa individual para cada parámetro, dividiendo el paso por la raíz cuadrada de la media móvil de los gradientes al cuadrado ($RMS$). Requiere muy poco ajuste manual de hiperparámetros y es el optimizador por defecto en deep learning."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "probabilidad,bayes,estadística,modelado",
+   "title": "Probabilidad bayesiana, distribuciones y verosimilitud",
+   "subtitle": "El teorema de Bayes, el catálogo de distribuciones que debes dominar, MLE vs MAP y simulación MCMC.",
+   "body": [
+    {
+     "p": "La probabilidad es el lenguaje formal de la incertidumbre en ciencia de datos. Mientras que la estadística frecuentista clásica trata a los parámetros desconocidos como constantes fijas en el universo, el marco bayesiano cuantifica directamente qué tan razonable es creer en una hipótesis a la luz de la evidencia observada."
+    },
+    {
+     "h": "El Teorema de Bayes fundamental"
+    },
+    {
+     "p": "La regla de Bayes actualiza nuestras creencias previas tras observar nuevos datos observacionales:"
+    },
+    {
+     "math": "P(\\theta \\mid D) = \\frac{P(D \\mid \\theta) \\, P(\\theta)}{P(D)}"
+    },
+    {
+     "list": [
+      "<b>A Priori (Prior) $P(\\theta)$</b> — el conocimiento o grado de creencia sobre el parámetro $\\theta$ antes de recopilar los datos actuales (ej. tasa histórica de conversión del sector).",
+      "<b>Verosimilitud (Likelihood) $P(D \\mid \\theta)$</b> — la probabilidad de haber obtenido exactamente los datos observados $D$ si el parámetro fuera $\\theta$.",
+      "<b>A Posteriori (Posterior) $P(\\theta \\mid D)$</b> — la creencia actualizada sobre el parámetro tras procesar la evidencia empírica.",
+      "<b>Evidencia marginal $P(D) = \\int P(D \\mid \\theta) P(\\theta) d\\theta$</b> — constante normalizadora que garantiza que la distribución posterior sume 1."
+     ]
+    },
+    {
+     "key": "Diferencia de perspectiva clave: el enfoque frecuentista calcula $P(\\text{datos} \\mid \\text{hipótesis})$ (como en los p-valores); el enfoque bayesiano calcula directamente lo que el negocio realmente desea saber: $P(\\text{hipótesis} \\mid \\text{datos})$."
+    },
+    {
+     "h": "El catálogo de distribuciones que todo científico debe reconocer"
+    },
+    {
+     "list": [
+      "<b>Bernoulli y Binomial</b> — modelan el conteo de éxitos en $n$ ensayos independientes con probabilidad fija $p$ (tasas de conversión web, clics en anuncios, piezas defectuosas).",
+      "<b>Poisson</b> — modela el recuento de eventos raros e independientes que ocurren a una tasa constante $\\lambda$ en un intervalo fijo de tiempo o espacio (averías de motor por mes, llamadas a soporte por hora, visitas al servidor por minuto). <i>Propiedad única</i>: su media es igual a su varianza ($\\mu = \\sigma^2 = \\lambda$).",
+      "<b>Exponencial</b> — modela el tiempo continuo transcurrido entre dos eventos sucesivos de un proceso de Poisson. Posee la propiedad de <b>carencia de memoria</b>: la probabilidad de que una máquina falle en los próximos 10 minutos no depende de cuánto tiempo lleve funcionando.",
+      "<b>Normal (Gaussiana)</b> — simétrica en campana. Por el <b>Teorema del Límite Central</b>, cualquier variable que resulte de la suma de múltiples factores aleatorios independientes tiende a una distribución normal.",
+      "<b>Log-Normal</b> — la variable no puede ser negativa y presenta una cola muy larga hacia la derecha. Aparece en procesos <b>multiplicativos</b>: salarios, precios de activos financieros, duraciones de estancia web y gastos en compras.",
+      "<b>Beta y Gamma</b> — distribuciones conjugadas muy flexibles usadas como priors en estadística bayesiana (Beta modela probabilidades continuas entre 0 y 1; Gamma modela tasas positivas $\\lambda$)."
+     ]
+    },
+    {
+     "h": "MLE vs. MAP: el puente hacia la regularización"
+    },
+    {
+     "p": "¿Cómo estimamos los parámetros óptimos de un modelo a partir de los datos?"
+    },
+    {
+     "code": "# MLE (Máxima Verosimilitud): elige los parámetros que maximizan P(D | theta)\n# Busca el punto más alto de la función de verosimilitud sin ninguna restricción.\n\n# MAP (Máximo a Posteriori): maximiza P(theta | D) proporcional a P(D | theta) * P(theta)\n# Penaliza parámetros improbables incorporando una creencia previa P(theta)."
+    },
+    {
+     "warn": "Existe una equivalencia matemática rigurosa entre el aprendizaje bayesiano y el machine learning clásico: estimar una regresión lineal con <b>MAP asumiendo un Prior Gaussiano centrado en cero sobre los pesos</b> produce exactamente la regularización <b>Ridge ($L_2$)</b>. Asumir un <b>Prior Laplaciano</b> produce exactamente la regularización <b>Lasso ($L_1$)</b>."
+    },
+    {
+     "h": "MCMC: Muestreo de Monte Carlo por Cadenas de Markov"
+    },
+    {
+     "p": "En modelos bayesianos complejos con docenas de variables, la integral de la evidencia marginal $P(D)$ no tiene solución matemática analítica. En lugar de resolver la fórmula, herramientas como <b>PyMC</b> o <b>Stan</b> utilizan algoritmos de muestreo (como NUTS o Metropolis-Hastings) para extraer miles de muestras representativas de la distribución posterior:"
+    },
+    {
+     "code": "import pymc as pm\n\nwith pm.Model() as modelo_conversion:\n    # Prior sobre la probabilidad de conversión p\n    p = pm.Beta('p', alpha=2, beta=20)\n    \n    # Verosimilitud de las observaciones (15 conversiones en 200 visitas)\n    obs = pm.Binomial('obs', n=200, p=p, observed=15)\n    \n    # Muestreo MCMC de la distribución posterior\n    trace = pm.sample(draws=2000, return_inferencedata=True)\n\n# Ahora dispones de la distribución completa de p, no de una estimación puntual"
+    }
+   ]
+  },
+  {
    "level": 2,
    "minutes": 11,
    "tags": "modelado,evaluación,preprocesamiento",
@@ -498,6 +666,59 @@
   },
   {
    "level": 2,
+   "minutes": 10,
+   "tags": "hiperparámetros,optimización,modelado,mlops",
+   "title": "Optimización de hiperparámetros, AutoML y experimentación",
+   "subtitle": "Por qué Grid Search es ineficiente, búsqueda bayesiana con Optuna, poda de pruebas y seguimiento de experimentos.",
+   "body": [
+    {
+     "p": "Un algoritmo de machine learning aprende sus parámetros internos (pesos $w$, sesgos $b$) automáticamente mediante descenso de gradiente o particiones de árboles. En cambio, los <b>hiperparámetros</b> (learning rate, profundidad del árbol, penalización de regularización, número de estimadores) deben configurarse desde el exterior antes del entrenamiento. Ajustarlos al tanteo manual es lento y conduce a modelos subóptimos."
+    },
+    {
+     "h": "La ineficiencia matemática de Grid Search"
+    },
+    {
+     "p": "<b>Grid Search</b> evalúa todas las combinaciones posibles en una cuadrícula fija regular. Si tienes 6 hiperparámetros y pruebas 5 valores para cada uno, requiere $5^6 = 15.625$ entrenamientos completos. Además, la mayoría de los hiperparámetros tienen un impacto marginal en comparación con uno o dos hiperparámetros dominantes; Grid Search desperdicia el 90% de sus evaluaciones probando valores repetidos sobre las dimensiones no críticas."
+    },
+    {
+     "list": [
+      "<b>Random Search (Búsqueda Aleatoria)</b> — muestrea combinaciones al azar de distribuciones estadísticas continuas. Como demostraron Bergstra y Bengio, explora una variedad drásticamente más rica de valores sobre las variables clave con una fracción del coste computacional.",
+      "<b>Optimización Bayesiana</b> — supera a Random Search porque <b>aprende de las evaluaciones pasadas</b>: utiliza un modelo probabilístico sustituto para predecir qué zonas del espacio de búsqueda tienen mayor probabilidad de mejorar la métrica objetivo."
+     ]
+    },
+    {
+     "h": "Optuna: el estándar moderno con TPE"
+    },
+    {
+     "p": "<b>Optuna</b> implementa el algoritmo <b>Tree-structured Parzen Estimator (TPE)</b>. Divide los ensayos anteriores entre los mejores y los peores rendimientos, y calcula la densidad de probabilidad de ambos grupos para muestrear candidatos que maximicen la mejora esperada (Expected Improvement):"
+    },
+    {
+     "code": "import optuna\nimport lightgbm as lgb\nfrom sklearn.metrics import roc_auc_score\n\ndef objetivo(trial):\n    # El ensayo sugiere hiperparámetros dentro de rangos lógicos\n    params = {\n        'learning_rate': trial.suggest_float('lr', 0.005, 0.2, log=True),\n        'max_depth': trial.suggest_int('max_depth', 3, 10),\n        'num_leaves': trial.suggest_int('num_leaves', 15, 127),\n        'subsample': trial.suggest_float('subsample', 0.5, 1.0),\n        'n_estimators': 300\n    }\n    modelo = lgb.LGBMClassifier(**params, random_state=42, verbose=-1)\n    modelo.fit(X_train, y_train)\n    pred = modelo.predict_proba(X_val)[:, 1]\n    return roc_auc_score(y_val, pred)\n\n# Ejecución del estudio bayesiano\nestudio = optuna.create_study(direction='maximize')\nestudio.optimize(objetivo, n_trials=50)\nprint('Mejores hiperparámetros:', estudio.best_params)"
+    },
+    {
+     "h": "Poda temprana de ensayos mediocres (Pruning)"
+    },
+    {
+     "p": "Uno de los mayores desperdicios en machine learning es esperar a que un modelo complete 500 épocas de entrenamiento cuando ya en la época 20 sus métricas son pésimas. Los mecanismos de poda como <b>ASHA (Asynchronous Successive Halving Algorithm)</b> o <b>MedianPruner</b> monitorean la curva de validación intermedia y <b>aborta inmediatamente los ensayos sin futuro</b>, liberando GPU/CPU para explorar configuraciones ganadoras."
+    },
+    {
+     "h": "Seguimiento riguroso de experimentos con MLflow"
+    },
+    {
+     "p": "Anotar hiperparámetros y resultados en hojas de cálculo o comentarios de código conduce al caos. Un sistema de tracking de experimentos como <b>MLflow</b> registra de forma inmutable cuatro artefactos en cada corrida:"
+    },
+    {
+     "steps": [
+      "<b>Parámetros de configuración</b>: cada hiperparámetro, versión de commit en Git y semilla aleatoria utilizada.",
+      "<b>Métricas por iteración</b>: curvas de pérdida y validación registradas a lo largo de las épocas.",
+      "<b>Artefactos del modelo</b>: pesos serializados (joblib, ONNX, torch), gráficos de diagnóstico (curvas ROC, matriz de confusión) y firmas de entrada/salida.",
+      "<b>Entorno de ejecución</b>: versión exacta de Python y lista completa de bibliotecas (requirements.txt o conda.yaml) para asegurar reproducibilidad absoluta."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 2,
    "minutes": 11,
    "tags": "evaluación,modelado,estadística",
    "title": "Evaluación rigurosa: métricas de Regresión y Curvas Avanzadas",
@@ -614,6 +835,429 @@
       "<b>PCA (Análisis de Componentes Principales)</b> — transformación lineal ortogonal que maximiza la varianza. Excelente para comprimir variables antes de un modelo y retener el 95% de la información.",
       "<b>t-SNE / UMAP</b> — técnicas no lineales diseñadas específicamente para preservar la estructura local y global en visualizaciones bidimensionales (2D) de datos hiperdimensionales (como embeddings de texto o imágenes)."
      ]
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "nlp,texto,embeddings,transformers",
+   "title": "Procesamiento de Lenguaje Natural (NLP) y búsqueda semántica",
+   "subtitle": "De TF-IDF a Embeddings contextuales, Transformers, bases vectoriales y Retrieval-Augmented Generation (RAG).",
+   "body": [
+    {
+     "p": "Gran parte de la información en el mundo empresarial no reside en tablas ordenadas con números, sino en texto no estructurado: contratos, reportes de servicio técnico, correos de clientes, especificaciones de repuestos y transcripciones de llamadas. Transformar ese texto en vectores matemáticos sin destruir su significado es el dominio del NLP."
+    },
+    {
+     "h": "Del texto a números: Tokenización y TF-IDF"
+    },
+    {
+     "p": "Una computadora no lee palabras: lee números enteros. La <b>tokenización</b> fragmenta el texto en unidades fundamentales. Mientras que dividir por espacios falla ante palabras compuestas o vocabulario nuevo, los tokenizadores modernos utilizan <b>subpalabras (Byte-Pair Encoding, WordPiece)</b>, descomponiendo palabras raras en fragmentos conocidos (ej. «incombustible» $\\rightarrow$ «in», «combust», «ible»)."
+    },
+    {
+     "p": "El modelo clásico <b>TF-IDF (Term Frequency - Inverse Document Frequency)</b> cuantifica qué tan importante es una palabra para un documento dentro de un corpus:"
+    },
+    {
+     "math": "\\text{TF-IDF}(t, d, D) = \\text{TF}(t, d) \\times \\log\\left(\\frac{N}{\\text{DF}(t)}\\right)"
+    },
+    {
+     "p": "Palabras universales como «el», «de» o «es» aparecen en todos los documentos ($DF \\approx N$), por lo que su término logarítmico tiende a cero y son amortiguadas; en cambio, términos técnicos como «árbol de levas» o «amortiguador» obtienen un peso altísimo si se concentran en un documento específico."
+    },
+    {
+     "h": "Embeddings densos: la geometría del significado"
+    },
+    {
+     "p": "TF-IDF produce vectores dispersos gigantescos con miles de columnas ceros y es ciego a los sinónimos («automóvil» y «coche» son tratados como variables ortogonales totalmente inconexas). Los <b>embeddings densos (Word2Vec, FastText)</b> proyectan las palabras en un espacio continuo de dimensión reducida (ej. 300 dimensiones) donde la distancia semántica refleja similitud de significado:"
+    },
+    {
+     "code": "# En un espacio vectorial entrenado:\nvector('rey') - vector('hombre') + vector('mujer') ≈ vector('reina')\nvector('París') - vector('Francia') + vector('España') ≈ vector('Madrid')"
+    },
+    {
+     "h": "La revolución Transformer y el mecanismo de Auto-Atención"
+    },
+    {
+     "p": "Las redes neuronales recurrentes clásicas (RNN, LSTM) procesaban el texto secuencialmente palabra por palabra, lo que impedía el procesamiento paralelo y causaba el olvido progresivo del contexto lejano. La arquitectura <b>Transformer (Vaswani et al., 2017)</b> resolvió ambos problemas procesando todos los tokens simultáneamente mediante el mecanismo de <b>Auto-Atención (Self-Attention)</b>:"
+    },
+    {
+     "math": "\\text{Attention}(Q, K, V) = \\text{softmax}\\left(\\frac{Q K^T}{\\sqrt{d_k}}\\right) V"
+    },
+    {
+     "list": [
+      "<b>Query ($Q$)</b> — lo que el token actual está buscando comprender.",
+      "<b>Key ($K$)</b> — las etiquetas de contenido de todos los demás tokens en el texto.",
+      "<b>Value ($V$)</b> — la información semántica que se transmite cuando hay coincidencia entre Query y Key."
+     ]
+    },
+    {
+     "p": "En la frase <i>«El banco congeló la cuenta porque estaba intervenido»</i>, la palabra «cuenta» presta una atención matemática altísima a «banco» e «intervenido», resolviendo de inmediato la ambigüedad sobre si «banco» es una entidad financiera o un mueble de parque."
+    },
+    {
+     "h": "Bases de datos vectoriales y RAG (Retrieval-Augmented Generation)"
+    },
+    {
+     "p": "Los modelos de lenguaje grandes (LLMs) sufren de alucinaciones y carecen de acceso a los datos privados actualizados de una empresa. El patrón <b>RAG</b> resuelve esto combinando un motor de búsqueda vectorial con un modelo generativo:"
+    },
+    {
+     "steps": [
+      "<b>Chunking & Embedding</b>: los manuales y documentos internos se dividen en fragmentos de 300-500 palabras y se convierten en vectores mediante un modelo de embeddings.",
+      "<b>Indexación Vectorial</b>: los vectores se almacenan en una base de datos vectorial (como Chroma, Qdrant o extensiones como <code>pgvector</code> en PostgreSQL) usando algoritmos de vecinos aproximados (HNSW) para responder consultas en milisegundos.",
+      "<b>Búsqueda Híbrida</b>: al recibir una consulta del usuario, el sistema combina similitud semántica por cosenos con búsqueda léxica BM25 (para asegurar coincidencias exactas en códigos de error o nombres de piezas).",
+      "<b>Generación Aumentada</b>: los fragmentos más relevantes recuperados se inyectan en el prompt del LLM como contexto factual verificado para redactar la respuesta."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "nlp,traducción,multilingüe,bleu,rouge,bertscore",
+   "title": "NLP multilingüe, modelos Seq2Seq y evaluación de generación",
+   "subtitle": "Modelos secuencia a secuencia, transferencia cross-lingual, y métricas de calidad: BLEU, ROUGE, BERTScore y LLM-as-a-Judge.",
+   "body": [
+    {
+     "p": "En proyectos internacionales y operaciones globales, los textos se redactan en decenas de idiomas con gramáticas y morfologías dispares. Procesar, traducir y evaluar textos generados automáticamente por máquinas exige metodologías cuantitativas rigurosas que van mucho más allá de la coincidencia exacta de palabras."
+    },
+    {
+     "h": "Modelos Secuencia a Secuencia (Seq2Seq) y Cross-Attention"
+    },
+    {
+     "p": "En tareas donde la entrada y la salida tienen longitudes distintas (traducción automática, resumen de textos, corrección gramatical), se utiliza una arquitectura <b>Seq2Seq Encoder-Decoder</b> (como T5 o mBART):"
+    },
+    {
+     "list": [
+      "<b>Encoder</b>: procesa el texto original completo en paralelo mediante auto-atención bidireccional, construyendo una representación contextual rica.",
+      "<b>Decoder</b>: genera el texto de salida palabra por palabra. En cada paso, utiliza <b>Atención Cruzada (Cross-Attention)</b>, donde sus consultas ($Q$) interrogan a las claves ($K$) y valores ($V$) producidos por el Encoder.",
+      "<b>Modelos Multilingües (mBERT, XLM-RoBERTa)</b>: entrenados en más de 100 idiomas simultáneamente sobre un vocabulario compartido de subpalabras. Permiten la <b>transferencia cross-lingual zero-shot</b>: ajustas un clasificador con datos etiquetados en inglés y funciona inmediatamente en español, francés o alemán sin reentrenar."
+     ]
+    },
+    {
+     "h": "El desafío de evaluar texto generado por máquinas"
+    },
+    {
+     "p": "A diferencia de la clasificación binaria (donde hay un 0 o 1 inequívoco), una traducción o un resumen pueden redactarse de cientos de formas válidas usando sinónimos y estructuras gramaticales distintas. Las métricas esenciales son:"
+    },
+    {
+     "list": [
+      "<b>BLEU (Bilingual Evaluation Understudy)</b> — estándar en traducción automática. Calcula la precisión de solapamiento de n-gramas (unigramas, bigramas, trigramas) entre el texto generado y textos de referencia humanos, castigando salidas artificialmente cortas con una penalización por brevedad (<i>brevity penalty</i>).",
+      "<b>ROUGE (Recall-Oriented Understudy for Gisting Evaluation)</b> — estándar en resúmenes automáticos. Mide la cobertura (Recall) de n-gramas (ROUGE-1, ROUGE-2) y la subsecuencia común más larga (<b>ROUGE-L</b>), premiando que las ideas clave del texto original hayan sido capturadas.",
+      "<b>BERTScore</b> — evalúa similitud semántica continua en lugar de solapamiento léxico superficial: calcula la similitud del coseno entre los embeddings contextuales de los tokens generados y los de referencia, reconociendo sinónimos y paráfrasis perfectas que BLEU castigaría con cero.",
+      "<b>LLM-as-a-Judge</b> — utiliza un modelo de lenguaje de frontera con rúbricas detalladas de evaluación estructurada para auditar fidelidad factual, coherencia argumental y ausencia de alucinaciones."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "deep-learning,redes-neuronales,visión,modelado",
+   "title": "Deep Learning: De redes neuronales a visión artificial",
+   "subtitle": "Perceptrón multicapa, retropropagación, convoluciones espaciales, transfer learning y regularización profunda.",
+   "body": [
+    {
+     "p": "Cuando los datos presentan estructuras espaciales complejas (imágenes satelitales, radiografías, fotografías de piezas mecánicas) o relaciones altamente no lineales que desafían a los algoritmos tabulares, el aprendizaje profundo (Deep Learning) permite aprender representaciones jerárquicas directamente a partir de señales brutas."
+    },
+    {
+     "h": "La neurona artificial y el Perceptrón Multicapa (MLP)"
+    },
+    {
+     "p": "Una neurona artificial computa una suma ponderada de sus entradas más un sesgo, y pasa el resultado por una <b>función de activación no lineal</b>:"
+    },
+    {
+     "math": "a = \\sigma\\left(\\sum_{i=1}^m w_i x_i + b\\right) = \\sigma(w^T x + b)"
+    },
+    {
+     "key": "La no linealidad es <b>indispensable</b>. Una combinación lineal de combinaciones lineales sigue siendo una simple función lineal. Sin funciones de activación no lineales (como ReLU o GELU), una red neuronal de 50 capas profundas colapsaría matemáticamente a una regresión lineal elemental incapaz de resolver el problema más simple de separación no lineal."
+    },
+    {
+     "list": [
+      "<b>ReLU (Rectified Linear Unit)</b> — $f(x) = \\max(0, x)$. Muy rápida de computar y mitiga el desvanecimiento del gradiente en regiones positivas.",
+      "<b>GELU / LeakyReLU</b> — variantes que conservan una pequeña pendiente en valores negativos, evitando que las neuronas «mueran» irreversiblemente con gradiente cero.",
+      "<b>Softmax</b> — normaliza un vector de puntuaciones arbitrarias a una distribución de probabilidad válida (sumando 1) en la capa de salida para problemas de clasificación multiclase."
+     ]
+    },
+    {
+     "h": "Retropropagación (Backpropagation) y desvanecimiento del gradiente"
+    },
+    {
+     "p": "El entrenamiento de una red neuronal se ejecuta mediante el algoritmo de <b>retropropagación</b>, que no es más que la aplicación sistemática de la <b>regla de la cadena del cálculo diferencial</b> a lo largo del grafo computacional de la red, calculando cómo varía el error global respecto a cada peso individual en cada capa."
+    },
+    {
+     "p": "En redes profundas con funciones de activación sigmoideas, las derivadas se multiplican sucesivamente a través de las capas. Como la derivada de una sigmoide es menor a 0.25, multiplicar decenas de factores menores a 0.25 hace que el gradiente decaiga a cero absoluto (<b>Vanishing Gradient</b>), impidiendo que las primeras capas aprendan. Soluciones clave: uso de activaciones ReLU, conexiones residuales (skip connections) e inicializaciones de pesos cuidadosas (He / Xavier)."
+    },
+    {
+     "h": "Redes Neuronales Convolucionales (CNNs)"
+    },
+    {
+     "p": "Una imagen de $1000 \\times 1000$ píxeles a color tiene 3 millones de valores. Conectar todas las entradas a una capa densa tradicional exigiría billones de parámetros, provocando un sobreajuste devastador. Las <b>CNNs</b> resuelven esto aprovechando dos propiedades físicas del mundo visual: <b>localidad espacial</b> e <b>invariancia a traslaciones</b>."
+    },
+    {
+     "list": [
+      "<b>Filtro o Kernel Convolucional</b> — matriz pequeña (ej. $3 \\times 3$) que se desliza por toda la imagen multiplicando y sumando píxeles locales. Un mismo filtro aprende a detectar bordes diagonales en cualquier esquina de la imagen.",
+      "<b>Padding</b> — agregar ceros alrededor del borde para evitar que la imagen encoja tras cada convolución y preservar información perimetral.",
+      "<b>Stride</b> — número de píxeles que salta el filtro en cada paso (un stride de 2 reduce las dimensiones espaciales a la mitad).",
+      "<b>Pooling (Max Pooling)</b> — toma el valor máximo en ventanas de $2 \\times 2$, reduciendo la resolución a la vez que proporciona robustez ante pequeños desplazamientos del objeto."
+     ]
+    },
+    {
+     "h": "Transfer Learning: la estrategia ganadora en la industria"
+    },
+    {
+     "p": "En aplicaciones reales casi nunca se entrena una red convolucional desde cero. Gigantes tecnológicos han invertido semanas de supercómputo entrenando arquitecturas como <b>ResNet, EfficientNet o Vision Transformers (ViT)</b> sobre millones de imágenes (ImageNet):"
+    },
+    {
+     "steps": [
+      "<b>Cargar el modelo pre-entrenado</b>: las capas iniciales ya saben reconocer bordes, texturas, gradientes de luz y formas geométricas complejas.",
+      "<b>Congelar las capas base (Freeze)</b>: bloquea los pesos de las capas convolucionales profundas para que no se modifiquen.",
+      "<b>Reemplazar el cabezal clasificador</b>: sustituye la capa final de 1.000 clases por una capa adaptada a tu problema específico (ej. 2 clases: «pieza defectuosa» vs «pieza sana»).",
+      "<b>Entrenamiento selectivo (Fine-tuning)</b>: entrena el nuevo cabezal y, opcionalmente, descongela las últimas capas convolucionales con una tasa de aprendizaje muy baja para afinar el modelo a las particularidades de tu dominio."
+     ]
+    },
+    {
+     "h": "Técnicas de regularización profunda"
+    },
+    {
+     "list": [
+      "<b>Dropout</b> — apaga aleatoriamente un porcentaje (ej. 20%-50%) de las neuronas en cada pase hacia adelante durante el entrenamiento. Obliga a la red a no depender de ninguna neurona aislada, forzando representaciones redundantes y robustas.",
+      "<b>Batch Normalization</b> — normaliza las activaciones intermedias por lote, acelerando el entrenamiento y reduciendo la sensibilidad a la inicialización.",
+      "<b>Data Augmentation</b> — aplica transformaciones aleatorias (rotaciones leves, recortes, cambios de brillo, volteos horizontales) a las imágenes de entrenamiento para multiplicar artificialmente la diversidad del dataset."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "visión,yolo,segmentación,clip,multimodal",
+   "title": "Visión por computadora avanzada: Detección, segmentación y modelos multimodales",
+   "subtitle": "De clasificación a YOLO, segmentación semántica vs instancias, pérdida contrastiva de CLIP y modelos multimodales.",
+   "body": [
+    {
+     "p": "Clasificar una imagen diciendo si contiene o no un defecto es solo el primer paso. En la mayoría de las industrias, se requiere localizar exactamente dónde están las piezas en el espacio, delimitar sus contornos pixel por pixel o vincular imágenes con lenguaje natural."
+    },
+    {
+     "h": "La jerarquía de tareas en visión artificial"
+    },
+    {
+     "list": [
+      "<b>Clasificación de Imagen</b> — predice una etiqueta global para toda la escena («hay un camión en la imagen»).",
+      "<b>Detección de Objetos (Object Detection)</b> — localiza múltiples entidades dibujando una caja delimitadora rectangular (<i>bounding box</i> $[x, y, w, h]$) con su clase y probabilidad de confianza.",
+      "<b>Segmentación Semántica</b> — asigna una etiqueta de clase a cada pixel individual de la imagen (ej. píxeles de carretera vs píxeles de acera), pero sin distinguir objetos individuales de la misma clase.",
+      "<b>Segmentación por Instancias</b> — detecta objetos y traza la máscara exacta de píxeles para cada individuo por separado (Camión 1, Camión 2, Peatón A).",
+      "<b>Segmentación Panóptica</b> — unifica la segmentación semántica (fondos continuos como cielo o césped) con la de instancias (objetos contables discretos)."
+     ]
+    },
+    {
+     "h": "Detección en tiempo real: la revolución de YOLO"
+    },
+    {
+     "p": "Los detectores clásicos de dos etapas (como Faster R-CNN) proponían primero regiones sospechosas y luego las clasificaban por separado, siendo demasiado lentos para video en vivo. <b>YOLO (You Only Look Once)</b> replanteó la detección como una <b>única regresión continua</b>:"
+    },
+    {
+     "steps": [
+      "Divide la imagen en una cuadrícula (ej. $13 \\times 13$).",
+      "Cada celda predice simultáneamente coordenadas de cajas, puntuaciones de objetividad y probabilidades de clase en una sola pasada hacia adelante de la red.",
+      "<b>Non-Maximum Suppression (NMS)</b>: filtra las múltiples cajas superpuestas generadas para un mismo objeto, conservando únicamente la que tiene mayor confianza y descartando aquellas con una intersección sobre unión (<b>IoU</b>) excesiva.",
+      "<b>Métrica mAP (Mean Average Precision)</b>: se evalúa calculando el área bajo la curva Precisión-Recall promediada para diferentes umbrales de IoU (ej. mAP@50 o el estándar COCO mAP@50:95)."
+     ]
+    },
+    {
+     "h": "CLIP y la alineación multimodal Visión-Lenguaje"
+    },
+    {
+     "p": "Tradicionalmente, las redes visuales estaban confinadas a un conjunto cerrado y rígido de clases (ej. las 1.000 categorías fijas de ImageNet). <b>CLIP (Contrastive Language-Image Pretraining de OpenAI)</b> rompió esta barrera entrenando conjuntamente un codificador de imágenes y un codificador de texto sobre 400 millones de pares imagen-texto de la web:"
+    },
+    {
+     "code": "# Pérdida Contrastiva InfoNCE de CLIP:\n# Maximiza el producto punto entre la imagen i y su texto descriptivo i (diagonal),\n# a la vez que minimiza el producto punto con todos los demás textos j ≠ i.\n\nsimilitudes = matriz_embeddings_imagenes @ matriz_embeddings_texto.T\n# Permite clasificación 'Zero-Shot': comparas una imagen contra embeddings de frases arbitrarias"
+    },
+    {
+     "key": "CLIP demostró que alinear representaciones visuales y lingüísticas en un único espacio latente permite clasificar conceptos jamás vistos durante el entrenamiento sin ajustar un solo peso (<b>Zero-Shot Classification</b>), constituyendo el motor visual de modelos como DALL-E y Stable Diffusion."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "geoespacial,gis,mapas,coordenadas,postgis",
+   "title": "Datos geoespaciales y Sistemas de Información Geográfica (GIS)",
+   "subtitle": "Sistemas de coordenadas (CRS), geometrías vectoriales vs ráster, GeoPandas, índices H3 y autocorrelación espacial.",
+   "body": [
+    {
+     "p": "Casi toda actividad humana, industrial y comercial ocurre en un lugar físico concreto: ubicación de tiendas, rutas de reparto, áreas de cobertura de antenas o parcelas agrícolas monitoreadas por satélite. Sin embargo, procesar coordenadas espaciales como simples pares de números (X, Y) es uno de los errores más costosos en analítica."
+    },
+    {
+     "h": "El desafío de la forma de la Tierra: Sistemas de Coordenadas (CRS)"
+    },
+    {
+     "p": "La Tierra no es plana ni es una esfera perfecta: es un esferoide oblato irregular (geoide). Para representar posiciones sobre su superficie se utilizan <b>Sistemas de Referencia de Coordenadas (CRS)</b> identificados con códigos EPSG:"
+    },
+    {
+     "list": [
+      "<b>Geográficas no proyectadas (ej. EPSG:4326 / WGS84)</b> — miden en grados angulares de latitud y longitud (-180 a 180, -90 a 90). <i>Trampa crítica</i>: un grado de longitud mide ~111 km en el ecuador, pero 0 km en los polos. <b>Nunca calcules distancias euclidianas o áreas directamente sobre EPSG:4326</b> o tus cálculos arrojarán errores colosales.",
+      "<b>Proyectadas métricas (ej. UTM o EPSG:3857 Web Mercator)</b> — proyectan la superficie curva sobre un plano bidimensional expresado en <b>metros</b>. Si deseas calcular un búfer de 5 km alrededor de una estación o el área en metros cuadrados de un terreno, debes <b>reproyectar obligatoriamente</b> tus geometrías a un CRS métrico local mediante <code>gdf.to_crs(epsg=...)</code>."
+     ]
+    },
+    {
+     "h": "Modelos de datos espaciales: Vectorial vs. Ráster"
+    },
+    {
+     "list": [
+      "<b>Datos Vectoriales (Puntos, Líneas, Polígonos)</b> — entidades discretas con límites geométricos exactos: coordenadas de averías (Puntos), tramos de carreteras o tuberías (LineStrings), distritos municipales o concesiones mineras (Polígonos). En Python se manipulan con <b>GeoPandas</b> y <b>Shapely</b>.",
+      "<b>Datos Ráster</b> — matrices continuas de píxeles georreferenciados en una cuadrícula regular: imágenes satelitales multiespectrales (Sentinel, Landsat), modelos digitales de elevación (DEM), mapas térmicos de temperatura. En Python se procesan con <b>Rasterio</b> y <b>Xarray</b>."
+     ]
+    },
+    {
+     "h": "Índices espaciales discretos: H3 de Uber"
+    },
+    {
+     "p": "Hacer uniones espaciales geométricas continuas (<i>spatial joins</i> de millones de puntos contra miles de polígonos complejos) exige un cómputo computacional masivo. Empresas como Uber resolvieron esto creando <b>H3</b>, un sistema de cuadrícula global jerárquica basado en <b>hexágonos regulares</b>:"
+    },
+    {
+     "list": [
+      "<b>¿Por qué hexágonos y no cuadrados?</b> — en una cuadrícula cuadrada, los vecinos diagonales están a $\\sqrt{2} \\approx 1.414$ veces la distancia de los vecinos ortogonales. En una cuadrícula hexagonal, <b>todos los 6 vecinos inmediatos están exactamente a la misma distancia del centroide</b>.",
+      "<b>Agregación instantánea</b>: cada punto GPS se convierte en un identificador entero indexable de 64 bits en milisegundos, transformando costosas intersecciones espaciales en simples operaciones <code>GROUP BY</code> en SQL o Pandas."
+     ]
+    },
+    {
+     "h": "La Primera Ley de la Geografía y el I de Moran"
+    },
+    {
+     "quote": "«Todas las cosas están relacionadas entre sí, pero las cosas cercanas están más relacionadas que las cosas lejanas.» — Waldo Tobler"
+    },
+    {
+     "p": "En datos espaciales se viola casi siempre el supuesto clásico de observaciones independientes e idénticamente distribuidas (IID). La <b>autocorrelación espacial</b> mide si valores similares tienden a agruparse geográficamente:"
+    },
+    {
+     "math": "I = \\frac{n}{\\sum_{i} \\sum_{j} w_{ij}} \\frac{\\sum_{i} \\sum_{j} w_{ij}(x_i - \\bar{x})(x_j - \\bar{x})}{\\sum_{i} (x_i - \\bar{x})^2}"
+    },
+    {
+     "p": "El <b>Índice I de Moran</b> evalúa la autocorrelación global: $I > 0$ indica agrupamiento en clusters (zonas de alta incidencia rodeadas de alta incidencia); $I < 0$ indica dispersión en tablero de ajedrez. No controlar la estructura espacial al entrenar un modelo conduce a una severa sobreestimación del poder predictivo."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "audio,señales,fourier,espectrogramas,acústica",
+   "title": "Procesamiento de audio, señales y series físicas",
+   "subtitle": "Frecuencia de muestreo, transformada de Fourier (FFT), espectrogramas de Mel y diagnóstico predictivo de vibraciones.",
+   "body": [
+    {
+     "p": "Gran parte de la sensorización en la industria moderna no produce números aislados, sino señales ondulatorias analógicas digitalizadas a altas frecuencias: sonido ambiental, vibración en rodamientos mecánicos, oscilaciones de voltaje y electrocardiogramas. Interpretar estas series físicas exige saltar del dominio temporal al dominio frecuencial."
+    },
+    {
+     "h": "Muestreo digital y el Teorema de Nyquist-Shannon"
+    },
+    {
+     "p": "Una señal física continua se digitaliza registrando su amplitud a intervalos regulares de tiempo definidos por la <b>frecuencia de muestreo ($f_s$)</b>, medida en Hercios (Hz o muestras por segundo):"
+    },
+    {
+     "key": "<b>Teorema de Nyquist-Shannon</b>: para poder reconstruir fielmente una señal sin distorsiones ni artefactos fantasmas (<i>aliasing</i>), la frecuencia de muestreo debe ser <b>estrictamente mayor al doble de la frecuencia máxima presente en la señal ($f_s > 2 f_{\\max}$)</b>. Si un motor genera vibraciones críticas a 5.000 Hz, tu sensor debe muestrear a más de 10.000 Hz."
+    },
+    {
+     "h": "De la onda a las frecuencias: Transformada de Fourier (FFT)"
+    },
+    {
+     "p": "En el dominio del tiempo, una señal acústica o de vibración es una mezcla caótica de curvas superpuestas. La <b>Transformada Rápida de Fourier (FFT)</b> descompone matemáticamente esa onda compleja en la suma de sus ondas senoidales puras constituyentes, revelando exactamente <b>qué frecuencias existen y cuánta energía concentra cada una</b>:"
+    },
+    {
+     "math": "X(f) = \\int_{-\\infty}^{\\infty} x(t) \\, e^{-i 2\\pi f t} \\, dt"
+    },
+    {
+     "p": "En mantenimiento predictivo de maquinaria pesada, un rodamiento desgastado produce picos nítidos de resonancia en frecuencias armónicas exactas calculables según la velocidad de giro (RPM) y el número de bolas, permitiendo diagnosticar la rotura inminente meses antes de que sea audible para el oído humano."
+    },
+    {
+     "h": "El Espectrograma de Mel: convertir audio en imágenes"
+    },
+    {
+     "p": "La FFT global pierde la noción del tiempo: te dice qué frecuencias existen, pero no <i>cuándo</i> ocurrieron. La <b>Transformada de Fourier de Tiempo Corto (STFT)</b> resuelve esto calculando FFTs sucesivas sobre pequeñas ventanas deslizantes de la señal, generando un <b>Espectrograma 2D</b> (eje X = tiempo, eje Y = frecuencia, color = intensidad energética)."
+    },
+    {
+     "list": [
+      "<b>Escala Mel</b>: el oído humano no percibe las frecuencias linealmente: distingue con gran precisión diferencias entre 200 Hz y 300 Hz, pero apenas nota la diferencia entre 10.000 Hz y 10.100 Hz. La escala Mel comprime las frecuencias para replicar la cóclea auditiva.",
+      "<b>De audio a Deep Learning</b>: un espectrograma de Mel es literalmente una matriz bidimensional (imagen). Esto permite aplicar arquitecturas de visión por computadora como <b>ResNet o EfficientNet</b> directamente sobre espectrogramas de audio para clasificar sonidos, fallas de motores o comandos de voz con precisión asombrosa."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "slm,dpo,on-device,pequeños-modelos,alineación",
+   "title": "Modelos de Lenguaje Pequeños (SLMs) y alineación con DPO",
+   "subtitle": "La era de la alta densidad de datos («Textbooks Are All You Need»), Direct Preference Optimization y modelos en el dispositivo.",
+   "body": [
+    {
+     "p": "Durante los primeros años del boom de los LLMs, la creencia imperante era que la inteligencia era una propiedad emergente exclusiva de modelos gigantescos con cientos de miles de millones de parámetros entrenados con el raspado indiscriminado de toda la web. La investigación moderna ha demostrado que <b>la calidad y densidad informativa de los datos superan con creces al tamaño bruto del modelo</b>."
+    },
+    {
+     "h": "La revolución de los SLMs: datos con calidad de libro de texto"
+    },
+    {
+     "p": "Iniciativas como <b>Phi de Microsoft</b> («Textbooks Are All You Need») o <b>SmolLM</b> demostraron que un modelo compacto de 1.000 a 3.000 millones de parámetros (1B-3B) entrenado sobre datos sintéticos ultra-curados, libros de texto depurados y ejercicios paso a paso puede superar en razonamiento lógico y código a modelos diez veces mayores entrenados con ruido web."
+    },
+    {
+     "list": [
+      "<b>Ventajas operativas de un SLM</b>: cabe en la memoria RAM de un teléfono móvil, laptop o microcontrolador; funciona con latencias inferiores a 10 ms por token y puede desplegarse en local sin costes de API en la nube.",
+      "<b>Privacidad total</b>: los datos de los usuarios nunca salen del dispositivo físico (On-Device AI)."
+     ]
+    },
+    {
+     "h": "Alineación moderna con DPO (Direct Preference Optimization)"
+    },
+    {
+     "p": "El método tradicional RLHF requiere entrenar un Reward Model separado y usar PPO, un algoritmo de refuerzo notoriamente inestable y complejo de sintonizar. <b>DPO (Rafailov et al., 2023)</b> derivó una solución matemática analítica cerrada que <b>optimiza directamente la política del modelo a partir de pares de preferencias sin necesidad de ningún Reward Model</b>:"
+    },
+    {
+     "math": "\\mathcal{L}_{\\text{DPO}}(\\pi_\\theta; \\pi_{\\text{ref}}) = -\\mathbb{E}_{(x, y_w, y_l)} \\left[ \\log \\sigma \\left( \\beta \\log \\frac{\\pi_\\theta(y_w \\mid x)}{\\pi_{\\text{ref}}(y_w \\mid x)} - \\beta \\log \\frac{\\pi_\\theta(y_l \\mid x)}{\\pi_{\\text{ref}}(y_l \\mid x)} \\right) \\right]"
+    },
+    {
+     "p": "Donde $y_w$ es la respuesta ganadora (preferida) y $y_l$ es la perdedora. DPO incrementa directamente la probabilidad de $y_w$ a la vez que castiga $y_l$, penalizando desviaciones excesivas respecto al modelo de referencia original $\\pi_{\\text{ref}}$ con el factor $\\beta$."
+    },
+    {
+     "key": "DPO convirtió la alineación de modelos de lenguaje en una simple pérdida de clasificación binaria (entropía cruzada ponderada), haciendo que afinar un modelo hacia preferencias humanas sea tan estable y predecible como un ajuste supervisado ordinario."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "simulación,monte-carlo,abm,gemelos-digitales,estocástica",
+   "title": "Simulación de Monte Carlo, Gemelos Digitales y Modelos Basados en Agentes",
+   "subtitle": "Cuando los datos históricos no existen: simulación estocástica, modelado individual micro (ABM) y gemelos digitales.",
+   "body": [
+    {
+     "p": "El machine learning convencional requiere datos del pasado para aprender patrones. Pero ¿qué haces si estás diseñando una terminal portuaria que aún no se ha construido, cambiando una política de precios nunca antes probada o evaluando el riesgo de un evento financiero sin precedentes? Cuando no hay datos del pasado, <b>la única opción rigurosa es simular el futuro</b>."
+    },
+    {
+     "h": "Simulación estocástica de Monte Carlo"
+    },
+    {
+     "p": "En lugar de asumir valores fijos para variables inciertas (coste del combustible, tiempo de aduanas, demanda diaria), la <b>Simulación de Monte Carlo</b> asigna una distribución de probabilidad a cada variable de entrada y evalúa el sistema decenas de miles de veces muestreando valores al azar:"
+    },
+    {
+     "list": [
+      "Entrega una <b>distribución completa de resultados</b> en lugar de una estimación puntual engañosa (ej. «existe un 5% de probabilidad de quiebra en el peor escenario (Value at Risk - VaR)»).",
+      "<b>Reducción de varianza</b>: técnicas como <i>Variables Antitéticas</i> o <i>Muestreo por Hipercubo Latino</i> permiten obtener la misma precisión estadística con una décima parte de las iteraciones de simulación."
+     ]
+    },
+    {
+     "h": "Modelos Basados en Agentes (ABM): de lo micro a lo macro"
+    },
+    {
+     "p": "Un <b>Agent-Based Model (ABM)</b> no modela ecuaciones globales agregadas: simula cientos o miles de entidades individuales autónomas (agentes), cada una con sus propias reglas locales de comportamiento y memoria:"
+    },
+    {
+     "steps": [
+      "Cada agente percibe su entorno inmediato y toma decisiones independientes (ej. un conductor decidiendo frenar o cambiar de carril).",
+      "Los agentes interactúan entre sí y con el entorno espacial.",
+      "<b>Propiedades emergentes</b>: la simulación revela fenómenos macro imprevistos que ninguna ecuación aislada predijo (ej. embotellamientos fantasma en una autopista sin accidentes previos o pánico financiero bancario)."
+     ]
+    },
+    {
+     "h": "Gemelos Digitales (Digital Twins)"
+    },
+    {
+     "p": "Un <b>Gemelo Digital</b> es una réplica computacional viva de un activo físico real (una turbina eólica, una fábrica entera o una red de distribución de agua). Se alimenta continuamente de telemetría IoT en tiempo real y corre simulaciones paralelas hacia adelante para anticipar averías antes de que el activo físico sufra daños irreversibles."
     }
    ]
   },
@@ -751,6 +1395,648 @@
   },
   {
    "level": 3,
+   "minutes": 10,
+   "tags": "series,cointegración,jerarquías,var,timegpt",
+   "title": "Series temporales multivariadas, pronóstico jerárquico y modelos fundacionales",
+   "subtitle": "Modelos VAR, cointegración de Granger, reconciliación jerárquica con MinT y TimeGPT.",
+   "body": [
+    {
+     "p": "En finanzas y cadenas de suministro globales, las variables rara vez evolucionan de forma aislada: el precio del combustible influye en los fletes logísticos y este a su vez en los márgenes de venta. Asimismo, las predicciones deben cuadrar matemáticamente a través de múltiples niveles de una organización."
+    },
+    {
+     "h": "Modelos Multivariados: Vector Autoregression (VAR)"
+    },
+    {
+     "p": "Un modelo <b>VAR(p)</b> generaliza el análisis autorregresivo a múltiples series simultáneas, tratando a cada variable como una función lineal de sus propios rezagos pasados <b>y de los rezagos de todas las demás variables del sistema</b>:"
+    },
+    {
+     "math": "Y_t = c + \\sum_{i=1}^p \\Phi_i Y_{t-i} + \\epsilon_t"
+    },
+    {
+     "p": "Permite realizar análisis de <b>Causalidad de Granger</b>: responder formalmente si conocer la evolución pasada de la variable $X$ reduce el error de pronóstico de la variable $Y$ más allá de lo que $Y$ explica por sí misma."
+    },
+    {
+     "h": "Cointegración: el paseo de dos borrachos atados con una correa"
+    },
+    {
+     "p": "Dos series temporales no estacionarias $X_t$ e $Y_t$ están <b>cointegradas</b> si existe una combinación lineal de ellas que resulta ser <b>estrictamente estacionaria</b>:"
+    },
+    {
+     "key": "Aunque ambas series vaguen erráticamente al azar por el espacio sin media fija (como dos amigos ebrios caminando por la calle), si están atadas por un lazo económico o físico de largo plazo (la correa del perro), la distancia entre ellas oscilará siempre alrededor de un equilibrio estable. Es la base matemática del <i>Pairs Trading</i> y el análisis macroeconómico estructural."
+    },
+    {
+     "h": "Pronóstico Jerárquico y Reconciliación con MinT"
+    },
+    {
+     "p": "En una empresa de retail, si pronosticas independientemente las ventas de cada SKU por tienda, la suma de esos pronósticos rara vez coincidirá con el pronóstico agregado a nivel nacional. La <b>reconciliación jerárquica</b> restaura la coherencia matemática:"
+    },
+    {
+     "list": [
+      "<b>Bottom-Up</b>: pronostica solo el nivel inferior (SKU/tienda) y suma hacia arriba. Pierde información macroeconómica y agrega mucho ruido individual.",
+      "<b>Top-Down</b>: pronostica el total nacional y reparte proporciones hacia abajo. Ignora particularidades locales de stock.",
+      "<b>Reconciliación Óptima MinT (Minimum Trace)</b>: pronostica todos los niveles de la jerarquía de forma independiente y utiliza una proyección matricial ponderada por la matriz de covarianza de los errores para encontrar la solución insesgada que minimiza el error cuadrático global."
+     ]
+    },
+    {
+     "h": "Modelos Fundacionales de Series Temporales"
+    },
+    {
+     "p": "Inspirados en los LLMs, modelos como <b>TimeGPT</b> y <b>Chronos</b> se preentrenan con miles de millones de puntos de series temporales de diversas industrias, permitiendo generar pronósticos precisos de forma inmediata (<b>Zero-Shot Forecasting</b>) sin necesidad de reentrenar modelos específicos desde cero para cada serie temporal individual."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "supervivencia,churn,estadística,tiempo-hasta-evento",
+   "title": "Análisis de supervivencia: tiempo hasta el evento y modelado de churn",
+   "subtitle": "Censura de datos, curvas de Kaplan-Meier, modelo de riesgos proporcionales de Cox y métricas de concordancia.",
+   "body": [
+    {
+     "p": "Muchos de los problemas analíticos más valiosos no preguntan <i>«¿ocurrirá el evento?»</i>, sino <b>«¿cuándo ocurrirá?»</b>: ¿cuántos meses tardará un suscriptor en cancelar el servicio?, ¿cuántas horas de operación resistirá un cojinete antes de fracturarse?, ¿cuál es el tiempo de espera hasta que un paciente presente una recaída?"
+    },
+    {
+     "h": "El desafío metodológico de la censura a derecha (Right Censoring)"
+    },
+    {
+     "p": "Al analizar datos recopilados hasta hoy, una gran parte de los clientes aún están suscritos y muchas máquinas aún funcionan perfectamente. Su tiempo final de fallo es <b>desconocido</b>: solo sabemos que sobrevivieron al menos hasta la fecha de corte. Tratar estos datos con técnicas comunes destruye el análisis:"
+    },
+    {
+     "list": [
+      "<b>Si los tratas como «no fallaron» ($y=0$ en clasificación binaria)</b>: cometes un error grave, porque eventualmente todos cancelarán o fallarán si esperas lo suficiente.",
+      "<b>Si descartas a los sujetos no fallados</b>: sesgas catastróficamente el estudio conservando solo los casos prematuros y frágiles.",
+      "<b>Si aplicas regresión lineal sobre el tiempo transcurrido</b>: asumes falsamente que los sujetos censurados fallaron hoy mismo, subestimando la verdadera vida útil."
+     ]
+    },
+    {
+     "h": "Funciones matemáticas de supervivencia"
+    },
+    {
+     "p": "El análisis de supervivencia formaliza el fenómeno mediante dos funciones complementarias:"
+    },
+    {
+     "math": "S(t) = P(T > t) \\qquad \\lambda(t) = \\lim_{\\Delta t \\to 0} \\frac{P(t \\le T < t+\\Delta t \\mid T \\ge t)}{\\Delta t}"
+    },
+    {
+     "list": [
+      "<b>Función de Supervivencia $S(t)$</b> — probabilidad de que el sujeto sobreviva más allá del tiempo $t$. Inicia en 1 para $t=0$ y desciende monótonamente hacia 0 a medida que el tiempo avanza.",
+      "<b>Función de Riesgo Instantáneo (Hazard Rate) $\\lambda(t)$</b> — la tasa instantánea de que ocurra el evento en el momento $t$, condicionado a que el sujeto haya logrado sobrevivir hasta ese instante."
+     ]
+    },
+    {
+     "h": "El estimador no paramétrico de Kaplan-Meier"
+    },
+    {
+     "p": "La <b>curva de Kaplan-Meier</b> grafica la probabilidad acumulada de supervivencia escalón a escalón sin asumir ninguna distribución matemática previa:"
+    },
+    {
+     "math": "S(t) = \\prod_{t_i \\le t} \\left(1 - \\frac{d_i}{n_i}\\right)"
+    },
+    {
+     "p": "Donde $d_i$ es el número de eventos ocurridos en el instante exacto $t_i$, y $n_i$ es el número de individuos aún «en riesgo» (que no han fallado ni han sido censurados antes de $t_i$). Los datos censurados se descuentan del número en riesgo sin considerarse eventos, preservando la honestidad estadística."
+    },
+    {
+     "code": "from lifelines import KaplanMeierFitter\nfrom lifelines.statistics import logrank_test\n\nkmf = KaplanMeierFitter()\n# duraciones: tiempo observado; evento: 1 si falló/canceló, 0 si sigue activo (censurado)\nkmf.fit(duraciones, event_observed=eventos, label='Clientes Premium')\nkmf.plot_survival_function()\n\n# Comparación estadística entre cohortes (prueba de Log-Rank)\nresultado = logrank_test(duraciones_A, duraciones_B, eventos_A, eventos_B)\nprint('P-valor de diferencia entre planes:', resultado.p_value)"
+    },
+    {
+     "h": "Modelo de Riesgos Proporcionales de Cox"
+    },
+    {
+     "p": "Mientras que Kaplan-Meier evalúa una o dos variables discretas, el <b>modelo de Cox</b> es una regresión semiparamétrica que permite estimar el impacto simultáneo de múltiples variables continuas y categóricas sobre la tasa de riesgo:"
+    },
+    {
+     "math": "\\lambda(t \\mid X) = \\lambda_0(t) \\exp(\\beta_1 X_1 + \\beta_2 X_2 + \\dots + \\beta_p X_p)"
+    },
+    {
+     "p": "Donde $\\lambda_0(t)$ es el riesgo base en el tiempo (que no necesita ser modelado explícitamente). El coeficiente exponencial $HR_i = e^{\\beta_i}$ es el <b>Hazard Ratio (Razón de Riesgo)</b>:"
+    },
+    {
+     "list": [
+      "<b>$HR = 1.0$</b> — la variable no tiene efecto alguno sobre el riesgo de cancelación o avería.",
+      "<b>$HR = 1.45$</b> — la variable incrementa el riesgo instantáneo del evento en un 45% (ej. clientes sin soporte técnico asignado).",
+      "<b>$HR = 0.60$</b> — factor protector: reduce el riesgo instantáneo en un 40% (ej. maquinaria con lubricación sintética certificada)."
+     ]
+    },
+    {
+     "h": "Métricas de evaluación: el C-Index"
+    },
+    {
+     "p": "Para medir la calidad de un modelo de supervivencia no se utiliza el error cuadrático ni la exactitud (accuracy), sino el <b>Índice de Concordancia de Harrell (C-Index)</b>. Evalúa si, para todos los pares evaluables de individuos donde uno falló antes que el otro, el modelo predijo efectivamente un mayor riesgo para el primero. Un $C = 0.5$ equivale al azar y $C = 1.0$ representa un ordenamiento temporal perfecto."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "grafos,redes,centralidad,clustering",
+   "title": "Graph Data Science: análisis de redes y grafos",
+   "subtitle": "Representaciones matriciales, métricas de centralidad, detección de comunidades con Louvain y Graph Neural Networks.",
+   "body": [
+    {
+     "p": "Gran parte de la riqueza de los datos no habita en las características intrínsecas de una entidad aislada, sino en la <b>topología de sus relaciones con otras entidades</b>: transacciones financieras entre cuentas bancarias, llamadas entre números sospechosos, componentes de una red eléctrica interconectada o moléculas químicas formadas por enlaces atómicos."
+    },
+    {
+     "h": "El álgebra de los grafos: Matrices de Adyacencia y Laplaciano"
+    },
+    {
+     "p": "Un grafo $G = (V, E)$ compuesto por vértices (nodos) y aristas (enlaces) se expresa analíticamente mediante matrices:"
+    },
+    {
+     "list": [
+      "<b>Matriz de Adyacencia ($A$)</b> — matriz cuadrada de tamaño $|V| \\times |V|$ donde $A_{ij} = 1$ (o el peso del enlace) si existe una arista conectando el nodo $i$ con el nodo $j$, y 0 en caso contrario.",
+      "<b>Matriz de Grados ($D$)</b> — matriz diagonal donde cada entrada $D_{ii}$ almacena el número de conexiones directas del nodo $i$.",
+      "<b>Matriz Laplaciana ($L = D - A$)</b> — la joya matemática del análisis de grafos. El número de autovalores iguales a cero en $L$ indica exactamente cuántos componentes conexos independientes tiene el grafo, y sus autovectores permiten ejecutar <b>Clustering Espectral</b> para particionar redes complejas."
+     ]
+    },
+    {
+     "h": "Métricas de centralidad: ¿quién domina la red?"
+    },
+    {
+     "list": [
+      "<b>Degree Centrality (Centralidad de Grado)</b> — cuenta simplemente el número de vecinos directos. Mide popularidad o volumen inmediato.",
+      "<b>Betweenness Centrality (Intermediación)</b> — calcula la fracción de caminos más cortos (geodésicos) entre todos los pares de nodos que pasan obligatoriamente por un nodo específico. Identifica <b>cuellos de botella estratégicos, puentes entre silos o coordinadores clave</b> en redes delictivas o logísticas.",
+      "<b>Closeness Centrality (Cercanía)</b> — mide la inversa de la distancia promedio de un nodo hacia todos los demás. Refleja qué tan rápido se difundiría una información o infección que comience en ese nodo.",
+      "<b>PageRank</b> — asigna autoridad de forma recursiva: un nodo es influyente si recibe enlaces de otros nodos influyentes. Incorpora un factor de amortiguación ($\\alpha = 0.85$) que simula la probabilidad de que un navegante aleatorio salte a cualquier nodo al azar, evitando quedar atrapado en bucles cerrados."
+     ]
+    },
+    {
+     "h": "Detección de comunidades con el Algoritmo de Louvain"
+    },
+    {
+     "p": "Una comunidad en un grafo es un grupo de nodos con una densidad altísima de conexiones internas entre sí y conexiones escasas hacia el exterior de la red. El <b>algoritmo de Louvain</b> detecta comunidades maximizando de forma iterativa y jerárquica la <b>Modularidad ($Q$)</b>:"
+    },
+    {
+     "key": "La modularidad compara la densidad de enlaces dentro de los grupos propuestos frente a la densidad que se esperaría si los enlaces estuvieran distribuidos al azar. En auditoría forense y cumplimiento bancario, Louvain y Leiden son las herramientas indispensables para descubrir <b>anillos organizados de fraude y empresas fachada</b> que se transfieren capitales entre sí."
+    },
+    {
+     "h": "Machine Learning sobre grafos: Node2Vec y GNNs"
+    },
+    {
+     "p": "¿Cómo alimentamos una red o grafo en un clasificador de machine learning tradicional?"
+    },
+    {
+     "steps": [
+      "<b>Node2Vec</b>: simula caminatas aleatorias de segundo orden a lo largo de las aristas del grafo. Los recorridos generados se tratan exactamente como si fueran oraciones de texto en Word2Vec, aprendiendo un vector continuo (embedding) denso por cada nodo que captura tanto su rol estructural como su vecindario inmediato.",
+      "<b>Graph Neural Networks (GNNs / GCNs)</b>: en lugar de procesar nodos desconectados, cada capa de una GNN ejecuta un paso de <b>paso de mensajes (Message Passing)</b>: cada nodo recopila y agrega las características vectoriales de sus vecinos inmediatos y actualiza su propio estado interno mediante una transformación no lineal.",
+      "<b>Ventaja decisiva</b>: una GNN puede predecir propiedades de nodos (¿esta cuenta bancaria es fraudulenta?), predecir enlaces (¿estos dos usuarios se conocen?) o clasificar el grafo entero (¿esta molécula química es tóxica?)."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "grafos-conocimiento,graph-rag,ontologías,neo4j,transe",
+   "title": "Machine Learning en Grafos de Conocimiento y Graph RAG",
+   "subtitle": "Tripletas RDF, embeddings relacionales (TransE, RotatE), razonamiento multihop y Graph RAG.",
+   "body": [
+    {
+     "p": "El RAG vectorial estándar basado en fragmentos de texto planos tiene un punto ciego crítico: es incapaz de responder preguntas que exigen <b>conectar múltiples hechos dispersos a través de diferentes documentos</b> (razonamiento multihop). Los <b>Grafos de Conocimiento (Knowledge Graphs)</b> estructuran la información como entidades y relaciones explícitas."
+    },
+    {
+     "h": "Tripletas semánticas y ontologías"
+    },
+    {
+     "p": "Un Grafo de Conocimiento modela el mundo mediante tripletas formalizadas <code>(Sujeto, Predicado, Objeto)</code>:"
+    },
+    {
+     "code": "(Metformina, TRATA, Diabetes_Tipo_2)\n(Diabetes_Tipo_2, ASOCIADA_A, Resistencia_Insulina)\n(Resistencia_Insulina, REGULADA_POR, Receptor_GLUT4)"
+    },
+    {
+     "p": "A diferencia de un texto que dice «la metformina suele prescribirse a diabéticos», la tripleta formal define un hecho estructurado consultable sin ambigüedades en motores de grafos como <b>Neo4j</b> con lenguaje Cypher."
+    },
+    {
+     "h": "Knowledge Graph Embeddings: proyectar relaciones en vectores"
+    },
+    {
+     "p": "¿Cómo predecimos enlaces faltantes en una red de conocimiento (ej. qué fármaco podría tratar una nueva enfermedad)?"
+    },
+    {
+     "list": [
+      "<b>TransE (Translational Embeddings)</b> — modela las relaciones como traslaciones vectoriales directas: $h + r \\approx t$ (el vector del Sujeto más el vector de la Relación debe aterrizar cerca del vector del Objeto).",
+      "<b>RotatE</b> — modela las relaciones como rotaciones en el espacio complejo $\\mathbb{C}$, permitiendo capturar patrones simétricos, asimétricos, inversos y de composición que TransE no puede resolver."
+     ]
+    },
+    {
+     "h": "Graph RAG: la evolución del RAG tradicional"
+    },
+    {
+     "p": "<b>Graph RAG</b> combina la extracción de entidades de LLMs con la estructura de grafos:"
+    },
+    {
+     "steps": [
+      "Al ingerir documentos, un LLM extrae todas las entidades y relaciones, construyendo un Grafo de Conocimiento conectado.",
+      "Se ejecutan algoritmos de detección de comunidades (Leiden/Louvain) para resumir temáticamente los conglomerados de conocimiento.",
+      "Ante una pregunta compleja que abarca toda la organización, el sistema no busca fragmentos aislados por palabras clave: <b>navega por el grafo estructurado conectando nodos intermedios</b> y sintetiza respuestas con una visión holística libre de alucinaciones."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "espaciotemporal,tráfico,stgnn,map-matching,movilidad",
+   "title": "Modelado espaciotemporal y análisis de movilidad",
+   "subtitle": "Cuando el espacio y el tiempo se cruzan: STARIMA, Spatio-Temporal Graph Neural Networks (ST-GNNs) y Map Matching.",
+   "body": [
+    {
+     "p": "Muchos de los desafíos analíticos más críticos no son solo espaciales ni solo temporales: son <b>espaciotemporales</b>. El tráfico en una autopista a las 8:00 AM no solo depende de lo que pasó hace 15 minutos en ese punto (tiempo), sino del tráfico en las avenidas adyacentes conectadas aguas arriba (espacio topológico)."
+    },
+    {
+     "h": "El doble reto de la correlación espaciotemporal"
+    },
+    {
+     "p": "En un sistema de transporte o sensores meteorológicos existen simultáneamente:"
+    },
+    {
+     "list": [
+      "<b>Autocorrelación Temporal</b>: persistencia histórica, estacionalidades diarias y semanales en cada sensor.",
+      "<b>Dependencia Espacial Dinámica</b>: una congestión en el sensor $A$ se propaga hacia el sensor $B$ siguiendo la dirección de la vía física a una velocidad finita determinada por el flujo de vehículos."
+     ]
+    },
+    {
+     "h": "Spatio-Temporal Graph Neural Networks (ST-GNNs)"
+    },
+    {
+     "p": "Arquitecturas modernas como <b>DCRNN (Diffusion Convolutional Recurrent Neural Network)</b> o <b>STGCN</b> combinan lo mejor de dos mundos:"
+    },
+    {
+     "code": "Entrada: Grafo de la red vial (sensores = nodos, vías = aristas con pesos de distancia)\n  │\n  ├── Convolución Espacial en Grafo (GCN / Pase de Mensajes): propaga el flujo entre vecinos\n  │\n  └── Convolución Temporal (TCN / GRU): captura la evolución del tráfico en el tiempo\n  │\nSalida: Pronóstico de velocidad y tiempo de viaje en los próximos 60 minutos"
+    },
+    {
+     "h": "Map Matching con Modelos Ocultos de Markov (HMM)"
+    },
+    {
+     "p": "Los dispositivos GPS de vehículos transmiten coordenadas ruidosas que caen fuera de las calzadas o en edificios colindantes. El algoritmo de <b>Map Matching basado en HMM</b> proyecta la trayectoria real:"
+    },
+    {
+     "steps": [
+      "<b>Probabilidad de Emisión</b>: mide la distancia euclidiana entre el punto GPS registrado y los posibles segmentos viales cercanos (asumiendo ruido gaussiano del sensor).",
+      "<b>Probabilidad de Transición</b>: compara la distancia de ruta física sobre la red vial entre dos segmentos candidatos con la distancia euclidiana directa entre las mediciones GPS consecutivas.",
+      "<b>Algoritmo de Viterbi</b>: encuentra la secuencia óptima más probable de tramos de calle que recorrió el vehículo, descartando giros prohibidos o saltos físicos imposibles."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "geométrico,simetrías,equivarianza,invariancia,física",
+   "title": "Deep Learning Geométrico y simetrías físicas",
+   "subtitle": "El principio unificador de Bronstein: invariancia vs equivarianza a rotaciones, traslaciones y permutaciones.",
+   "body": [
+    {
+     "p": "¿Por qué las CNNs triunfaron en imágenes, las GNNs en redes y los Transformers en secuencias? El <b>Deep Learning Geométrico (Michael Bronstein et al.)</b> demostró que todas las arquitecturas exitosas son manifestaciones de un único principio fundamental: <b>la explotación matemática de las simetrías y la geometría del dominio</b>."
+    },
+    {
+     "h": "Invariancia vs. Equivarianza"
+    },
+    {
+     "p": "Sea $T$ una transformación geométrica (rotación, traslación, permutación):"
+    },
+    {
+     "list": [
+      "<b>Invarianza ($f(T(x)) = f(x)$)</b> — aplicar la transformación a la entrada no altera la salida. Ejemplo: si rotas la foto de un gato, la predicción de la clase sigue siendo «gato».",
+      "<b>Equivarianza ($f(T(x)) = T(f(x))$)</b> — transformar la entrada transforma la salida de forma idéntica y coherente. Ejemplo: en segmentación de imágenes, si desplazas la imagen 10 píxeles a la derecha, la máscara de segmentación debe desplazarse exactamente 10 píxeles a la derecha."
+     ]
+    },
+    {
+     "h": "El mapa de simetrías de las arquitecturas"
+    },
+    {
+     "list": [
+      "<b>Imágenes (Cuadrícula 2D)</b> — grupo de traslaciones $\\mathbb{R}^2$. Las capas convolucionales son equivariantes a traslaciones por diseño.",
+      "<b>Grafos (Topología arbitraria)</b> — grupo de permutaciones $S_n$. Una GNN no debe alterar su salida si reordenas arbitrariamente el índice de los nodos.",
+      "<b>Moléculas y Estructuras 3D</b> — grupo euclidiano especial $SE(3)$ (rotaciones y traslaciones continuas en el espacio tridimensional). Modelos como <b>SE(3)-Transformers</b> o <b>EGNN</b> respetan las leyes de la física newtoniana: la energía de una molécula no cambia si la rotas en el espacio."
+     ]
+    },
+    {
+     "key": "Inyectar simetrías directamente en la arquitectura matemática de la red reduce drásticamente el volumen de datos necesario para entrenar: el modelo no necesita memorizar un objeto en miles de orientaciones rotadas porque la red es físicamente incapaz de violar la simetría."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "pinns,física,ecuaciones-diferenciales,ingeniería,navier-stokes",
+   "title": "Physics-Informed Neural Networks (PINNs) y Machine Learning físico",
+   "subtitle": "Integrar leyes de conservación y ecuaciones diferenciales parciales directamente en la función de pérdida.",
+   "body": [
+    {
+     "p": "Al predecir variables físicas en ingeniería (temperatura de baterías, flujo de aire sobre un fuselaje o tensiones mecánicas en un puente), un modelo de machine learning puramente basado en datos puede generar predicciones que violan leyes elementales de la física: masa que aparece de la nada o calor fluyendo espontáneamente de un cuerpo frío a uno caliente."
+    },
+    {
+     "h": "La arquitectura de una PINN (Raissi, Perdikaris, Karniadakis)"
+    },
+    {
+     "p": "Una <b>Physics-Informed Neural Network (PINN)</b> toma coordenadas espaciotemporales $(x, y, z, t)$ como entrada y predice el estado físico (presión, temperatura, velocidad $u$). Lo revolucionario es su <b>función de pérdida compuesta</b>:"
+    },
+    {
+     "math": "\\mathcal{L}_{\\text{total}} = \\mathcal{L}_{\\text{datos}} + \\lambda_f \\mathcal{L}_{\\text{física}} + \\lambda_b \\mathcal{L}_{\\text{contorno}}"
+    },
+    {
+     "list": [
+      "<b>Pérdida de datos ($\\mathcal{L}_{\\text{datos}}$)</b> — error cuadrático medio respecto a los pocos sensores reales disponibles.",
+      "<b>Pérdida de contorno ($\\mathcal{L}_{\\text{contorno}}$)</b> — cumplimiento de condiciones iniciales y de borde conocidas (ej. velocidad cero en las paredes de la tubería).",
+      "<b>Pérdida física ($\\mathcal{L}_{\\text{física}}$)</b> — el residuo exacto de una <b>Ecuación Diferencial Parcial (PDE)</b>, como Navier-Stokes, evaluado mediante <b>diferenciación automática</b> en puntos de colocación arbitrarios."
+     ]
+    },
+    {
+     "code": "# En PyTorch mediante autograd:\nu = modelo(x, t)\nu_t = torch.autograd.grad(u, t, create_graph=True)[0]  # derivada temporal\nu_x = torch.autograd.grad(u, x, create_graph=True)[0]  # derivada espacial\n# El residuo de la ecuación de Burgers: u_t + u * u_x - nu * u_xx\nresiduo_fisico = u_t + u * u_x - nu * u_xx\nperdida_fisica = torch.mean(residuo_fisico ** 2)"
+    },
+    {
+     "key": "Una PINN actúa como un interpolador guiado por la física: puede estimar campos de flujo completos en lugares donde <b>jamás se colocó un sensor físico</b>, respetando estrictamente las leyes de conservación de energía y momento."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "cuántica,qml,qubits,pqc,vqe",
+   "title": "Computación cuántica y Quantum Machine Learning (QML)",
+   "subtitle": "Qubits, circuitos cuánticos parametrizados (PQCs), algoritmos híbridos VQE/QAOA y Quantum Kernels.",
+   "body": [
+    {
+     "p": "Mientras que las computadoras clásicas procesan bits discretos (0 o 1), una computadora cuántica aprovecha las leyes de la mecánica cuántica —<b>superposición y entrelazamiento</b>— para procesar estados en espacios de Hilbert de dimensión exponencial $2^n$ con apenas $n$ qubits."
+    },
+    {
+     "h": "Fundamentos cuánticos para el científico de datos"
+    },
+    {
+     "list": [
+      "<b>Qubit</b> — estado cuántico $|\\psi\\rangle = \\alpha |0\\rangle + \\beta |1\\rangle$, donde $\\alpha$ y $\\beta$ son amplitudes complejas tales que $|\\alpha|^2 + |\\beta|^2 = 1$. Representable geométricamente en la <b>Esfera de Bloch</b>.",
+      "<b>Superposición</b> — capacidad de coexistir en múltiples estados simultáneamente.",
+      "<b>Entrelazamiento (Entanglement)</b> — correlación cuántica no local donde el estado de un qubit no puede describirse independientemente del estado de otro, sin importar la distancia física entre ellos."
+     ]
+    },
+    {
+     "h": "Circuitos Cuánticos Parametrizados (PQC)"
+    },
+    {
+     "p": "El análogo cuántico de una red neuronal clásica es un <b>Circuito Cuántico Parametrizado (PQC)</b> o red neuronal cuántica (QNN):"
+    },
+    {
+     "steps": [
+      "<b>Codificación de datos (State Preparation)</b>: mapea variables clásicas $x$ a rotaciones cuánticas de puertas lógicas (ej. $R_x(x)$).",
+      "<b>Capas entrenables</b>: aplica puertas parametrizadas por ángulos $\\theta$ y puertas entrelazadoras (CNOT).",
+      "<b>Medición</b>: mide el valor esperado de un observable físico cuántico $\\langle M \\rangle$.",
+      "<b>Optimización híbrida</b>: una CPU clásica calcula el gradiente respecto a los parámetros $\\theta$ mediante la regla de desplazamiento de parámetros (<i>parameter-shift rule</i>) y actualiza los ángulos en el procesador cuántico (QPU)."
+     ]
+    },
+    {
+     "h": "Quantum Kernels y algoritmos NISQ"
+    },
+    {
+     "p": "En la era cuántica actual (NISQ: computadoras ruidosas de escala intermedia), el mayor impacto reside en los <b>Quantum Kernel Methods</b>: mapear datos clásicos a espacios cuánticos hiperdimensionales donde problemas no lineales complejos se vuelven linealmente separables sin coste de calcular coordenadas explícitas, acelerando la simulación molecular y el descubrimiento de catalizadores químicos."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "generativo,difusión,vae,lora,llm,deep-learning",
+   "title": "Modelos generativos, difusión y adaptación eficiente de LLMs (LoRA)",
+   "subtitle": "De VAEs y GANs a modelos de difusión latente, y fine-tuning eficiente con PEFT, LoRA y QLoRA.",
+   "body": [
+    {
+     "p": "Durante décadas, el aprendizaje automático se concentró en modelos discriminativos: aprender la frontera de decisión $P(Y \\mid X)$ para clasificar o predecir una etiqueta. La revolución actual de la IA generativa modela la distribución de probabilidad completa del mundo $P(X)$, permitiendo muestrear y sintetizar datos nuevos totalmente inéditos: imágenes, audio, código y razonamiento textual."
+    },
+    {
+     "h": "La evolución generativa: VAEs, GANs y Difusión"
+    },
+    {
+     "list": [
+      "<b>Variational Autoencoders (VAEs)</b> — comprimen la entrada a un espacio latente probabilístico continuo estructurado como una distribución gaussiana $\\mathcal{N}(\\mu, \\sigma^2)$. Utilizan el <b>truco de reparametrización</b> ($z = \\mu + \\sigma \\odot \\epsilon$) para permitir que la retropropagación fluya a través del muestreo estocástico.",
+      "<b>Generative Adversarial Networks (GANs)</b> — plantean un juego de teoría de juegos minimax entre un Generador (que intenta crear datos sintéticos realistas) y un Discriminador (que intenta distinguir muestras reales de falsas). Muy nítidas, pero difíciles de estabilizar (propensas al <i>Mode Collapse</i>, donde el generador memoriza una sola imagen que engaña al discriminador).",
+      "<b>Modelos de Difusión (DDPM / Latent Diffusion)</b> — el estándar moderno (Stable Diffusion, Midjourney). Aprenden a destruir una imagen añadiendo progresivamente ruido gaussiano paso a paso (proceso directo), y entrenan una red neuronal (U-Net o DiT) para predecir y restar ese ruido paso a paso (proceso inverso) a partir de ruido puro."
+     ]
+    },
+    {
+     "h": "Fine-Tuning Eficiente de Modelos Grandes: PEFT y LoRA"
+    },
+    {
+     "p": "Reentrenar todos los pesos de un Modelo de Lenguaje Grande (LLM) de 70.000 millones de parámetros (70B) requeriría un clúster de decenas de GPUs de alto coste. La técnica <b>LoRA (Low-Rank Adaptation)</b> congela los pesos originales del modelo pre-entrenado $W_0$ y descompone las actualizaciones de pesos en dos matrices pequeñas de bajo rango $A$ y $B$:"
+    },
+    {
+     "math": "W = W_0 + \\Delta W = W_0 + \\frac{\\alpha}{r} (B \\times A)"
+    },
+    {
+     "p": "Donde $W_0$ es de tamaño $d \\times k$, $B$ es de $d \\times r$ y $A$ es de $r \\times k$, con un rango $r$ muy pequeño (ej. $r = 8$ o $16$):"
+    },
+    {
+     "key": "Si $d = 4096$, multiplicar $4096 \\times 4096$ son 16.7 millones de parámetros por matriz. Al descomponerlo con rango $r=8$, $B \\times A$ solo suma $2 \\times 4096 \\times 8 = 65.536$ parámetros (<b>una reducción del 99.6% de pesos entrenables</b>), permitiendo adaptar un LLM de nivel frontera a un dominio corporativo específico en una sola tarjeta gráfica convencional."
+    },
+    {
+     "h": "QLoRA: Cuantización a 4 bits"
+    },
+    {
+     "p": "<b>QLoRA</b> lleva la eficiencia al límite: comprime el modelo base $W_0$ a precisión de 4 bits utilizando el tipo de datos <b>NormalFloat4 (NF4)</b> y memoria de GPU paginada, manteniendo los adaptadores LoRA en precisión flotante FP16. Permite ejecutar el ajuste fino de modelos gigantes en servidores accesibles sin degradar la calidad de las respuestas."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "llm,inferencia,vllm,agentes,prompting",
+   "title": "LLMs avanzados: Mecánica de muestreo, inferencia acelerada y agentes",
+   "subtitle": "Estrategias de decodificación (Top-P, Top-K), KV-Cache, vLLM con PagedAttention y arquitecturas de agentes ReAct.",
+   "body": [
+    {
+     "p": "Un Modelo de Lenguaje Grande es un predictor autorregresivo: calcula una distribución de probabilidad sobre el siguiente token dado el historial precedente. Cómo se muestrean esos tokens, cómo se gestiona la memoria de GPU a gran escala y cómo se articulan herramientas externas define la ingeniería de LLMs en producción."
+    },
+    {
+     "h": "Parámetros de muestreo y decodificación de logits"
+    },
+    {
+     "p": "Tras la última capa lineal del transformer, el modelo entrega un vector de puntuaciones sin normalizar (<i>logits</i> $z$) sobre todo el vocabulario (32k-128k tokens):"
+    },
+    {
+     "list": [
+      "<b>Temperatura ($T$)</b> — escala los logits antes de la función softmax: $z_i / T$. Con $T \\to 0$, el token más probable absorbe el 100% de la probabilidad (decodificación Greedy, determinista). Con $T > 1$, la distribución se aplana, aumentando la diversidad y creatividad pero arriesgando incoherencias.",
+      "<b>Top-K Sampling</b> — trunca la distribución conservando únicamente los $K$ tokens con mayor probabilidad absoluta (ej. $K=50$) y redistribuye la masa de probabilidad restante.",
+      "<b>Top-P (Nucleus Sampling)</b> — selecciona el conjunto mínimo dinámico de tokens más probables cuya suma de probabilidades acumuladas alcance el umbral $P$ (ej. $P=0.90$). Adapta el tamaño del vocabulario candidato: si el contexto es evidente, solo evalúa 2 tokens; si es abierto, evalúa docenas.",
+      "<b>Repetition Penalty</b> — penaliza los logits de tokens que ya han sido emitidos previamente en la respuesta para impedir bucles repetitivos infinitos."
+     ]
+    },
+    {
+     "h": "El cuello de botella de inferencia: KV-Cache y vLLM"
+    },
+    {
+     "p": "En la generación autorregresiva token por token, recalcular las matrices de claves ($K$) y valores ($V$) de todos los tokens anteriores en cada paso implicaría una complejidad computacional cuadrática $O(N^2)$. El <b>KV-Cache</b> guarda en la memoria de la GPU los tensores $K$ y $V$ ya calculados:"
+    },
+    {
+     "warn": "El KV-Cache consume gigabytes masivos de memoria VRAM por usuario concurrente. Los servidores tradicionales preasignaban bloques estáticos contiguos de memoria para la longitud máxima posible de contexto (ej. 8.192 tokens), provocando una fragmentación de memoria interna del 60% al 80% y limitando severamente la concurrencia."
+    },
+    {
+     "p": "La biblioteca <b>vLLM</b> resolvió este cuello de botella con el algoritmo <b>PagedAttention</b>, inspirado en la memoria virtual y paginación de los sistemas operativos:"
+    },
+    {
+     "key": "PagedAttention divide el KV-Cache en pequeños bloques no contiguos en memoria física de GPU mapeados dinámicamente mediante una tabla de páginas. Elimina casi por completo el desperdicio de memoria y <b>multiplica el rendimiento (throughput) de peticiones concurrentes entre 2x y 4x</b> en comparación con implementaciones estándar de Hugging Face."
+    },
+    {
+     "h": "Agentes autónomos y el patrón ReAct"
+    },
+    {
+     "p": "Un modelo aislado solo procesa texto. Un <b>Agente</b> utiliza un bucle de ejecución iterativo basado en el paradigma <b>ReAct (Reason + Act)</b>:"
+    },
+    {
+     "steps": [
+      "<b>Pensamiento (Thought)</b>: el LLM razona internamente sobre el estado actual del problema y qué dato le falta.",
+      "<b>Acción (Action)</b>: decide invocar una herramienta externa (hacer una consulta SQL, llamar a una API del tiempo, ejecutar una búsqueda en base vectorial) mediante <b>Function Calling</b> estructurado en JSON.",
+      "<b>Observación (Observation)</b>: el entorno ejecuta la herramienta y devuelve el resultado factual al modelo.",
+      "<b>Conclusión</b>: el modelo repite el ciclo hasta que dispone de suficiente información para formular la respuesta final verificada."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "multi-agentes,mcp,coordinación,swarms,autogen",
+   "title": "Sistemas Multi-Agente, protocolos de coordinación y LLMs colaborativos",
+   "subtitle": "Orquestación centralizada vs enjambres (Swarms), el protocolo MCP, memoria reflexiva y debate adversarial.",
+   "body": [
+    {
+     "p": "Un solo agente con un único prompt amplio suele perder el foco, saturar su ventana de contexto y cometer errores de razonamiento en tareas complejas. Los <b>Sistemas Multi-Agente (MAS)</b> dividen la carga cognitiva entre múltiples agentes especializados que colaboran, debaten y se auditan mutuamente."
+    },
+    {
+     "h": "Patrones de coordinación entre agentes"
+    },
+    {
+     "list": [
+      "<b>Orquestador / Supervisor Central</b> — un agente planificador descompone el objetivo del usuario en subtareas y delega dinámicamente en agentes subordinados (ej. Agente Investigador, Agente Programador, Agente Validador).",
+      "<b>Flujo Secuencial en Tubería (Chains)</b> — cada agente procesa la salida del anterior como una cadena de montaje industrial.",
+      "<b>Enjambres Descentralizados (Swarms / Peer-to-Peer)</b> — los agentes se comunican libremente transfiriéndose el control de la conversación según la necesidad del contexto mediante transiciones directas.",
+      "<b>Debate Adversarial (Consenso)</b> — dos agentes con roles opuestos (ej. un redactor de código y un auditor de seguridad) discuten iterativamente hasta que el crítico no encuentra más vulnerabilidades."
+     ]
+    },
+    {
+     "h": "El estándar Model Context Protocol (MCP)"
+    },
+    {
+     "p": "Antes de MCP, cada herramienta, base de datos o API externa requería escribir código pegamento propietario para cada framework de agentes. El <b>Model Context Protocol (MCP)</b> estandariza la comunicación cliente-servidor para IA:"
+    },
+    {
+     "key": "MCP define un protocolo unificado JSON-RPC para exponer <b>recursos de datos, herramientas ejecutables y prompts preconfigurados</b>. Un servidor MCP escrito una sola vez para una base PostgreSQL o un clúster Kubernetes puede ser consumido inmediatamente por cualquier agente de cualquier fabricante sin adaptar código."
+    },
+    {
+     "h": "Arquitectura de memoria en agentes autónomos"
+    },
+    {
+     "steps": [
+      "<b>Memoria de Trabajo (Working Memory)</b>: el contexto activo inmediato (scratchpad) donde el agente anota pasos intermedios de razonamiento.",
+      "<b>Memoria a Corto Plazo</b>: historial de mensajes recientes de la conversación actual.",
+      "<b>Memoria a Largo Plazo Episódica</b>: base de datos vectorial que indexa conversaciones pasadas y resultados de tareas previas.",
+      "<b>Consolidación Reflexiva</b>: un proceso en segundo plano que sintetiza periódicamente recuerdos pasados en reglas heurísticas generales aprendidas (ej. «este usuario prefiere respuestas sin introducciones formales»)."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "código,llm,neurosimbólico,ast,verificación-formal",
+   "title": "Modelos de lenguaje para código y análisis de programas",
+   "subtitle": "Árboles de sintaxis abstracta (AST), métricas Pass@k, IA neurosimbólica y solucionadores SMT.",
+   "body": [
+    {
+     "p": "El código fuente no es lenguaje natural: es un sistema formal determinista regido por gramáticas estrictas y dependencias lógicas no locales. Un modelo de IA que asiste en desarrollo no puede limitarse a generar texto convincente; debe generar código que compile, pase pruebas unitarias y no contenga vulnerabilidades de seguridad."
+    },
+    {
+     "h": "Representaciones del código: más allá del texto plano"
+    },
+    {
+     "list": [
+      "<b>Árbol de Sintaxis Abstracta (AST)</b> — representación arbórea estructurada de la gramática del código fuente (funciones, bucles, expresiones condicionales) generada por analizadores sintácticos como <code>tree-sitter</code>.",
+      "<b>Grafo de Flujo de Control (CFG) y de Datos (DFG)</b> — trazan todas las rutas de ejecución posibles y el ciclo de vida de cada variable en memoria.",
+      "<b>Fill-in-the-Middle (FIM)</b> — técnica de entrenamiento donde se recorta un bloque intermedio de código y el modelo aprende a predecirlo condicionado simultáneamente por el prefijo (código anterior) y el sufijo (código posterior), base de los autocompletadores modernos en IDEs."
+     ]
+    },
+    {
+     "h": "Evaluación rigurosa: la métrica Pass@k"
+    },
+    {
+     "p": "Medir precisión superficial con BLEU en código es inútil: renombrar una variable cambia el texto pero no la funcionalidad. El estándar es <b>Pass@k</b>:"
+    },
+    {
+     "math": "\\text{Pass@k} = \\mathbb{E} \\left[ 1 - \\frac{\\binom{n-c}{k}}{\\binom{n}{k}} \\right]"
+    },
+    {
+     "p": "Genera $n$ soluciones candidatas por problema y calcula la probabilidad de que al menos una de $k$ muestras pase el 100% de los tests unitarios ejecutados en un contenedor aislado seguro."
+    },
+    {
+     "h": "IA Neurosimbólica: unir intuición neuronal con verificación lógica"
+    },
+    {
+     "p": "Las redes neuronales son probabilísticas y propensas a alucinaciones. La <b>IA Neurosimbólica</b> conecta el modelo generativo con un <b>solucionador lógico formal determinista (como el solver SMT Z3 de Microsoft)</b>: el LLM propone soluciones candidatas y el verificador formal demuestra matemáticamente si la solución cumple los invariantes de seguridad del sistema antes de compilar."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "refuerzo,reinforcement-learning,bellman,q-learning,rlhf",
+   "title": "Aprendizaje por refuerzo y toma de decisiones secuenciales",
+   "subtitle": "Procesos de Markov, ecuación de Bellman, Q-Learning, PPO y alineación de modelos con RLHF.",
+   "body": [
+    {
+     "p": "Mientras que el aprendizaje supervisado aprende de un profesor que entrega la respuesta correcta inmediata para cada fila, el <b>Aprendizaje por Refuerzo (Reinforcement Learning - RL)</b> entrena a un <b>Agente</b> para tomar decisiones secuenciales en un <b>Entorno</b> mediante prueba, error y recompensas demoradas en el tiempo."
+    },
+    {
+     "h": "El marco formal: Procesos de Decisión de Markov (MDP)"
+    },
+    {
+     "p": "Un MDP se define formalmente mediante una tupla $(S, A, P, R, \\gamma)$:"
+    },
+    {
+     "list": [
+      "<b>Estado ($S$)</b> — la situación o configuración actual del entorno observable por el agente.",
+      "<b>Acción ($A$)</b> — el conjunto de decisiones admisibles que el agente puede ejecutar.",
+      "<b>Probabilidad de Transición ($P(s' \\mid s, a)$)</b> — dinámica del entorno: probabilidad de aterrizar en el estado $s'$ tras ejecutar la acción $a$ en el estado $s$.",
+      "<b>Recompensa ($R(s, a)$)</b> — señal escalar inmediata que premia o castiga la decisión adoptada.",
+      "<b>Factor de Descuento ($\\gamma \\in [0, 1)$)</b> — cuantifica la preferencia temporal: qué tanto valora el agente una recompensa futura comparada con una recompensa inmediata (evita sumas infinitas)."
+     ]
+    },
+    {
+     "h": "La Ecuación de Optimalidad de Bellman"
+    },
+    {
+     "p": "La función de valor $Q^*(s, a)$ representa el retorno total acumulado esperado al tomar la acción $a$ en el estado $s$ y seguir actuando óptimamente a partir de entonces:"
+    },
+    {
+     "math": "Q^*(s, a) = R(s, a) + \\gamma \\sum_{s'} P(s' \\mid s, a) \\max_{a'} Q^*(s', a')"
+    },
+    {
+     "p": "Esta ecuación recursiva establece que el valor óptimo de una decisión es la suma de la recompensa inmediata más el valor descontado del mejor estado futuro alcanzable."
+    },
+    {
+     "h": "Deep Q-Networks (DQN) y trucos de estabilidad"
+    },
+    {
+     "p": "Cuando el espacio de estados es continuo o infinito (ej. píxeles de un videojuego o telemetría de vuelo), una tabla no puede almacenar todos los valores $Q$. Se utiliza una red neuronal profunda $Q(s, a; \\theta)$. Para evitar que el entrenamiento colapse, se aplican dos técnicas esenciales:"
+    },
+    {
+     "steps": [
+      "<b>Experience Replay (Búfer de Reproducción)</b>: almacena transiciones pasadas $(s, a, r, s')$ en una memoria circular y muestrea minilotes aleatorios para romper la fuerte correlación temporal entre pasos consecutivos.",
+      "<b>Target Network (Red Objetivo)</b>: mantiene una copia congelada de los pesos de la red para calcular el objetivo de Bellman, actualizándola solo periódicamente para evitar que el algoritmo persiga un blanco móvil oscilante."
+     ]
+    },
+    {
+     "h": "RLHF: Alineación de Modelos de Lenguaje con Humanos"
+    },
+    {
+     "p": "El salto de modelos de lenguaje crudos (que generaban texto errático o dañino) a asistentes útiles y seguros (como ChatGPT) se logró mediante <b>RLHF (Reinforcement Learning from Human Feedback)</b>:"
+    },
+    {
+     "list": [
+      "<b>1. Modelo de Recompensa (Reward Model)</b>: se pide a evaluadores humanos comparar dos respuestas generadas ante un mismo prompt y elegir la mejor. Con eso se entrena un clasificador que asigna una puntuación escalar de calidad.",
+      "<b>2. Optimización con PPO (Proximal Policy Optimization)</b>: el LLM actúa como el agente generador; se ajusta con PPO para maximizar la puntuación del modelo de recompensa, añadiendo una penalización por divergencia KL para impedir que el modelo se aleje excesivamente de su lenguaje base original."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
    "minutes": 11,
    "tags": "estadística,experimentos,sesgos,evaluación",
    "title": "Estadística inferencial y diseño de experimentos A/B",
@@ -866,6 +2152,213 @@
   },
   {
    "level": 3,
+   "minutes": 11,
+   "tags": "causalidad,uplift,meta-learners,causal-forests,heterogeneidad",
+   "title": "Machine Learning Causal y Uplift Modeling",
+   "subtitle": "Efectos heterogéneos del tratamiento (CATE), Meta-Learners (S, T, X-Learner) y Causal Forests.",
+   "body": [
+    {
+     "p": "Un modelo de churn predice quién tiene alta probabilidad de abandonar; pero no te dice a quién contactar. Si envías una llamada promocional a un cliente indeciso, podrías convencerlo de quedarse; pero si llamas a un cliente satisfecho, podrías recordarle que el servicio es prescindible y provocar su cancelación. El <b>Uplift Modeling</b> modela directamente el cambio en el comportamiento inducido por la intervención."
+    },
+    {
+     "h": "Los cuatro perfiles de clientes ante una intervención"
+    },
+    {
+     "list": [
+      "<b>Persuadibles (Persuadables)</b> — compran o renuevan <i>únicamente si reciben el tratamiento</i>. Este es el <b>único grupo donde el gasto de intervención genera retorno de inversión real</b>.",
+      "<b>Seguros (Sure Things)</b> — comprarán o renovarán de todos modos, con o sin promoción. Tratarles es un desperdicio absoluto de presupuesto.",
+      "<b>Causa Perdida (Lost Causes)</b> — no comprarán ni renovarán jamás, sin importar qué oferta se les presente. Tratarles es dinero perdido.",
+      "<b>Reactivos / Perros Dormidos (Sleeping Dogs / Do Not Disturb)</b> — reaccionan negativamente al tratamiento: si no los contactas se quedan, pero si los contactas cancelan. Tratarles <b>destruye valor activamente</b>."
+     ]
+    },
+    {
+     "h": "El Efecto Heterogéneo del Tratamiento (CATE)"
+    },
+    {
+     "p": "El ATE (Efecto Promedio del Tratamiento) promedia a toda la población. El <b>CATE (Conditional Average Treatment Effect)</b> estima el impacto causal condicionado a las características individuales $X$ de cada usuario:"
+    },
+    {
+     "math": "\\tau(x) = \\mathbb{E}[Y(1) - Y(0) \\mid X = x]"
+    },
+    {
+     "h": "Meta-Learners: modelar el impacto con algoritmos convencionales"
+    },
+    {
+     "steps": [
+      "<b>S-Learner (Single Learner)</b>: entrena un único modelo $f(X, W)$ donde el indicador de tratamiento $W \\in \\{0, 1\\}$ es simplemente una variable de entrada adicional. El efecto estimado es $f(X, 1) - f(X, 0)$. <i>Desventaja</i>: en árboles de decisión, si el tratamiento tiene un efecto sutil frente a variables dominantes de $X$, el algoritmo tiende a ignorar $W$ y estimar un efecto cero (sesgo de regularización hacia la nulidad).",
+      "<b>T-Learner (Two Learners)</b>: entrena dos modelos completamente separados: $\\mu_1(X)$ exclusivamente con el grupo tratado y $\\mu_0(X)$ exclusivamente con el grupo de control. El efecto es $\\mu_1(X) - \\mu_0(X)$. Evita ignorar el tratamiento, pero no comparte información estadística entre grupos.",
+      "<b>X-Learner</b>: diseñado para entornos con fuerte desbalance muestral (ej. 99% de control y 1% tratado). Modela los efectos contrafactuales cruzados imputados en dos etapas y pondera las estimaciones mediante un modelo de propensión, superando con creces a los anteriores."
+     ]
+    },
+    {
+     "h": "Causal Forests de Athey y Wager"
+    },
+    {
+     "p": "Los <b>Causal Forests</b> modifican la arquitectura de Random Forest adaptándola a la inferencia causal:"
+    },
+    {
+     "key": "En lugar de dividir nodos para minimizar el error de predicción de $Y$, un árbol causal particiona los datos para <b>maximizar la diferencia en el efecto del tratamiento $\\tau(x)$ entre los nodos hijos</b>, aplicando el principio de honestidad (<i>honesty</i>: un subconjunto de datos elige los cortes del árbol y otro subconjunto estima los efectos dentro de las hojas) para garantizar intervalos de confianza asintóticamente normales."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "fraude,seguridad,adversarial-ml,ciberseguridad,robustez",
+   "title": "Detección de fraude, ciberseguridad y Machine Learning adversarial",
+   "subtitle": "La asimetría del atacante activo, ataques de evasión (FGSM), envenenamiento de datos y robustez.",
+   "body": [
+    {
+     "p": "En la mayoría de los problemas de ciencia de datos, el entorno es pasivo: las piezas mecánicas se desgastan por leyes físicas, no para engañar a tu modelo. En la detección de fraude y ciberseguridad, el entorno es un <b>adversario inteligente y activo</b> que estudia las respuestas de tu sistema y muta sus tácticas deliberadamente para eludir la detección."
+    },
+    {
+     "h": "La naturaleza asimétrica del fraude"
+    },
+    {
+     "list": [
+      "<b>Desbalance extremo de clases</b>: las transacciones fraudulentas suelen representar entre el 0.01% y el 0.1% del total. Métricas como Accuracy o curvas ROC son engañosas; se debe evaluar estrictamente con <b>AUC-PR (Precisión-Recall)</b> y volumen de dinero recuperado.",
+      "<b>Costo asimétrico devastador</b>: un falso negativo permite el robo directo de capital o el robo de identidad; un falso positivo rechaza la tarjeta de crédito de un cliente leal en un restaurante, provocando pérdida de clientes y daño reputacional.",
+      "<b>Feedback Loop perverso</b>: si el modelo bloquea exitosamente un tipo de ataque, esos casos dejan de existir en los datos históricos futuros, induciendo una falsa sensación de que el ataque ha desaparecido."
+     ]
+    },
+    {
+     "h": "Ataques de Machine Learning Adversarial"
+    },
+    {
+     "list": [
+      "<b>Ataques de Evasión (Perturbaciones Adversariales)</b> — introducir alteraciones mínimas e imperceptibles en la entrada que engañan por completo al modelo. El algoritmo <b>FGSM (Fast Gradient Sign Method)</b> calcula el gradiente del error respecto a los píxeles o variables de entrada y suma una pequeña perturbación en la dirección que maximiza el error: $x_{\\text{adv}} = x + \\epsilon \\operatorname{sign}(\\nabla_x L(\\theta, x, y))$.",
+      "<b>Envenenamiento de Datos (Data Poisoning)</b> — el atacante inyecta registros maliciosos deliberados durante la fase de recolección para abrir puertas traseras (<i>backdoors</i>) o degradar selectivamente el rendimiento del modelo ante ciertos patrones.",
+      "<b>Extracción e Inversión de Modelos</b> — enviar millones de consultas a la API pública del modelo para reconstruir una réplica exacta del algoritmo (model stealing) o inferir si una persona formó parte del dataset de entrenamiento (membership inference)."
+     ]
+    },
+    {
+     "h": "Tácticas de defensa y robustez"
+    },
+    {
+     "steps": [
+      "<b>Entrenamiento Adversarial</b>: generar proactivamente ejemplos atacados durante el bucle de entrenamiento e incorporarlos en los lotes con su etiqueta real para forzar al modelo a aprender fronteras de decisión suaves y robustas.",
+      "<b>Biometría del Comportamiento (Behavioral Biometrics)</b>: modelar no solo qué hace el usuario, sino <i>cómo</i> lo hace (ritmo de tecleo, acelerometría del móvil, velocidad de desplazamiento del ratón), señales físicas casi imposibles de falsificar mediante scripts automatizados.",
+      "<b>Monitoreo de Residuos y Ensembles Híbridos</b>: combinar modelos basados en árboles (muy robustos ante perturbaciones locales) con reglas heurísticas deterministas innegociables."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "bioinformática,genómica,alphafold,adn,deep-learning",
+   "title": "Bioinformática, genómica y modelado de macromoléculas",
+   "subtitle": "Datos de secuenciación NGS, algoritmos de alineamiento, análisis de células individuales (scRNA-seq) y AlphaFold.",
+   "body": [
+    {
+     "p": "La biología moderna es una ciencia de datos a escala masiva. El genoma humano contiene más de 3.000 millones de pares de bases nitrogenadas (A, C, G, T) por célula. Comprender cómo se expresan los genes, cómo mutan los virus y cómo se pliegan las proteínas tridimensionalmente es uno de los campos de mayor impacto de la inteligencia artificial."
+    },
+    {
+     "h": "Datos masivos de secuenciación de nueva generación (NGS)"
+    },
+    {
+     "p": "Las máquinas de secuenciación fragmentan el ADN en millones de lecturas cortas (<i>reads</i> de 100-300 pares de bases) almacenadas en archivos masivos <b>FASTQ</b> con puntuaciones de calidad Phred por base. El pipeline bioinformático estándar comprende:"
+    },
+    {
+     "list": [
+      "<b>Alineamiento contra Genoma de Referencia</b>: mapear millones de fragmentos cortos contra los 3.000 millones de letras del genoma humano usando indexación de texto ultraveloz basada en la <b>Transformada de Burrows-Wheeler (BWT)</b>.",
+      "<b>Llamada de Variantes (Variant Calling)</b>: identificar variaciones de un solo nucleótido (SNVs) o inserciones/deleciones (indels) asociadas a enfermedades genéticas, almacenadas en formato <b>VCF</b>."
+     ]
+    },
+    {
+     "h": "Genómica de célula única (scRNA-seq)"
+    },
+    {
+     "p": "Mientras que la secuenciación tradicional promediaba millones de células mezcladas, el <b>scRNA-seq</b> mide los niveles de expresión de miles de genes en <b>cada célula individual por separado</b>:"
+    },
+    {
+     "list": [
+      "Produce matrices gigantescas y ultradispersas de Células $\\times$ Genes (donde el 95% de los valores son ceros).",
+      "Se procesa mediante normalización por tamaño de biblioteca, selección de genes altamente variables, reducción con PCA y visualización no lineal con <b>UMAP</b> para descubrir subtipos celulares raros (como células madre o células tumorales resistentes a quimioterapia)."
+     ]
+    },
+    {
+     "h": "La revolución del plegamiento de proteínas: AlphaFold"
+    },
+    {
+     "p": "El problema de los 50 años en biología molecular: ¿cómo una secuencia unidimensional lineal de aminoácidos se pliega en una estructura tridimensional 3D compleja que determina su función biológica exacta?"
+    },
+    {
+     "key": "<b>AlphaFold de Google DeepMind</b> resolvió el desafío combinando alineamiento múltiple de secuencias evolutivas (MSA) con arquitecturas de transformers espaciales (Evoformer) y módulos de estructura que razonan directamente en coordenadas euclidianas 3D, prediciendo la estructura de más de 200 millones de proteínas con precisión experimental comparable a la cristalografía de rayos X."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "big-data,ingeniería-datos,spark,etl,arquitectura",
+   "title": "Big Data e ingeniería de datos para Data Scientists",
+   "subtitle": "Data Lakes vs Lakehouse, transformaciones con dbt, procesamiento distribuido en Spark y streaming en tiempo real.",
+   "body": [
+    {
+     "p": "Un científico de datos no puede trabajar en una torre de marfil asumiendo que los datos aparecerán milagrosamente limpios en un archivo local de su disco duro. En entornos corporativos maduros, comprender cómo se almacenan, orquestan y procesan petabytes de información es indispensable para construir soluciones que realmente operen a escala."
+    },
+    {
+     "h": "Evolución de las arquitecturas: Warehouse vs. Lake vs. Lakehouse"
+    },
+    {
+     "list": [
+      "<b>Data Warehouse (Snowflake, BigQuery, Redshift)</b> — datos estructurados tabulares, modelo relacional optimizado para consultas SQL analíticas (OLAP). Garantiza consistencia y alto rendimiento, pero su almacenamiento es costoso y no admite datos no estructurados.",
+      "<b>Data Lake (Amazon S3, Google Cloud Storage + Parquet)</b> — almacena datos en cualquier formato (estructurado, logs crudos JSON, audio, imágenes) a coste de almacenamiento ínfimo. Aplica el esquema al leer (<i>schema-on-read</i>), pero carece de garantías transaccionales ACID y puede degenerar en un «pantano de datos» ingobernable.",
+      "<b>Data Lakehouse (Delta Lake, Apache Iceberg, Apache Hudi)</b> — la arquitectura dominante actual: implementa una capa de metadatos transaccionales sobre archivos Parquet en un Data Lake. Permite transacciones ACID, viajes en el tiempo (revertir o consultar la base en un instante histórico exacto) y evolución de esquemas, combinando la economía del Data Lake con la confiabilidad del Data Warehouse."
+     ]
+    },
+    {
+     "h": "El paradigma ELT moderno y transformaciones con dbt"
+    },
+    {
+     "p": "El paradigma tradicional ETL (Extraer $\\rightarrow$ Transformar $\\rightarrow$ Cargar) procesaba las transformaciones en un servidor intermedio antes de guardar. Con la potencia de los motores analíticos modernos, la industria adoptó <b>ELT</b>: se extraen y cargan los datos en crudo primero, y se transforman directamente en el motor de destino mediante SQL."
+    },
+    {
+     "p": "<b>dbt (data build tool)</b> profesionalizó este flujo aplicando principios de ingeniería de software al SQL:"
+    },
+    {
+     "steps": [
+      "<b>Modularidad</b>: cada modelo es una consulta <code>SELECT</code> pura en un archivo <code>.sql</code> versionado en Git; dbt resuelve automáticamente el orden y grafo de dependencias (DAG).",
+      "<b>Pruebas automáticas de calidad</b>: valida en cada despliegue que no existan valores nulos, que las claves primarias sean estrictamente únicas y que las claves foráneas conserven integridad referencial.",
+      "<b>Documentación y linaje</b>: genera portales interactivos que trazan visualmente de qué tabla de origen proviene cada cálculo final."
+     ]
+    },
+    {
+     "h": "Computación distribuida con Apache Spark: la anatomía del Shuffle"
+    },
+    {
+     "p": "Cuando un conjunto de datos supera la memoria RAM de una sola máquina física, <b>Apache Spark</b> distribuye la carga en un clúster coordinado por un nodo maestro (Driver) que asigna tareas a nodos trabajadores (Executors)."
+    },
+    {
+     "warn": "Para escribir código Spark eficiente, debes distinguir obligatoriamente entre dos tipos de transformaciones:"
+    },
+    {
+     "list": [
+      "<b>Transformaciones Estrechas (Narrow Transformations)</b> — como <code>filter()</code> o <code>select()</code>. Cada partición puede resolverse de forma totalmente independiente dentro de su propio nodo de cómputo sin interactuar con los demás. Son ultra veloces y escalan linealmente.",
+      "<b>Transformaciones Anchas (Wide Transformations)</b> — como <code>groupBy()</code>, <code>join()</code> o <code>distinct()</code>. Exigen agrupar registros con la misma clave que se encontraban dispersos en diferentes servidores del clúster. Esto dispara el temido <b>Shuffle</b>: redistribución masiva de datos a través de los cables de la red local, saturando ancho de banda, volcando datos a disco y constituyendo la causa del 90% de los cuellos de botella en Big Data."
+     ]
+    },
+    {
+     "h": "Streaming y arquitecturas de eventos con Apache Kafka"
+    },
+    {
+     "p": "En escenarios de detección de intrusiones, fraude con tarjetas bancarias o monitorización de sensores IoT, esperar al lote nocturno es inaceptable. Plataformas de mensajería distribuida como <b>Apache Kafka</b> registran flujos continuos de eventos inmutables ordenados en <i>tópicos</i> particionados."
+    },
+    {
+     "p": "Para agregar datos continuos en streaming se definen <b>ventanas temporales</b>:"
+    },
+    {
+     "list": [
+      "<b>Tumbling Window (Ventana fija)</b> — intervalos contiguos disjuntos sin solapamiento (ej. promedio de transacciones de 10:00 a 10:05, de 10:05 a 10:10).",
+      "<b>Sliding Window (Ventana deslizante)</b> — ventanas de duración fija que avanzan continuamente cada pocos segundos (ej. total de errores en los últimos 5 minutos, recalculado cada 10 segundos).",
+      "<b>Session Window (Ventana por sesión)</b> — se agrupan eventos consecutivos mientras el intervalo de inactividad entre ellos no supere un umbral prefijado (ej. sesión de navegación web de un usuario)."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
    "minutes": 10,
    "tags": "producción,modelado,sql,evaluación",
    "title": "MLOps: De cuadernos a sistemas en producción",
@@ -930,6 +2423,170 @@
   {
    "level": 3,
    "minutes": 10,
+   "tags": "calidad-datos,observabilidad,data-contracts,great-expectations,ingeniería",
+   "title": "Observabilidad de datos, contratos y pruebas de calidad",
+   "subtitle": "Los 5 pilares de observabilidad, contratos de datos entre equipos, Great Expectations y prevención de fallos silenciosos.",
+   "body": [
+    {
+     "p": "El mayor peligro en un sistema analítico o de machine learning no es que una consulta SQL lance un error y se detenga: es que <b>continúe ejecutándose con éxito en silencio mientras procesa datos corrompidos</b> (fallos silenciosos). Un modelo que recibe ceros en lugar de valores nulos o monedas sin convertir seguirá generando predicciones absurdas que costarán millones antes de ser detectadas."
+    },
+    {
+     "h": "Los 5 Pilares de la Observabilidad de Datos"
+    },
+    {
+     "list": [
+      "<b>Frescura (Freshness)</b> — ¿cuándo fue la última vez que se actualizaron los datos? ¿el pipeline nocturno se retrasó y estamos prediciendo con datos de hace 48 horas?",
+      "<b>Volumen</b> — ¿la tabla recibió el volumen habitual de filas? Un descenso repentino del 40% en transacciones entrantes revela la caída de una API externa sin necesidad de esperar reportes de clientes.",
+      "<b>Esquema (Schema)</b> — ¿cambiaron los nombres de las columnas, sus tipos de datos o se eliminó un campo clave en la base de datos fuente sin previo aviso?",
+      "<b>Linaje (Lineage)</b> — el mapa de dependencias que conecta fuentes primarias con modelos intermedios y tableros finales. Permite responder de inmediato: <i>«si la tabla X está rota, ¿qué modelos y decisiones ejecutivas están afectadas?»</i>.",
+      "<b>Distribución (Data Distribution)</b> — ¿los valores se mantienen dentro de los rangos estadísticos esperados? Alertas ante porcentajes inusuales de nulos o desviaciones de medias."
+     ]
+    },
+    {
+     "h": "Contratos de Datos (Data Contracts): el pacto entre ingeniería y negocio"
+    },
+    {
+     "p": "Tradicionalmente, los equipos de desarrollo de software modificaban bases de datos de producción (cambiaban un tipo de dato, renombraban una columna) sin consultar al equipo de datos, rompiendo todos los modelos predictivos posteriores. Un <b>Data Contract</b> es un acuerdo formal versionado en YAML o JSON Schema que define:"
+    },
+    {
+     "list": [
+      "El esquema exacto y tipos obligatorios de los eventos emitidos.",
+      "Reglas de negocio y semántica: rangos válidos, no nulidad y formatos de fecha.",
+      "Niveles de servicio (SLAs): frecuencia de actualización, latencia máxima admisible y responsables de soporte.",
+      "Garantía de compatibilidad: prohibición de introducir cambios incompatibles sin deprecación programada."
+     ]
+    },
+    {
+     "h": "Aserciones automáticas con Great Expectations"
+    },
+    {
+     "p": "<b>Great Expectations</b> permite traducir expectativas de calidad de datos en pruebas unitarias ejecutables automáticamente antes de alimentar los modelos:"
+    },
+    {
+     "code": "import great_expectations as gx\n\n# Validación declarativa de expectativas sobre el dataset\nvalidator.expect_column_values_to_not_be_null(column='id_transaccion')\nvalidator.expect_column_values_to_be_between(column='monto', min_value=0.01, max_value=50000.0)\nvalidator.expect_column_distinct_values_to_be_in_set(\n    column='estado_pago', value_set=['aprobado', 'rechazado', 'pendiente']\n)\nvalidator.expect_column_proportion_of_unique_values_to_be_between(column='id_cliente', min_value=0.9)"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "edge-ml,cuantización,onnx,inferencia,optimización-modelos",
+   "title": "Edge ML, cuantización y aceleración de inferencia",
+   "subtitle": "Formatos ONNX, cuantización a INT8/INT4, poda (pruning), destilación de conocimiento y motores de ejecución ultrarrápidos.",
+   "body": [
+    {
+     "p": "Entrenar un modelo de millones de parámetros en una estación de trabajo con GPUs refrigeradas por líquido es un lujo que no existe en el momento del despliegue real: el modelo debe ejecutarse en el navegador del usuario, en el ordenador de a bordo de una excavadora minera sin conexión o en microservidores con presupuestos estrictos de milisegundos y vatios de energía."
+    },
+    {
+     "h": "El estándar de interoperabilidad: ONNX"
+    },
+    {
+     "p": "Cada framework (PyTorch, TensorFlow, Scikit-Learn, LightGBM) almacena modelos en formatos propietarios incompatibles y lentos de serializar. <b>ONNX (Open Neural Network Exchange)</b> define un formato de grafo computacional universal en formato binario Protocol Buffers:"
+    },
+    {
+     "key": "Entrenas en PyTorch $\\rightarrow$ exportas a ONNX $\\rightarrow$ ejecutas con <b>ONNX Runtime</b> o <b>TensorRT</b> en C++, Rust o WebAssembly. Reduce las dependencias del servidor (no requieres instalar PyTorch de 2 GB en producción) y acelera la latencia de inferencia entre un 300% y un 1000% gracias a la fusión de operadores y optimización de memoria de bajo nivel."
+    },
+    {
+     "h": "Técnicas esenciales de compresión de modelos"
+    },
+    {
+     "steps": [
+      "<b>Cuantización (Quantization)</b>: por defecto, los pesos se almacenan en coma flotante de 32 bits (FP32). La cuantización los mapea linealmente a enteros de 8 bits (INT8) o 4 bits (INT4). Reduce el tamaño del modelo a una cuarta parte, cuadruplica el rendimiento en CPUs modernas y apenas degrada una fracción de punto el AUC.",
+      "<b>Poda de pesos (Pruning)</b>: identifica conexiones y neuronas cuyos pesos son cercanos a cero y las anula permanentemente. La poda estructurada elimina canales enteros de convoluciones o cabezales de atención, reduciendo los cálculos (FLOPs) de forma directa.",
+      "<b>Destilación de Conocimiento (Knowledge Distillation)</b>: entrena un modelo «alumno» pequeño y ligero para imitar las probabilidades continuas suavizadas generadas por un modelo «maestro» gigante y complejo, capturando gran parte de su precisión a una fracción de su coste computacional."
+     ]
+    },
+    {
+     "h": "Cuantización post-entrenamiento (PTQ) vs. Entrenamiento consciente de cuantización (QAT)"
+    },
+    {
+     "list": [
+      "<b>PTQ (Post-Training Quantization)</b> — cuantiza el modelo terminado utilizando un lote pequeño de calibración para calcular los factores de escala de los enteros. Inmediato y sin costo computacional.",
+      "<b>QAT (Quantization-Aware Training)</b> — simula los redondeos de precisión entera durante el bucle de entrenamiento, permitiendo que el optimizador adapte los pesos para compensar el error de cuantización. Indispensable para modelos muy pequeños o cuantizaciones agresivas a INT4."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "optimización,operaciones,programación-lineal,or-tools,decisiones",
+   "title": "Analítica prescriptiva y optimización de operaciones",
+   "subtitle": "Programación lineal y entera (MILP), restricciones operativas, ruteo de vehículos (VRP) y Google OR-Tools.",
+   "body": [
+    {
+     "p": "Un modelo predictivo predice que la demanda de repuestos subirá un 25% el próximo mes; pero no te dice cuántos pedir a cada proveedor, qué camiones despachar ni qué operarios asignar a cada turno para minimizar costes sin violar la legislación laboral. Esa es la frontera de la <b>analítica prescriptiva</b> y la investigación operativa (Operations Research)."
+    },
+    {
+     "h": "Anatomía de un problema de Optimización Matemática"
+    },
+    {
+     "p": "Todo problema prescriptivo formal se estructura en tres componentes matemáticos rigurosos:"
+    },
+    {
+     "list": [
+      "<b>Variables de Decisión ($x_1, x_2, \\dots, x_n$)</b> — las cantidades concretas que debemos determinar (ej. cuántos kilogramos transportar de la fábrica A al almacén B). Pueden ser continuas, enteras o binarias (0/1: construir o no un centro de distribución).",
+      "<b>Función Objetivo</b> — la magnitud matemática que deseamos <b>maximizar</b> (beneficio económico, margen, eficiencia energética) o <b>minimizar</b> (coste logístico, tiempo de inactividad, emisiones de CO₂).",
+      "<b>Restricciones (Constraints)</b> — las limitaciones físicas, técnicas, presupuestarias o legales que deben cumplirse sin excepción (capacidad máxima de carga del camión, horas máximas del conductor, stock disponible)."
+     ]
+    },
+    {
+     "h": "Programación Lineal y Entera Mixta (MILP)"
+    },
+    {
+     "math": "\\min_{x} \\ c^T x \\quad \\text{sujeto a} \\quad A x \\le b, \\quad x \\ge 0"
+    },
+    {
+     "p": "Cuando la función objetivo y las restricciones son lineales y las variables son continuas, el <b>Algoritmo Simplex</b> o métodos de punto interior encuentran la solución óptima exacta en fracciones de segundo. Cuando algunas variables son números enteros o booleanos (MILP), el problema es NP-Hard y se resuelve mediante algoritmos de <b>Branch and Bound</b> y planos de corte."
+    },
+    {
+     "h": "Google OR-Tools: resolución práctica de ruteo de vehículos (VRP)"
+    },
+    {
+     "p": "El <b>Vehicle Routing Problem (VRP)</b> es el desafío por excelencia en logística: diseñar las rutas óptimas para una flota de vehículos que debe abastecer a cientos de clientes con ventanas horarias estrictas y capacidades limitadas de carga:"
+    },
+    {
+     "code": "from ortools.constraint_solver import routing_enums_pb2\nfrom ortools.constraint_solver import pywrapcp\n\n# OR-Tools utiliza metaheurísticas de búsqueda guiada (Guided Local Search)\n# para encontrar soluciones cuasi-óptimas a problemas logísticos masivos en segundos.\nmanager = pywrapcp.RoutingIndexManager(num_nodos, num_vehiculos, deposito_origen)\nrouting = pywrapcp.RoutingModel(manager)\n\n# Añadir dimensión de capacidad máxima de carga por camión\ndef callback_demanda(from_index):\n    return demandas[manager.IndexToNode(from_index)]\n\nrouting.AddDimensionWithVehicleCapacity(\n    routing.RegisterUnaryTransitCallback(callback_demanda),\n    0, capacidades_vehiculos, True, 'Capacidad'\n)"
+    },
+    {
+     "key": "Combinar <b>Machine Learning con Optimización Operativa</b> es la mayor ventaja competitiva en empresas líderes: el modelo de ML predice las demandas futuras con incertidumbre, y el solver de optimización prescribe las asignaciones de recursos que maximizan la rentabilidad protegiendo contra los peores escenarios."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "system-design,arquitectura,escalabilidad,búsqueda,producción",
+   "title": "Diseño de sistemas de datos y arquitectura de IA a gran escala",
+   "subtitle": "Arquitecturas de dos etapas (Candidate Retrieval + Re-ranking), caché distribuido, fallbacks y alta disponibilidad.",
+   "body": [
+    {
+     "p": "En un entorno académico, el éxito se mide por lograr un AUC de 0.89 en un archivo estático. En una empresa como Netflix, YouTube o Uber, el modelo debe tomar decisiones entre <b>100 millones de candidatos en menos de 20 milisegundos</b> atendiendo a cientos de miles de usuarios concurrentes sin degradar la experiencia de usuario."
+    },
+    {
+     "h": "El patrón arquitectónico de Dos Etapas (Two-Stage Architecture)"
+    },
+    {
+     "p": "Es computacionalmente imposible evaluar una red neuronal compleja o un modelo de Gradient Boosting de 500 árboles sobre 100 millones de ítems en tiempo real para cada clic. La solución universal es el embudo de dos etapas:"
+    },
+    {
+     "code": "Catálogo Completo (100.000.000 ítems)\n      │\n      ▼  ETAPA 1: Recuperación de Candidatos (Candidate Retrieval / Funnel)\n      │  • Algoritmos ultrarrápidos de baja complejidad (< 5 ms)\n      │  • Búsqueda vectorial aproximada (ANN con HNSW, ScaNN, FAISS)\n      │  • Filtros heurísticos y reglas colaborativas\n      ▼\nTop 500 a 1.000 Candidatos\n      │\n      ▼  ETAPA 2: Puntuación Pesada y Re-ranking (Scoring / Ranking Model)\n      │  • Modelos profundos y Gradient Boosting con cientos de variables en tiempo real\n      │  • Cruce de contexto inmediato (hora, ubicación, últimos 3 clics del usuario)\n      ▼\nTop 20 a 50 Ítems Ordenados\n      │\n      ▼  ETAPA 3: Filtrado de Negocio y Diversificación\n      │  • Deduplicación, reglas de frescura, exclusión de compras recientes\n      │  • Algoritmos de diversidad (Determinantal Point Processes / Maximal Marginal Relevance)\n      ▼\nRespuesta Final Servida al Usuario (< 20 ms)"
+    },
+    {
+     "h": "Estrategias de Caché y degradación elegante (Graceful Degradation)"
+    },
+    {
+     "steps": [
+      "<b>Caché Multinivel</b>: almacenar en memoria ultrarrápida (Redis) los embeddings de usuarios frecuentes y las puntuaciones de candidatos populares precalculadas en lotes offline.",
+      "<b>Degradación Elegante (Fallback)</b>: si el servicio de inferencia en tiempo real experimenta sobrecarga o la latencia supera el SLA de 50 ms, el sistema commuta automáticamente a un fallback heurístico (ej. los productos más populares por categoría) en lugar de arrojar un error 500 al cliente.",
+      "<b>Circuit Breakers</b>: cortacircuitos de software que aíslan microservicios de ML inestables para evitar que una falla en una recomendación secundaria bloquee el proceso crítico de compra o checkout."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
    "tags": "interpretabilidad,evaluación,sesgos,aplicación",
    "title": "Interpretabilidad, calibración y decisiones de negocio",
    "subtitle": "SHAP y explicaciones locales, calibración de probabilidades, optimización de umbrales por costos y ética de datos.",
@@ -971,6 +2628,97 @@
       "<b>Garantizar la fecha de corte</b>: aislar estrictamente los datos disponibles al momento exacto de la toma de decisión para prevenir fugas temporales.",
       "<b>Alinear la métrica técnica con el P&L del negocio</b>: traducir puntos de AUC o F1 en euros ahorrados, horas de inactividad evitadas o incremento en la retención.",
       "<b>Diseñar el mecanismo de intervención humana</b>: un modelo predictivo sin un protocolo operativo claro sobre quién actúa ante la alerta y cómo se mide su impacto es esfuerzo desperdiciado."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "privacidad,seguridad,aprendizaje-federado,privacidad-diferencial,ética",
+   "title": "Privacidad diferencial, aprendizaje federado y computación segura",
+   "subtitle": "Riesgos de reidentificación, ruido de Laplace, federated learning con PySyft y machine learning sobre datos cifrados.",
+   "body": [
+    {
+     "p": "En finanzas, salud y aplicaciones de consumo, los datos más valiosos para el entrenamiento son también los más estrictamente confidenciales y regulados (RGPD, HIPAA). El aprendizaje automático convencional exige centralizar todos los registros en un servidor único, creando un blanco masivo para filtraciones y violaciones legales. Las técnicas modernas preservan la privacidad mediante rigor matemático."
+    },
+    {
+     "h": "La falacia del anonimato simple: ataques por vinculación"
+    },
+    {
+     "p": "Eliminar nombres, correos o números de documento de una base de datos <b>no anonimiza los datos</b>. La investigadora Latanya Sweeney demostró que combinando únicamente tres variables supuestamente inofensivas: <b>código postal, fecha de nacimiento y género</b>, es posible reidentificar con nombre y apellidos al <b>87% de la población de un país</b> al cruzar los datos con censos electorales públicos."
+    },
+    {
+     "h": "Privacidad Diferencial ($\\epsilon$-Differential Privacy)"
+    },
+    {
+     "p": "La <b>privacidad diferencial</b> proporciona una garantía matemática formal inatacable contra ataques de reidentificación:"
+    },
+    {
+     "math": "P(M(D_1) \\in S) \\le e^{\\epsilon} \\, P(M(D_2) \\in S)"
+    },
+    {
+     "p": "Donde $D_1$ y $D_2$ son dos datasets que difieren en exactamente <b>un solo individuo</b>. El algoritmo $M$ inyecta ruido aleatorio calibrado (siguiendo una distribución de Laplace o Gaussiana proporcional a la sensibilidad de la consulta) de tal modo que el resultado estadístico final sea indistinguible con un factor $\\epsilon$, independientemente de si los datos de una persona específica formaron parte del estudio o no."
+    },
+    {
+     "list": [
+      "<b>$\\epsilon$ pequeño (ej. 0.1 a 1.0)</b>: privacidad altísima, mayor ruido, menor resolución analítica.",
+      "<b>$\\epsilon$ grande (ej. > 10)</b>: poca privacidad, menor ruido.",
+      "<b>Presupuesto de privacidad</b>: cada consulta a la base de datos consume una fracción de $\\epsilon$; al agotarse el presupuesto, la base debe bloquear consultas adicionales para impedir ataques de reconstrucción por promediado sucesivo."
+     ]
+    },
+    {
+     "h": "Aprendizaje Federado (Federated Learning)"
+    },
+    {
+     "p": "En lugar de enviar los datos privados de los usuarios al servidor central, el <b>Aprendizaje Federado envía el modelo a los dispositivos locales</b> de los usuarios (teléfonos móviles, ordenadores hospitalarios):"
+    },
+    {
+     "steps": [
+      "El servidor central distribuye los pesos actuales del modelo global.",
+      "Cada dispositivo entrena localmente el modelo con sus propios datos privados que <b>jamás abandonan el dispositivo</b>.",
+      "Los dispositivos envían exclusivamente los <b>gradientes o pesos actualizados</b> al servidor central.",
+      "El servidor central ejecuta el algoritmo <b>Federated Averaging (FedAvg)</b> para promediar las actualizaciones de miles de dispositivos y actualizar el modelo global, protegiendo los gradientes mediante agregación segura cifrada (Secure Aggregation)."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "gobernanza,regulación,eu-ai-act,deuda-técnica,sculley",
+   "title": "Gobernanza de IA, regulación (EU AI Act) y deuda técnica",
+   "subtitle": "La deuda técnica oculta en ML (Sculley et al.), clasificación de riesgos de IA y auditorías de conformidad.",
+   "body": [
+    {
+     "p": "Implementar un modelo en una empresa no es solo un reto matemático: es una responsabilidad legal, regulatoria y arquitectónica. Los sistemas de aprendizaje automático acumulan formas invisibles de deuda técnica que pueden paralizar la capacidad de innovación de una organización si no se gobiernan con rigor."
+    },
+    {
+     "h": "La deuda técnica oculta en Machine Learning (Sculley et al., Google)"
+    },
+    {
+     "p": "En el influyente artículo de Google <i>«Hidden Technical Debt in Machine Learning Systems»</i>, los autores alertaron que el código de modelado de ML representa apenas un pequeño porcentaje del sistema global:"
+    },
+    {
+     "list": [
+      "<b>Líneas de Unión Frágiles (Glue Code)</b>: escribir código spaghetti masivo para conectar bibliotecas incompatibles en lugar de usar APIs estandarizadas.",
+      "<b>Enredos y dependencias no aisladas (CACE: Changing Anything Changes Everything)</b>: modificar una variable de entrada altera implícitamente los pesos de todas las demás variables en un modelo entrenado conjuntamente.",
+      "<b>Tuberías en Cascada (Pipeline Jungles)</b>: la salida del modelo A se convierte en la entrada del modelo B, creando dependencias circulares que fallan en cascada ante cualquier variación imprevista de la distribución.",
+      "<b>Deuda por Datos Muertos</b>: variables en desuso que siguen consumiendo memoria y cómputo en la ingestión porque nadie sabe quién las creó."
+     ]
+    },
+    {
+     "h": "El marco regulatorio del EU AI Act"
+    },
+    {
+     "p": "La Unión Europea promulgó la primera legislación integral del mundo para gobernar la IA clasificando los sistemas según una <b>pirámide de cuatro niveles de riesgo</b>:"
+    },
+    {
+     "steps": [
+      "<b>Riesgo Inaceptable (Prohibidos)</b>: manipulación cognitiva subliminal, puntuación social gubernamental (Social Scoring) y reconocimiento biométrico masivo indiscriminado en tiempo real en espacios públicos.",
+      "<b>Alto Riesgo (Estrictamente regulados)</b>: IA aplicada en infraestructura crítica, contratación y selección de personal, evaluación de solvencia crediticia, justicia y diagnósticos médicos. <i>Exigencias obligatorias</i>: sistemas de gestión de riesgos, auditorías de sesgos en datasets, documentación técnica exhaustiva, registro automático de eventos (logs) y supervisión humana efectiva (*Human-in-the-Loop*).",
+      "<b>Riesgo Específico de Transparencia</b>: chatbots, deepfakes y sistemas generativos deben advertir explícitamente al usuario que interactúa con una máquina.",
+      "<b>Riesgo Mínimo</b>: filtros de spam, videojuegos con IA; uso libre sin cargas regulatorias adicionales."
      ]
     }
    ]

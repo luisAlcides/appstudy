@@ -63,13 +63,21 @@ class AppStudy(Adw.Application):
         for nombre, cb in (("quit", lambda *_: self.quit()),
                            ("popup", lambda *_: self.show_popup()),
                            ("main", lambda *_: self.show_main_window()),
-                           ("reload", lambda *_: self.reload_content())):
+                           ("reload", lambda *_: self.reload_content()),
+                           ("buscar", lambda *_: self.abrir_buscador())):
             a = Gio.SimpleAction.new(nombre, None)
             a.connect("activate", cb)
             self.add_action(a)
         self.set_accels_for_action("app.quit", ["<Control>q"])
         # Recargar: sirve en cualquier ventana de la aplicación, popup incluido
         self.set_accels_for_action("app.reload", ["<Control>r", "F5"])
+        self.set_accels_for_action("app.buscar", ["<Control>k"])
+
+    def abrir_buscador(self):
+        """Ctrl+K desde donde sea: abre la ventana principal y el buscador."""
+        self.show_main_window()
+        if self.main_window:
+            self.main_window.buscador_global()
 
     def do_shutdown(self):
         if self.con:
