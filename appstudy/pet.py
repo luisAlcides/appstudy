@@ -22,7 +22,8 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
-from . import citas, db, ia, reto, scheduler, sonido, util  # noqa: E402
+from . import citas, db, estadisticas, ia, logros, reto  # noqa: E402
+from . import scheduler, sonido, util  # noqa: E402
 
 PET_APP_ID = "io.github.appstudy.AppStudy.Pet"
 NOMBRE = "Bit"
@@ -905,6 +906,7 @@ class PetWindow(Gtk.ApplicationWindow):
         self.last_nag = time.time()
         self.ultimo_reproche = 0
         self.ultimo_aviso_leech = 0.0    # para no repetir la queja cada rato
+        self.ultimo_diario = 0.0         # el resumen de la semana, una vez al día
         self.ia_texto = ""            # lo que el modelo lleva escrito
         self.ia_cuerpo = None
         self.contexto_ia = ""         # la tarjeta desde la que preguntaste
@@ -1276,6 +1278,12 @@ class PetWindow(Gtk.ApplicationWindow):
                      titulo="Se te atragantan",
                      boton=("Verlas", self.abrir_sanguijuelas))
             return True
+        if (time.time() - self.ultimo_diario > 24 * 3600 and random.random() < 0.25):
+            # Una vez al día como mucho, te cuenta cómo va la semana: cierra el
+            # ciclo de «he estudiado» y «ha servido para algo».
+            self.ultimo_diario = time.time()
+            self.diario()
+            return True
         if t["pendientes"] == 0 and t["nuevas"] == 0:
             # Nada que repasar: entonces te deja una frase para el rato
             self.quote()
@@ -1510,6 +1518,35 @@ class PetWindow(Gtk.ApplicationWindow):
         self.bubble_box.append(self.pie_leer())
         self.open_bubble()
 
+    def celebrar_logro(self) -> bool:
+        """Si acabas de pasar una marca, la celebra. Solo la primera vez.
+
+        Va después de calificar, que es cuando cambian la racha y los intervalos
+        y por tanto cuando se cruzan casi todos los logros.
+        """
+        nuevos = logros.revisar(self.con)
+        if not nuevos:
+            return False
+        le = nuevos[0]                      # de dos a la vez, se enseña uno
+        self.creature.celebrar()
+        self.sonar("celebra")
+        self.say(logros.frase_de(le, le.get("dato")),
+                 titulo=f"{le['icono']} {le['titulo']}",
+                 boton=("Seguir", self.teach))
+        return True
+
+    def diario(self):
+        """El resumen de la semana, contado en un par de frases."""
+        self.card = None
+        texto = estadisticas.contar_semana(self.con)
+        resumen = estadisticas.resumen_semanal(self.con)
+        if resumen["total"]:
+            self.creature.celebrar() if resumen["activos"] >= 5 else self.creature.pensar()
+        else:
+            self.creature.pensar()
+        self.say(texto, titulo="📔 Cómo va la semana",
+                 boton=("Enséñame algo", self.teach))
+
     def celebrar_vuelta(self, horas_antes: float) -> bool:
         """Si vuelves después de días fuera, lo celebra a lo grande."""
         if horas_antes < HORAS_HAMBRE:
@@ -1534,6 +1571,8 @@ class PetWindow(Gtk.ApplicationWindow):
             self.creature.desanimar()
             self.sonar("fallo")
         cuando = scheduler.due_label(st["due"])
+        if self.celebrar_logro():
+            return
         if self.celebrar_vuelta(ausencia):
             dias = int(ausencia // 24)
             texto = (f"¡Has vuelto! Llevabas {dias} día{'s' if dias > 1 else ''} "
@@ -2115,6 +2154,7 @@ class PetWindow(Gtk.ApplicationWindow):
         seccion.append("Pregúntame algo", "win.ask")
         seccion.append("Modo chatbot", "win.chat")
         seccion.append("Una frase de libro", "win.quote")
+        seccion.append("Cómo va la semana", "win.diario")
         seccion.append("Sesión de estudio", "win.study")
         seccion.append("Abrir AppStudy", "win.open")
         m.append_section(None, seccion)
@@ -2148,6 +2188,7 @@ class PetWindow(Gtk.ApplicationWindow):
                            ("ask", lambda *_: (self.wake(), self.preguntar())),
                            ("chat", lambda *_: (self.wake(), self.abrir_chat())),
                            ("quote", lambda *_: (self.wake(), self.quote())),
+                           ("diario", lambda *_: (self.wake(), self.diario())),
                            ("study", lambda *_: self.study()),
                            ("open", lambda *_: self.open_main()),
                            ("mute", lambda *_: self.alternar_sonido()),

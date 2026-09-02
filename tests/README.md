@@ -18,6 +18,8 @@ también las corre (`pytest tests/`), porque reconoce las clases de `unittest`.
 | `test_reto.py` | Los seis formatos de reto, y sobre todo que las opciones falsas no se adivinen a ojo ni sean calcadas a la buena |
 | `test_mates.py` | Las fórmulas en LaTeX: markup válido, y que un `$` que no es fórmula (un precio, `$1` de awk) se quede tal cual |
 | `test_respaldo.py` | Que una copia sirva para volver atrás, que no se restaure cualquier archivo encima de tus datos y que restaurar tenga vuelta atrás |
+| `test_estadisticas.py` | Las series de la pestaña Progreso: que cada repaso caiga en su día (donde se cuelan los errores de zona horaria) y que las medias no se midan sobre repasos que no significan nada |
+| `test_logros.py` | Que los logros se den cuando toca, una sola vez, y nunca antes de tiempo |
 | `test_contenido.py` | Que los JSON de fábrica sean importables: niveles en rango, enunciados sin repetir, retos con respuesta correcta, huecos con hueco |
 
 Varias pruebas de `test_fsrs.py` comprueban **propiedades**, no números

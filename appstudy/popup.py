@@ -7,7 +7,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib, Gdk, Gio, Gtk  # noqa: E402
 
-from . import cloze, db, scheduler, sonido, util  # noqa: E402
+from . import cloze, db, logros, scheduler, sonido, util  # noqa: E402
 
 RATINGS = [
     (scheduler.AGAIN, "Otra vez", "1", "as-rate-again"),
@@ -565,6 +565,19 @@ class PopupWindow(Adw.Window):
                           "acierto" if rating >= scheduler.GOOD else "fallo")
         ms = int((time.time() - self.shown_at) * 1000)
         st = scheduler.apply_review(self.con, self.card["id"], rating, ms)
+        conseguidos = logros.revisar(self.con)
+        if conseguidos:
+            # Casi todos los logros se cruzan al calificar, así que se miran aquí
+            le = conseguidos[0]
+            aviso = Adw.Toast(title=f"{le['icono']} {le['titulo']} · "
+                                    f"{logros.frase_de(le, le.get('dato'))}",
+                              timeout=6)
+            aviso.set_button_label("Ver")
+            aviso.connect("button-clicked", lambda *_: self.abrir_logros())
+            self.toast.add_toast(aviso)
+            sonido.reproducir(sonido.config(self.con), "celebra")
+            GLib.timeout_add(180, self._next_after_rate)
+            return
         if st.get("sanguijuela"):
             aviso = Adw.Toast(
                 title=f"🩸 La has fallado {st['lapses']} veces · apartada por ahora",
@@ -609,6 +622,14 @@ class PopupWindow(Adw.Window):
                       if self.card and self.es_cloze() else None)
         self.shown_at = time.time()
         self.render()
+
+    def abrir_logros(self):
+        app = self.get_application()
+        app.show_main_window()
+        ventana = getattr(app, "main_window", None)
+        if ventana:
+            ventana.stack.set_visible_child_name("estadisticas")
+        self.close()
 
     def abrir_sanguijuelas(self):
         app = self.get_application()

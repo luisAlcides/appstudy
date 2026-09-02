@@ -540,18 +540,25 @@ def streak(con):
 
     Solo cuentan los repasos posteriores a `racha_desde`, que es lo que fija
     «Reiniciar la racha»; sin él, todo el historial.
+
+    Los días los agrupa SQLite con `localtime`, que sabe de horario de verano.
+    Contarlos en Python dividiendo por 86400 desplazaba el corte del día una
+    hora media parte del año, y con ello alguna racha.
     """
     desde = float(get_meta(con, "racha_desde", 0) or 0)
-    days = {int((ts - time.timezone) // 86400)
-            for (ts,) in con.execute("SELECT ts FROM log WHERE ts>=? ORDER BY ts DESC LIMIT 5000",
-                                     (desde,))}
-    if not days:
+    dias = [f[0] for f in con.execute(
+        """SELECT DISTINCT date(ts, 'unixepoch', 'localtime') AS d FROM log
+           WHERE ts >= ? ORDER BY d DESC LIMIT 4000""", (desde,))]
+    if not dias:
         return 0
-    today = int((time.time() - time.timezone) // 86400)
-    if today not in days and (today - 1) not in days:
+    hoy = time.strftime("%Y-%m-%d", time.localtime())
+    ayer = time.strftime("%Y-%m-%d", time.localtime(time.time() - 86400))
+    # La racha sigue viva si estudiaste hoy o, aún sin estrenar el día, ayer
+    if dias[0] not in (hoy, ayer):
         return 0
-    n, d = 0, today if today in days else today - 1
-    while d in days:
+    tiene = set(dias)
+    n, cuando = 0, time.time() if dias[0] == hoy else time.time() - 86400
+    while time.strftime("%Y-%m-%d", time.localtime(cuando)) in tiene:
         n += 1
-        d -= 1
+        cuando -= 86400
     return n

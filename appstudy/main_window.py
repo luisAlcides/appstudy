@@ -9,7 +9,8 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, Gtk, Pango  # noqa: E402
 
-from . import cloze, db, fsrs, hotkey, ia, libros, pet, respaldo, scheduler  # noqa: E402
+from . import cloze, db, estadisticas, fsrs, graficas, hotkey, ia  # noqa: E402
+from . import libros, logros, pet, respaldo, scheduler  # noqa: E402
 from . import sonido, util  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
 
@@ -33,6 +34,8 @@ class MainWindow(Adw.ApplicationWindow):
                                         "view-paged-symbolic")
         self.stack.add_titled_with_icon(self.build_browser(), "tarjetas", "Tarjetas",
                                         "view-list-symbolic")
+        self.stack.add_titled_with_icon(self.build_stats(), "estadisticas",
+                                        "Progreso", "org.gnome.Settings-time-symbolic")
         self.biblioteca = Biblioteca(self, self.con)
         self.stack.add_titled_with_icon(self.biblioteca, "biblioteca", "Biblioteca",
                                         "library-symbolic")
@@ -1138,6 +1141,147 @@ class MainWindow(Adw.ApplicationWindow):
             self.notify_user(f"Borrados {n} repasos · el día empieza de cero")
             self.refresh()
 
+    # ------------------------------------------------------------ estadísticas
+
+    def build_stats(self):
+        scroll = Gtk.ScrolledWindow()
+        self.stats_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18,
+                                 margin_top=20, margin_bottom=24,
+                                 margin_start=24, margin_end=24)
+        scroll.set_child(self.stats_box)
+        return scroll
+
+    def refresh_stats(self):
+        """Rehace la pestaña entera. Los datos se leen una vez y se reparten."""
+        caja = self.stats_box
+        while (hijo := caja.get_first_child()) is not None:
+            caja.remove(hijo)
+
+        t = db.totals(self.con)
+        if not self.con.execute("SELECT COUNT(*) FROM log").fetchone()[0]:
+            vacio = Adw.StatusPage(
+                title="Todavía no hay nada que enseñar",
+                description="En cuanto califiques unas cuantas tarjetas, aquí "
+                            "aparecerá tu año en un mapa, cuánto aciertas en cada "
+                            "mazo y lo que te espera las próximas semanas.",
+                icon_name="org.gnome.Settings-time-symbolic", vexpand=True)
+            boton = Gtk.Button(label="Estudiar ahora", halign=Gtk.Align.CENTER,
+                               css_classes=["suggested-action", "pill"])
+            boton.connect("clicked", lambda *_: self.get_application().show_popup())
+            vacio.set_child(boton)
+            caja.append(vacio)
+            return
+
+        memoria = estadisticas.memoria_total(self.con)
+        probabilidad = estadisticas.probabilidad_hoy(self.con)
+        global_ = estadisticas.retencion_global(self.con)
+
+        if memoria["dias"] >= 365:
+            valor_memoria = f"{memoria['dias'] / 365:.1f}".rstrip("0").rstrip(".")
+            unidad_memoria = "AÑOS DE MEMORIA"
+        else:
+            valor_memoria = f"{memoria['dias']:.0f}"
+            unidad_memoria = "DÍAS DE MEMORIA"
+
+        cifras = Gtk.Box(spacing=12, homogeneous=True)
+        for valor, etiqueta in (
+                (valor_memoria, unidad_memoria),
+                (f"{probabilidad * 100:.0f} %" if probabilidad is not None else "–",
+                 "TE ACORDARÍAS AHORA"),
+                (f"{global_['retencion'] * 100:.0f} %"
+                 if global_["retencion"] is not None else "–", "ACIERTAS AL REPASAR"),
+                (t["racha"], "DÍAS DE RACHA")):
+            cifras.append(self.stat_tile(valor, etiqueta))
+        caja.append(cifras)
+        caja.append(Gtk.Label(
+            label="«Memoria construida» es la suma de lo que aguantaría cada "
+                  "tarjeta si dejaras de estudiar hoy.",
+            xalign=0, wrap=True, css_classes=["as-dim"]))
+
+        mapa = estadisticas.mapa_calor(self.con)
+        caja.append(self.stats_card(
+            f"Tu año · {mapa['total']} repasos en {mapa['dias_activos']} días",
+            graficas.alto_mapa_calor(len(mapa["semanas"])),
+            graficas.pintar_mapa_calor, lambda: mapa,
+            pie=(f"El mejor día fueron {mapa['mejor']['n']} tarjetas."
+                 if mapa.get("mejor") and mapa["mejor"]["n"] else None)))
+
+        reparto = estadisticas.reparto_madurez(self.con)
+        caja.append(self.stats_card(
+            "En qué punto están tus tarjetas", 62,
+            graficas.pintar_madurez, lambda: reparto,
+            pie="Maduras son las que ya vuelven cada tres semanas o más."))
+
+        mazos = estadisticas.retencion_por_mazo(self.con)
+        medibles = [m for m in mazos if m["retencion"] is not None]
+        caja.append(self.stats_card(
+            "Cuánto aciertas en cada mazo",
+            max(90, 30 * max(1, len(medibles)) + 30),
+            graficas.pintar_retencion,
+            lambda: {"mazos": mazos, "objetivo": global_["objetivo"]},
+            pie="Solo cuentan los repasos de tarjetas que ya habías visto antes: "
+                "la primera vez no había nada que recordar."))
+
+        curva = estadisticas.curva_vencimientos(self.con, 30)
+        pendientes = sum(d["total"] for d in curva)
+        caja.append(self.stats_card(
+            f"Lo que viene · {pendientes} repasos en 30 días", 150,
+            graficas.pintar_vencimientos, lambda: curva,
+            pie="En rojo, lo que ya está vencido. Subir la retención en Ajustes "
+                "sube estas barras; bajarla las aplana."))
+
+        tiempos = estadisticas.tiempo_por_nivel(self.con)
+        caja.append(self.stats_card(
+            "Cuánto tardas en contestar",
+            max(80, 32 * max(1, len(tiempos)) + 20),
+            graficas.pintar_tiempos, lambda: tiempos,
+            pie="La mediana, no la media: basta con dejar el popup abierto una "
+                "vez para que una media deje de significar nada."))
+
+        caja.append(self.tarjeta_logros())
+
+    def stats_card(self, titulo, alto, pintar, datos_fn, pie=None):
+        """Un bloque con su título, el dibujo y una línea de explicación."""
+        marco = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10,
+                        css_classes=["as-card"])
+        dentro = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        for lado in ("top", "bottom", "start", "end"):
+            getattr(dentro, f"set_margin_{lado}")(16)
+        dentro.append(Gtk.Label(label=titulo, xalign=0, css_classes=["heading"]))
+        dentro.append(graficas.area(alto, pintar, datos_fn))
+        if pie:
+            dentro.append(Gtk.Label(label=pie, xalign=0, wrap=True,
+                                    css_classes=["as-dim"]))
+        marco.append(dentro)
+        return marco
+
+    def tarjeta_logros(self):
+        """Los logros, los conseguidos primero y los que faltan en gris."""
+        hechos, total = logros.cuantos(self.con)
+        grupo = Adw.PreferencesGroup(
+            title=f"Logros · {hechos} de {total}",
+            description="No hay puntos ni niveles: solo unas cuantas marcas que "
+                        "se pasan sin darse cuenta.")
+        lista = logros.listado(self.con)
+        for le in sorted(lista, key=lambda x: (not x["conseguido"], x["titulo"])):
+            if le["conseguido"]:
+                cuando = time.strftime("%d/%m/%Y", time.localtime(le["ts"]))
+                subtitulo = f"Conseguido el {cuando}"
+                if le["dato"]:
+                    subtitulo += f" · {le['dato']}"
+            else:
+                subtitulo = le["pista"]
+            fila = Adw.ActionRow(title=f"{le['icono']}  {le['titulo']}",
+                                 subtitle=subtitulo)
+            fila.set_subtitle_lines(2)
+            # Los que faltan no se apagan: su pista es justo lo que quieres leer
+            marca = Gtk.Label(label="✓" if le["conseguido"] else "○",
+                              valign=Gtk.Align.CENTER,
+                              css_classes=["success"] if le["conseguido"] else ["as-dim"])
+            fila.add_suffix(marca)
+            grupo.add(fila)
+        return grupo
+
     # ------------------------------------------------------- repaso y objetivo
 
     def on_retencion(self, fila, _p):
@@ -1580,11 +1724,13 @@ class MainWindow(Adw.ApplicationWindow):
 
     # ----------------------------------------------------------------- general
 
-    SECCIONES = ("panel", "leer", "tarjetas", "biblioteca", "ajustes")
+    SECCIONES = ("panel", "leer", "tarjetas", "estadisticas",
+                 "biblioteca", "ajustes")
 
     def refrescar_seccion(self, nombre):
         {"panel": self.refresh_panel, "leer": self.refresh_reader,
-         "tarjetas": self.refresh_browser, "biblioteca": self.biblioteca.refrescar,
+         "tarjetas": self.refresh_browser, "estadisticas": self.refresh_stats,
+         "biblioteca": self.biblioteca.refrescar,
          "ajustes": self.refresh_settings}[nombre]()
 
     def on_switch(self):

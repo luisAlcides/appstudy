@@ -99,6 +99,7 @@ solo volver a abrir lo que estuviera corriendo.
 |---|---|
 | Popup de repaso | el atajo global, desde cualquier aplicación |
 | Ventana completa | `appstudy`, o «AppStudy» en el menú de aplicaciones |
+| Ver tu progreso en gráficas | pestaña **Progreso** |
 | Leer un capítulo | pestaña **Leer**, o «Continuar leyendo» en el panel |
 | Estudiar un solo tema | `appstudy --popup --deck linux` |
 | Soltar la mascota | `appstudy --pet`, o Ajustes → **Bit, la mascota**, o el interruptor de la barra superior |
@@ -158,7 +159,7 @@ tienes pendiente.
 | Clic | salta y te enseña una tarjeta en el globo |
 | Pasar el ratón | te sigue con la mirada |
 | Arrastrar | la mueve; recuerda dónde la dejaste |
-| Clic derecho | menú: enséñame algo, ponme a prueba, una frase de libro, sesión completa, abrir AppStudy, **más grande / más pequeño**, dormir, salir |
+| Clic derecho | menú: enséñame algo, ponme a prueba, una frase de libro, **cómo va la semana**, sesión completa, abrir AppStudy, **más grande / más pequeño**, dormir, salir |
 
 **Tamaño**: del 50 % al 250 %, desde su menú (pasos del 15 %) o con el número exacto en
 Ajustes → Progreso. Se guarda, y la mascota lo recoge sola aunque lo cambies desde la
@@ -210,6 +211,14 @@ tienes nada pendiente no te da la lata con tarjetas: te deja una **frase de un
 libro** —Cervantes, Wittgenstein, Séneca, Knuth, Sagan…— con su autor y su obra.
 También las pides tú desde el menú, y aparece una en el desplegable de la barra
 superior. Están en `appstudy/citas.py`; añade las tuyas ahí.
+
+### Cómo va la semana
+
+Bit lleva la cuenta y de vez en cuando te la cuenta: «esta semana estudiaste 6
+días y 144 tarjetas; el mejor día fue el sábado, con 32; acertaste el 90 %; un
+17 % más que la semana pasada». También la pides tú desde su menú, en **Cómo va
+la semana**. Sale como mucho una vez al día, y compara siempre con los siete
+días anteriores, que es lo que da sentido al número.
 
 Si estorba, **Duérmete 60 min** desde su menú.
 
@@ -593,6 +602,49 @@ En Ajustes → **Apariencia y progreso** hay dos botones que piden confirmación
 - **Reiniciar la racha** — vuelve a cero sin tocar ninguna tarjeta: a partir de ese
   momento solo cuentan los repasos nuevos (`racha_desde` en la tabla `meta`).
 
+## La pestaña Progreso
+
+Todo lo que has hecho vive en la base desde el primer día, pero hasta ahora solo
+se veían cuatro números. La pestaña **Progreso** lo convierte en cinco gráficas,
+dibujadas con Cairo —lo mismo que la mascota— sin ninguna biblioteca de por
+medio, y que siguen el tema claro u oscuro.
+
+Arriba, cuatro cifras. La primera es **memoria construida**: la suma de lo que
+aguantaría cada tarjeta si dejaras de estudiar hoy. Es el mejor resumen del
+trabajo hecho porque no cuenta repasos, cuenta memoria. La segunda es la
+probabilidad media de que ahora mismo te acuerdes de lo estudiado, calculada
+tarjeta a tarjeta con el modelo.
+
+| Gráfica | Qué enseña |
+|---|---|
+| **Tu año** | Un cuadro de casillas, una por día, como el de las contribuciones: cuánto estudiaste cada día del último año, con hoy enmarcado |
+| **En qué punto están tus tarjetas** | Una barra apilada: sin estrenar, aprendiendo, jóvenes, maduras y atragantadas |
+| **Cuánto aciertas en cada mazo** | Una barra por mazo, con tu retención objetivo marcada con una línea de puntos, para ver de un vistazo cuál se te resiste |
+| **Lo que viene** | Las tarjetas que vencen cada día de los próximos 30, con lo ya atrasado en rojo. Subir la retención sube estas barras; bajarla las aplana |
+| **Cuánto tardas en contestar** | La mediana por nivel. La mediana y no la media: basta con dejar el popup abierto una vez para que una media deje de significar nada |
+
+Un detalle que cambia lo que dice el número: en la retención **solo cuentan los
+repasos de tarjetas que ya habías visto antes**. La primera vez que ves una
+tarjeta no había nada que recordar, así que meterla en la media solo la ensucia.
+
+## Logros
+
+Once marcas que se pasan sin darse cuenta. No hay puntos, ni niveles, ni una
+pantalla que te felicite cada dos por tres: la racha de siete, treinta y cien
+días, mil repasos, cincuenta en un día, un mazo dominado, un capítulo del nivel
+más alto, un mazo leído entero, un año de memoria sumada, cien repasos sin
+ninguna tarjeta atragantada.
+
+Se comprueban al calificar, que es cuando cambian la racha y los intervalos.
+Bit lo celebra **una vez**, con el salto y los corazones que ya sabe hacer; si
+estabas en el popup, sale un aviso con un botón para ir a verlos. Después se
+quedan al final de la pestaña Progreso, con los que faltan y qué hay que hacer
+para conseguirlos.
+
+Están en `appstudy/logros.py`: cada uno es una regla contra la base, así que
+añadir el tuyo es escribir una función. Nada se guarda hasta que se consigue,
+por lo que se pueden añadir logros nuevos sin migrar nada.
+
 ## Objetivo diario
 
 En **Ajustes → Objetivo diario** pones cuántas tarjetas quieres hacer al día. Una
@@ -644,10 +696,11 @@ los de «antes de restaurar» no se borran nunca.
 ./pruebas.sh scheduler    # solo las del planificador
 ```
 
-240 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
+321 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
 calibración, el planificador, las sanguijuelas, el deshacer, el objetivo diario,
-las tarjetas de huecos, los seis formatos de reto, las fórmulas en LaTeX, el
-respaldo y la validez del contenido incluido. No hace falta instalar nada más — son `unittest` de la
+las tarjetas de huecos, las series de la pestaña Progreso, los logros, los seis
+formatos de reto, las fórmulas en LaTeX, el respaldo y la validez del contenido
+incluido. No hace falta instalar nada más — son `unittest` de la
 biblioteca estándar — y ninguna toca tu progreso real: cada caso arranca con una
 base vacía en un directorio temporal. Los detalles, en `tests/README.md`.
 
