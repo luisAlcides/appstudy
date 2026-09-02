@@ -160,6 +160,62 @@
    "tags": "operación"
   },
   {
+   "level": 1,
+   "kind": "card",
+   "tags": "seguridad,operación",
+   "front": "¿Cuáles son las tres reglas de subida y bajada de la máquina?",
+   "back": "<b>1. Tres puntos de apoyo</b> siempre: dos manos y un pie, o dos pies y una mano.\n<b>2. De frente a la máquina</b>, nunca de espaldas ni saltando desde el último peldaño.\n<b>3. Manos libres</b>: la herramienta y el termo suben con una cuerda o en la mochila.\nLas caídas al subir y bajar son de las lesiones <b>más frecuentes</b> en obra, muy por encima de los accidentes espectaculares con la máquina en movimiento. Y casi todas ocurren al bajar con prisa al final del turno."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "operación,mantenimiento",
+   "front": "¿Qué es la posición de estacionamiento segura de una excavadora?",
+   "back": "Al terminar el turno:\n<b>1.</b> Terreno <b>firme y nivelado</b>, lejos de taludes y zanjas.\n<b>2.</b> <b>Cucharón apoyado en el suelo</b>, nunca suspendido: un cilindro puede ceder durante la noche.\n<b>3.</b> Máquina en <b>ralentí unos minutos</b> antes de apagar, para que el turbo se enfríe.\n<b>4.</b> <b>Palanca de bloqueo hidráulico</b> abajo y llave fuera.\n<b>5.</b> Escalerilla libre, cabina cerrada.\nY si hay pendiente inevitable: <b>orientada cuesta abajo</b>, con el implemento clavado en el terreno y calzos en el tren de rodaje."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "seguridad,operación",
+   "front": "Un compañero necesita acercarse a la máquina mientras trabajas. ¿Cuál es el procedimiento correcto?",
+   "choices": [
+    "Que espere fuera del radio de giro hasta que hagas contacto visual, bajes el implemento y confirmes con un gesto",
+    "Que se acerque por detrás para no estorbar",
+    "Que grite antes de acercarse",
+    "Que se acerque cuando el implemento esté levantado"
+   ],
+   "answer": 0,
+   "back": "La regla es <b>contacto visual + implemento en el suelo + gesto de confirmación</b>, en ese orden.\nEl operador tiene <b>ángulos muertos enormes</b>, sobre todo por detrás y a la derecha, y con el motor no oye nada. La contrarrotación del chasis superior es lo que provoca los atrapamientos: el radio de giro no perdona."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "mantenimiento,básico",
+   "front": "¿Cómo se lee correctamente una tabla de lubricación?",
+   "back": "Cada punto de la máquina tiene <b>tres datos</b>: qué producto, qué cantidad y cada cuántas horas.\n<b>Frecuencias típicas</b>: engrase de pasadores cada 10 h (o cada turno en trabajo con agua y barro), niveles cada 10 h, filtros de aceite motor cada 250-500 h, aceite hidráulico y sus filtros cada 1 000-2 000 h.\n⚠️ Dos errores caros:\n• <b>Cambiar el intervalo por el del vecino</b>: depende del fabricante y de la severidad del servicio.\n• <b>Engrasar de más</b>: el exceso revienta retenes y deja entrar suciedad por donde salió la grasa."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "operación,básico",
+   "front": "¿Qué significan las capacidades de una excavadora en su ficha técnica?",
+   "back": "<b>Peso operativo</b> — con operador, fluidos y cucharón estándar. Es lo que determina si cabe en el camión.\n<b>Capacidad del cucharón</b> — en m³ colmado (SAE), no raso.\n<b>Fuerza de excavación</b> — del cucharón y del brazo, en kN. La primera manda al arrancar material duro.\n<b>Alcance máximo y profundidad de excavación</b> — el alcance a nivel de suelo, no el teórico.\n<b>Capacidad de elevación</b> — <b>siempre depende del alcance y del ángulo</b>: la misma máquina levanta 6 t cerca y 1,5 t extendida. Esa tabla es la que hay que mirar, no el número grande del folleto."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "mantenimiento",
+   "front": "¿Cuándo se revisa el nivel de aceite del motor en una máquina pesada?",
+   "choices": [
+    "Con el motor frío o parado 10-15 minutos, y la máquina nivelada",
+    "Con el motor caliente y en marcha",
+    "Justo después de apagar, sin esperar",
+    "Solo cuando se enciende el testigo"
+   ],
+   "answer": 0,
+   "back": "Hay que dar tiempo a que el aceite <b>vuelva al cárter</b>, o la lectura sale baja y se rellena de más.\nY la <b>nivelación</b> importa tanto como la espera: en pendiente, la varilla miente varios centímetros. Exceso de aceite es tan dañino como falta: lo bate el cigüeñal, espuma y pierde capacidad de lubricar."
+  },
+  {
    "kind": "card",
    "front": "El aceite hidráulico está lechoso/espumoso. ¿Qué significa?",
    "back": "<b>Aire o agua en el sistema.</b>\n• Lechoso blanco → agua (condensación, sello de enfriador roto)\n• Espumoso con burbujas → aire aspirado: nivel bajo, manguera de succión floja o filtro obstruido\n\nSíntoma típico: movimientos «esponjosos», ruido de cavitación en la bomba.",
@@ -291,6 +347,69 @@
    "front": "Carga correcta de un volquete",
    "back": "• Cargar por el <b>centro</b>, no todo en la cola (levanta el eje delantero y pierdes dirección)\n• Respetar el <b>peso bruto vehicular</b>; sobrecargar destruye suspensión, frenos y llantas\n• Material húmedo pesa mucho más que el mismo volumen seco\n• Bajar la tolva <b>antes</b> de moverse: volcar con la tolva arriba y tocar un cable es un accidente frecuente",
    "tags": "operación"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "hidráulica,diagnóstico",
+   "front": "¿Qué diferencia hay entre caudal y presión, y qué síntoma da cada uno?",
+   "back": "<b>El caudal (l/min) da velocidad. La presión (bar) da fuerza.</b>\n<b>Falta caudal</b> → los movimientos van <b>lentos</b> pero con fuerza normal. Bomba desgastada, filtro de aspiración obstruido, régimen de motor bajo.\n<b>Falta presión</b> → los movimientos van a <b>velocidad normal pero sin fuerza</b>. Válvula de alivio mal tarada o pegada, fugas internas.\nDistinguir estos dos síntomas antes de tocar nada ahorra la mitad del diagnóstico hidráulico. Y si falla <b>todo a la vez</b>, mira la bomba o la señal de control; si falla <b>un solo movimiento</b>, mira su válvula y su cilindro."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "motor,diagnóstico",
+   "front": "¿Qué te dice el color del humo del escape en un diésel?",
+   "back": "<b>Negro</b> — exceso de combustible o falta de aire: filtro de aire tapado, turbo con fuga, inyectores goteando, sobrecarga.\n<b>Azul</b> — quema aceite: segmentos, guías de válvula o retenes del turbo.\n<b>Blanco espeso y dulce</b> — refrigerante en la cámara: junta de culata o culata agrietada.\n<b>Blanco fino en frío que desaparece</b> — normal: es condensación.\n<b>Blanco que persiste caliente</b> — gasóleo sin quemar: inyección adelantada, baja compresión o bujías de precalentamiento.\nEl color se mira <b>en aceleración bajo carga</b>, no al ralentí: ahí casi todo parece normal."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "hidráulica,mantenimiento",
+   "front": "Vas a rellenar aceite hidráulico y solo tienes una marca distinta de la misma viscosidad. ¿Qué haces?",
+   "choices": [
+    "Rellenas lo mínimo para trabajar y programas el cambio completo",
+    "Mezclas sin problema: la viscosidad es la misma",
+    "No rellenas y dejas la máquina parada indefinidamente",
+    "Rellenas con aceite de motor de viscosidad parecida"
+   ],
+   "answer": 0,
+   "back": "Misma viscosidad <b>no</b> significa mismos aditivos: paquetes antidesgaste y antiespumantes distintos pueden reaccionar entre sí, formar lodos y atacar los retenes.\nEn una emergencia se rellena lo justo y se anota; el cambio completo con lavado del circuito se programa cuanto antes.\nY nunca aceite de motor: sus detergentes mantienen el agua <b>en emulsión</b>, que es exactamente lo contrario de lo que necesita un hidráulico."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "seguridad,hidráulica",
+   "front": "¿Por qué una manguera hidráulica se sustituye por tiempo y no solo por rotura?",
+   "back": "El caucho <b>envejece aunque no falle</b>: se endurece, se agrieta internamente y pierde adherencia con el refuerzo metálico.\nLa recomendación habitual: <b>almacenamiento máximo 4 años</b>, <b>vida en servicio 6-8 años</b> desde la fecha del racor, y antes si trabaja a alta temperatura.\nSeñales para cambiar ya: <b>abombamiento</b> local (el refuerzo se rompió por dentro), rezumado en el racor, cubierta agrietada que deja ver la malla, o rozadura contra el chasis.\n⚠️ Un chorro a 250 bar atraviesa la piel sin dolor inmediato y provoca una <b>lesión por inyección</b>: es una urgencia quirúrgica que se subestima porque la herida externa parece un pinchazo."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "eléctrico,diagnóstico",
+   "front": "¿Por qué en 24 V un mal contacto da fallos más raros que en 12 V?",
+   "back": "Porque el mismo consumo de potencia pide <b>la mitad de corriente</b>, así que una resistencia parásita calienta menos y no se delata. El circuito «funciona» hasta que pides carga.\nConsecuencias prácticas:\n• Los síntomas aparecen solo con el motor de arranque o con las luces de trabajo encendidas.\n• La medición de resistencia <b>engaña</b>: hay que hacer <b>caída de tensión con carga</b>, y aceptar como máximo 0,5 V en un circuito de potencia y 0,1 V en una masa.\n• Las masas del chasis son el sospechoso número uno, sobre todo tras soldar o repintar."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "tren de rodaje,mantenimiento",
+   "front": "¿Cómo se mide realmente el desgaste del tren de rodaje?",
+   "back": "No a ojo: con <b>calibres específicos</b> y sobre puntos definidos.\n<b>Zapatas</b> — altura de la garra.\n<b>Eslabones</b> — altura del eslabón y paso de la cadena (el estiramiento por desgaste de bujes).\n<b>Rodillos</b> — diámetro de la pestaña y de la banda de rodadura.\n<b>Rueda motriz</b> — perfil del diente: cuando se afila como un colmillo, ya está.\nSe anota el <b>porcentaje de vida consumida</b> de cada componente y se planifica: sustituir todo junto al 100 % es más barato que ir cambiando piezas sueltas, porque un componente nuevo entre otros gastados <b>se desgasta acelerado</b>."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "operación,gestión",
+   "front": "Una excavadora carga camiones. ¿Qué ángulo de giro entre la excavación y el camión conviene?",
+   "choices": [
+    "El menor posible, idealmente por debajo de 45°",
+    "90°, para que el camión no estorbe",
+    "180°, así el camión entra de frente",
+    "Da igual, no afecta al rendimiento"
+   ],
+   "answer": 0,
+   "back": "El <b>giro es el 50-60 % del tiempo de ciclo</b>. Bajar de 90° a 45° puede subir la producción por hora un 20-30 % sin tocar la máquina.\nColocar bien el camión y la posición de la excavadora es la mejora de productividad más barata que existe en obra: no cuesta combustible ni repuestos, solo pensar dónde aparcar."
   },
   {
    "kind": "quiz",
@@ -508,6 +627,62 @@
    "tags": "gestión,mantenimiento",
    "front": "¿Por qué el plan de mantenimiento va por horas y no por meses?",
    "back": "Porque el desgaste lo produce el <b>trabajo</b>, no el calendario. Una excavadora en cantera hace 250 h en cinco semanas; la misma máquina en obra urbana tarda cuatro meses.\n\nEscalones típicos: <b>10 h</b> (inspección diaria) · <b>250 h</b> (aceite motor y filtros) · <b>500 h</b> (hidráulico, combustible) · <b>1.000/2.000 h</b> (aceite hidráulico, refrigerante, válvulas).\nY el horómetro cuenta también el <b>ralentí</b>: por eso las horas de una máquina mal operada engañan al alza."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "hidráulica,diagnóstico",
+   "front": "¿Cómo se localiza una fuga interna sin desmontar medio circuito?",
+   "back": "Las fugas internas no se ven: se deducen por <b>calor y por caudal</b>.\n<b>1. Cámara térmica o termómetro infrarrojo</b>: el aceite que se estrangula por una holgura se calienta. Un componente notablemente más caliente que sus vecinos, con la máquina en la misma condición, es el sospechoso.\n<b>2. Prueba de deriva</b>: carga el cilindro, bloquea y mide cuánto baja en 10 minutos. Repite con la línea de retorno taponada — si deja de bajar, la fuga está en la válvula; si sigue, está en el pistón del cilindro.\n<b>3. Caudalímetro en línea</b>: compara el caudal de retorno con el de entrada.\n<b>4. Aislamiento por partes</b>: tapona líneas una a una hasta que el síntoma cambie."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "gestión,mantenimiento",
+   "front": "¿Qué es el MTBF y cómo se usa en una flota?",
+   "back": "<b>MTBF</b> (tiempo medio entre fallos) = horas operativas totales ÷ número de fallos.\n<b>MTTR</b> (tiempo medio de reparación) = horas de parada ÷ número de intervenciones.\nY de ahí sale la <b>disponibilidad</b>:\n$$D = \\frac{MTBF}{MTBF + MTTR}$$\nUna máquina con MTBF de 200 h y MTTR de 8 h tiene un 96 % de disponibilidad.\n<b>Para qué sirve:</b> distinguir la máquina que falla mucho (MTBF bajo → problema de mantenimiento o de operación) de la que falla poco pero para mucho tiempo (MTTR alto → problema de repuestos o de logística). Cada caso se ataca de forma distinta."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "hidráulica,diagnóstico",
+   "front": "Una excavadora tiene fuerza normal en todos los movimientos salvo el giro, que va lento y sin par. ¿Qué acota mejor la falla?",
+   "choices": [
+    "Es un fallo del circuito de giro: motor, freno de giro o su válvula de alivio",
+    "La bomba principal está gastada",
+    "Falta aceite hidráulico",
+    "El motor diésel pierde potencia"
+   ],
+   "answer": 0,
+   "back": "Cuando <b>un solo movimiento</b> falla y el resto está bien, la bomba y el nivel quedan descartados: comparten el mismo suministro.\nEn el giro los sospechosos son el <b>freno de estacionamiento del giro que no libera</b>, las <b>válvulas de alivio de puerto</b> del motor de giro y el propio motor con fuga interna.\n<b>Confirmación:</b> mide presión en el puerto de giro contra especificación. Baja e inestable con la máquina bloqueada apunta al alivio; correcta con movimiento lento apunta al freno o al motor."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "motor,diagnóstico",
+   "front": "¿Cómo se diagnostica una pérdida de potencia en un diésel moderno?",
+   "back": "En este orden, porque cada paso es más caro que el anterior:\n<b>1. Códigos y datos en vivo</b>: presión de sobrealimentación real contra la deseada, presión de rail real contra la deseada, posición del EGR.\n<b>2. Restricción de admisión y de escape</b>: filtro de aire (manómetro de restricción) y contrapresión de escape. Un DPF saturado limita potencia sin dar código hasta tarde.\n<b>3. Combustible</b>: presión de alimentación, filtro, y <b>retorno de inyectores</b> — un inyector que retorna de más delata su desgaste sin desmontarlo.\n<b>4. Turbo</b>: fugas en manguitos e intercooler, juego del eje, actuador de geometría variable.\n<b>5. Compresión</b>, solo si lo anterior está bien.\n⚠️ Y antes de todo: comprueba que el problema es el motor y no una <b>carga hidráulica excesiva</b> que lo está ahogando."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "hidráulica,mantenimiento",
+   "front": "¿Cómo se hace una limpieza (flushing) de un circuito hidráulico tras un fallo catastrófico?",
+   "back": "Cuando una bomba se destruye, deja limaduras por todo el circuito. Cambiarla sin limpiar es matarla otra vez.\n<b>1.</b> Vaciar <b>todo</b>: depósito, cilindros (accionándolos), líneas y enfriador.\n<b>2.</b> Limpiar el depósito por dentro a mano — es donde se acumula lo peor — e inspeccionar la malla de aspiración.\n<b>3.</b> Sustituir <b>todos</b> los filtros, y prever un segundo juego a las pocas horas.\n<b>4.</b> Llenar con aceite nuevo filtrado y hacer circular a baja presión moviendo todos los actuadores.\n<b>5.</b> <b>Análisis de aceite</b> a las 50 h: el conteo de partículas ISO dice si la limpieza funcionó de verdad.\n⚠️ El enfriador y las mangueras largas son los sitios donde se esconde la contaminación que reaparece semanas después."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "gestión,operación",
+   "front": "¿Cómo influye el operador en el coste por hora de una máquina?",
+   "back": "Más que casi cualquier decisión de mantenimiento. Cuatro hábitos medibles:\n<b>Ralentí</b> — cada hora al ralentí consume combustible, suma horas al horómetro y adelanta los servicios sin producir nada. En muchas flotas es el <b>30-40 %</b> del tiempo de motor.\n<b>Golpear con el cucharón</b> para romper material destroza pasadores, bujes y la propia pluma.\n<b>Patinar las cadenas</b> en giros cerrados y sobre roca dispara el desgaste del tren de rodaje, que es el <b>mayor coste de mantenimiento</b> de una excavadora de orugas.\n<b>Arranques y paradas sin ciclo térmico</b> se llevan turbos por delante.\nUn buen operador y uno malo separan el coste por hora en un <b>20-30 %</b>, con la misma máquina y el mismo plan de mantenimiento."
+  },
+  {
+   "level": 3,
+   "kind": "lesson",
+   "tags": "diagnóstico,hidráulica",
+   "front": "Leer una máquina por sus presiones",
+   "back": "Un manómetro conectado en el punto correcto resuelve en minutos lo que la inspección visual no ve nunca. La clave es saber <b>qué presión buscar y en qué condición</b>.\n\n<b>Presión de espera (standby)</b> — con los mandos en neutro y una bomba de caudal variable, debe quedarse baja (típicamente 25-40 bar). Alta en neutro = la bomba no destalona, y estás quemando potencia y calentando aceite todo el turno.\n\n<b>Presión de trabajo</b> — con el movimiento a fondo contra tope mecánico, debe alcanzar el valor de alivio de la placa. Si se queda corta: alivio mal tarado, bomba gastada o fuga interna. Si la alcanza pero la máquina no tiene fuerza, el problema es <b>caudal</b>, no presión.\n\n<b>Presión piloto</b> — 30-40 bar estables. Sin ella, las válvulas no conmutan y la máquina parece muerta aunque la bomba principal esté perfecta. Es de los fallos que más tiempo se pierde buscando en el sitio equivocado.\n\n<b>Contrapresión de retorno</b> — debería ser baja. Alta significa filtro de retorno o enfriador obstruidos, y se manifiesta como calentamiento general y movimientos perezosos.\n\n<b>El método:</b> anota estos cuatro valores <b>cuando la máquina está sana</b>, con el aceite a temperatura de trabajo, y guárdalos en la ficha. Ese registro convierte el diagnóstico futuro en una comparación de números en lugar de una discusión de sensaciones."
   }
  ],
  "levels": [

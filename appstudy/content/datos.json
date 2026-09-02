@@ -132,6 +132,69 @@
    "tags": "pandas"
   },
   {
+   "level": 1,
+   "kind": "card",
+   "tags": "pandas,fundamentos",
+   "front": "¿Qué diferencia hay entre una Series y un DataFrame?",
+   "back": "Una <b>Series</b> es una columna: un vector con índice.\nUn <b>DataFrame</b> es una tabla: un diccionario de Series que comparten índice.\n<code>df[\"precio\"]</code> devuelve una Series; <code>df[[\"precio\"]]</code> devuelve un DataFrame de una columna.\nEsa distinción importa porque muchos métodos de scikit-learn esperan una matriz 2D (<i>X</i>) y un vector 1D (<i>y</i>)."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "estadística,fundamentos",
+   "front": "¿Qué es un percentil y por qué se usa tanto?",
+   "back": "El percentil <b>P</b> es el valor por debajo del cual queda el P % de los datos.\nLa <b>mediana</b> es el percentil 50.\nEn rendimiento se usa el <b>p95</b> o el <b>p99</b> de la latencia: la media puede ser de 100 ms mientras 1 de cada 100 usuarios espera 4 segundos.\nA diferencia de la media, un percentil <b>no se deja arrastrar</b> por unos pocos valores extremos."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "estadística",
+   "front": "Los tiempos de respuesta tienen media 120 ms y mediana 80 ms. ¿Qué te dice esa diferencia?",
+   "choices": [
+    "Hay una cola de respuestas muy lentas que estira la media",
+    "Los datos están mal medidos",
+    "La distribución es simétrica",
+    "La mayoría de respuestas tarda 120 ms"
+   ],
+   "answer": 0,
+   "back": "Media > mediana indica <b>sesgo a la derecha</b>: unas pocas peticiones muy lentas tiran de la media hacia arriba.\nLa mayoría de usuarios experimenta algo cercano a los <b>80 ms</b>. Por eso los SLA se escriben sobre percentiles, no sobre medias."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "pandas,limpieza",
+   "front": "¿Cómo detectas y quitas duplicados en pandas?",
+   "back": "<code>df.duplicated().sum()</code> — cuántas filas repetidas hay.\n<code>df[df.duplicated(keep=False)]</code> — mostrarlas <b>todas</b> para revisarlas antes de borrar.\n<code>df.drop_duplicates(subset=[\"id\"], keep=\"last\")</code> — quedarse con la última versión de cada id.\n⚠️ Antes de borrar, pregúntate <b>por qué</b> hay duplicados: muchas veces no sobran filas, sino que el join anterior multiplicó registros."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "visualización",
+   "front": "¿Qué gráfico corresponde a cada pregunta?",
+   "back": "<b>Distribución</b> de una variable → histograma o densidad.\n<b>Comparar categorías</b> → barras (horizontales si los nombres son largos).\n<b>Evolución en el tiempo</b> → línea.\n<b>Relación entre dos numéricas</b> → dispersión.\n<b>Parte de un todo</b> → barras apiladas, casi nunca un gráfico de tarta.\n<b>Comparar distribuciones</b> entre grupos → boxplot o violín.\nSi dudas, empieza por barras: casi siempre se lee mejor de lo que crees."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "sql,fundamentos",
+   "front": "¿Cuáles son las cinco cláusulas SQL que resuelven casi todo?",
+   "back": "<code>SELECT</code> qué columnas quieres.\n<code>FROM</code> de qué tabla.\n<code>WHERE</code> qué filas, <b>antes</b> de agrupar.\n<code>GROUP BY</code> cómo agregar.\n<code>ORDER BY</code> cómo ordenar el resultado.\nY <code>HAVING</code> filtra <b>después</b> de agrupar — esa es la confusión más habitual: no puedes poner <code>WHERE SUM(x) > 100</code>, tiene que ser <code>HAVING</code>."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "pandas",
+   "front": "¿Qué hace <code>df.groupby(\"region\")[\"ventas\"].transform(\"mean\")</code>?",
+   "choices": [
+    "Devuelve una columna del mismo largo que df, con la media de su región en cada fila",
+    "Devuelve una fila por región",
+    "Reemplaza la columna ventas por su media global",
+    "Ordena el DataFrame por región"
+   ],
+   "answer": 0,
+   "back": "<b>transform</b> devuelve un resultado <b>alineado con el original</b>, no agregado. Es lo que se usa para crear variables comparativas:\n<code>df[\"vs_region\"] = df[\"ventas\"] / df.groupby(\"region\")[\"ventas\"].transform(\"mean\")</code>\nSi quisieras una fila por región usarías <code>.agg(\"mean\")</code>."
+  },
+  {
    "kind": "quiz",
    "front": "Tu modelo tiene 99% de accuracy detectando fraude. ¿Qué sospechas?",
    "choices": [
@@ -312,6 +375,76 @@
    "front": "Reglas para que un gráfico comunique",
    "back": "• Un mensaje por gráfico, escrito <b>en el título</b>\n• Eje Y desde cero en gráficos de barras (si no, exageras)\n• Ordena las barras por valor, no alfabéticamente\n• Máximo 5-7 series; el resto agrúpalo en «Otros»\n• Etiqueta directamente en vez de obligar a mirar la leyenda",
    "tags": "visualización"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "estadística,evaluación",
+   "front": "¿Qué es la correlación de Spearman y cuándo gana a la de Pearson?",
+   "back": "<b>Pearson</b> mide relación <b>lineal</b> y es sensible a los valores extremos.\n<b>Spearman</b> trabaja sobre los <b>rangos</b>: mide si la relación es monótona (cuando una sube, la otra sube), aunque sea curva.\nSpearman gana cuando hay outliers, escalas ordinales o relaciones no lineales.\nEjemplo: precio y superficie de una vivienda tienen relación clara, pero curva. Pearson la infravalora; Spearman la ve."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "pandas,preprocesamiento",
+   "front": "¿Por qué aparece el <i>SettingWithCopyWarning</i> y cómo se quita?",
+   "back": "Aparece cuando modificas algo que pandas no sabe si es una vista o una copia:\n<code>sub = df[df.precio > 100]\nsub[\"margen\"] = ...   # ⚠️ warning</code>\nLa solución no es silenciar el aviso, sino ser explícito:\n<code>sub = df[df.precio > 100].copy()</code>\nO modificar en el original con <code>.loc</code>:\n<code>df.loc[df.precio > 100, \"margen\"] = ...</code>\nIgnorarlo lleva a cambios que <b>desaparecen sin error</b>."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "sql,producción",
+   "front": "¿Qué es un índice en una base de datos y cuándo estorba?",
+   "back": "Un índice es una estructura ordenada que evita recorrer toda la tabla: convierte una búsqueda de $O(n)$ en $O(\\log n)$.\n<b>Ayuda</b> en columnas de <code>WHERE</code>, <code>JOIN</code> y <code>ORDER BY</code> con alta cardinalidad.\n<b>Estorba</b> porque cada <code>INSERT</code>, <code>UPDATE</code> y <code>DELETE</code> tiene que mantenerlo, y ocupa disco.\nNo sirve de nada en columnas de poca variedad (un booleano) ni si envuelves la columna en una función: <code>WHERE YEAR(fecha)=2025</code> ignora el índice sobre <i>fecha</i>."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "evaluación,modelado",
+   "front": "Tu modelo de regresión tiene $R^2 = 0{,}92$ en entrenamiento y $R^2 = 0{,}31$ en test. ¿Qué pasa?",
+   "choices": [
+    "Sobreajuste: el modelo memorizó el ruido del entrenamiento",
+    "El modelo es demasiado simple",
+    "Los datos de test están mal etiquetados",
+    "Hay que entrenar más épocas"
+   ],
+   "answer": 0,
+   "back": "Un hueco grande entre entrenamiento y test es la firma del <b>overfitting</b>.\nRemedios por orden de eficacia: más datos, menos variables, regularización, un modelo más simple y validación cruzada para elegir hiperparámetros.\nSi ambos fueran bajos (0,3 y 0,28) el problema sería el contrario: <b>underfitting</b>."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "estadística,evaluación",
+   "front": "¿Qué es el F1-score y cuándo lo prefieres a la accuracy?",
+   "back": "Es la <b>media armónica</b> de precisión y recall:\n$$F_1 = 2 \\times \\frac{P \\times R}{P + R}$$\nLa media armónica castiga el desequilibrio: con precisión 1,0 y recall 0,1, la media aritmética daría 0,55 pero F1 da <b>0,18</b>.\nSe usa cuando las clases están <b>desbalanceadas</b>, donde la accuracy engaña: en un problema con 1 % de positivos, decir siempre «no» da 99 % de accuracy y F1 de <b>0</b>."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "preprocesamiento,series",
+   "front": "¿Cómo se trabaja con fechas en pandas sin sufrir?",
+   "back": "<b>1.</b> Conviértelas al leer: <code>pd.read_csv(f, parse_dates=[\"fecha\"])</code>.\n<b>2.</b> Ponlas de índice: <code>df.set_index(\"fecha\")</code>, y ya puedes hacer <code>df.loc[\"2025-03\"]</code>.\n<b>3.</b> Cambia la granularidad con <code>resample</code>:\n<code>df.resample(\"M\")[\"ventas\"].sum()</code>\n<b>4.</b> Extrae componentes con el accesor <code>.dt</code>: <code>df.fecha.dt.dayofweek</code>.\n⚠️ Vigila las <b>zonas horarias</b>: mezclar naive y aware provoca comparaciones que fallan en producción y no en tu portátil."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "experimentos,estadística",
+   "front": "¿Qué es el poder estadístico de una prueba?",
+   "back": "Es la probabilidad de <b>detectar un efecto que sí existe</b>. Por convención se busca 0,80.\nDepende de cuatro cosas ligadas entre sí: tamaño del efecto, tamaño de muestra, nivel $\\alpha$ y variabilidad.\nUn estudio con poco poder es peligroso por partida doble: no solo pierde efectos reales, sino que los <b>pocos que declara significativos vienen inflados</b>.\nPor eso el cálculo del tamaño de muestra se hace <b>antes</b> del experimento, no después."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "sesgos",
+   "front": "Un modelo de contratación se entrena con las decisiones históricas de la empresa. ¿Qué riesgo tiene?",
+   "choices": [
+    "Aprende y automatiza los sesgos históricos",
+    "Ninguno, los datos son reales",
+    "Solo tendrá poca precisión",
+    "Necesitará más variables"
+   ],
+   "answer": 0,
+   "back": "La etiqueta no es «buen candidato», es «a quién contrató la empresa». El modelo aprende a <b>reproducir esa decisión</b>, con sus sesgos incluidos, y le añade una capa de aparente objetividad.\nMitigar exige auditar el rendimiento <b>por subgrupo</b>, revisar variables que actúan de proxy (código postal, universidad) y decidir explícitamente qué definición de justicia se aplica."
   },
   {
    "kind": "card",
@@ -501,6 +634,62 @@
    ],
    "answer": 0,
    "back": "El intervalo es lo aleatorio, no el parámetro: la media real es un número fijo que no se mueve.\nEl 95 % describe el <b>procedimiento</b>, no ese intervalo concreto.\n\nY cuidado con la tercera: el rango donde cae el 95 % de los <b>datos</b> es el intervalo de predicción, mucho más ancho."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "modelado,evaluación",
+   "front": "¿Qué es la calibración de un modelo y por qué no basta con el AUC?",
+   "back": "Un modelo está <b>calibrado</b> si cuando dice «0,7» acierta el 70 % de las veces.\nEl <b>AUC</b> solo mide <b>ordenación</b>: un modelo puede ordenar perfectamente y estar completamente descalibrado (todas sus probabilidades entre 0,4 y 0,6).\nImporta cuando la probabilidad se usa como número: cálculo de riesgo, precios, valor esperado.\nSe diagnostica con una <b>curva de calibración</b> y se corrige con <i>Platt scaling</i> o <i>isotonic regression</i> sobre un conjunto aparte."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "producción,modelado",
+   "front": "¿Qué es un <i>feature store</i> y qué problema resuelve?",
+   "back": "Es un repositorio centralizado de variables ya calculadas, con dos caras:\n<b>Offline</b> — histórico, para entrenar.\n<b>Online</b> — baja latencia, para servir.\nResuelve tres dolores concretos:\n• El <b>training-serving skew</b>: la misma definición se usa en los dos sitios.\n• La <b>reutilización</b>: «días desde la última compra» se calcula una vez, no en cada proyecto.\n• El <b>point-in-time correctness</b>: al entrenar recupera el valor que la variable tenía <i>entonces</i>, no el de hoy — que es la causa número uno de fugas de datos silenciosas."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "experimentos",
+   "front": "Lanzas un A/B, miras los resultados cada día y paras en cuanto ves $p < 0{,}05$. ¿Qué has hecho mal?",
+   "choices": [
+    "Peeking: mirar repetidamente infla la tasa de falsos positivos muy por encima del 5 %",
+    "Nada, es lo eficiente",
+    "Debiste usar un umbral de 0,01",
+    "El problema es solo el tamaño de muestra"
+   ],
+   "answer": 0,
+   "back": "Cada mirada es una oportunidad más de cruzar el umbral por azar. Con 10 revisiones, la probabilidad real de falso positivo sube por encima del <b>30 %</b>.\nSoluciones válidas: fijar el tamaño de muestra <b>antes</b>, o usar métodos diseñados para mirar en marcha (<i>sequential testing</i>, límites de O'Brien-Fleming, tests bayesianos)."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "modelado,series",
+   "front": "¿Cómo se valida un modelo de series de tiempo?",
+   "back": "Nunca con un split aleatorio: entrenarías con el futuro para predecir el pasado.\nSe usa <b>validación temporal deslizante</b> (<i>walk-forward</i>):\n<code>TimeSeriesSplit(n_splits=5)</code>\nCada pliegue entrena con todo lo anterior a un corte y valida con el tramo siguiente.\nDos detalles más: deja un <b>hueco</b> entre train y test si tus variables usan ventanas móviles, y compara siempre contra el baseline <b>naive</b> (el valor de ayer, o el mismo día de la semana pasada). Muchos modelos elaborados no lo superan."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "estadística,evaluación",
+   "front": "¿Qué es el bootstrap y para qué sirve en la práctica?",
+   "back": "Consiste en <b>remuestrear con reemplazo</b> tus propios datos cientos de veces y recalcular el estadístico en cada muestra. La dispersión de esos resultados <b>es</b> tu intervalo de confianza.\nSirve cuando no hay fórmula cerrada: la mediana, el ratio entre dos métricas, el AUC de un modelo, el percentil 90.\nEn cuatro líneas:\n<code>vals = [f(rng.choice(x, len(x), replace=True))\n        for _ in range(2000)]\nnp.percentile(vals, [2.5, 97.5])</code>\n⚠️ No arregla una muestra sesgada: solo cuantifica la incertidumbre de la que tienes."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "producción,modelado",
+   "front": "¿Cómo se despliega un modelo nuevo sin arriesgar el negocio?",
+   "back": "Por etapas, y cada una responde a una pregunta distinta:\n<b>1. Shadow</b> — el modelo nuevo predice en paralelo pero no decide. ¿Funciona técnicamente y con datos reales?\n<b>2. Canary</b> — un 1-5 % del tráfico. ¿Se rompe algo?\n<b>3. A/B</b> — reparto controlado con métricas de negocio. ¿Es realmente mejor?\n<b>4. Despliegue completo</b>, con la vía de <b>rollback</b> probada.\nY en todas: monitoriza <b>latencia y tasa de error</b> igual de cerca que la métrica del modelo. La mayoría de incidentes de ML en producción no son de calidad de predicción, son de ingeniería."
+  },
+  {
+   "level": 3,
+   "kind": "lesson",
+   "tags": "criterio,producción",
+   "front": "La pregunta antes del modelo",
+   "back": "Antes de escribir una línea de código, cuatro preguntas ordenan el proyecto entero:\n\n<b>1. ¿Qué decisión va a cambiar?</b> Si nadie va a actuar distinto según la predicción, el modelo es un entretenimiento caro. «Predecir la demanda» no es una decisión; «cuántas unidades pedir el lunes» sí.\n\n<b>2. ¿Cuál es el coste de cada tipo de error?</b> Un falso negativo en detección de fraude cuesta el importe de la transacción; un falso positivo cuesta un cliente enfadado. Esos dos números fijan el <b>umbral</b>, no la métrica que venga por defecto.\n\n<b>3. ¿Qué información habrá disponible en el momento de decidir?</b> Muchas variables preciosas del histórico <b>no existen</b> cuando hay que predecir de verdad. Comprobarlo ahora evita descubrirlo tras dos semanas de trabajo.\n\n<b>4. ¿Con qué se compara?</b> El baseline no es «nada»: es lo que la empresa hace hoy, aunque sea una regla de tres en una hoja de cálculo. Si tu modelo no la supera con holgura, no compensa su mantenimiento.\n\nUn proyecto que responde a estas cuatro preguntas rara vez fracasa por el algoritmo."
   }
  ],
  "levels": [

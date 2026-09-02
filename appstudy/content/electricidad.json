@@ -123,6 +123,69 @@
    "back": "<b>1.</b> Desconectar y <b>abrir</b> el circuito por todos los lados.\n<b>2.</b> Bloquear y señalizar (que nadie lo reconecte mientras tú estás dentro).\n<b>3.</b> Verificar <b>ausencia de tensión</b> con un aparato que sepas que funciona: compruébalo antes y después en algo con tensión.\n<b>4.</b> Poner a tierra y en cortocircuito si la instalación lo requiere.\n<b>5.</b> Delimitar y proteger los elementos con tensión próximos.\n\nY una costumbre que salva: <b>una mano en el bolsillo</b> al medir. La corriente que mata es la que cruza el pecho de una mano a la otra."
   },
   {
+   "level": 1,
+   "kind": "card",
+   "tags": "fundamentos,cálculo",
+   "front": "¿Qué es un vatio-hora y en qué se diferencia de un vatio?",
+   "back": "El <b>vatio</b> es potencia: lo que consume el aparato <i>ahora</i>.\nEl <b>vatio-hora</b> es energía: potencia × tiempo, y es lo que paga la factura.\nUna estufa de 2.000 W encendida 3 h gasta $2 \\times 3 = \\mathbf{6}$ kWh.\nA 0,20 €/kWh eso es 1,20 € cada tarde."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "cálculo",
+   "front": "Una bomba de 1.500 W trabaja 4 horas al día. ¿Cuánto consume al mes?",
+   "choices": [
+    "180 kWh",
+    "6 kWh",
+    "45 kWh",
+    "600 kWh"
+   ],
+   "answer": 0,
+   "back": "$1{,}5 \\text{ kW} \\times 4 \\text{ h} = 6$ kWh/día → $6 \\times 30 = \\mathbf{180}$ kWh al mes."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "seguridad,fundamentos",
+   "front": "¿Qué mata: la tensión o la corriente?",
+   "back": "La <b>corriente</b>, y hace falta muy poca:\n<b>1 mA</b> se nota, <b>10 mA</b> ya no puedes soltar el conductor, <b>30 mA</b> es el umbral del diferencial, <b>100 mA</b> puede provocar fibrilación.\nLa tensión importa porque es la que <i>empuja</i> esa corriente a través de tu cuerpo, que en seco ronda los 100 kΩ y mojado baja a 1 kΩ. Por eso 230 V con las manos húmedas es otra cosa completamente distinta."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "cables,cálculo",
+   "front": "¿Cómo se elige la sección de un cable?",
+   "back": "Dos criterios, y manda el más exigente:\n<b>1. Calentamiento</b>: la sección aguanta la corriente sin superar su temperatura (tablas del fabricante).\n<b>2. Caída de tensión</b>: no debe pasar del 3 % en alumbrado ni del 5 % en fuerza.\nReferencia rápida en 230 V monofásico: 1,5 mm² → 10 A, 2,5 mm² → 16 A, 4 mm² → 25 A, 6 mm² → 32 A.\nEn tiradas largas casi siempre manda la caída de tensión, no el calentamiento."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "medición,diagnóstico",
+   "front": "¿Por qué a veces el multímetro marca tensión donde no hay nada?",
+   "back": "Es una <b>tensión fantasma</b>: el multímetro digital tiene una impedancia altísima (10 MΩ) y detecta el acoplamiento capacitivo de un cable vecino con corriente.\nSe distingue así: si al conectar una carga pequeña la lectura <b>se desploma a cero</b>, era fantasma; si se mantiene, hay tensión real.\nMuchos multímetros traen un modo <b>LoZ</b> (baja impedancia) justo para eso."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "componentes",
+   "front": "¿Qué hace un fusible y en qué se diferencia de un magnetotérmico?",
+   "back": "El <b>fusible</b> es un conductor calibrado que se funde con la sobrecorriente: es de un solo uso, barato y muy rápido.\nEl <b>magnetotérmico</b> hace lo mismo pero es reutilizable, y protege por dos vías: la <b>térmica</b> (sobrecarga lenta, bimetal) y la <b>magnética</b> (cortocircuito, instantánea).\nNinguno de los dos protege a las personas: de eso se encarga el diferencial."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "seguridad",
+   "front": "Vas a medir corriente y dejas el multímetro en el borne de amperios. Luego mides una toma de 230 V sin cambiar el cable. ¿Qué ocurre?",
+   "choices": [
+    "Un cortocircuito franco: el multímetro está casi en cortocircuito en ese borne",
+    "Nada, el multímetro se protege solo",
+    "Mide bien, solo cambia la escala",
+    "Marca cero"
+   ],
+   "answer": 0,
+   "back": "En el borne de amperios el multímetro tiene una resistencia <b>casi nula</b>: al ponerlo entre fase y neutro creas un cortocircuito. Salta la protección, y con suerte solo se funde el fusible interno del aparato.\n<b>Regla</b>: al terminar de medir corriente, devuelve siempre el cable rojo al borne de tensión."
+  },
+  {
    "kind": "card",
    "level": 2,
    "tags": "circuitos,cálculo",
@@ -235,6 +298,76 @@
    "back": "<b>1. Alimentación</b>: ¿le llega tensión al aparato? (mide en su conector, no en la batería)\n<b>2. Masa</b>: ¿tiene retorno? (caída de tensión contra el negativo, con carga)\n<b>3. Señal de mando</b>: ¿le llega la orden? (interruptor, relé, salida de la ECU)\n<b>4. El aparato</b>: aliméntalo directo y mira si funciona.\n\nEn ese orden, y midiendo — no suponiendo. El aparato es lo último que se cambia porque es lo último que suele fallar: casi siempre es masa o conector."
   },
   {
+   "level": 2,
+   "kind": "card",
+   "tags": "componentes,diagnóstico",
+   "front": "¿Qué es una resistencia NTC y dónde te la vas a encontrar?",
+   "back": "Una <b>NTC</b> baja su resistencia al calentarse (coeficiente negativo).\nSe usa como <b>sensor de temperatura</b> (agua del motor, aire de admisión, sondas de calefacción) y como <b>limitador de arranque</b> en fuentes conmutadas: fría frena el pico de corriente inicial, caliente casi no estorba.\nSe comprueba midiendo resistencia en frío y con un secador: si no cambia, está muerta."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "medición,señales",
+   "front": "¿Qué son valor eficaz, de pico y medio en alterna?",
+   "back": "Para una senoidal:\n<b>Pico</b> = eficaz $\\times 1{,}414$ → 230 V eficaces son <b>325 V</b> de pico.\n<b>Pico a pico</b> = el doble → 650 V.\n<b>Eficaz (RMS)</b> es el que calienta igual que una continua equivalente, y es el que dan los multímetros.\n⚠️ Un multímetro que no sea <b>True RMS</b> se equivoca al medir señales recortadas (variadores, dimmers, LED): puede errar un 30 %."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "protecciones,seguridad",
+   "front": "¿Por qué salta el diferencial solo cuando llueve o al arrancar un motor?",
+   "back": "El diferencial suma la corriente que va y la que vuelve: si difieren más de 30 mA, corta.\n<b>Con humedad</b>: el agua crea un camino de fuga a tierra en cajas, prensaestopas o aislamientos envejecidos.\n<b>Al arrancar un motor o una fuente conmutada</b>: los filtros antiparásitos derivan a tierra una fuga capacitiva breve que suma con la del resto.\nSi la instalación tiene muchos equipos electrónicos, la solución no es quitar el diferencial sino <b>repartir circuitos</b> o usar uno superinmunizado."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "protecciones",
+   "front": "Un diferencial de 30 mA salta sin carga conectada. ¿Qué haces primero?",
+   "choices": [
+    "Desconectar todos los circuitos y reconectarlos uno a uno",
+    "Cambiar el diferencial",
+    "Puentearlo para seguir trabajando",
+    "Subir a un diferencial de 300 mA"
+   ],
+   "answer": 0,
+   "back": "La <b>bipartición</b> es lo más rápido: dejas solo el diferencial y vas metiendo circuitos hasta que salta. Ese es el defectuoso, y ahí ya mides aislamiento con el megóhmetro.\nPuentearlo o subir la sensibilidad quita la protección de las personas: nunca."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "motores,cálculo",
+   "front": "¿Por qué un motor pide seis veces su corriente al arrancar?",
+   "back": "Parado, el motor no genera <b>fuerza contraelectromotriz</b>: eléctricamente es casi un cortocircuito, y solo lo limita la resistencia del bobinado.\nA medida que gira, la fem inducida se opone a la tensión de red y la corriente cae a su valor nominal.\nConsecuencias prácticas: las protecciones del motor son de <b>curva D</b>, los contactores se dimensionan por el pico, y por eso existen el arranque estrella-triángulo, el arrancador suave y el variador."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "componentes",
+   "front": "¿Qué diferencia hay entre un relé y un contactor?",
+   "back": "El principio es el mismo (una bobina que cierra contactos), cambia la escala:\n<b>Relé</b>: señales y cargas pequeñas, hasta unos 10-16 A, un par de contactos.\n<b>Contactor</b>: potencia trifásica, decenas o cientos de amperios, cámaras apagachispas, contactos auxiliares y relé térmico acoplado.\nEl contactor además está pensado para <b>maniobrar cargas inductivas</b> miles de veces sin que el arco se coma los contactos."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "electrónica,alimentación",
+   "front": "¿Qué hace un regulador de tensión y cuándo se queda corto?",
+   "back": "Un <b>7805</b> o similar entrega 5 V estables gastando la diferencia en calor:\n$P = (V_{in} - V_{out}) \\times I$.\nDe 12 V a 5 V con 1 A disipa <b>7 W</b>: necesita disipador o se apaga por protección térmica.\nPara diferencias grandes o corrientes altas se usa un <b>convertidor conmutado (buck)</b>, con un 90 % de rendimiento en vez del 40 %."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "cálculo",
+   "front": "Un cable de 2,5 mm² y 30 m lleva 16 A en 230 V. La caída medida es de 9 V. ¿Es aceptable?",
+   "choices": [
+    "No: casi un 4 %, por encima del 3 % de alumbrado",
+    "Sí, cualquier caída por debajo de 12 V es válida",
+    "No importa: la caída de tensión no afecta al equipo",
+    "Sí, siempre que el cable no se caliente"
+   ],
+   "answer": 0,
+   "back": "$9 / 230 = 3{,}9\\%$. Para fuerza (límite 5 %) pasaría justo; para alumbrado no.\nLa solución es subir a 4 mm², no cambiar la protección: el cable no está en peligro, lo está el funcionamiento del equipo al final de la línea."
+  },
+  {
    "kind": "card",
    "level": 3,
    "tags": "alterna,cálculo",
@@ -345,6 +478,62 @@
    "tags": "alterna,cálculo",
    "front": "Por qué se transporta en alta tensión",
    "back": "La pérdida en la línea depende del <b>cuadrado de la corriente</b>:\n\n$P_{pérdida} = I^2 R$\n\nPara llevar la misma potencia, $P = V \\times I$: si multiplicas la tensión por 100, la corriente se divide por 100 y las pérdidas caen <b>10.000 veces</b>.\n\nPor eso se transporta a 132, 220 o 400 kV y se va bajando con transformadores hasta los 230 V del enchufe. Y por eso mismo, en 12 V un cable fino es un problema serio y en 230 V el mismo aparato apenas lo nota."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "alterna,cálculo",
+   "front": "¿Qué son los armónicos y qué daño hacen?",
+   "back": "Son corrientes a múltiplos de 50 Hz que generan las cargas <b>no lineales</b>: variadores, fuentes conmutadas, LED, SAI.\nDaños típicos:\n• El <b>neutro se sobrecarga</b>: los armónicos de orden 3 no se cancelan en trifásico, se suman. El neutro puede llevar más corriente que las fases.\n• Los <b>transformadores y motores se calientan</b> sin estar sobrecargados.\n• Los <b>condensadores de compensación</b> entran en resonancia y revientan.\nSe miden con un analizador de red (THD) y se corrigen con filtros o reactancias."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "motores,control",
+   "front": "¿Cómo se invierte el giro de un motor según su tipo?",
+   "back": "<b>Trifásico</b>: intercambia <b>dos fases cualesquiera</b>. Es todo.\n<b>Monofásico con condensador</b>: invierte las conexiones del <b>devanado auxiliar</b>, no las de la red.\n<b>Continua con escobillas</b>: invierte la polaridad de la <b>armadura</b> (o la del campo, pero no las dos: se anularían).\n<b>Brushless</b>: se cambia por electrónica, en el variador."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "motores,diagnóstico",
+   "front": "Un motor trifásico de 15 kW mueve una carga normal pero una fase pide bastante más corriente que las otras dos. ¿Qué sospechas?",
+   "choices": [
+    "Desequilibrio de tensión en la red o una espira en cortocircuito",
+    "Que el motor está sobredimensionado",
+    "Un fallo del acoplamiento mecánico",
+    "Que la carga es demasiado ligera"
+   ],
+   "answer": 0,
+   "back": "Un <b>1 %</b> de desequilibrio de tensión provoca un <b>6-10 %</b> de desequilibrio de corriente y calienta el bobinado.\nSe comprueba midiendo las tres tensiones entre fases: si están equilibradas, el problema es interno (espira en corto) y se detecta comparando la resistencia de los tres devanados y midiendo aislamiento."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "protecciones,seguridad",
+   "front": "¿Qué es un esquema TT, TN y IT y por qué cambia la protección?",
+   "back": "Las dos letras describen la puesta a tierra de la <b>fuente</b> y de las <b>masas</b>:\n<b>TT</b> — fuente a tierra, masas a una tierra propia. Es el de la vivienda: la corriente de defecto es pequeña, así que <b>hace falta diferencial</b>.\n<b>TN</b> — masas unidas al neutro de la fuente. Un defecto es casi un cortocircuito: puede cortar el magnetotérmico.\n<b>IT</b> — fuente aislada de tierra. El primer defecto no corta nada (por eso se usa en quirófanos e industria crítica), pero un <b>controlador de aislamiento</b> lo avisa; el segundo ya es peligroso."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "electrónica,señales",
+   "front": "¿Por qué el bucle de corriente 4-20 mA sigue ganando al 0-10 V?",
+   "back": "Tres razones prácticas:\n• <b>La corriente no se pierde por el camino</b>: la caída del cable no altera la señal, así que admite tiradas de cientos de metros.\n• <b>Detecta el fallo</b>: el cero está en 4 mA, así que 0 mA significa <i>cable cortado</i>, no <i>medida cero</i>.\n• <b>Es inmune al ruido</b> inductivo que sí contamina una señal de tensión.\nA cambio necesita más electrónica y no admite tantos receptores en serie."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "medición,diagnóstico",
+   "front": "¿Cómo se localiza una fuga a tierra en una instalación en servicio?",
+   "back": "Con la <b>pinza de fugas</b> (resolución de mA), abrazando fase y neutro <b>juntos</b> del circuito: lo que marque es la fuga real, sin cortar el suministro.\nProceso: mides en la salida general (debería ser < 10 mA), y vas bajando por cada línea hasta encontrar la que aporta la mayoría.\nSi hay que cortar, el megóhmetro a 500 V da el valor de aislamiento: por debajo de <b>1 MΩ</b> ya es defectuoso."
+  },
+  {
+   "level": 3,
+   "kind": "lesson",
+   "tags": "cálculo,alterna",
+   "front": "Compensar el factor de potencia sin pasarse",
+   "back": "Un motor con $\\cos\\varphi = 0{,}75$ que consume 20 kW pide a la red:\n$$S = \\frac{P}{\\cos\\varphi} = \\frac{20}{0{,}75} = 26{,}7 \\text{ kVA}$$\nLlevarlo a 0,95 lo baja a 21 kVA: <b>el mismo trabajo con un 21 % menos de corriente</b>. Cables y transformador respiran, y desaparece el recargo de la factura.\n\n<b>El peligro es pasarse.</b> Si la batería de condensadores queda sobredimensionada, la instalación se vuelve <b>capacitiva</b> y muchas compañías penalizan también ese sentido. Peor aún: con armónicos presentes, los condensadores pueden entrar en <b>resonancia</b> con la inductancia de la red y multiplicar la corriente hasta destruirse.\n\nPor eso las baterías industriales son <b>automáticas</b>: escalones que entran y salen según la carga, y con reactancias antiarmónicos si hay variadores en la nave."
   }
  ]
 }

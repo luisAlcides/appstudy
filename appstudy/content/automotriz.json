@@ -132,6 +132,55 @@
    "tags": "frenos"
   },
   {
+   "level": 1,
+   "kind": "card",
+   "tags": "mantenimiento,motor",
+   "front": "¿Qué hace cada filtro del vehículo y cada cuánto se cambia?",
+   "back": "<b>Aceite</b> — retiene partículas metálicas y carbonilla. Se cambia <b>siempre</b> con el aceite.\n<b>Aire</b> — protege el motor del polvo. Cada 15-30 000 km, y mucho antes en tierra.\n<b>Combustible</b> — retiene suciedad y agua. Cada 30-60 000 km; en diésel es crítico.\n<b>Habitáculo (polen)</b> — el que casi nadie cambia. Cada 15 000 km o un año.\nUn filtro de aire tapado no rompe el motor, pero sube el consumo y quita respuesta."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "eléctrico,mantenimiento",
+   "front": "¿Cómo se cuida una batería para que dure el doble?",
+   "back": "• <b>Bornes limpios y apretados</b>: el sulfato blanco se quita con agua caliente y bicarbonato, y luego grasa dieléctrica.\n• <b>Trayectos cortos matan</b>: arrancar consume mucho y 10 minutos no reponen la carga. Un viaje largo al mes, o un cargador de mantenimiento.\n• <b>Sujeción firme</b>: la vibración desprende las placas internas.\n• Si el vehículo está parado semanas, <b>desconecta el borne negativo</b> o usa mantenedor.\nUna batería de arranque no está hecha para descargarse a fondo: cada descarga profunda le quita vida."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "seguridad,mantenimiento",
+   "front": "¿Cuál es el orden correcto para conectar cables de arranque?",
+   "choices": [
+    "Positivo al descargado, positivo al bueno, negativo al bueno, negativo a masa del descargado",
+    "Los dos positivos y luego los dos negativos en las baterías",
+    "Negativo primero siempre",
+    "El orden da igual mientras no se toquen"
+   ],
+   "answer": 0,
+   "back": "El último cable se conecta a un <b>punto metálico del motor</b> del coche descargado, lejos de la batería.\n<b>Motivo:</b> una batería descargada libera hidrógeno, y la chispa del último contacto salta ahí. Fuera de la batería, esa chispa es inofensiva.\nAl desconectar se hace en <b>orden inverso</b>."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "llantas,seguridad",
+   "front": "¿Cómo se lee la información del flanco de un neumático?",
+   "back": "<b>205/55 R16 91V</b>:\n<b>205</b> — anchura en mm.\n<b>55</b> — perfil: la altura es el 55 % de la anchura.\n<b>R</b> — construcción radial.\n<b>16</b> — diámetro de la llanta en pulgadas.\n<b>91</b> — índice de carga (615 kg por rueda).\n<b>V</b> — índice de velocidad (240 km/h).\nY el <b>DOT</b>: las cuatro últimas cifras son semana y año de fabricación. Un neumático de más de <b>6 años</b> se endurece aunque tenga dibujo de sobra."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "refrigeración,mantenimiento",
+   "front": "¿Por qué no se rellena el circuito de refrigeración con agua sola?",
+   "back": "El refrigerante hace tres cosas que el agua no:\n<b>1.</b> Sube el punto de ebullición y baja el de congelación.\n<b>2.</b> Lleva <b>inhibidores anticorrosión</b> que protegen aluminio, hierro y juntas.\n<b>3.</b> Lubrica la bomba de agua.\nAgua sola durante meses = corrosión interna, radiador obstruido y bomba gastada.\n⚠️ Y no se mezclan tipos: los orgánicos (OAT, rojo/rosa) y los convencionales (IAT, verde/azul) pueden gelificar. En una emergencia, agua; al llegar al taller, se vacía y se llena bien."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "diagnóstico,básico",
+   "front": "¿Qué información hay que recoger antes de tocar nada?",
+   "back": "La mitad del diagnóstico es la entrevista:\n<b>¿Cuándo pasa?</b> En frío, en caliente, al acelerar, al frenar, al girar.\n<b>¿Desde cuándo?</b> Y sobre todo: <b>¿qué se hizo justo antes?</b> Un fallo que empieza tras un servicio suele estar en el servicio.\n<b>¿Es constante o intermitente?</b>\n<b>¿Se puede reproducir?</b> Un fallo que no puedes reproducir tampoco puedes confirmar que lo arreglaste.\nDespués: comprobación visual, códigos con el escáner, y <b>datos en vivo</b> antes de desarmar."
+  },
+  {
    "kind": "quiz",
    "front": "El motor gira pero no arranca. ¿Qué verificas primero?",
    "choices": [
@@ -305,6 +354,69 @@
    "front": "Ruidos: ¿qué te dice cada uno?",
    "back": "<b>Chirrido agudo al frenar</b> → testigo de desgaste de pastillas\n<b>Chirrido al arrancar en frío</b> → correa de accesorios floja o vidriada\n<b>Golpeteo metálico que sube con las rpm</b> → detonación o cojinetes de biela\n<b>Zumbido que cambia al girar</b> → rodamiento de rueda\n<b>Traqueteo al pasar baches</b> → bujes o barra estabilizadora",
    "tags": "diagnóstico"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "motor,diagnóstico",
+   "front": "¿Qué le pasa a un motor con el aceite pasado de kilómetros?",
+   "back": "El aceite no «se gasta»: pierde propiedades.\n• Los <b>aditivos detergentes</b> se agotan y la carbonilla ya no queda en suspensión: se deposita.\n• Se <b>oxida y espesa</b>, así que tarda más en llegar a los puntos altos en el arranque en frío — donde ocurre la mayoría del desgaste.\n• Con el diésel se <b>diluye con gasóleo</b> en las regeneraciones del DPF y pierde viscosidad.\nSíntomas de haber ido demasiado lejos: taqués ruidosos en frío, testigo de presión parpadeando al ralentí caliente y turbo con juego. Para entonces el daño ya está hecho."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "suspensión,diagnóstico",
+   "front": "¿Cómo compruebas amortiguadores sin desmontarlos?",
+   "back": "<b>1. Prueba de rebote</b>: hunde una esquina y suelta. Debe subir y <b>parar</b>. Si oscila dos o más veces, está agotado.\n<b>2. Inspección visual</b>: aceite en el vástago = perdió el hidráulico.\n<b>3. Desgaste del neumático en «copas»</b> (parches alternos gastados) es firma clásica de amortiguador muerto.\n<b>4. Comportamiento</b>: la rueda «rebota» en el bache, el coche cabecea al frenar y flota en las ondulaciones.\n⚠️ Se cambian <b>por ejes</b>, nunca uno solo: el desequilibrio de frenada es peor que el amortiguador viejo."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "eléctrico,diagnóstico",
+   "front": "El coche arranca bien, pero a los 20 minutos empieza a fallar y se apaga. Al enfriarse, arranca otra vez. ¿Qué buscas?",
+   "choices": [
+    "Un componente que falla por temperatura: sensor de cigüeñal, bobina o bomba de gasolina",
+    "La batería",
+    "Un filtro de aire sucio",
+    "El nivel de aceite"
+   ],
+   "answer": 0,
+   "back": "Un fallo que aparece <b>con la temperatura</b> y desaparece al enfriar apunta a una unión interna que se dilata: el <b>sensor de posición del cigüeñal</b> es el sospechoso clásico, seguido de bobinas y bomba de combustible.\nTruco de taller: con el fallo presente, un spray de frío en el componente sospechoso lo devuelve a la vida — eso lo confirma en 30 segundos."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "frenos,mantenimiento",
+   "front": "¿Cómo se sabe cuándo cambiar pastillas y discos?",
+   "back": "<b>Pastillas</b>: material de fricción por debajo de <b>3 mm</b> (nuevas son 10-12 mm). El chivato metálico chirría antes de llegar al soporte.\n<b>Discos</b>: se miden con micrómetro y se comparan con el <b>espesor mínimo grabado en el propio disco</b>. También se sustituyen si el reborde exterior es marcado o hay grietas térmicas.\n<b>Siempre por ejes</b>, y con discos nuevos van pastillas nuevas.\n⚠️ Un disco por debajo del mínimo disipa mal el calor: la frenada se degrada justo cuando más se necesita."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "electrónica,diagnóstico",
+   "front": "¿Qué es un código pendiente, uno confirmado y uno permanente?",
+   "back": "<b>Pendiente</b>: el fallo se detectó en un ciclo de conducción, pero aún no se repitió. No enciende el testigo. Es la señal más temprana y la más útil.\n<b>Confirmado</b>: se repitió en dos ciclos → testigo encendido y congelación de datos (<i>freeze frame</i>).\n<b>Permanente</b>: el mismo confirmado, pero <b>no se borra con el escáner</b>. Solo desaparece cuando la centralita comprueba por sí misma que el fallo ya no está.\nPor eso borrar códigos antes de una inspección no sirve: el permanente sigue ahí, y encima se pierden los monitores."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "climatización,diagnóstico",
+   "front": "¿Cómo funciona el aire acondicionado y dónde falla?",
+   "back": "El ciclo: el <b>compresor</b> comprime el gas, el <b>condensador</b> lo enfría hasta líquido, la <b>válvula de expansión</b> lo despresuriza de golpe y el <b>evaporador</b> absorbe calor del habitáculo al evaporarse.\nFallos por frecuencia:\n<b>1.</b> Falta de gas por fuga (lo normal: pierde algo cada año, y una fuga se localiza con contraste UV).\n<b>2.</b> Condensador sucio o electroventilador que no arranca → no enfría <b>parado</b> pero sí en marcha.\n<b>3.</b> Presostato o embrague del compresor.\n⚠️ Recargar sin buscar la fuga es tirar el gas: volverá en meses."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "transmisión,diagnóstico",
+   "front": "Al acelerar en directa las revoluciones suben pero la velocidad no acompaña. ¿Qué ocurre?",
+   "choices": [
+    "El embrague patina (o el convertidor, si es automático)",
+    "Falta presión de combustible",
+    "El turbo no da presión",
+    "Los frenos están agarrotados"
+   ],
+   "answer": 0,
+   "back": "Es la firma inequívoca del <b>patinaje</b>: el motor gira libre porque no transmite par a las ruedas.\nPrueba de confirmación en manual: en marcha alta y cuesta arriba, suelta el embrague de golpe con freno de mano puesto — un embrague sano <b>cala el motor</b>; uno patinado, no."
   },
   {
    "kind": "card",
@@ -508,6 +620,62 @@
    "tags": "electrónica",
    "front": "Cambias piezas y el motor va peor que antes. ¿Qué se te olvidó?",
    "back": "Las <b>adaptaciones</b>. Muchas piezas necesitan que la ECU aprenda o reciba su calibración:\n<b>Cuerpo de aceleración</b> — aprendizaje de tope y ralentí.\n<b>Inyectores diésel</b> — hay que grabar el código IMA/IQA de cada uno, o inyectarán de más o de menos.\n<b>Volante bimasa / cigüeñal</b> — aprendizaje de irregularidad para el diagnóstico de fallo de encendido.\n<b>Turbo VGT y EGR</b> — puesta a cero de posición.\n\nBorrar códigos no es adaptar: son menús distintos del escáner."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "motor,diagnóstico",
+   "front": "¿Cómo se interpreta el ángulo de avance de encendido en los datos en vivo?",
+   "back": "La centralita adelanta la chispa para que la presión máxima llegue justo después del PMS. Lo que ves en el escáner cuenta la historia del motor:\n• <b>Avance alto y estable</b> (25-35° en crucero): combustión sana.\n• <b>Retraso brusco al acelerar</b>: el sensor de picado está detectando detonación. Causas: gasolina de bajo octanaje, carbonilla, mezcla pobre o exceso de temperatura.\n• <b>Avance que no varía</b>: sospecha del propio sensor de picado o de su cableado.\nUn retraso permanente de 8-10° se nota como pérdida de potencia y subida de consumo, sin ningún código almacenado."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "electrónica,diagnóstico",
+   "front": "¿Cómo se prueba un sensor de posición inductivo frente a uno de efecto Hall?",
+   "back": "<b>Inductivo</b> (2 hilos, genera su propia señal):\n• Resistencia del bobinado dentro de rango (típico 400-1 000 Ω).\n• Aislamiento contra masa > 20 MΩ.\n• Con el osciloscopio, <b>onda senoidal</b> cuya amplitud crece con las rpm.\n<b>Efecto Hall</b> (3 hilos: alimentación, masa y señal):\n• Comprobar los 5 V de alimentación y la masa <b>con caída de tensión</b>, no con resistencia.\n• Señal <b>cuadrada</b> de amplitud constante independientemente de las rpm.\n⚠️ En el inductivo, un entrehierro mal ajustado o limaduras pegadas al imán dan una señal débil que la centralita descarta a alto régimen: falla solo bajo carga."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "diagnóstico,motor",
+   "front": "Un motor tiene fallo de encendido en un cilindro. Cambias la bujía y la bobina y sigue igual. ¿Cuál es el siguiente paso ordenado?",
+   "choices": [
+    "Prueba de compresión y estanqueidad de ese cilindro",
+    "Cambiar el inyector",
+    "Cambiar el catalizador",
+    "Limpiar el cuerpo de mariposa"
+   ],
+   "answer": 0,
+   "back": "El fallo de encendido tiene tres causas posibles y hay que descartarlas <b>en orden</b>: <b>chispa</b> (ya descartada), <b>combustible</b> y <b>compresión</b>.\nUna prueba de compresión y una de fugas separan un problema mecánico (válvula quemada, segmento) de uno de inyección. Sustituir piezas por probabilidad es lo que convierte una reparación de una hora en una factura de tres.\nY si la compresión es baja: <b>escucha por dónde sale el aire</b> — admisión (válvula de admisión), escape (válvula de escape), cárter (segmentos), refrigerante burbujeando (junta de culata)."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "electrónica,diagnóstico",
+   "front": "¿Qué es un fallo intermitente y cómo se caza?",
+   "back": "Herramientas, de menos a más invasiva:\n<b>1. Freeze frame</b>: la centralita guardó rpm, carga, temperatura y velocidad del momento exacto. Reproduce esas condiciones.\n<b>2. Grabación de datos en vivo</b> con disparo por código: conduces hasta que aparece el fallo y luego analizas la traza.\n<b>3. Prueba de estímulo</b>: golpear suavemente el conector, mover el mazo, spray frío, calor de secador. Si el fallo aparece, ya lo has acotado.\n<b>4. Voltímetro de picos o registrador</b> en el circuito sospechoso, dejando la instalación conectada.\nLa clave: <b>nunca desconectes el conector sospechoso antes de probar</b>. Al reconectarlo arreglas el falso contacto y pierdes el fallo durante semanas."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "escape,diagnóstico",
+   "front": "¿Cómo se comprueba que el EGR es el culpable de verdad?",
+   "back": "El EGR devuelve gases de escape a la admisión para bajar la temperatura de combustión y los NOx. Cuando se atasca da dos cuadros opuestos:\n<b>Pegado abierto</b>: ralentí inestable, humo, falta de potencia en frío, y el motor va <b>mejor</b> cuanto más se acelera.\n<b>Pegado cerrado</b>: potencia normal, pero NOx altos y golpeteo diésel.\n<b>Confirmación:</b> con el escáner, ordena la apertura y observa el <b>MAF</b>: al abrir el EGR el caudal de aire debe <b>caer claramente</b>. Si no se mueve, la válvula no actúa aunque diga que sí.\n⚠️ Anularlo no es una reparación: es ilegal, altera la gestión y suele acabar cargando el DPF."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "seguridad,electrónica",
+   "front": "¿Qué precauciones exige trabajar con sistemas de airbag y pretensores?",
+   "back": "Es un sistema pirotécnico: no es electrónica normal.\n<b>1.</b> Desconecta la batería y <b>espera el tiempo del fabricante</b> (1-30 min): el módulo tiene condensadores que mantienen la carga de disparo.\n<b>2.</b> <b>Nunca midas resistencia</b> en el circuito de un detonador con un multímetro corriente: la corriente de prueba puede dispararlo. Solo con el equipo específico.\n<b>3.</b> Un airbag suelto se transporta y se deja con la <b>tapa hacia arriba</b>, lejos del cuerpo.\n<b>4.</b> No sueldes sin desconectar el módulo, y no reutilices pretensores ya disparados.\nY después de cualquier intervención: <b>lee los códigos del módulo SRS</b> — un testigo apagado no garantiza que el sistema esté operativo."
+  },
+  {
+   "level": 3,
+   "kind": "lesson",
+   "tags": "diagnóstico,práctica",
+   "front": "El árbol de decisión que evita cambiar piezas a ciegas",
+   "back": "El diagnóstico caro casi nunca falla por falta de herramienta: falla por saltarse el orden.\n\n<b>1. Verifica la queja.</b> Conduce el vehículo con el cliente si hace falta. «Hace un ruido raro» y «vibra a 90 km/h en aceleración» son dos trabajos distintos.\n\n<b>2. Inspección visual completa.</b> Diez minutos con linterna resuelven un porcentaje incómodamente alto de las averías: un tubo suelto, un conector verde de corrosión, un mazo rozando.\n\n<b>3. Lee TODOS los códigos, de todos los módulos.</b> Y anótalos antes de borrar nada, junto con el freeze frame.\n\n<b>4. Investiga antes de probar.</b> Boletines técnicos del fabricante y foros especializados: si el modelo tiene un fallo conocido, alguien ya pagó por descubrirlo.\n\n<b>5. Prueba, no supongas.</b> Cada hipótesis debe tener una medición que la confirme o la descarte. Si no se te ocurre cómo medirla, no es una hipótesis: es una corazonada.\n\n<b>6. Repara la causa, no el síntoma.</b>\n\n<b>7. Verifica con el vehículo en condiciones reales</b>, y comprueba que los <b>monitores OBD</b> completan su ciclo.\n\nLa regla que resume todo: <b>si vas a cambiar una pieza, deberías poder explicar qué medición te llevó hasta ella</b>."
   }
  ],
  "levels": [

@@ -313,6 +313,69 @@
    "tags": "vocabulary"
   },
   {
+   "level": 1,
+   "kind": "card",
+   "tags": "grammar",
+   "front": "<i>a</i>, <i>an</i> or <i>the</i>?",
+   "back": "<b>a / an</b> — one of many, mentioned for the first time:\n<i>I need <b>a</b> wrench.</i>\n<b>an</b> before a <b>vowel sound</b>, not a vowel letter: <i>an hour, an SUV</i> — but <i>a university, a European part</i>.\n<b>the</b> — we both know which one:\n<i>Pass me <b>the</b> wrench.</i> (the one on the table)\n<b>no article</b> — general, plural or uncountable:\n<i>Wrenches are useful. Oil is expensive.</i>"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "grammar",
+   "front": "Choose the correct sentence. (articles)",
+   "choices": [
+    "I need a new battery. The battery is dead.",
+    "I need the new battery. A battery is dead.",
+    "I need new battery. Battery is dead.",
+    "I need a new battery. A battery is dead."
+   ],
+   "answer": 0,
+   "back": "First mention → <b>a</b>. Second mention, now we both know which one → <b>the</b>.\nThat pattern (a → the) runs through almost every conversation in English."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "vocabulary",
+   "front": "VOCABULARY — days, dates and telling the time",
+   "back": "<b>Days:</b> Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday.\n<b>Dates:</b> written <i>12 March</i> or <i>March 12</i>, said <b>the twelfth of March</b>.\n<b>Time:</b> <i>7:15</i> = <b>quarter past seven</b> · <i>7:30</i> = <b>half past seven</b> · <i>7:45</i> = <b>quarter to eight</b>.\n<b>At work:</b> <i>My shift starts at seven. We finish at half four</i> (British, = 4:30).\n⚠️ <b>a.m.</b> = morning, <b>p.m.</b> = afternoon/evening."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "grammar",
+   "front": "<i>some</i> and <i>any</i>",
+   "back": "<b>some</b> — positive sentences:\n<i>We have <b>some</b> spare filters.</i>\n<b>any</b> — negatives and questions:\n<i>We don't have <b>any</b> filters. Do you have <b>any</b> oil?</i>\n<b>Exception:</b> use <b>some</b> in a question when you offer or request:\n<i>Would you like <b>some</b> coffee? Can I have <b>some</b> help?</i>"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "vocabulary",
+   "front": "VOCABULARY — safety at work",
+   "back": "<b>PPE</b> (personal protective equipment): <i>helmet / hard hat, gloves, goggles, ear defenders, safety boots, high-vis vest, harness</i>.\n<b>Signs:</b> <i>Danger · Warning · Caution · No entry · Authorised personnel only · Wet floor</i>.\n<b>Verbs:</b> <i>to wear</i> PPE, <i>to lock out</i> a machine, <i>to isolate</i> the power, <i>to report</i> an incident.\n<i>You must wear goggles in this area. Isolate the machine before you start.</i>"
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "vocabulary",
+   "front": "Your supervisor says: “Make sure the machine is locked out before you start.” What must you do?",
+   "choices": [
+    "Isolate the power so it cannot be switched on",
+    "Lock the workshop door",
+    "Close the machine's cover",
+    "Turn the machine off and leave it"
+   ],
+   "answer": 0,
+   "back": "<b>Lock out / tag out</b> means isolating the energy source and physically locking it so nobody can switch it on while you work.\nTurning it off is <b>not</b> the same: someone can still press the button."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "grammar",
+   "front": "Word order in a basic English sentence",
+   "back": "English is strict: <b>Subject → Verb → Object</b>, and adverbs do not go between verb and object.\n✅ <i>I check the oil every morning.</i>\n❌ <s>I check every morning the oil.</s>\n<b>Order of extras:</b> manner → place → time.\n<i>She worked <b>carefully</b> <b>in the workshop</b> <b>yesterday</b>.</i>\n⚠️ Unlike Spanish, the subject is <b>never</b> dropped: <i><b>It</b> is raining</i>, not <s>Is raining</s>."
+  },
+  {
    "level": 2,
    "kind": "lesson",
    "front": "Present Perfect vs. Past Simple — the key rule",
@@ -460,6 +523,76 @@
    "tags": "vocabulary"
   },
   {
+   "level": 2,
+   "kind": "card",
+   "tags": "grammar",
+   "front": "The Present Perfect with <i>just</i>, <i>already</i> and <i>yet</i>",
+   "back": "<b>just</b> — a moment ago: <i>I've <b>just</b> finished the service.</i>\n<b>already</b> — sooner than expected: <i>They've <b>already</b> delivered it.</i>\n<b>yet</b> — in questions and negatives, at the end:\n<i>Have you called them <b>yet</b>? — No, not <b>yet</b>.</i>\n<b>still</b> — it continues, and you're surprised: <i>The part <b>still</b> hasn't arrived.</i>"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "vocabulary,writing",
+   "front": "VOCABULARY — talking about quantities of work and time",
+   "back": "<i>It takes about two hours.</i> — duration\n<i>We're running behind schedule.</i> — late\n<i>We're ahead of schedule.</i> — early\n<i>It's due on Friday.</i> — deadline\n<i>I'm halfway through.</i> — 50 % done\n<i>It should be ready by Thursday.</i> — <b>by</b> = not later than\n⚠️ <b>by</b> Friday = before or on Friday. <b>until</b> Friday = the whole time up to Friday. They are not interchangeable."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "grammar",
+   "front": "“The report must be finished ___ Friday.”",
+   "choices": [
+    "by",
+    "until",
+    "in",
+    "since"
+   ],
+   "answer": 0,
+   "back": "<b>by</b> = a deadline, not later than that point.\n<b>until</b> would mean the finishing continues up to Friday, which makes no sense here.\nCompare: <i>I'll be here <b>until</b> six</i> (the whole time) vs <i>I'll finish <b>by</b> six</i> (a deadline)."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "grammar",
+   "front": "Question tags — the confirmation ending",
+   "back": "Positive sentence → <b>negative</b> tag, and vice versa:\n<i>You've checked the pressure, <b>haven't you</b>?</i>\n<i>It isn't working, <b>is it</b>?</i>\nThe tag repeats the <b>auxiliary</b>. If there isn't one, use <b>do</b>:\n<i>You work here, <b>don't you</b>?</i>\n<b>Two irregulars:</b> <i>I'm right, <b>aren't I</b>?</i> and <i>Let's start, <b>shall we</b>?</i>"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "phrasal verbs",
+   "front": "PHRASAL VERBS — machines: <i>set up, shut down, switch over, turn up/down</i>",
+   "back": "<b>set up</b> — install and prepare: <i>We set up the new press last week.</i>\n<b>shut down</b> — stop completely and safely: <i>Shut the line down before cleaning.</i>\n<b>switch over</b> — change from one to another: <i>We switched over to the backup pump.</i>\n<b>turn up / down</b> — increase or reduce: <i>Turn the pressure down a bit.</i>\n<b>back up</b> — support, or make a copy: <i>Back up the settings first.</i>"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "writing,register",
+   "front": "How do you make a polite request in English?",
+   "back": "From direct to very polite:\n<i>Send me the invoice.</i> — an order, sounds rude to a colleague\n<i><b>Can you</b> send me the invoice?</i> — normal, informal\n<i><b>Could you</b> send me the invoice, please?</i> — polite, safe everywhere\n<i><b>Would you mind sending</b> me the invoice?</i> — very polite\n⚠️ After <b>Would you mind</b> comes <b>-ing</b>, and «yes» means <i>no, I won't</i> — answer <b>Not at all</b>."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "phrasal verbs",
+   "front": "“We had to ___ the meeting because the client couldn't come.”",
+   "choices": [
+    "put off",
+    "put on",
+    "put up",
+    "put down"
+   ],
+   "answer": 0,
+   "back": "<b>put off</b> = postpone. <i>The meeting has been put off until Monday.</i>\n<b>put on</b> = wear · <b>put up</b> = build or accommodate · <b>put down</b> = place on a surface, or write down."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "pronunciation",
+   "front": "Sounds that Spanish speakers need to separate",
+   "back": "<b>ship / sheep</b> — short <i>ɪ</i> vs long <i>iː</i>. <i>It's a big sheet</i> vs <i>a big shit</i>: worth getting right.\n<b>s- at the start</b> — English has no <i>e</i> before it: <i>Spain</i>, not <s>Espain</s>. Practise: <i>school, street, stop, Spanish</i>.\n<b>b / v</b> — the <b>v</b> touches the top teeth to the lower lip: <i>very</i>, not <i>bery</i>.\n<b>-ed endings</b> add a syllable <b>only</b> after t or d: <i>wanted</i> (2 syll.) but <i>worked</i> (1 syll.)."
+  },
+  {
    "level": 3,
    "kind": "lesson",
    "front": "Present Perfect Simple vs. Continuous",
@@ -605,6 +738,48 @@
    "front": "VOCABULARY — precise verbs instead of vague ones",
    "back": "Replace weak verbs to sound competent:\n<b>get better</b> → <b>improve</b>\n<b>go up / go down</b> → <b>increase / decrease</b>\n<b>find</b> → <b>identify / detect</b>\n<b>check</b> → <b>inspect / verify</b>\n<b>make sure</b> → <b>ensure</b>\n<b>tell</b> → <b>report / inform</b>",
    "tags": "vocabulary"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "grammar",
+   "front": "The passive with <i>get</i>, and when to choose the passive at all",
+   "back": "<b>get + participle</b> is the spoken, informal passive, usually for something unplanned:\n<i>The pump <b>got damaged</b> during transport.</i>\nUse the passive when:\n• The <b>agent is unknown or irrelevant</b>: <i>The valve was replaced in 2022.</i>\n• You want to <b>avoid blaming</b>: <i>A mistake was made</i> instead of <i>You made a mistake</i>.\n• The <b>object is the topic</b>: <i>The engine was inspected, cleaned and reassembled.</i>\n⚠️ Overusing it makes writing vague. In a report, name the agent when you know it."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "vocabulary",
+   "front": "VOCABULARY — talking about cause without repeating <i>because</i>",
+   "back": "<i>The failure was <b>caused by</b> contaminated fuel.</i>\n<i>Contaminated fuel <b>led to</b> the failure.</i>\n<i>The failure was <b>due to</b> / <b>owing to</b> contamination.</i>\n<i><b>As a result of</b> the contamination, the injectors clogged.</i>\n<i>The injectors clogged; <b>consequently</b>, the engine lost power.</i>\n<i>The leak <b>gave rise to</b> a pressure drop.</i>\n⚠️ <b>due to</b> + noun, <b>because</b> + a full clause: <i>due to the delay</i> vs <i>because it was delayed</i>."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "grammar",
+   "front": "Choose the correct sentence. (would rather)",
+   "choices": [
+    "I'd rather you didn't touch that setting",
+    "I'd rather you don't touch that setting",
+    "I'd rather you not touching that setting",
+    "I'd rather that you won't touch that setting"
+   ],
+   "answer": 0,
+   "back": "<b>would rather + subject + past tense</b> expresses a present preference about someone else's behaviour:\n<i>I'd rather you <b>came</b> tomorrow.</i>\nWith no change of subject it takes the bare infinitive: <i>I'd rather <b>go</b> tomorrow.</i>"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "grammar",
+   "front": "<i>make</i>, <i>let</i>, <i>have</i> and <i>get</i> someone do something",
+   "back": "<b>make</b> + bare infinitive — force: <i>They <b>made me sign</b> the form.</i>\n<b>let</b> + bare infinitive — permit: <i>They <b>let me leave</b> early.</i>\n<b>have</b> + bare infinitive — arrange, as a boss: <i>I'll <b>have someone check</b> it.</i>\n<b>get</b> + <b>to</b>-infinitive — persuade: <i>I <b>got him to check</b> it.</i>\nAnd the very common <b>have something done</b> (a service you pay for):\n<i>I <b>had the brakes replaced</b> yesterday.</i> — not by you"
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "writing,register",
+   "front": "CHALLENGE: report a delay to a client in three sentences",
+   "back": "A structure that always works: <b>fact → cause → solution with a date</b>.\n<i>I'm writing to let you know that the delivery scheduled for 14 May will be delayed.</i>\n<i>This is due to a shortage of hydraulic seals from our supplier, which affected the whole batch.</i>\n<i>We now expect to ship by 21 May, and I'll confirm the tracking number as soon as it's dispatched.</i>\n<b>Why it works:</b> the bad news comes first (nobody has to hunt for it), the cause is factual rather than defensive, and it ends with a commitment the reader can act on."
   },
   {
    "level": 4,
@@ -829,6 +1004,69 @@
    "tags": "vocabulary,phrasal verbs",
    "front": "VOCABULARY — verbs that make a report sound expert",
    "back": "<i>establish</i> (find out for certain) · <i>ascertain</i> (formal version) · <i>corroborate</i> (confirm with other evidence) · <i>preclude</i> (make impossible) · <i>mitigate</i> (reduce the harm) · <i>warrant</i> (justify) · <i>defer</i> (postpone deliberately) · <i>escalate</i> (pass to a higher level)\n\n<i>The evidence did not <b>corroborate</b> the operator's account, but the wear pattern <b>warrants</b> a full inspection.</i>\nCareful: <b>mitigate</b> ≠ <b>militate</b>, and it's <i>mitigate <b>against</b></i> only in the second one."
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "tags": "grammar",
+   "front": "Fronting and end-weight — controlling what the reader notices",
+   "back": "English puts <b>known information first</b> and the <b>new, heavy information last</b>.\n<i>Attached is the full inspection report.</i> — the report is the news\n<i>Of particular concern is the state of the bearings.</i>\n<b>End-weight</b>: move long phrases to the end.\n❌ <s>That the seals had never been replaced became clear.</s>\n✅ <i><b>It</b> became clear <b>that the seals had never been replaced</b>.</i>\nThis single habit is most of what separates fluent written English from grammatically correct but awkward English."
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "tags": "vocabulary,register",
+   "front": "VOCABULARY — expressing degrees of certainty in writing",
+   "back": "From strongest to weakest:\n<i>The evidence <b>demonstrates</b> that…</i> — proven\n<i>The data <b>strongly suggests</b>…</i> — confident\n<i>This <b>is likely to</b> have been caused by…</i> — probable\n<i>It <b>appears</b> that…</i> / <i>This <b>would suggest</b>…</i> — cautious\n<i>It is <b>conceivable</b> that…</i> — possible but unsupported\n<i>We <b>cannot rule out</b> the possibility that…</i> — no evidence either way\n⚠️ In a technical report, overstating certainty is the fastest way to lose credibility."
+  },
+  {
+   "level": 4,
+   "kind": "quiz",
+   "tags": "grammar",
+   "front": "Which sentence is correct? (No sooner…)",
+   "choices": [
+    "No sooner had we restarted the line than the alarm went off",
+    "No sooner we restarted the line than the alarm went off",
+    "No sooner had we restarted the line when the alarm went off",
+    "No sooner did we restart the line that the alarm went off"
+   ],
+   "answer": 0,
+   "back": "<b>No sooner</b> triggers inversion (<i>had we</i>) and pairs with <b>than</b>, never <i>when</i> or <i>that</i>.\nIts cousin: <i><b>Hardly had</b> we restarted the line <b>when</b> the alarm went off</i> — <b>hardly/scarcely</b> take <b>when</b>."
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "tags": "phrasal verbs",
+   "front": "PHRASAL VERBS (C1) — projects: <i>scale back, roll out, factor in, bring forward</i>",
+   "back": "<b>scale back</b> — reduce in scope: <i>We scaled back the pilot to two sites.</i>\n<b>roll out</b> — deploy progressively: <i>The new procedure will be rolled out in Q3.</i>\n<b>factor in</b> — include in a calculation: <i>Have you factored in the downtime?</i>\n<b>bring forward</b> — move to an earlier date: <i>The audit has been brought forward to April.</i>\n(Its opposite is <b>push back</b>: <i>The deadline was pushed back a week.</i>)\n<b>see through</b> — carry to completion: <i>She saw the project through despite the cuts.</i>"
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "tags": "writing,register",
+   "front": "Writing a recommendation that gets acted on",
+   "back": "Three moves, in this order:\n<b>1. The recommendation itself, first and unhedged.</b>\n<i>We recommend replacing the seals on all four units before the summer peak.</i>\n<b>2. The reasoning, quantified.</b>\n<i>Two of the four have exceeded 8,000 hours, and a failure in service costs roughly ten times a planned replacement.</i>\n<b>3. The alternative and why it loses.</b>\n<i>Deferring to the autumn shutdown would save the labour cost but leaves the units running through the highest-load period.</i>\n⚠️ Burying the recommendation under the analysis is the most common reason a good report changes nothing."
+  },
+  {
+   "level": 4,
+   "kind": "card",
+   "tags": "vocabulary",
+   "front": "VOCABULARY — quantifying findings precisely",
+   "back": "<i>The failure rate <b>rose sharply</b> / <b>edged up</b> / <b>plateaued</b> / <b>tailed off</b>.</i>\n<i><b>Roughly</b> a third of the units were affected.</i> — approximate\n<i><b>Just under</b> 40 %</i> / <i><b>Well over</b> half</i> — a direction with the number\n<i>The difference was <b>negligible</b> / <b>marginal</b> / <b>substantial</b>.</i>\n<i>Consumption fell <b>by</b> 12 % <b>to</b> 44 litres.</i> — <b>by</b> = the change, <b>to</b> = the result\n⚠️ <i>Fell to 12 %</i> and <i>fell by 12 %</i> mean completely different things."
+  },
+  {
+   "level": 4,
+   "kind": "quiz",
+   "tags": "register",
+   "front": "A client writes an angry email about a defect. Which opening is most professional?",
+   "choices": [
+    "Thank you for flagging this — I understand the disruption this has caused, and I've already asked the workshop for the inspection records.",
+    "We are not responsible for this defect as our terms clearly state…",
+    "Sorry!! This should never have happened, it's completely our fault.",
+    "Please note that your email has been received and will be processed."
+   ],
+   "answer": 0,
+   "back": "It does three things at once: <b>acknowledges</b> without admitting liability, <b>names the impact</b> (which is what the client actually wants heard), and <b>states a concrete action already taken</b>.\nThe second is defensive, the third concedes liability before the facts are known, and the fourth is a wall of process language that reads as indifference."
   }
  ]
 }

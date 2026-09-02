@@ -186,6 +186,76 @@
    "back": "Multiplica por 10 y súmale su mitad:\n$36 \\times 15 = 360 + 180 = \\mathbf{540}$.\n$44 \\times 15 = 440 + 220 = \\mathbf{660}$."
   },
   {
+   "level": 1,
+   "kind": "card",
+   "tags": "trucos,multiplicación",
+   "front": "¿Cómo multiplicas por 6 en un solo paso?",
+   "back": "Multiplica por 3 y duplica, o duplica y multiplica por 3 (lo que sea más cómodo):\n$47 \\times 6 = 47 \\times 3 \\times 2 = 141 \\times 2 = \\mathbf{282}$.\nOtro atajo útil: un número <b>par</b> por 6 termina en la misma cifra que el número.\n$14 \\times 6 = 84$, $16 \\times 6 = 96$."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "trucos,multiplicación",
+   "front": "¿Cómo multiplicas rápidamente por 12?",
+   "back": "Descompón $12 = 10 + 2$:\n$12 \\times n = 10n + 2n$.\n$12 \\times 34 = 340 + 68 = \\mathbf{408}$.\nSirve igual para 13 ($10n + 3n$) y para 21 ($20n + n$)."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "trucos,multiplicación",
+   "front": "¿Cuánto es $12 \\times 47$?",
+   "choices": [
+    "564",
+    "554",
+    "574",
+    "544"
+   ],
+   "answer": 0,
+   "back": "$470 + 94 = \\mathbf{564}$."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "aritmética,verificación",
+   "front": "¿Cómo compruebas una resta sin volver a restarla?",
+   "back": "Sumando el resultado al sustraendo: debe dar el minuendo.\n$742 - 386 = 356$ → $356 + 386 = 742$ ✔\nLa suma es más fácil de hacer mental que la resta, así que la comprobación cuesta menos que el cálculo."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "trucos,división",
+   "front": "¿Cómo divides entre 4 y entre 8 mentalmente?",
+   "back": "Partiendo a la mitad varias veces:\n<b>Entre 4</b> = mitad de la mitad. $312 / 4 = 156 / 2 = \\mathbf{78}$.\n<b>Entre 8</b> = tres mitades. $472 / 8 = 236 \\rightarrow 118 \\rightarrow \\mathbf{59}$.\nY entre 50 = por 2 y entre 100: $1.350 / 50 = 2.700 / 100 = \\mathbf{27}$."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "trucos,división",
+   "front": "¿Cuánto es $1.850 / 50$?",
+   "choices": [
+    "37",
+    "35",
+    "370",
+    "38"
+   ],
+   "answer": 0,
+   "back": "Duplica y quita dos ceros: $3.700 / 100 = \\mathbf{37}$."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "trucos,multiplicación",
+   "front": "¿Cuál es la tabla del 9 con los dedos?",
+   "back": "Extiende las diez manos... perdón, los diez dedos, y <b>baja el dedo</b> que corresponde al número:\npara $9 \\times 4$ bajas el cuarto dedo → quedan <b>3</b> a la izquierda y <b>6</b> a la derecha → $\\mathbf{36}$.\nLa razón es que en todos los múltiplos de 9 <b>las cifras suman 9</b>: 18, 27, 36, 45, 54…"
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "estimación,práctica",
+   "front": "¿Cómo estimas el total de una compra mientras la haces?",
+   "back": "Redondea cada precio a la <b>decena más cercana</b> y lleva la cuenta compensando:\n$19{,}80 \\approx 20$, $7{,}15 \\approx 7$, $32{,}40 \\approx 32$ → unos <b>59</b>.\nLas subidas y bajadas del redondeo se cancelan entre sí, así que el error final suele quedar por debajo del 2 %."
+  },
+  {
    "level": 2,
    "kind": "card",
    "tags": "porcentajes,trucos",
@@ -317,6 +387,90 @@
    "tags": "fracciones,porcentajes",
    "front": "¿Cuáles son las equivalencias de fracciones a porcentajes más útiles?",
    "back": "$1/2 = 50\\%$ · $1/4 = 25\\%$ · $3/4 = 75\\%$\n$1/3 \\approx 33.3\\%$ · $2/3 \\approx 66.7\\%$\n$1/8 = 12.5\\%$ · $3/8 = 37.5\\%$ · $5/8 = 62.5\\%$ · $7/8 = 87.5\\%$\n$1/5 = 20\\%$ · $1/6 \\approx 16.7\\%$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "porcentajes,finanzas",
+   "front": "¿Cómo quitas el IVA de un precio final?",
+   "back": "No se resta el porcentaje: se <b>divide</b>.\nCon 21 %: $\\text{base} = \\frac{\\text{total}}{1{,}21}$. Para 121 € → $\\mathbf{100}$ €, y el IVA son 21 €.\n⚠️ Restar el 21 % de 121 daría 95,59 €, que es un <b>error de 4,41 €</b>: el porcentaje se aplicó sobre la base, no sobre el total."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "porcentajes,finanzas",
+   "front": "Una factura con IVA del 21 % suma 605 €. ¿Cuál es la base imponible?",
+   "choices": [
+    "500 €",
+    "478 €",
+    "512 €",
+    "584 €"
+   ],
+   "answer": 0,
+   "back": "$605 / 1{,}21 = \\mathbf{500}$ € de base y 105 € de IVA."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "porcentajes",
+   "front": "¿Por qué un $-20\\%$ seguido de un $+20\\%$ no te devuelve al precio original?",
+   "back": "Porque cada porcentaje se aplica sobre una <b>base distinta</b>:\n$100 \\rightarrow 80 \\rightarrow 96$. Pierdes un 4 %.\nLos porcentajes encadenados se <b>multiplican</b>: $0{,}8 \\times 1{,}2 = 0{,}96$.\nPara deshacer un $-20\\%$ hay que subir un $25\\%$ ($1/0{,}8 = 1{,}25$)."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "porcentajes",
+   "front": "Un precio sube un 10 % y después baja un 10 %. ¿Qué ocurre?",
+   "choices": [
+    "Queda un 1 % por debajo del original",
+    "Queda igual",
+    "Queda un 1 % por encima",
+    "Queda un 10 % por debajo"
+   ],
+   "answer": 0,
+   "back": "$1{,}1 \\times 0{,}9 = 0{,}99$ → el precio final es el <b>99 %</b> del inicial."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "trucos,multiplicación",
+   "front": "¿Cómo multiplicas cualquier número por 101 o por 1001?",
+   "back": "Repitiendo el número:\n<b>$\\times 101$</b> con dos cifras: $47 \\times 101 = \\mathbf{4747}$.\n<b>$\\times 1001$</b> con tres cifras: $326 \\times 1001 = \\mathbf{326326}$.\nEs la propiedad distributiva: $47 \\times 101 = 4700 + 47$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "trucos,cuadrados",
+   "front": "¿Cómo calculas el cuadrado de un número cercano a 50?",
+   "back": "Usa $50^2 = 2500$ como ancla y suma <b>100 por cada unidad</b> de diferencia, más el cuadrado de esa diferencia:\n$(50 + d)^2 = 2500 + 100d + d^2$.\n$53^2 = 2500 + 300 + 9 = \\mathbf{2809}$.\n$47^2 = 2500 - 300 + 9 = \\mathbf{2209}$."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "trucos,cuadrados",
+   "front": "¿Cuánto es $56^2$ usando el ancla de 50?",
+   "choices": [
+    "3136",
+    "3126",
+    "3146",
+    "3036"
+   ],
+   "answer": 0,
+   "back": "$2500 + 600 + 36 = \\mathbf{3136}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "aritmética,fracciones",
+   "front": "¿Cómo comparas dos fracciones sin buscar denominador común?",
+   "back": "Con la <b>multiplicación cruzada</b>: compara $a \\times d$ contra $b \\times c$.\n$\\frac{5}{8}$ vs $\\frac{7}{11}$ → $5 \\times 11 = 55$ y $8 \\times 7 = 56$.\nComo $55 < 56$, entonces $\\frac{5}{8} < \\frac{7}{11}$.\n⚠️ Solo vale con denominadores positivos."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "estimación,práctica",
+   "front": "¿Cómo conviertes unidades de cabeza en el trabajo?",
+   "back": "Anclas que casi nunca fallan:\n<b>Millas → km</b>: multiplica por 1,6 (o suma la mitad más un 10 %). 60 mi ≈ 96 km.\n<b>°C → °F</b>: dobla y suma 30. 20 °C ≈ 70 °F (real: 68).\n<b>kg → lb</b>: dobla y suma un 10 %. 40 kg ≈ 88 lb.\n<b>bar → psi</b>: multiplica por 14,5. 2 bar ≈ 29 psi."
   },
   {
    "level": 3,
@@ -464,6 +618,76 @@
    "tags": "álgebra,series",
    "front": "¿Cómo se calcula la suma de los primeros $N$ números consecutivos?",
    "back": "Fórmula de Gauss: $\\mathbf{S = \\frac{N(N+1)}{2}}$.\nPara sumar del 1 al 100: $\\frac{100 \\times 101}{2} = 50 \\times 101 = \\mathbf{5050}$.\nPara sumar del 1 al 20: $\\frac{20 \\times 21}{2} = 10 \\times 21 = \\mathbf{210}$."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "álgebra,trucos",
+   "front": "¿Cómo multiplicas dos números cercanos entre sí con la diferencia de cuadrados?",
+   "back": "Si están a la misma distancia de un número redondo $m$:\n$(m-d)(m+d) = m^2 - d^2$.\n$67 \\times 73 = 70^2 - 3^2 = 4900 - 9 = \\mathbf{4891}$.\n$38 \\times 42 = 40^2 - 4 = \\mathbf{1596}$."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "álgebra,trucos",
+   "front": "¿Cuánto es $67 \\times 73$?",
+   "choices": [
+    "4891",
+    "4881",
+    "4901",
+    "4791"
+   ],
+   "answer": 0,
+   "back": "$70^2 - 3^2 = 4900 - 9 = \\mathbf{4891}$."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "finanzas",
+   "front": "¿Cómo estimas una cuota de préstamo sin calculadora financiera?",
+   "back": "Para un interés moderado, la cuota mensual ronda:\n$$\\text{cuota} \\approx \\frac{C}{n} \\times \\left(1 + \\frac{i \\times a}{2}\\right)$$\ncon $C$ el capital, $n$ los meses, $i$ el interés anual y $a$ los años.\n10.000 € a 5 años al 6 %: $\\frac{10000}{60} = 167$ y $1 + \\frac{0{,}06 \\times 5}{2} = 1{,}15$ → unos <b>192 €</b> (real: 193 €).\nSirve para saber al momento si una oferta es razonable."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "estimación,raíces",
+   "front": "¿Cómo calculas una raíz cúbica exacta de memoria?",
+   "back": "Si el número es un cubo perfecto de dos cifras:\n<b>1.</b> La <b>última cifra</b> del cubo te da la última de la raíz (1→1, 8→2, 7→3, 4→4, 5→5, 6→6, 3→7, 2→8, 9→9, 0→0).\n<b>2.</b> Quita las tres últimas cifras y busca el mayor cubo que quepa: esa es la primera.\n$\\sqrt[3]{50653}$ → termina en 3 → raíz acaba en <b>7</b>; queda 50, y $3^3 = 27 \\le 50 < 64$ → empieza por <b>3</b> → $\\mathbf{37}$."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "estimación,raíces",
+   "front": "¿Cuánto vale $\\sqrt[3]{110592}$?",
+   "choices": [
+    "48",
+    "42",
+    "52",
+    "38"
+   ],
+   "answer": 0,
+   "back": "Termina en 2 → la raíz acaba en <b>8</b>. Quedan 110, y $4^3 = 64 \\le 110 < 125$ → empieza por <b>4</b> → $\\mathbf{48}$."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "geometría,estimación",
+   "front": "¿Qué aproximaciones geométricas conviene llevar en la cabeza?",
+   "back": "<b>$\\pi \\approx 3{,}14$</b>, y para estimar rápido: la circunferencia es algo más de <b>3 diámetros</b>.\n<b>Diagonal de un cuadrado</b> = lado $\\times 1{,}41$.\n<b>Diagonal de un cubo</b> = arista $\\times 1{,}73$.\n<b>Área del círculo</b> ≈ $0{,}785 \\times d^2$ (algo menos de $\\frac{4}{5}$ del cuadrado que lo contiene).\nUn tubo de 100 mm de diámetro tiene unos $\\mathbf{7.850}$ mm² de sección."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "trucos,verificación",
+   "front": "¿Cómo detecta la prueba del 11 los errores que la del 9 deja pasar?",
+   "back": "Suma las cifras <b>alternando signos</b> de derecha a izquierda y quédate con el resto módulo 11.\nPara 8.514: $4 - 1 + 5 - 8 = 0$ → divisible entre 11.\nLa prueba del 9 no ve un <b>intercambio de cifras</b> (1.234 y 1.243 dan el mismo resto); la del 11 sí, porque los pesos alternan. Usadas juntas atrapan casi cualquier error de transcripción."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "estadística,estimación",
+   "front": "¿Qué es la regla del 68-95-99,7 y para qué sirve mentalmente?",
+   "back": "En una distribución normal:\n<b>68 %</b> de los datos cae a ±1 desviación típica, <b>95 %</b> a ±2 y <b>99,7 %</b> a ±3.\nSi una pieza mide 50 mm de media con $\\sigma = 0{,}2$ mm, el 95 % estará entre 49,6 y 50,4 mm.\nUn valor a más de 3σ aparece <b>1 vez de cada 370</b>: si lo ves dos veces seguidas, no es azar, es que el proceso cambió."
   }
  ]
 }

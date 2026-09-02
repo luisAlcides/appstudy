@@ -139,6 +139,69 @@
    "tags": "básico"
   },
   {
+   "level": 1,
+   "kind": "card",
+   "tags": "básico,shell",
+   "front": "¿Qué diferencia hay entre <code>ls -l</code>, <code>ls -a</code> y <code>ls -lh</code>?",
+   "back": "<code>-l</code> formato largo: permisos, dueño, tamaño y fecha.\n<code>-a</code> incluye los ocultos (los que empiezan por punto).\n<code>-h</code> tamaños legibles: <i>4,0K</i> en vez de <i>4096</i>.\nSe combinan: <code>ls -lah</code> es el que acabas escribiendo siempre.\nAñade <code>-t</code> para ordenar por fecha y <code>-r</code> para invertir: <code>ls -lhtr</code> deja lo más reciente abajo, justo encima del prompt."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "básico,archivos",
+   "front": "¿Cómo creas archivos y directorios desde la terminal?",
+   "back": "<code>touch notas.txt</code> — crea el archivo vacío (o actualiza su fecha si ya existe).\n<code>mkdir proyecto</code> — crea un directorio.\n<code>mkdir -p a/b/c</code> — crea toda la ruta de golpe y <b>no falla</b> si ya existe: es la que se usa en scripts.\n<code>echo \"hola\" > saludo.txt</code> — crea el archivo con contenido."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "básico,shell",
+   "front": "Estás en <code>/home/ana/docs</code> y escribes <code>cd ..</code> dos veces. ¿Dónde acabas?",
+   "choices": [
+    "/home",
+    "/home/ana",
+    "/",
+    "/home/ana/docs"
+   ],
+   "answer": 0,
+   "back": "Cada <code>..</code> sube un nivel: <i>docs → ana → home</i>.\nAtajos que conviene tener a mano: <code>cd</code> a secas va a tu <i>home</i>, <code>cd -</code> vuelve al directorio anterior y <code>cd ~/proyecto</code> parte siempre de tu <i>home</i>."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "diagnóstico,disco",
+   "front": "¿Cómo sabes cuánto espacio libre te queda?",
+   "back": "<code>df -h</code> — espacio por sistema de archivos montado. La columna <b>Uso%</b> es la que miras.\n<code>du -sh *</code> — cuánto ocupa cada cosa del directorio actual.\n<code>du -sh * | sort -h | tail</code> — los que más pesan, al final.\nRegla práctica: si <code>/</code> pasa del 90 %, muchos servicios empiezan a fallar de formas raras antes de que se llene del todo."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "básico,shell",
+   "front": "¿Qué es el <i>home</i>, y qué significan <code>~</code>, <code>.</code> y <code>-</code>?",
+   "back": "<code>~</code> es tu carpeta personal (<i>/home/tu-usuario</i>). <code>~ana</code> es la de otro usuario.\n<code>.</code> es el directorio actual; por eso un programa local se lanza con <code>./programa</code>.\n<code>..</code> es el directorio padre.\n<code>-</code> con <code>cd</code> es «el anterior»: <code>cd -</code> alterna entre dos carpetas."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "red,diagnóstico",
+   "front": "¿Cómo compruebas si tienes red desde la terminal?",
+   "back": "En este orden, porque cada paso descarta una capa:\n<code>ip a</code> — ¿tengo IP?\n<code>ip r</code> — ¿tengo puerta de enlace?\n<code>ping -c3 1.1.1.1</code> — ¿salgo a internet?\n<code>ping -c3 google.com</code> — ¿me resuelve el DNS?\nSi el ping a la IP funciona y el del nombre no, el problema es el <b>DNS</b>, no la conexión."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "básico,archivos",
+   "front": "¿Qué pasa si haces <code>cp archivo.txt copia.txt</code> y <code>copia.txt</code> ya existe?",
+   "choices": [
+    "Se sobrescribe sin avisar",
+    "La shell pide confirmación",
+    "Falla con un error",
+    "Crea copia.txt.1"
+   ],
+   "answer": 0,
+   "back": "<code>cp</code> sobrescribe en silencio. Para que pregunte: <code>cp -i</code>.\nPara conservar el original: <code>cp --backup=numbered</code>.\nMuchas distros traen <code>alias cp='cp -i'</code> para el usuario interactivo, pero <b>ese alias no existe en los scripts</b>."
+  },
+  {
    "kind": "quiz",
    "front": "¿Qué comando muestra el uso de disco por directorio, ordenado?",
    "choices": [
@@ -326,6 +389,83 @@
    "front": "¿Cómo mantienes un proceso vivo al cerrar SSH? (tmux)",
    "back": "<code>tmux new -s trabajo</code> — crear sesión\n<b>Ctrl+B</b> luego <b>D</b> — salir dejándola corriendo\n<code>tmux attach -t trabajo</code> — volver a entrar\n<code>tmux ls</code> — listar sesiones\n\nImprescindible para procesos largos en servidores remotos.",
    "tags": "shell"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "shell,scripting",
+   "front": "¿Qué diferencia hay entre comillas simples, dobles y sin comillas?",
+   "back": "<code>\"$var\"</code> — expande variables, pero <b>protege los espacios</b>. Es la que quieres el 95 % de las veces.\n<code>'$var'</code> — literal, no expande nada.\nSin comillas — expande <i>y</i> parte por espacios <i>y</i> aplica comodines. Fuente inagotable de bugs:\n<code>rm $archivo</code> con <i>archivo=\"mi documento.txt\"</i> borra dos archivos distintos."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "texto,shell",
+   "front": "<code>grep</code>: las cinco opciones que se usan a diario",
+   "back": "<code>-i</code> ignora mayúsculas.\n<code>-r</code> recursivo por directorios.\n<code>-n</code> muestra el número de línea.\n<code>-v</code> invierte: enseña lo que <b>no</b> casa.\n<code>-C3</code> muestra 3 líneas de contexto alrededor.\nJuntas: <code>grep -rniC3 \"timeout\" /var/log/</code>.\nY <code>grep -c</code> cuenta coincidencias en vez de mostrarlas."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "procesos,diagnóstico",
+   "front": "¿Cómo encuentras y matas un proceso por su nombre?",
+   "back": "<code>pgrep -af nginx</code> — lista los PID con su línea de comando completa.\n<code>pkill nginx</code> — envía TERM a todos los que casen.\n<code>pkill -f \"python mi_script.py\"</code> — casa contra la línea entera, útil cuando el proceso se llama solo <i>python</i>.\n⚠️ Prueba siempre primero con <code>pgrep -af</code>: el mismo patrón que lista es el que matará."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "shell,scripting",
+   "front": "¿Qué son <code>$?</code>, <code>$#</code>, <code>$@</code> y <code>$0</code> en un script?",
+   "back": "<code>$?</code> — código de salida del último comando (0 = éxito).\n<code>$#</code> — número de argumentos recibidos.\n<code>\"$@\"</code> — todos los argumentos, <b>cada uno entrecomillado por separado</b>.\n<code>$0</code> — el nombre con el que se invocó el script.\n<code>$1</code>, <code>$2</code>… — cada argumento.\n⚠️ <code>\"$@\"</code> y <code>\"$*\"</code> no son lo mismo: <code>$*</code> los une en una sola cadena."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "shell",
+   "front": "¿Qué hace <code>comando1 || comando2</code>?",
+   "choices": [
+    "Ejecuta comando2 solo si comando1 falla",
+    "Ejecuta los dos siempre",
+    "Ejecuta comando2 solo si comando1 tiene éxito",
+    "Ejecuta los dos en paralelo"
+   ],
+   "answer": 0,
+   "back": "<code>||</code> es «o si no»: se usa para el camino de error.\n<code>mkdir /datos || echo \"no pude crearlo\" >&2</code>\nSu pareja es <code>&&</code> («y entonces»), y juntos hacen un condicional de una línea:\n<code>test -f cfg && cargar || avisar</code>"
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "usuarios,permisos",
+   "front": "¿Cómo añades un usuario a un grupo y por qué no funciona al momento?",
+   "back": "<code>sudo usermod -aG docker ana</code>\nEl <b>-a</b> es imprescindible: sin él <b>reemplaza</b> todos los grupos secundarios del usuario en vez de añadir uno.\nEl cambio no se aplica a las sesiones abiertas: los grupos se leen al iniciar sesión. Hay que <b>cerrar sesión y volver a entrar</b> (o <code>newgrp docker</code> para esa terminal).\nComprueba con <code>id ana</code> o <code>groups ana</code>."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "mantenimiento,archivos",
+   "front": "¿Cómo comparas dos archivos o dos directorios?",
+   "back": "<code>diff a.txt b.txt</code> — diferencias línea a línea.\n<code>diff -u a.txt b.txt</code> — formato unificado, el mismo que usa git.\n<code>diff -r dir1/ dir2/</code> — recursivo entre carpetas.\n<code>diff &lt;(comando1) &lt;(comando2)</code> — compara la <b>salida</b> de dos comandos sin crear archivos temporales.\nY para binarios: <code>cmp</code>, o <code>sha256sum</code> de cada uno."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "red,diagnóstico",
+   "front": "¿Cómo pruebas si un puerto remoto está abierto sin instalar nada?",
+   "back": "Con la shell a secas:\n<code>timeout 3 bash -c '&lt;/dev/tcp/192.168.1.50/22' && echo abierto</code>\nCon herramientas habituales:\n<code>nc -zv 192.168.1.50 22</code>\n<code>curl -v telnet://192.168.1.50:22</code>\nSi el puerto está filtrado por un cortafuegos, la conexión <b>se queda colgada</b>; si está cerrado, rechaza al instante. Esa diferencia ya te dice mucho."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "permisos",
+   "front": "¿Qué permisos deja <code>chmod 640 secreto.txt</code>?",
+   "choices": [
+    "Dueño lee y escribe, grupo solo lee, el resto nada",
+    "Todos leen y escriben",
+    "Solo el dueño puede hacer cualquier cosa",
+    "Dueño y grupo escriben, el resto lee"
+   ],
+   "answer": 0,
+   "back": "Cada dígito es la suma de <b>4</b> (lectura), <b>2</b> (escritura) y <b>1</b> (ejecución):\n<b>6</b> = 4+2 → <i>rw-</i> para el dueño.\n<b>4</b> → <i>r--</i> para el grupo.\n<b>0</b> → <i>---</i> para el resto.\nEs el modo correcto para claves y archivos de configuración con credenciales."
   },
   {
    "kind": "card",
@@ -522,6 +662,69 @@
    "tags": "texto,shell",
    "front": "¿Qué diferencia hay entre <code>sed -i</code> y <code>sed -i.bak</code>?",
    "back": "Los dos editan el archivo en el sitio; <b>-i.bak</b> además guarda el original como <code>archivo.bak</code>. En un servidor ajeno, siempre con sufijo.\n\n<code>sed -i.bak 's/DEBUG/INFO/g' app.conf</code>\n\nY antes de tocar nada, prueba sin <code>-i</code>: la salida va a pantalla y ves qué habría cambiado. En macOS/BSD el sufijo es obligatorio (<code>sed -i '' ...</code>)."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "shell,texto",
+   "front": "<code>awk</code> más allá de <code>{print $1}</code>",
+   "back": "Sumar una columna:\n<code>awk '{s+=$3} END {print s}' datos.txt</code>\nFiltrar y calcular a la vez:\n<code>awk '$5 > 100 {print $1, $5*1.21}' ventas.txt</code>\nCambiar el separador:\n<code>awk -F: '{print $1}' /etc/passwd</code>\nAgrupar como un <i>group by</i>:\n<code>awk '{s[$1]+=$2} END {for (k in s) print k, s[k]}'</code>\n<code>NR</code> es el número de línea y <code>NF</code> el número de campos: <code>$NF</code> es siempre el último campo."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "diagnóstico,procesos",
+   "front": "El servidor va lento. ¿Cómo distingues si falta CPU, RAM o disco?",
+   "back": "<code>uptime</code> — la <b>carga media</b>. Compárala con el número de núcleos (<code>nproc</code>): carga 8 en 8 núcleos es el límite.\n<code>vmstat 1 5</code> — si la columna <b>wa</b> (I/O wait) es alta, el cuello está en el disco, no en la CPU.\n<code>free -h</code> — mira <b>available</b>, no <i>free</i>: la caché no es memoria perdida. Si <code>swap</code> crece y baja constantemente, falta RAM.\n<code>iostat -x 1</code> — <b>%util</b> cerca de 100 en un disco lo confirma.\nUn número alto sin contexto no dice nada: siempre compara contra la capacidad."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "seguridad,permisos",
+   "front": "¿Qué es <code>umask</code> y por qué tus archivos nacen con esos permisos?",
+   "back": "<code>umask</code> es una <b>máscara que resta</b> permisos a los que se otorgarían por defecto (666 para archivos, 777 para directorios).\nCon el habitual <code>022</code>: archivos nacen 644 y directorios 755.\nCon <code>077</code>: 600 y 700 — solo tú. Es lo correcto en un servidor compartido.\nSe fija en <code>/etc/profile</code>, en el <i>~/.bashrc</i> o dentro del propio script antes de crear nada."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "servicios,diagnóstico",
+   "front": "Un servicio de systemd se reinicia en bucle. ¿Qué comando te enseña por qué?",
+   "choices": [
+    "journalctl -u servicio -n 50 --no-pager",
+    "systemctl list-units",
+    "systemctl daemon-reload",
+    "dmesg | tail"
+   ],
+   "answer": 0,
+   "back": "<code>journalctl -u servicio</code> muestra <b>solo el log de esa unidad</b>, con la causa real del fallo.\nAñade <code>-b</code> para limitarlo al arranque actual, <code>-f</code> para seguirlo en vivo y <code>-p err</code> para quedarte con los errores.\n<code>systemctl status servicio</code> te da un resumen y las últimas líneas, buen primer vistazo."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "scripting,automatización",
+   "front": "¿Cómo evitas que dos copias del mismo script se pisen?",
+   "back": "Con <b>flock</b>, que toma un bloqueo sobre un archivo:\n<code>flock -n /var/lock/mi.lock /usr/local/bin/mi-script.sh || exit 0</code>\nEl <code>-n</code> significa «si ya está bloqueado, no esperes, ríndete». En cron es exactamente lo que quieres: si la ejecución anterior sigue viva, esta se salta.\nEl bloqueo lo libera el kernel al morir el proceso, así que no quedan candados huérfanos aunque el script muera de golpe — la ventaja frente a inventarse un archivo <i>.pid</i>."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "red,seguridad",
+   "front": "¿Cómo diagnosticas un problema de DNS por capas?",
+   "back": "<code>resolvectl status</code> — qué servidor DNS está usando cada interfaz de verdad.\n<code>dig google.com</code> — consulta directa; mira la sección ANSWER y el tiempo de respuesta.\n<code>dig @1.1.1.1 google.com</code> — pregunta a otro servidor: si este responde y el tuyo no, el problema es el servidor local.\n<code>dig +trace google.com</code> — recorre la cadena desde los raíz, y enseña en qué escalón se rompe.\n⚠️ <code>/etc/resolv.conf</code> suele ser un enlace gestionado por systemd-resolved: editarlo a mano no sirve de nada."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "disco,mantenimiento",
+   "front": "¿Cómo montas un disco para que sobreviva al reinicio?",
+   "back": "<b>1.</b> Identifícalo: <code>lsblk -f</code> te da el <b>UUID</b> y el sistema de archivos.\n<b>2.</b> Crea el punto de montaje: <code>sudo mkdir -p /mnt/datos</code>\n<b>3.</b> Añade la línea a <code>/etc/fstab</code> usando el UUID, nunca <i>/dev/sdb1</i> (el nombre puede cambiar de orden entre arranques):\n<code>UUID=xxxx /mnt/datos ext4 defaults,nofail 0 2</code>\n<b>4.</b> Prueba con <code>sudo mount -a</code> <b>antes</b> de reiniciar.\n⚠️ El <code>nofail</code> es lo que evita que el sistema se quede colgado en el arranque si el disco no está."
+  },
+  {
+   "level": 3,
+   "kind": "lesson",
+   "tags": "seguridad,mantenimiento",
+   "front": "Una copia de seguridad que no has restaurado no es una copia",
+   "back": "La regla clásica es <b>3-2-1</b>: tres copias, en dos medios distintos, una de ellas fuera del sitio. Pero lo que separa una copia real de una ilusión es otra cosa: <b>haberla restaurado alguna vez</b>.\n\nUn guion mínimo que ya cumple:\n<code>rsync -aAX --delete --link-dest=../ultima \\\n  /datos/ /backup/$(date +%F)/</code>\n\nEl <code>--link-dest</code> es la clave: los archivos que no cambiaron se guardan como <b>enlaces duros</b> a la copia anterior, así que cada snapshot diario ocupa solo lo que cambió pero se ve como una copia completa.\n\nLo que hay que verificar cada cierto tiempo:\n• Que el archivo restaurado <b>abre</b>, no solo que existe.\n• Que la copia <b>no es accesible</b> desde el servidor con las mismas credenciales — si un ransomware entra, se lleva también el backup montado.\n• Que sabes <b>cuánto tarda</b> restaurar. Ese número es el que te van a preguntar el día malo."
   }
  ],
  "levels": [
