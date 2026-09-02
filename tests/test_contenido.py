@@ -9,7 +9,7 @@ import json
 import unittest
 from pathlib import Path
 
-from appstudy import seed
+from appstudy import db, seed
 from tests.apoyo import BaseTemporal
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -66,11 +66,30 @@ class TestMazos(unittest.TestCase):
                 with self.subTest(mazo=archivo.name):
                     self.assertTrue(c.get("front", "").strip())
 
-    def test_una_tarjeta_normal_tiene_respuesta(self):
-        # Solo las lecciones pueden no tenerla: son las que enseñan sin preguntar.
+    def test_una_tarjeta_de_huecos_tiene_al_menos_un_hueco(self):
+        from appstudy import cloze
         for archivo in MAZOS:
             for c in leer(archivo)["cards"]:
-                if c.get("kind", "card") == "lesson":
+                if c.get("kind") != "cloze":
+                    continue
+                with self.subTest(mazo=archivo.name, tarjeta=c["front"][:40]):
+                    self.assertTrue(cloze.tiene_huecos(c["front"]))
+
+    def test_una_tarjeta_invertida_tiene_respuesta_que_invertir(self):
+        for archivo in MAZOS:
+            for c in leer(archivo)["cards"]:
+                if not c.get("reverse"):
+                    continue
+                with self.subTest(mazo=archivo.name, tarjeta=c["front"][:40]):
+                    self.assertTrue(c.get("back", "").strip())
+                    self.assertEqual(c.get("kind", "card"), "card")
+
+    def test_una_tarjeta_normal_tiene_respuesta(self):
+        # Las lecciones enseñan sin preguntar y las de huecos llevan la
+        # respuesta dentro del propio enunciado: ninguna necesita «back».
+        for archivo in MAZOS:
+            for c in leer(archivo)["cards"]:
+                if c.get("kind", "card") in ("lesson", "cloze"):
                     continue
                 with self.subTest(mazo=archivo.name, tarjeta=c["front"][:40]):
                     self.assertTrue(c.get("back", "").strip())
@@ -89,7 +108,8 @@ class TestMazos(unittest.TestCase):
         for archivo in MAZOS:
             for c in leer(archivo)["cards"]:
                 with self.subTest(mazo=archivo.name):
-                    self.assertIn(c.get("kind", "card"), ("card", "quiz", "lesson"))
+                    self.assertIn(c.get("kind", "card"),
+                                  ("card", "quiz", "lesson", "cloze"))
 
 
 class TestLecturas(unittest.TestCase):
@@ -139,7 +159,9 @@ class TestImportacion(BaseTemporal):
 
     def test_se_importa_entero_y_sin_perder_nada(self):
         mazos, nuevas, retiradas, capitulos = seed.load_all(self.con)
-        esperadas = sum(len(leer(a)["cards"]) for a in MAZOS)
+        # Una entrada con `reverse` produce dos tarjetas, así que se cuentan
+        # las variantes y no las entradas del JSON.
+        esperadas = sum(len(seed.variantes(c)) for a in MAZOS for c in leer(a)["cards"])
         esperados = sum(len(leer(a)["chapters"]) for a in CAPITULOS)
 
         self.assertEqual(mazos, len(MAZOS))
@@ -165,6 +187,38 @@ class TestImportacion(BaseTemporal):
         self.assertEqual(self.con.execute("SELECT COUNT(*) FROM cards").fetchone()[0], antes)
         fila = self.con.execute("SELECT reps FROM state WHERE card_id=?", (cid,)).fetchone()
         self.assertEqual(fila["reps"], 7)
+
+    def test_la_cara_inversa_se_importa_como_tarjeta_aparte(self):
+        seed.load_all(self.con)
+        for archivo in MAZOS:
+            d = leer(archivo)
+            for c in d["cards"]:
+                if not c.get("reverse"):
+                    continue
+                with self.subTest(mazo=archivo.name, tarjeta=c["front"][:40]):
+                    directa = self.con.execute(
+                        "SELECT id, back FROM cards WHERE uid=?",
+                        (db.uid_for(d["key"], c["front"]),)).fetchone()
+                    inversa = self.con.execute(
+                        "SELECT id, front, back, tags FROM cards WHERE uid=?",
+                        (db.uid_for(d["key"], "inversa\x00" + c["front"]),)).fetchone()
+                    self.assertIsNotNone(directa)
+                    self.assertIsNotNone(inversa)
+                    self.assertNotEqual(directa["id"], inversa["id"])
+                    # La inversa pregunta lo que la directa respondía
+                    self.assertEqual(inversa["front"].strip(), c["back"].strip())
+                    self.assertEqual(inversa["back"].strip(), c["front"].strip())
+                    self.assertIn(seed.ETIQUETA_INVERSA, inversa["tags"])
+
+    def test_una_cloze_se_importa_con_sus_huecos_intactos(self):
+        from appstudy import cloze
+        seed.load_all(self.con)
+        filas = self.con.execute("SELECT front FROM cards WHERE kind='cloze'").fetchall()
+        self.assertGreater(len(filas), 0, "no hay ninguna tarjeta de huecos de fábrica")
+        for f in filas:
+            with self.subTest(tarjeta=f["front"][:40]):
+                self.assertTrue(cloze.tiene_huecos(f["front"]))
+                self.assertNotIn(cloze.HUECO, cloze.completo(f["front"]))
 
     def test_toda_tarjeta_importada_nace_con_su_estado(self):
         seed.load_all(self.con)

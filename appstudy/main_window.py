@@ -9,7 +9,8 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, Gtk, Pango  # noqa: E402
 
-from . import db, hotkey, ia, libros, pet, respaldo, scheduler, sonido, util  # noqa: E402
+from . import cloze, db, fsrs, hotkey, ia, libros, pet, respaldo, scheduler  # noqa: E402
+from . import sonido, util  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
 
 MAX_FILAS = 120        # tarjetas que se pintan a la vez en el explorador
@@ -121,6 +122,11 @@ class MainWindow(Adw.ApplicationWindow):
             stats.append(self.stat_tile(valor, etiqueta))
         box.append(stats)
 
+        if t["objetivo"]:
+            box.append(self.barra_objetivo(t))
+        if t["sanguijuelas"]:
+            box.append(self.aviso_sanguijuelas(t["sanguijuelas"]))
+
         siguiente = self.next_unread()
         if siguiente:
             box.append(self.continue_reading_card(siguiente))
@@ -186,6 +192,55 @@ class MainWindow(Adw.ApplicationWindow):
         inner.append(Gtk.Label(label=etiqueta, css_classes=["as-stat-label"]))
         b.append(inner)
         return b
+
+    def barra_objetivo(self, t):
+        """Cuánto llevas de tu objetivo de hoy, con la barra llena o no."""
+        hechos, meta = t["hoy"], t["objetivo"]
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8,
+                       css_classes=["as-card"])
+        dentro = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        for lado in ("top", "bottom", "start", "end"):
+            getattr(dentro, f"set_margin_{lado}")(14)
+
+        fila = Gtk.Box(spacing=8)
+        cumplido = hechos >= meta
+        fila.append(Gtk.Label(
+            label="🎯 Objetivo de hoy" if not cumplido else "✅ Objetivo cumplido",
+            xalign=0, css_classes=["heading"]))
+        fila.append(Gtk.Box(hexpand=True))
+        fila.append(Gtk.Label(label=f"{min(hechos, meta)} / {meta}",
+                              css_classes=["as-dim"]))
+        dentro.append(fila)
+
+        barra = Gtk.ProgressBar(fraction=min(1.0, hechos / meta) if meta else 0.0)
+        barra.add_css_class("as-goal-bar")
+        if cumplido:
+            barra.add_css_class("success")
+        dentro.append(barra)
+
+        if not cumplido:
+            faltan = meta - hechos
+            dentro.append(Gtk.Label(
+                label=f"Te {'falta' if faltan == 1 else 'faltan'} {faltan} "
+                      f"{'tarjeta' if faltan == 1 else 'tarjetas'}",
+                xalign=0, css_classes=["as-dim"]))
+        caja.append(dentro)
+        return caja
+
+    def aviso_sanguijuelas(self, cuantas):
+        """Las tarjetas que se te atragantan, con un atajo para arreglarlas."""
+        fila = Adw.ActionRow(
+            title=f"🩸 {cuantas} "
+                  f"{'tarjeta se te atraganta' if cuantas == 1 else 'tarjetas se te atragantan'}",
+            subtitle="Las has fallado muchas veces seguidas y están apartadas. "
+                     "Reescríbelas o pártelas en dos.")
+        boton = Gtk.Button(label="Ver", valign=Gtk.Align.CENTER)
+        boton.connect("clicked", lambda *_: self.mostrar_sanguijuelas())
+        fila.add_suffix(boton)
+        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                            css_classes=["boxed-list"])
+        lista.append(fila)
+        return lista
 
     def section_title(self, texto):
         lab = Gtk.Label(label=texto, xalign=0, css_classes=["title-4"])
@@ -528,8 +583,9 @@ class MainWindow(Adw.ApplicationWindow):
             deck_dd.set_selected(next(i for i, d in enumerate(decks) if d["id"] == card["deck_id"]))
         g1.add(deck_dd)
 
-        tipos = ["Tarjeta (pregunta y respuesta)", "Reto (opción múltiple)", "Lección (solo enseñar)"]
-        kinds = ["card", "quiz", "lesson"]
+        tipos = ["Tarjeta (pregunta y respuesta)", "Reto (opción múltiple)",
+                 "Lección (solo enseñar)", "Huecos (rellenar lo que falta)"]
+        kinds = ["card", "quiz", "lesson", "cloze"]
         kind_dd = Adw.ComboRow(title="Tipo", model=Gtk.StringList.new(tipos))
         if card:
             kind_dd.set_selected(kinds.index(card["kind"]) if card["kind"] in kinds else 0)
@@ -551,10 +607,14 @@ class MainWindow(Adw.ApplicationWindow):
         g1.add(tags)
         page.add(g1)
 
-        g2 = Adw.PreferencesGroup(title="Contenido",
-                                  description="Puedes usar <b>negrita</b>, <i>cursiva</i> y <tt>código</tt>.")
+        AYUDA_NORMAL = "Puedes usar <b>negrita</b>, <i>cursiva</i> y <tt>código</tt>."
+        AYUDA_CLOZE = (AYUDA_NORMAL + " Marca entre dobles llaves lo que quieras tapar: "
+                       "«El comando {{chmod}} cambia los permisos». Puedes poner "
+                       "varios huecos, y una pista con {{755::en octal}}.")
+        g2 = Adw.PreferencesGroup(title="Contenido", description=AYUDA_NORMAL)
         front_view, front_frame = self.text_area(card["front"] if card else "", 90)
-        g2.add(self.labeled("Pregunta / enunciado", front_frame))
+        etiqueta_front = self.labeled("Pregunta / enunciado", front_frame)
+        g2.add(etiqueta_front)
         back_view, back_frame = self.text_area(card["back"] if card else "", 150)
         g2.add(self.labeled("Respuesta / explicación", back_frame))
         hint = Adw.EntryRow(title="Pista (opcional)")
@@ -580,8 +640,14 @@ class MainWindow(Adw.ApplicationWindow):
         page.add(g3)
 
         g3.set_visible(kind_dd.get_selected() == 1)
-        kind_dd.connect("notify::selected",
-                        lambda *_: g3.set_visible(kind_dd.get_selected() == 1))
+
+        def al_cambiar_tipo(*_):
+            es_cloze = kinds[kind_dd.get_selected()] == "cloze"
+            g3.set_visible(kind_dd.get_selected() == 1)
+            g2.set_description(AYUDA_CLOZE if es_cloze else AYUDA_NORMAL)
+
+        kind_dd.connect("notify::selected", al_cambiar_tipo)
+        al_cambiar_tipo()
 
         guardar = Gtk.Button(label="Guardar", css_classes=["suggested-action"])
         guardar.connect("clicked", lambda *_: self.save_card(
@@ -631,6 +697,9 @@ class MainWindow(Adw.ApplicationWindow):
             return
         if kind == "quiz" and correcta >= len(choices):
             self.notify_user("La opción correcta no existe")
+            return
+        if kind == "cloze" and not cloze.tiene_huecos(front):
+            self.notify_user("Una tarjeta de huecos necesita al menos un {{hueco}}")
             return
 
         if card:
@@ -781,6 +850,57 @@ class MainWindow(Adw.ApplicationWindow):
         self.racha_row.add_suffix(rr)
         gpr.add(self.racha_row)
         page.add(gpr)
+
+        gfsrs = Adw.PreferencesGroup(
+            title="Cómo se programan los repasos",
+            description="AppStudy usa FSRS: en vez de multiplicar el intervalo a "
+                        "ojo, modela cuánto aguanta cada recuerdo y te la enseña "
+                        "el día en que ibas a olvidarla.")
+
+        self.retencion = Adw.SpinRow.new_with_range(70, 99, 1)
+        self.retencion.set_title("Retención objetivo")
+        self.retencion.set_subtitle(
+            "Qué porcentaje quieres acordarte cuando una tarjeta vuelve. Más alto "
+            "es saber más, a cambio de más repasos al día. 90 % es el equilibrio "
+            "recomendado.")
+        self.retencion.connect("notify::value", self.on_retencion)
+        gfsrs.add(self.retencion)
+
+        self.umbral_row = Adw.SpinRow.new_with_range(0, 30, 1)
+        self.umbral_row.set_title("Apartar tras tantos fallos")
+        self.umbral_row.set_subtitle(
+            "Una tarjeta que fallas una y otra vez te come el tiempo sin quedarse. "
+            "Al llegar a este número se aparta para que la reescribas. 0 lo desactiva.")
+        self.umbral_row.connect("notify::value", self.on_umbral)
+        gfsrs.add(self.umbral_row)
+
+        self.sanguijuelas_row = Adw.ActionRow(title="Tarjetas atragantadas")
+        ver_s = Gtk.Button(label="Ver…", valign=Gtk.Align.CENTER)
+        ver_s.connect("clicked", lambda *_: self.mostrar_sanguijuelas())
+        self.sanguijuelas_row.add_suffix(ver_s)
+        gfsrs.add(self.sanguijuelas_row)
+
+        self.calibrar_row = Adw.ActionRow(title="Calibrar con mi historial")
+        self.calibrar_row.set_subtitle_lines(3)
+        self.calibrar_btn = Gtk.Button(label="Calibrar", valign=Gtk.Align.CENTER)
+        self.calibrar_btn.connect("clicked", lambda *_: self.calibrar_fsrs())
+        self.calibrar_row.add_suffix(self.calibrar_btn)
+        gfsrs.add(self.calibrar_row)
+        page.add(gfsrs)
+
+        gmeta = Adw.PreferencesGroup(
+            title="Objetivo diario",
+            description="Una meta pequeña y cumplible rinde más que una grande que "
+                        "abandonas. Se ve en el panel y en la barra superior.")
+        self.objetivo_row = Adw.SpinRow.new_with_range(0, 500, 5)
+        self.objetivo_row.set_title("Tarjetas al día")
+        self.objetivo_row.set_subtitle("0 para no ponerte objetivo")
+        self.objetivo_row.connect("notify::value", self.on_objetivo)
+        gmeta.add(self.objetivo_row)
+        self.objetivo_estado = Adw.ActionRow(title="Esta semana")
+        self.objetivo_estado.set_subtitle_lines(2)
+        gmeta.add(self.objetivo_estado)
+        page.add(gmeta)
 
         gres = Adw.PreferencesGroup(
             title="Respaldo",
@@ -1018,6 +1138,130 @@ class MainWindow(Adw.ApplicationWindow):
             self.notify_user(f"Borrados {n} repasos · el día empieza de cero")
             self.refresh()
 
+    # ------------------------------------------------------- repaso y objetivo
+
+    def on_retencion(self, fila, _p):
+        db.set_meta(self.con, "retencion", round(fila.get_value() / 100, 2))
+
+    def on_umbral(self, fila, _p):
+        db.set_meta(self.con, "umbral_sanguijuela", int(fila.get_value()))
+        quedan = scheduler.recalcular_sanguijuelas(self.con)
+        self.notify_user(f"{quedan} tarjetas apartadas con el umbral nuevo"
+                         if quedan else "Ninguna tarjeta queda apartada")
+        self.refresh()
+
+    def on_objetivo(self, fila, _p):
+        db.set_objetivo_diario(self.con, int(fila.get_value()))
+        self.refresh()
+
+    def historial_para_calibrar(self):
+        """Los repasos agrupados por tarjeta, en orden, como los quiere FSRS."""
+        por_tarjeta: dict[int, list] = {}
+        for r in self.con.execute("SELECT card_id, rating, ts FROM log ORDER BY ts"):
+            por_tarjeta.setdefault(r["card_id"], []).append((r["ts"], r["rating"]))
+        # Una tarjeta con un solo repaso no dice nada: no hay nada que predecir
+        return [h for h in por_tarjeta.values() if len(h) >= 2]
+
+    def calibrar_fsrs(self):
+        """Reajusta los pesos del modelo a tu propio historial, en segundo plano."""
+        historial = self.historial_para_calibrar()
+        repasos = sum(len(h) for h in historial)
+        if repasos < fsrs.MINIMO_REPASOS:
+            self.notify_user(
+                f"Necesitas al menos {fsrs.MINIMO_REPASOS} repasos encadenados; "
+                f"llevas {repasos}")
+            return
+        self.calibrar_btn.set_sensitive(False)
+        self.calibrar_row.set_subtitle("Calculando… puede tardar un rato")
+        actuales = scheduler.config(self.con)["w"]
+        util.hilo(lambda: fsrs.calibrar(historial, actuales),
+                  al_terminar=self.calibracion_lista,
+                  al_fallar=self.calibracion_fallo, largo=True)
+
+    def calibracion_lista(self, resultado):
+        pesos, antes, despues = resultado
+        self.calibrar_btn.set_sensitive(True)
+        if despues >= antes:
+            self.calibrar_row.set_subtitle(
+                "Tu historial ya encaja con los pesos actuales: no hay nada que mejorar.")
+            self.notify_user("Los pesos actuales ya son los mejores para ti")
+            return
+        db.set_meta(self.con, "fsrs_w", json.dumps([round(x, 6) for x in pesos]))
+        mejora = (antes - despues) / antes * 100
+        self.notify_user(f"Calibrado · la predicción mejora un {mejora:.1f} %")
+        self.refresh_settings()
+
+    def calibracion_fallo(self, error):
+        self.calibrar_btn.set_sensitive(True)
+        self.calibrar_row.set_subtitle(f"No se pudo calibrar: {error}")
+
+    def restaurar_pesos(self):
+        db.set_meta(self.con, "fsrs_w", "")
+        self.notify_user("Vuelta a los pesos de fábrica")
+        self.refresh_settings()
+
+    # ----------------------------------------------------------- sanguijuelas
+
+    def mostrar_sanguijuelas(self):
+        """La lista de tarjetas atragantadas, para arreglarlas o devolverlas al ciclo."""
+        dlg = Adw.Dialog(title="Tarjetas que se te atragantan")
+        dlg.set_content_width(660)
+        dlg.set_content_height(560)
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        caja.append(Adw.HeaderBar())
+        scroll = Gtk.ScrolledWindow(vexpand=True)
+        dentro = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12,
+                         margin_top=12, margin_bottom=12,
+                         margin_start=12, margin_end=12)
+        self._pintar_sanguijuelas(dentro, dlg)
+        scroll.set_child(dentro)
+        caja.append(scroll)
+        dlg.set_child(caja)
+        dlg.present(self)
+
+    def _pintar_sanguijuelas(self, dentro, dlg):
+        while (hijo := dentro.get_first_child()) is not None:
+            dentro.remove(hijo)
+        atragantadas = db.leeches(self.con)
+        if not atragantadas:
+            dentro.append(Adw.StatusPage(
+                title="Ninguna se te atraganta",
+                description="Aquí aparecen las tarjetas que fallas una y otra vez, "
+                            "para que las reescribas en vez de seguir peleándote "
+                            "con ellas.",
+                icon_name="emblem-ok-symbolic", vexpand=True))
+            return
+        grupo = Adw.PreferencesGroup(
+            title=f"{len(atragantadas)} apartadas",
+            description="No salen a estudiar mientras estén aquí. Si una está mal "
+                        "escrita o pregunta dos cosas a la vez, edítala o pártela; "
+                        "si solo tuviste mala racha, devuélvela al ciclo.")
+        for c in atragantadas:
+            fila = Adw.ActionRow(
+                title=util.as_label(c["front"])[:110],
+                subtitle=f"{c['deck_icon']} {c['deck_name']} · "
+                         f"{db.level_name(c['deck_levels'], c['level'])} · "
+                         f"fallada {c['lapses']} veces")
+            fila.set_subtitle_lines(2)
+            editar = Gtk.Button(icon_name="document-edit-symbolic",
+                                valign=Gtk.Align.CENTER, css_classes=["flat"])
+            util.tooltip_perezoso(editar, "Editar la tarjeta")
+            editar.connect("clicked", lambda _b, cid=c["id"]: self.card_editor(cid))
+            volver = Gtk.Button(label="Al ciclo", valign=Gtk.Align.CENTER)
+            util.tooltip_perezoso(volver, "Devolverla a estudio y borrar sus fallos")
+            volver.connect("clicked",
+                           lambda _b, cid=c["id"]: self.perdonar_sanguijuela(cid, dentro, dlg))
+            fila.add_suffix(editar)
+            fila.add_suffix(volver)
+            grupo.add(fila)
+        dentro.append(grupo)
+
+    def perdonar_sanguijuela(self, card_id, dentro, dlg):
+        scheduler.perdonar(self.con, card_id)
+        self.notify_user("Vuelve al ciclo, con los fallos a cero")
+        self._pintar_sanguijuelas(dentro, dlg)
+        self.refresh()
+
     # ---------------------------------------------------------------- respaldo
 
     def hacer_respaldo(self):
@@ -1219,6 +1463,49 @@ class MainWindow(Adw.ApplicationWindow):
                                   "vuelven a como estaban")
         self.racha_row.set_subtitle(f"Ahora: {t['racha']} días seguidos. Vuelve a cero "
                                     "sin tocar las tarjetas")
+
+        ajustes = scheduler.config(self.con)
+        self.retencion.handler_block_by_func(self.on_retencion)
+        self.retencion.set_value(round(ajustes["retencion"] * 100))
+        self.retencion.handler_unblock_by_func(self.on_retencion)
+        self.umbral_row.handler_block_by_func(self.on_umbral)
+        self.umbral_row.set_value(ajustes["umbral"])
+        self.umbral_row.handler_unblock_by_func(self.on_umbral)
+
+        self.sanguijuelas_row.set_subtitle(
+            f"{t['sanguijuelas']} apartadas ahora mismo" if t["sanguijuelas"]
+            else "Ninguna, de momento")
+
+        historial = self.historial_para_calibrar()
+        repasos = sum(len(h) for h in historial)
+        propios = bool(db.get_meta(self.con, "fsrs_w", ""))
+        if repasos < fsrs.MINIMO_REPASOS:
+            self.calibrar_row.set_subtitle(
+                f"Con {repasos} de los {fsrs.MINIMO_REPASOS} repasos que hacen falta. "
+                "Hasta entonces se usan los pesos de fábrica, que ya van bien.")
+        elif propios:
+            self.calibrar_row.set_subtitle(
+                f"Ajustado a tus {repasos} repasos. Vuelve a calibrar de vez en "
+                "cuando: cuanto más historial, mejor encaja.")
+        else:
+            self.calibrar_row.set_subtitle(
+                f"Tienes {repasos} repasos: ya se puede ajustar el modelo a cómo "
+                "memorizas tú. Tarda un rato y no puede empeorar lo que hay.")
+        self.calibrar_btn.set_sensitive(repasos >= fsrs.MINIMO_REPASOS)
+
+        self.objetivo_row.handler_block_by_func(self.on_objetivo)
+        self.objetivo_row.set_value(t["objetivo"])
+        self.objetivo_row.handler_unblock_by_func(self.on_objetivo)
+        semana = db.repasos_por_dia(self.con, 7)
+        if t["objetivo"]:
+            cumplidos = sum(1 for d in semana if d["cumplido"])
+            self.objetivo_estado.set_subtitle(
+                f"{cumplidos} de 7 días cumplidos · "
+                + " ".join("●" if d["cumplido"] else "○" for d in semana))
+        else:
+            self.objetivo_estado.set_subtitle(
+                "Sin objetivo · " + " ".join(str(d["n"]) for d in semana)
+                + " tarjetas en los últimos siete días")
 
         copias = respaldo.listar()
         if copias:

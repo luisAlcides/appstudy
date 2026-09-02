@@ -40,6 +40,8 @@ class AppStudy(Adw.Application):
                              None)
         self.add_main_option("read-card", 0, GLib.OptionFlags.NONE, GLib.OptionArg.STRING,
                              "Abrir en Leer el capítulo que explica esa tarjeta", "ID")
+        self.add_main_option("leeches", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+                             "Abrir la lista de tarjetas que se te atragantan", None)
         self.add_main_option("reload", ord("r"), GLib.OptionFlags.NONE,
                              GLib.OptionArg.NONE,
                              "Reimportar el contenido incluido y refrescar la ventana",
@@ -99,6 +101,10 @@ class AppStudy(Adw.Application):
             return 0
         if "read-card" in opts:
             self.show_reading_for_card(opts["read-card"])
+        elif opts.get("leeches"):
+            self.show_main_window()
+            if self.main_window:
+                self.main_window.mostrar_sanguijuelas()
         elif opts.get("popup"):
             self.show_popup(opts.get("deck"))
         else:

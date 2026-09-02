@@ -37,9 +37,11 @@ def snapshot(con) -> dict:
     frase, autor, obra = citas.aleatoria()
     return {
         **{k: int(t[k]) for k in ("total", "nuevas", "pendientes", "dominadas",
-                                  "hoy", "racha")},
+                                  "hoy", "racha", "sanguijuelas", "objetivo",
+                                  "restan")},
         "proximo": scheduler.due_label(fila["due"]) if fila and fila["due"] else "",
         "mascota": pet_pid(con) is not None,
+        "semana": [d["n"] for d in db.repasos_por_dia(con, 7)],
         "cita": {"frase": frase, "autor": autor, "obra": obra},
     }
 

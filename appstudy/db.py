@@ -39,13 +39,16 @@ CREATE TABLE IF NOT EXISTS cards (
 );
 
 CREATE TABLE IF NOT EXISTS state (
-    card_id  INTEGER PRIMARY KEY REFERENCES cards(id) ON DELETE CASCADE,
-    due      REAL NOT NULL DEFAULT 0,
-    interval REAL NOT NULL DEFAULT 0,        -- en días
-    ease     REAL NOT NULL DEFAULT 2.5,
-    reps     INTEGER NOT NULL DEFAULT 0,
-    lapses   INTEGER NOT NULL DEFAULT 0,
-    last     REAL NOT NULL DEFAULT 0
+    card_id    INTEGER PRIMARY KEY REFERENCES cards(id) ON DELETE CASCADE,
+    due        REAL NOT NULL DEFAULT 0,
+    interval   REAL NOT NULL DEFAULT 0,      -- en días
+    ease       REAL NOT NULL DEFAULT 2.5,    -- equivalente del SM-2, solo informativo
+    reps       INTEGER NOT NULL DEFAULT 0,
+    lapses     INTEGER NOT NULL DEFAULT 0,
+    last       REAL NOT NULL DEFAULT 0,
+    stability  REAL NOT NULL DEFAULT 0,      -- FSRS: días que aguanta el recuerdo
+    difficulty REAL NOT NULL DEFAULT 0,      -- FSRS: de 1 (fácil) a 10 (difícil)
+    leech      INTEGER NOT NULL DEFAULT 0    -- apartada por fallarla demasiado
 );
 
 CREATE TABLE IF NOT EXISTS log (
@@ -100,6 +103,7 @@ INDEXES = """
 CREATE INDEX IF NOT EXISTS idx_cards_deck  ON cards(deck_id);
 CREATE INDEX IF NOT EXISTS idx_cards_level ON cards(level);
 CREATE INDEX IF NOT EXISTS idx_state_due   ON state(due);
+CREATE INDEX IF NOT EXISTS idx_state_leech ON state(leech);
 CREATE INDEX IF NOT EXISTS idx_log_ts      ON log(ts);
 CREATE INDEX IF NOT EXISTS idx_chap_deck   ON chapters(deck_id, level, pos);
 CREATE INDEX IF NOT EXISTS idx_books_abierto ON books(abierto DESC);
@@ -128,11 +132,45 @@ def migrate(con):
             ("cards", "level", "INTEGER NOT NULL DEFAULT 1"),
             ("decks", "levels", "TEXT NOT NULL DEFAULT ''"),
             ("books", "marcas", "TEXT NOT NULL DEFAULT '[]'"),
-            ("books", "zoom", "TEXT NOT NULL DEFAULT ''")):
+            ("books", "zoom", "TEXT NOT NULL DEFAULT ''"),
+            ("state", "stability", "REAL NOT NULL DEFAULT 0"),
+            ("state", "difficulty", "REAL NOT NULL DEFAULT 0"),
+            ("state", "leech", "INTEGER NOT NULL DEFAULT 0")):
         existentes = {r["name"] for r in con.execute(f"PRAGMA table_info({tabla})")}
+        # Sin columnas es que la tabla no existe: pasa al restaurar el respaldo
+        # de una versión anterior, y no es motivo para dejar de arrancar.
+        if not existentes:
+            continue
         if columna not in existentes:
             con.execute(f"ALTER TABLE {tabla} ADD COLUMN {columna} {definicion}")
     con.commit()
+    convertir_a_fsrs(con)
+
+
+def convertir_a_fsrs(con) -> int:
+    """Traduce el estado SM-2 de una base anterior al de FSRS, sin perder nada.
+
+    La equivalencia es directa donde importa: a la retención de fábrica el
+    intervalo *es* la estabilidad, así que una tarjeta que volvía cada 30 días
+    entra con 30 días de estabilidad y sigue apareciendo cuando le tocaba. La
+    dificultad se deduce del factor de facilidad, que es lo más parecido que
+    guardaba SM-2: 2.5 (el de fábrica) cae en mitad de la escala.
+
+    Devuelve cuántas tarjetas se convirtieron. Solo toca las que ya se
+    estudiaron y aún no tienen estabilidad, así que repetirla no hace nada.
+    """
+    filas = con.execute(
+        "SELECT card_id, interval, ease FROM state WHERE reps > 0 AND stability <= 0"
+    ).fetchall()
+    for f in filas:
+        estabilidad = max(float(f["interval"] or 0.0), 0.1)
+        facilidad = min(max(float(f["ease"] or 2.5), 1.3), 3.0)
+        dificultad = 1.0 + 9.0 * (3.0 - facilidad) / (3.0 - 1.3)
+        con.execute("UPDATE state SET stability=?, difficulty=? WHERE card_id=?",
+                    (estabilidad, round(dificultad, 4), f["card_id"]))
+    if filas:
+        con.commit()
+    return len(filas)
 
 
 def get_meta(con, key, default=None):
@@ -157,8 +195,10 @@ def upsert_deck(con, key, name, icon, color, pos, levels=None):
 
 
 def add_card(con, deck_id, deck_key, kind, front, back="", hint="", choices=None,
-             answer=-1, tags="", builtin=0, level=1):
-    uid = uid_for(deck_key, front)
+             answer=-1, tags="", builtin=0, level=1, uid=None):
+    """Crea o actualiza una tarjeta. `uid` propio para las que no se identifican
+    por su enunciado, como la cara inversa de una tarjeta de doble sentido."""
+    uid = uid or uid_for(deck_key, front)
     ch = json.dumps(choices, ensure_ascii=False) if choices else ""
     # SQLite informa el mismo rowcount al insertar y al actualizar, así que se
     # comprueba antes para poder distinguir una tarjeta realmente nueva.
@@ -240,10 +280,14 @@ def _texto_body(body: str) -> str:
 
 
 def card_by_id(con, card_id):
+    """Una tarjeta con su mazo y su estado de repaso, lista para enseñarla."""
     row = con.execute(
         """SELECT c.*, d.key AS deck_key, d.name AS deck_name, d.icon AS deck_icon,
-                  d.color AS deck_color, d.levels AS deck_levels
-           FROM cards c JOIN decks d ON d.id = c.deck_id WHERE c.id=?""",
+                  d.color AS deck_color, d.levels AS deck_levels,
+                  s.due, s.interval, s.ease, s.reps, s.lapses, s.last,
+                  s.stability, s.difficulty, s.leech
+           FROM cards c JOIN decks d ON d.id = c.deck_id
+           LEFT JOIN state s ON s.card_id = c.id WHERE c.id=?""",
         (card_id,)).fetchone()
     return dict(row) if row else None
 
@@ -428,7 +472,62 @@ def totals(con):
     day = time.time() - 86400
     d["hoy"] = con.execute("SELECT COUNT(*) FROM log WHERE ts>=?", (day,)).fetchone()[0]
     d["racha"] = streak(con)
+    d["sanguijuelas"] = con.execute(
+        """SELECT COUNT(*) FROM state s JOIN cards c ON c.id=s.card_id
+           JOIN decks d ON d.id=c.deck_id
+           WHERE d.enabled=1 AND s.leech=1""").fetchone()[0]
+    d["objetivo"] = objetivo_diario(con)
+    d["restan"] = max(0, d["objetivo"] - d["hoy"]) if d["objetivo"] else 0
     return d
+
+
+# ------------------------------------------------------------ objetivo diario
+
+OBJETIVO_POR_DEFECTO = 0        # 0 = sin objetivo
+
+
+def objetivo_diario(con) -> int:
+    try:
+        return max(0, int(get_meta(con, "objetivo_diario", OBJETIVO_POR_DEFECTO)))
+    except (TypeError, ValueError):
+        return OBJETIVO_POR_DEFECTO
+
+
+def set_objetivo_diario(con, tarjetas: int):
+    set_meta(con, "objetivo_diario", max(0, int(tarjetas)))
+
+
+def repasos_por_dia(con, dias: int = 7) -> list[dict]:
+    """Cuántas tarjetas por día en los últimos `dias`, de más antiguo a hoy.
+
+    Sirve para la barra de la extensión y para saber si cumpliste el objetivo.
+    """
+    objetivo = objetivo_diario(con)
+    desde = time.time() - dias * 86400
+    cuenta: dict[str, int] = {}
+    for (ts,) in con.execute("SELECT ts FROM log WHERE ts>=?", (desde,)):
+        dia = time.strftime("%Y-%m-%d", time.localtime(ts))
+        cuenta[dia] = cuenta.get(dia, 0) + 1
+    salida = []
+    for atras in range(dias - 1, -1, -1):
+        dia = time.strftime("%Y-%m-%d", time.localtime(time.time() - atras * 86400))
+        n = cuenta.get(dia, 0)
+        salida.append({"dia": dia, "n": n,
+                       "cumplido": bool(objetivo and n >= objetivo)})
+    return salida
+
+
+# --------------------------------------------------------------- sanguijuelas
+
+def leeches(con) -> list[dict]:
+    """Las tarjetas apartadas por fallarlas demasiadas veces, la peor primero."""
+    filas = con.execute(
+        """SELECT c.*, d.key AS deck_key, d.name AS deck_name, d.icon AS deck_icon,
+                  d.color AS deck_color, d.levels AS deck_levels,
+                  s.lapses, s.reps, s.due, s.interval, s.difficulty
+           FROM state s JOIN cards c ON c.id=s.card_id JOIN decks d ON d.id=c.deck_id
+           WHERE s.leech=1 ORDER BY s.lapses DESC, c.id""").fetchall()
+    return [dict(f) for f in filas]
 
 
 def reset_streak(con):

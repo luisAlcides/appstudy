@@ -24,18 +24,18 @@ abre el capítulo que la explica, en el párrafo exacto.
 Las fórmulas se escriben en **LaTeX** y el código sale **coloreado**; los detalles,
 en [Fórmulas y código](#fórmulas-y-código).
 
-Temas incluidos (**678 tarjetas** de fábrica, ordenadas **de básico a avanzado**):
+Temas incluidos (**697 tarjetas** de fábrica, ordenadas **de básico a avanzado**):
 
 | Mazo | Niveles | Contenido |
 |---|---|---|
-| 🗣️ Inglés (125) | A2 · B1 · B2 · C1 | **todo en inglés**: gramática, phrasal verbs, vocabulario, registro y escritura profesional |
-| 🐧 Linux (87) | Básico · Intermedio · Avanzado | shell, permisos, procesos, systemd, red, SSH, LVM, scripting |
+| 🗣️ Inglés (129) | A2 · B1 · B2 · C1 | **todo en inglés**: gramática, phrasal verbs, vocabulario, registro y escritura profesional |
+| 🐧 Linux (94) | Básico · Intermedio · Avanzado | shell, permisos, procesos, systemd, red, SSH, LVM, scripting |
 | 📊 Ciencia de Datos (83) | Básico · Intermedio · Avanzado | estadística, pandas, SQL, modelado, experimentos, producción |
 | 🤖 Inteligencia Artificial (82) | Básico · Intermedio · Avanzado | LLM, RAG, embeddings, agentes, evaluación, coste y criterio |
 | 🚜 Maquinaria Amarilla y Volquete (82) | Básico · Intermedio · Avanzado | hidráulica, tren de rodaje, diagnóstico, seguridad, gestión |
 | 🔧 Mecánica Automotriz (82) | Básico · Intermedio · Avanzado | motor, frenos, eléctrico, diagnóstico OBD2, common rail, híbridos |
-| 🧮 Matemáticas y Cálculo Rápido (73) | Básico · Intermedio · Avanzado | complementos, multiplicación védica, porcentajes, cuadrados, prueba del 9 |
-| ⚡ Electricidad y Electrónica (64) | Básico · Intermedio · Avanzado | Ohm, medición, componentes, PWM, alterna, motores, protecciones |
+| 🧮 Matemáticas y Cálculo Rápido (77) | Básico · Intermedio · Avanzado | complementos, multiplicación védica, porcentajes, cuadrados, prueba del 9 |
+| ⚡ Electricidad y Electrónica (68) | Básico · Intermedio · Avanzado | Ohm, medición, componentes, PWM, alterna, motores, protecciones |
 
 ### Niveles
 
@@ -104,6 +104,7 @@ solo volver a abrir lo que estuviera corriendo.
 | Soltar la mascota | `appstudy --pet`, o Ajustes → **Bit, la mascota**, o el interruptor de la barra superior |
 | Recargar el contenido | **Ctrl+R** o **F5** en cualquier ventana, o `appstudy --reload` |
 | Abrir la lectura de una tarjeta | `appstudy --read-card <id>` (es lo que usa Bit) |
+| Ver las tarjetas que se te atragantan | `appstudy --leeches` |
 | Ver el estado en JSON | `appstudy --status` (lo usa la extensión de GNOME) |
 
 Si editas un JSON de `appstudy/content/`, **Ctrl+R** lo mete en la base y refresca la
@@ -125,6 +126,7 @@ Un capítulo se marca como leído solo cuando llegas al final, o a mano con el b
 |---|---|
 | `Espacio` | mostrar la respuesta |
 | `1` – `4` | responder un reto, o calificar: Otra vez / Difícil / Bien / Fácil |
+| `Z` | deshacer el último repaso |
 | `N` | saltar a otra tarjeta |
 | `A` | abrir la ventana completa |
 | `Esc` | cerrar |
@@ -289,9 +291,10 @@ Sin ellas la mascota funciona, pero no se queda encima ni recuerda su sitio.
 ## La extensión de la barra superior
 
 Un indicador en la barra de GNOME con lo pendiente siempre visible. Al pulsarlo:
-los cuatro números (pendientes, hoy, racha, dominadas), cuándo toca el siguiente
-repaso, una frase de libro, y accesos a **Estudiar ahora**, **Abrir AppStudy** y un
-interruptor para **soltar o guardar a Bit**.
+los cuatro números (pendientes, hoy, racha, dominadas), tu **objetivo del día**
+con la semana en siete barritas, cuándo toca el siguiente repaso, cuántas
+tarjetas se te atragantan, una frase de libro, y accesos a **Estudiar ahora**,
+**Abrir AppStudy** y un interruptor para **soltar o guardar a Bit**.
 
 La instala `install.sh` en `~/.local/share/gnome-shell/extensions/`. En Wayland
 GNOME no carga extensiones nuevas en caliente: **cierra sesión y vuelve a entrar**
@@ -307,14 +310,61 @@ responde JSON sin cargar GTK. Funciona en GNOME Shell 45 a 48.
 
 ## Cómo elige la tarjeta
 
-Un algoritmo tipo **SM-2**: cada tarjeta tiene un intervalo y un factor de facilidad.
-Al calificarla, el intervalo crece (Bien ×facilidad, Fácil aún más) o se reinicia a
-10 minutos si fallaste. La escalera de aprendizaje es 10 min → 1 h → 1 día, y a partir
-de ahí los repasos se van espaciando hasta un año.
+AppStudy usa **FSRS**, el mismo modelo de memoria que trae Anki. En vez de un
+«factor de facilidad» que sube y baja a ojo, guarda de cada tarjeta dos cosas:
+
+- **Estabilidad**, en días: cuánto aguanta ese recuerdo. Es, por definición, los
+  días que tardas en bajar al 90 % de probabilidad de acordarte.
+- **Dificultad**, de 1 a 10: lo que te cuesta esa tarjeta en concreto.
+
+Con eso el intervalo deja de ser una multiplicación: se calcula **el día en que
+ibas a olvidarla**. Tú eliges cuánto quieres acordarte —la **retención
+objetivo**— y la cuenta la hace la fórmula. Al 90 %, que es lo recomendado, una
+tarjeta con 40 días de estabilidad vuelve a los 40 días; si subes al 95 %,
+vuelve a los 18; si bajas al 85 %, a los 65.
+
+Lo que hace que salgan menos repasos para el mismo resultado es que el modelo
+sabe que **repasar algo que ya te sabías de sobra apenas aporta**: la memoria
+crece más cuanto más cerca estabas de olvidarlo. Acertando siempre «Bien», FSRS
+llega al año en seis repasos donde SM-2 necesitaba siete, y la diferencia se
+ensancha con el historial.
+
+Lo que fallas vuelve **en diez minutos**, no cuando diga la fórmula: una tarjeta
+recién fallada hay que volver a verla hoy.
+
+Todo se ajusta en **Ajustes → Cómo se programan los repasos**. Y cuando lleves
+400 repasos encadenados, **Calibrar con mi historial** reajusta los diecinueve
+pesos del modelo a cómo memorizas tú. Tarda un rato, corre en segundo plano y no
+puede empeorar lo que hay: si ningún ajuste mejora la predicción, deja los pesos
+como estaban y te lo dice.
 
 El popup prioriza lo **vencido**, mezcla ~25% de tarjetas **nuevas** (siempre las del
 nivel más bajo que te falte), y si no hay nada pendiente ofrece un repaso de refuerzo —
 así el atajo nunca queda vacío.
+
+### Si vienes de una versión anterior
+
+No hay que hacer nada ni se pierde nada. Al arrancar, cada tarjeta ya estudiada
+pasa sola a FSRS: su intervalo se convierte en estabilidad (a la retención de
+fábrica son lo mismo) y su factor de facilidad, en dificultad. **Sigue venciendo
+el día que le tocaba.**
+
+### Tarjetas que se te atragantan
+
+Una tarjeta que fallas una y otra vez no se arregla estudiándola más veces: está
+mal escrita, o pregunta dos cosas a la vez. Al llegar a **ocho fallos** se
+aparta, deja de salir a estudiar y va a una lista aparte, con un botón para
+editarla y otro para devolverla al ciclo con los fallos a cero. Bit te avisa de
+vez en cuando si tienes alguna. El umbral se cambia en Ajustes, y con 0 se apaga.
+
+### Deshacer
+
+Si te equivocas de botón, **Z** en el popup quita el último repaso y deja la
+tarjeta exactamente como estaba, incluidos los fallos acumulados y el apartado
+por atragantarse. El aviso que sale al calificar también trae su botón. Para
+rehacer el estado se reproducen los repasos que quedan **con sus fechas de
+verdad**, así que una tarjeta con repasos espaciados meses no acaba con la
+memoria de una repasada tres veces seguidas.
 
 ## Las lecturas
 
@@ -385,11 +435,37 @@ Pygments no está instalado, el código se enseña igual, solo que sin color.
 
 ## Contenido propio
 
-Desde la ventana principal (botón **+**) puedes crear tres tipos de tarjeta:
+Desde la ventana principal (botón **+**) puedes crear cuatro tipos de tarjeta:
 
 - **Tarjeta**: pregunta y respuesta, con pista opcional.
 - **Reto**: opción múltiple con explicación del porqué.
 - **Lección**: solo enseña algo, sin preguntar.
+- **Huecos**: un texto del que se tapa un trozo y lo dices de memoria.
+
+### Huecos y doble sentido
+
+En una tarjeta de **huecos** marcas entre dobles llaves lo que quieres tapar:
+
+```json
+{"kind": "cloze",
+ "front": "En <tt>chmod 755</tt> el {{7}} es del dueño y el {{5::en octal}} del grupo."}
+```
+
+Cada vez que aparece se tapa **un hueco distinto**, así que una sola tarjeta da
+tantas preguntas como trozos hayas marcado, y siempre en su contexto. Lo que va
+detrás de `::` es una pista, que se enseña junto al hueco. La respuesta es el
+texto entero con lo que faltaba en negrita. La mascota también las usa: cuando le
+toca «Rellena el hueco» tapa lo que tú marcaste, en vez de adivinar la palabra.
+
+Una tarjeta normal con **`"reverse": true`** genera además su cara inversa, que
+pregunta al revés — de «¿qué comando muestra el directorio?» sale también «pwd
+→ ¿qué es?». Son dos tarjetas independientes, cada una con su progreso, y la
+inversa se etiqueta como `inversa` para que la encuentres:
+
+```json
+{"front": "¿Qué comando muestra en qué directorio estás?", "back": "pwd",
+ "reverse": true, "reverse_hint": "Tres letras, de «print working directory»."}
+```
 
 Cada una se guarda en un mazo y un **nivel**, y en el explorador puedes filtrar por
 ambos.
@@ -517,6 +593,20 @@ En Ajustes → **Apariencia y progreso** hay dos botones que piden confirmación
 - **Reiniciar la racha** — vuelve a cero sin tocar ninguna tarjeta: a partir de ese
   momento solo cuentan los repasos nuevos (`racha_desde` en la tabla `meta`).
 
+## Objetivo diario
+
+En **Ajustes → Objetivo diario** pones cuántas tarjetas quieres hacer al día. Una
+meta pequeña y cumplible rinde más que una grande que abandonas; con 0 no hay
+objetivo y todo sigue como antes.
+
+Cuando lo pones, aparece en tres sitios:
+
+- En el **panel**, una barra con lo que llevas y lo que falta, que se pone verde
+  al cumplirlo.
+- En la **barra superior de GNOME**, la misma barra y debajo **siete barritas**,
+  una por día de la semana, en verde los días que cumpliste.
+- En **Ajustes**, cuántos de los últimos siete días cumpliste, en un vistazo.
+
 ## Respaldo
 
 Todo tu progreso —tarjetas, repasos, racha, libros y por dónde ibas— vive en un
@@ -554,9 +644,10 @@ los de «antes de restaurar» no se borran nunca.
 ./pruebas.sh scheduler    # solo las del planificador
 ```
 
-126 pruebas sobre lo que no lleva interfaz: el algoritmo de repetición espaciada,
-los seis formatos de reto, las fórmulas en LaTeX, el respaldo y la validez del
-contenido incluido. No hace falta instalar nada más — son `unittest` de la
+240 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
+calibración, el planificador, las sanguijuelas, el deshacer, el objetivo diario,
+las tarjetas de huecos, los seis formatos de reto, las fórmulas en LaTeX, el
+respaldo y la validez del contenido incluido. No hace falta instalar nada más — son `unittest` de la
 biblioteca estándar — y ninguna toca tu progreso real: cada caso arranca con una
 base vacía en un directorio temporal. Los detalles, en `tests/README.md`.
 

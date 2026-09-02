@@ -7,7 +7,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib, Gdk, Gio, Gtk  # noqa: E402
 
-from . import db, scheduler, sonido, util  # noqa: E402
+from . import cloze, db, scheduler, sonido, util  # noqa: E402
 
 RATINGS = [
     (scheduler.AGAIN, "Otra vez", "1", "as-rate-again"),
@@ -30,6 +30,7 @@ class PopupWindow(Adw.Window):
         self.revealed = False
         self.hint_revealed = False
         self.answered = None          # índice elegido en un quiz
+        self.hueco = None             # qué hueco se tapa en una tarjeta cloze
         self.shown_at = 0.0
         self.recent_ids = []
 
@@ -221,8 +222,14 @@ class PopupWindow(Adw.Window):
         self.revealed = False
         self.hint_revealed = False
         self.answered = None
+        self.hueco = (cloze.elegir(self.card["front"])
+                      if self.card and self.es_cloze() else None)
         self.shown_at = time.time()
         self.render()
+
+    def es_cloze(self) -> bool:
+        return bool(self.card) and self.card["kind"] == "cloze" \
+            and cloze.tiene_huecos(self.card["front"])
 
     def clear(self, box):
         while (child := box.get_first_child()) is not None:
@@ -268,7 +275,8 @@ class PopupWindow(Adw.Window):
         # Metadatos / Badges
         meta = Gtk.Box(spacing=8, css_classes=["as-card-meta"])
         meta.append(self.chip(f"{c['deck_icon']} {c['deck_name']}", c["deck_color"]))
-        kind_label = {"quiz": "RETO", "lesson": "LECCIÓN"}.get(c["kind"], "TARJETA")
+        kind_label = {"quiz": "RETO", "lesson": "LECCIÓN",
+                      "cloze": "HUECOS"}.get(c["kind"], "TARJETA")
         meta.append(self.chip(kind_label, c["deck_color"], soft=True))
         meta.append(self.chip(db.level_name(c["deck_levels"], c["level"]).upper(),
                               c["deck_color"], soft=True))
@@ -281,8 +289,14 @@ class PopupWindow(Adw.Window):
         meta.append(Gtk.Label(label=status_text, css_classes=["as-badge-status"]))
         inner.append(meta)
 
-        # Pregunta / Enunciado
-        front = Gtk.Label(label=util.to_markup(c["front"]), use_markup=True, wrap=True,
+        # Pregunta / Enunciado. En una cloze se enseña con el hueco tapado
+        # hasta que la revelas; entonces sale entera con la respuesta en negrita.
+        if self.es_cloze():
+            texto = (cloze.resaltado(c["front"], self.hueco) if self.revealed
+                     else cloze.enmascarar(c["front"], self.hueco))
+        else:
+            texto = c["front"]
+        front = Gtk.Label(label=util.to_markup(texto), use_markup=True, wrap=True,
                           xalign=0, css_classes=["as-front"], selectable=True)
         inner.append(front)
 
@@ -303,7 +317,9 @@ class PopupWindow(Adw.Window):
                 hint_wrap.append(h_box)
             inner.append(hint_wrap)
 
-        if c["kind"] == "lesson":
+        if self.es_cloze():
+            self.render_cloze_body(inner)
+        elif c["kind"] == "lesson":
             self.render_lesson_body(inner)
         elif c["kind"] == "quiz" and c["choices"]:
             self.render_quiz_body(inner)
@@ -316,6 +332,35 @@ class PopupWindow(Adw.Window):
     def toggle_hint(self):
         self.hint_revealed = True
         self.render()
+
+    def render_cloze_body(self, inner):
+        """Tarjeta de huecos: se tapa uno, lo dices de memoria y lo compruebas."""
+        c = self.card
+        total = cloze.cuantos(c["front"])
+        if not self.revealed:
+            ayuda = cloze.pista(c["front"], self.hueco)
+            if ayuda:
+                inner.append(Gtk.Label(label=f"💡 {ayuda}", xalign=0, wrap=True,
+                                       css_classes=["as-hint-text"]))
+            if total > 1:
+                inner.append(Gtk.Label(
+                    label=f"Hueco {self.hueco + 1} de {total}", xalign=0,
+                    css_classes=["as-answer-title"]))
+            btn = Gtk.Button(label="Mostrar la respuesta",
+                             css_classes=["suggested-action", "pill"],
+                             halign=Gtk.Align.CENTER)
+            btn.connect("clicked", lambda *_: self.reveal())
+            self.footer.append(btn)
+            self.footer.append(self.hints_bar([("Espacio", "Mostrar la respuesta"),
+                                               ("N", "Otra tarjeta"),
+                                               ("Esc", "Cerrar")]))
+            return
+        inner.append(Gtk.Separator(css_classes=["as-flashcard-divider"]))
+        falta = cloze.respuesta(c["front"], self.hueco)
+        inner.append(self.answer_box(f"<b>{falta}</b>" + (f"\n\n{c['back']}" if c["back"]
+                                                          else ""),
+                                     titulo="Lo que faltaba"))
+        self.rating_row()
 
     def render_lesson_body(self, inner):
         inner.append(Gtk.Separator(css_classes=["as-flashcard-divider"]))
@@ -459,11 +504,19 @@ class PopupWindow(Adw.Window):
             grid.append(b)
         self.footer.append(grid)
         self.footer.append(self.hints_bar([("1-4", "Calificar dificultad"),
+                                           ("Z", "Deshacer el anterior"),
                                            ("N", "Otra tarjeta"),
                                            ("Esc", "Cerrar")]))
 
     def preview(self, rating):
-        st = scheduler.review(dict(self.card), rating)
+        """Cuándo volvería la tarjeta con esa nota: lo que se lee en el botón.
+
+        Usa tu retención y tus pesos, así que el número del botón es el mismo
+        que se guardará al pulsarlo.
+        """
+        ajustes = scheduler.config(self.con)
+        st = scheduler.review(dict(self.card), rating,
+                              retencion=ajustes["retencion"], w=ajustes["w"])
         return scheduler.due_label(st["due"])
 
     def hints_bar(self, items):
@@ -502,14 +555,58 @@ class PopupWindow(Adw.Window):
                           "acierto" if rating >= scheduler.GOOD else "fallo")
         ms = int((time.time() - self.shown_at) * 1000)
         st = scheduler.apply_review(self.con, self.card["id"], rating, ms)
-        self.toast.add_toast(Adw.Toast(
-            title=f"Guardado · próximo repaso en {scheduler.due_label(st['due'])}",
-            timeout=2))
+        if st.get("sanguijuela"):
+            aviso = Adw.Toast(
+                title=f"🩸 La has fallado {st['lapses']} veces · apartada por ahora",
+                timeout=5)
+            aviso.set_button_label("Ver")
+            aviso.connect("button-clicked", lambda *_: self.abrir_sanguijuelas())
+            self.toast.add_toast(aviso)
+        else:
+            deshacer = Adw.Toast(
+                title=f"Guardado · próximo repaso en {scheduler.due_label(st['due'])}",
+                timeout=3)
+            deshacer.set_button_label("Deshacer")
+            deshacer.connect("button-clicked", lambda *_: self.deshacer())
+            self.toast.add_toast(deshacer)
         GLib.timeout_add(180, self._next_after_rate)
 
     def _next_after_rate(self):
         self.load_card()
         return False
+
+    def deshacer(self):
+        """Quita el último repaso y deja esa tarjeta como estaba. Es la tecla Z."""
+        hecho = scheduler.undo_last(self.con)
+        if not hecho:
+            self.toast.add_toast(Adw.Toast(title="No hay ningún repaso que deshacer",
+                                           timeout=2))
+            return
+        tarjeta = db.card_by_id(self.con, hecho["card_id"])
+        nombre = scheduler.RATING_LABELS.get(hecho["rating"], "")
+        self.toast.add_toast(Adw.Toast(
+            title=f"Deshecho «{nombre}» · la tarjeta vuelve a estar como antes",
+            timeout=3))
+        # Se vuelve a enseñar la tarjeta recuperada, que es lo que esperas
+        # al deshacer: la ves tal como estaba y la puedes calificar otra vez.
+        if tarjeta:
+            self.card = tarjeta
+            self.recent_ids = [i for i in self.recent_ids if i != tarjeta["id"]]
+        self.revealed = False
+        self.hint_revealed = False
+        self.answered = None
+        self.hueco = (cloze.elegir(self.card["front"])
+                      if self.card and self.es_cloze() else None)
+        self.shown_at = time.time()
+        self.render()
+
+    def abrir_sanguijuelas(self):
+        app = self.get_application()
+        app.show_main_window()
+        ventana = getattr(app, "main_window", None)
+        if ventana and hasattr(ventana, "mostrar_sanguijuelas"):
+            ventana.mostrar_sanguijuelas()
+        self.close()
 
     def open_main(self):
         self.get_application().show_main_window()
@@ -532,10 +629,14 @@ class PopupWindow(Adw.Window):
         if k in ("n", "N"):
             self.load_card()
             return True
+        if k in ("z", "Z"):
+            self.deshacer()
+            return True
         if k in ("a", "A"):
             self.open_main()
             return True
-        if k == "space" and not self.revealed and self.card and self.card["kind"] == "card":
+        if (k == "space" and not self.revealed and self.card
+                and self.card["kind"] in ("card", "cloze")):
             self.reveal()
             return True
         if k in ("1", "2", "3", "4", "KP_1", "KP_2", "KP_3", "KP_4"):

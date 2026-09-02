@@ -15,7 +15,7 @@ import random
 import re
 import unicodedata
 
-from . import util
+from . import cloze, util
 
 # Cuánto tiempo da cada formato, en segundos
 SEGUNDOS = {"opciones": 22, "invertido": 22, "vf": 16, "hueco": 30,
@@ -188,6 +188,15 @@ def _opciones_propias(card):
 
 # --------------------------------------------------------------------- armado
 
+def es_cloze(card) -> bool:
+    """¿Es una tarjeta de huecos escritos a mano?"""
+    try:
+        tipo = card["kind"]
+    except (KeyError, IndexError, TypeError):
+        return False
+    return tipo == "cloze" and cloze.tiene_huecos(card["front"])
+
+
 def preparar(con, card, evitar=None) -> dict:
     """Convierte una tarjeta en un reto concreto, con formato elegido al azar.
 
@@ -218,17 +227,35 @@ def preparar(con, card, evitar=None) -> dict:
         posibles["invertido"] = {"pregunta": esencia(card["back"]),
                                  **_baraja(esencia(card["front"]), frentes)}
 
-    con_hueco = hueco(card["back"]) if respuesta else None
-    if con_hueco:
-        posibles["hueco"] = {"frase": con_hueco[0], "palabra": con_hueco[1]}
-    if respuesta and len(respuesta) <= MAX_ESCRIBIR and card["kind"] != "quiz":
-        posibles["escribir"] = {}
+    if es_cloze(card):
+        # La tarjeta dice qué se tapa: mejor eso que adivinar la palabra.
+        texto = card["front"]
+        indice = cloze.elegir(texto)
+        palabra = cloze.respuesta(texto, indice)
+        posibles["hueco"] = {"frase": util.plain(cloze.enmascarar(texto, indice)),
+                             "palabra": palabra}
+        if len(palabra) <= MAX_ESCRIBIR:
+            posibles["escribir"] = {"respuesta_corta": palabra}
+    else:
+        con_hueco = hueco(card["back"]) if respuesta else None
+        if con_hueco:
+            posibles["hueco"] = {"frase": con_hueco[0], "palabra": con_hueco[1]}
+        if respuesta and len(respuesta) <= MAX_ESCRIBIR and card["kind"] != "quiz":
+            posibles["escribir"] = {}
     # Pensar y comprobar siempre vale, aunque la tarjeta no dé para más
     posibles["relampago"] = {}
 
     candidatos = [f for f in posibles if f != evitar] or list(posibles)
     formato = random.choices(candidatos, [PESOS[f] for f in candidatos])[0]
     icono, titulo = TITULOS[formato]
+    if es_cloze(card):
+        # En una cloze la «respuesta» es el texto entero con lo tapado a la vista
+        pregunta = util.plain(cloze.enmascarar(card["front"]))
+        solucion = cloze.resaltado(card["front"])
+        if card["back"]:
+            solucion += "\n\n" + card["back"]
+    else:
+        pregunta, solucion = card["front"], card["back"] or ""
     return {"formato": formato, "segundos": SEGUNDOS[formato], "icono": icono,
-            "titulo": titulo, "pregunta": card["front"], "respuesta": card["back"] or "",
+            "titulo": titulo, "pregunta": pregunta, "respuesta": solucion,
             **posibles[formato]}

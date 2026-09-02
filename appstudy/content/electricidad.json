@@ -534,6 +534,27 @@
    "tags": "cálculo,alterna",
    "front": "Compensar el factor de potencia sin pasarse",
    "back": "Un motor con $\\cos\\varphi = 0{,}75$ que consume 20 kW pide a la red:\n$$S = \\frac{P}{\\cos\\varphi} = \\frac{20}{0{,}75} = 26{,}7 \\text{ kVA}$$\nLlevarlo a 0,95 lo baja a 21 kVA: <b>el mismo trabajo con un 21 % menos de corriente</b>. Cables y transformador respiran, y desaparece el recargo de la factura.\n\n<b>El peligro es pasarse.</b> Si la batería de condensadores queda sobredimensionada, la instalación se vuelve <b>capacitiva</b> y muchas compañías penalizan también ese sentido. Peor aún: con armónicos presentes, los condensadores pueden entrar en <b>resonancia</b> con la inductancia de la red y multiplicar la corriente hasta destruirse.\n\nPor eso las baterías industriales son <b>automáticas</b>: escalones que entran y salen según la carga, y con reactancias antiarmónicos si hay variadores en la nave."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "cálculo, fundamentos",
+   "front": "La ley de Ohm dice que $V = {{I}} \\\\times {{R}}$, así que a igual tensión, más resistencia es menos {{corriente}}.",
+   "back": "De ahí salen también $I = V/R$ y $R = V/I$."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "componentes, medición",
+   "front": "Un condensador se mide en {{faradios}} y almacena {{carga}}; una bobina se mide en {{henrios}} y se opone a los cambios de corriente.",
+   "back": "El condensador bloquea la continua y deja pasar la alterna; la bobina, al revés."
+  },
+  {
+   "reverse": true,
+   "level": 1,
+   "tags": "cálculo",
+   "front": "¿En qué unidad se mide la potencia eléctrica?",
+   "back": "Vatios (W)"
   }
  ]
 }

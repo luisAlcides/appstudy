@@ -7,7 +7,7 @@ del año, la selección de la próxima tarjeta y el deshacer del día.
 import time
 import unittest
 
-from appstudy import scheduler
+from appstudy import fsrs, scheduler
 from tests.apoyo import BaseTemporal
 
 AGAIN, HARD, GOOD, EASY = scheduler.AGAIN, scheduler.HARD, scheduler.GOOD, scheduler.EASY
@@ -17,92 +17,142 @@ DIA = scheduler.DAY
 class TestReview(unittest.TestCase):
     """`review()` es una función pura: estado + calificación -> estado nuevo."""
 
-    def test_una_tarjeta_nueva_bien_entra_en_la_escalera(self):
+    def test_una_tarjeta_nueva_arranca_con_la_estabilidad_de_su_nota(self):
+        for nota in (AGAIN, HARD, GOOD, EASY):
+            with self.subTest(nota=nota):
+                st = scheduler.review({}, nota)
+                self.assertAlmostEqual(st["stability"], fsrs.estabilidad_inicial(nota))
+                self.assertAlmostEqual(st["difficulty"], fsrs.dificultad_inicial(nota))
+
+    def test_mejor_nota_significa_mas_espera_y_menos_dificultad(self):
+        estados = [scheduler.review({}, n) for n in (HARD, GOOD, EASY)]
+        intervalos = [e["interval"] for e in estados]
+        dificultades = [e["difficulty"] for e in estados]
+        self.assertEqual(intervalos, sorted(intervalos))
+        self.assertEqual(dificultades, sorted(dificultades, reverse=True))
+
+    def test_una_tarjeta_nueva_bien_no_vuelve_dentro_de_diez_minutos(self):
+        # Con FSRS una tarjeta nueva que te sabes espera días, no minutos.
         st = scheduler.review({}, GOOD)
-        self.assertAlmostEqual(st["interval"], 10 / 1440)
+        self.assertGreater(st["interval"], 1.0)
         self.assertEqual(st["reps"], 1)
         self.assertEqual(st["lapses"], 0)
-        self.assertAlmostEqual(st["due"], time.time() + st["interval"] * DIA, delta=5)
 
-    def test_la_escalera_es_diez_minutos_una_hora_un_dia(self):
-        st, vistos = {}, []
-        for _ in range(3):
-            st = scheduler.review(st, GOOD)
-            vistos.append(round(st["interval"], 6))
-        self.assertEqual(vistos, [round(p, 6) for p in scheduler.LEARN_STEPS])
-        self.assertEqual(st["reps"], scheduler.GRADUATE_AT)
-
-    def test_al_graduarse_el_intervalo_se_multiplica_por_la_facilidad(self):
-        st = {"interval": 1.0, "ease": 2.5, "reps": scheduler.GRADUATE_AT,
-              "lapses": 0, "due": 0, "last": 0}
-        nuevo = scheduler.review(st, GOOD)
-        self.assertAlmostEqual(nuevo["interval"], 2.5)
-        self.assertEqual(nuevo["reps"], scheduler.GRADUATE_AT + 1)
-
-    def test_facil_salta_el_aprendizaje(self):
-        st = scheduler.review({}, EASY)
-        self.assertEqual(st["interval"], 4.0)
-        self.assertEqual(st["reps"], scheduler.GRADUATE_AT)
-        self.assertAlmostEqual(st["ease"], 2.65)
-
-    def test_dificil_en_aprendizaje_vuelve_al_primer_peldano(self):
-        st = scheduler.review(scheduler.review({}, GOOD), HARD)
-        self.assertAlmostEqual(st["interval"], scheduler.LEARN_STEPS[0])
-
-    def test_dificil_ya_graduada_alarga_poco_y_baja_la_facilidad(self):
-        st = {"interval": 10.0, "ease": 2.5, "reps": 5, "lapses": 0, "due": 0, "last": 0}
-        nuevo = scheduler.review(st, HARD)
-        self.assertAlmostEqual(nuevo["ease"], 2.35)
-        self.assertAlmostEqual(nuevo["interval"], 12.0)   # max(10*1.2, 10+1)
-
-    def test_dificil_con_intervalo_corto_crece_al_menos_un_dia(self):
-        st = {"interval": 1.0, "ease": 2.5, "reps": 5, "lapses": 0, "due": 0, "last": 0}
-        self.assertAlmostEqual(scheduler.review(st, HARD)["interval"], 2.0)
-
-    def test_fallar_reinicia_el_intervalo_y_cuenta_un_lapso(self):
-        st = {"interval": 60.0, "ease": 2.5, "reps": 8, "lapses": 1, "due": 0, "last": 0}
+    def test_fallar_la_devuelve_hoy_mismo_y_cuenta_un_lapso(self):
+        st = {"stability": 60.0, "difficulty": 5.0, "reps": 8, "lapses": 1,
+              "due": 0, "last": time.time() - 60 * DIA}
         nuevo = scheduler.review(st, AGAIN)
-        self.assertAlmostEqual(nuevo["interval"], scheduler.LEARN_STEPS[0])
+        self.assertAlmostEqual(nuevo["interval"], scheduler.PASO_CORTO)
         self.assertEqual(nuevo["reps"], 0)
         self.assertEqual(nuevo["lapses"], 2)
-        self.assertAlmostEqual(nuevo["ease"], 2.30)
 
-    def test_la_facilidad_no_baja_de_1_3_por_mucho_que_falles(self):
-        st = {}
-        for _ in range(30):
-            st = scheduler.review(st, AGAIN)
-        self.assertAlmostEqual(st["ease"], 1.3)
+    def test_fallar_nunca_sube_la_estabilidad(self):
+        for estabilidad in (0.5, 5.0, 50.0, 300.0):
+            st = {"stability": estabilidad, "difficulty": 5.0, "reps": 5, "lapses": 0,
+                  "last": time.time() - estabilidad * DIA}
+            with self.subTest(estabilidad=estabilidad):
+                self.assertLessEqual(scheduler.review(st, AGAIN)["stability"], estabilidad)
 
-    def test_la_facilidad_no_sube_de_3(self):
+    def test_acertar_siempre_sube_la_estabilidad(self):
+        st = {"stability": 10.0, "difficulty": 5.0, "reps": 3, "lapses": 0,
+              "last": time.time() - 10 * DIA}
+        for nota in (HARD, GOOD, EASY):
+            with self.subTest(nota=nota):
+                self.assertGreater(scheduler.review(st, nota)["stability"], 10.0)
+
+    def test_el_intervalo_es_la_estabilidad_a_la_retencion_de_fabrica(self):
+        # Es la definición de estabilidad: los días hasta caer al 90 %.
+        st = {"stability": 40.0, "difficulty": 5.0, "reps": 4, "lapses": 0,
+              "last": time.time() - 40 * DIA}
+        nuevo = scheduler.review(st, GOOD, retencion=0.90)
+        self.assertAlmostEqual(nuevo["interval"], nuevo["stability"], delta=0.001)
+
+    def test_pedir_mas_retencion_acorta_los_intervalos(self):
+        st = {"stability": 40.0, "difficulty": 5.0, "reps": 4, "lapses": 0,
+              "last": time.time() - 40 * DIA}
+        exigente = scheduler.review(st, GOOD, retencion=0.95)["interval"]
+        relajado = scheduler.review(st, GOOD, retencion=0.85)["interval"]
+        self.assertLess(exigente, relajado)
+
+    def test_repasar_algo_que_ya_te_sabias_aporta_menos(self):
+        # El corazón del método: cuanto más a punto de olvidarlo, más crece.
+        base = {"stability": 30.0, "difficulty": 5.0, "reps": 4, "lapses": 0}
+        pronto = scheduler.review({**base, "last": time.time() - 1 * DIA}, GOOD)
+        tarde = scheduler.review({**base, "last": time.time() - 30 * DIA}, GOOD)
+        self.assertGreater(tarde["stability"], pronto["stability"])
+
+    def test_una_tarjeta_dificil_crece_mas_despacio_que_una_facil(self):
+        blanda = {"stability": 20.0, "difficulty": 2.0, "reps": 4, "lapses": 0,
+                  "last": time.time() - 20 * DIA}
+        dura = {**blanda, "difficulty": 9.0}
+        self.assertGreater(scheduler.review(blanda, GOOD)["stability"],
+                           scheduler.review(dura, GOOD)["stability"])
+
+    def test_repasarla_el_mismo_dia_consolida_poco(self):
+        st = {"stability": 10.0, "difficulty": 5.0, "reps": 3, "lapses": 0,
+              "last": time.time() - 600}          # hace diez minutos
+        nuevo = scheduler.review(st, GOOD)
+        self.assertGreater(nuevo["stability"], 10.0)
+        self.assertLess(nuevo["stability"], 20.0)
+
+    def test_la_dificultad_se_queda_siempre_entre_uno_y_diez(self):
         st = {}
-        for _ in range(30):
-            st = scheduler.review(st, EASY)
-        self.assertAlmostEqual(st["ease"], 3.0)
+        for nota in [AGAIN] * 30 + [EASY] * 30 + [AGAIN, EASY] * 15:
+            st = scheduler.review(st, nota)
+            self.assertGreaterEqual(st["difficulty"], 1.0)
+            self.assertLessEqual(st["difficulty"], 10.0)
 
     def test_el_intervalo_tiene_techo_de_un_ano(self):
-        st = {"interval": 300.0, "ease": 3.0, "reps": 20, "lapses": 0, "due": 0, "last": 0}
-        for _ in range(5):
-            st = scheduler.review(st, EASY)
-            self.assertLessEqual(st["interval"], 365.0)
-        self.assertAlmostEqual(st["interval"], 365.0)
+        st = {"stability": 5000.0, "difficulty": 2.0, "reps": 20, "lapses": 0,
+              "last": time.time() - 400 * DIA}
+        self.assertLessEqual(scheduler.review(st, EASY)["interval"],
+                             scheduler.MAX_INTERVALO)
 
     def test_el_ruido_solo_afecta_a_intervalos_de_dias(self):
-        # Por debajo de un día no hay jitter: 10 min son 10 min exactos.
-        st = scheduler.review({}, GOOD)
-        self.assertAlmostEqual(st["due"] - st["last"], st["interval"] * DIA, delta=0.01)
-        # Por encima, el vencimiento se mueve como mucho un 5 %.
-        largo = {"interval": 100.0, "ease": 2.5, "reps": 9, "lapses": 0, "due": 0, "last": 0}
+        # Un fallo vuelve en diez minutos exactos, sin ruido.
+        st = scheduler.review({"stability": 30.0, "difficulty": 5.0, "reps": 5,
+                               "last": time.time() - 30 * DIA}, AGAIN)
+        self.assertAlmostEqual(st["due"] - st["last"], scheduler.PASO_CORTO * DIA,
+                               delta=0.01)
+        # De un día en adelante el vencimiento se mueve como mucho un 5 %.
+        largo = {"stability": 100.0, "difficulty": 5.0, "reps": 9, "lapses": 0,
+                 "last": time.time() - 100 * DIA}
         for _ in range(40):
             nuevo = scheduler.review(largo, GOOD)
             desvio = (nuevo["due"] - nuevo["last"]) / DIA / nuevo["interval"]
             self.assertGreaterEqual(desvio, 0.95)
             self.assertLessEqual(desvio, 1.05)
 
+    def test_sigue_guardando_una_facilidad_equivalente(self):
+        # Las vistas antiguas leen `ease`; se deriva de la dificultad.
+        facil = scheduler.review({"stability": 10.0, "difficulty": 1.0, "reps": 3,
+                                  "last": time.time() - 10 * DIA}, GOOD)
+        dificil = scheduler.review({"stability": 10.0, "difficulty": 10.0, "reps": 3,
+                                    "last": time.time() - 10 * DIA}, GOOD)
+        self.assertGreater(facil["ease"], dificil["ease"])
+        for st in (facil, dificil):
+            self.assertGreaterEqual(st["ease"], 1.3)
+            self.assertLessEqual(st["ease"], 3.0)
+
     def test_un_estado_con_valores_nulos_no_revienta(self):
         st = scheduler.review({"ease": None, "interval": None, "reps": None,
-                               "lapses": None}, GOOD)
+                               "lapses": None, "stability": None,
+                               "difficulty": None}, GOOD)
         self.assertEqual(st["reps"], 1)
-        self.assertAlmostEqual(st["ease"], 2.5)
+        self.assertGreater(st["stability"], 0)
+
+    def test_una_nota_fuera_de_rango_se_acota(self):
+        self.assertEqual(scheduler.review({}, 99)["stability"],
+                         scheduler.review({}, EASY)["stability"])
+        self.assertEqual(scheduler.review({}, -5)["stability"],
+                         scheduler.review({}, AGAIN)["stability"])
+
+    def test_ahora_permite_fechar_el_repaso_en_el_pasado(self):
+        cuando = time.time() - 100 * DIA
+        st = scheduler.review({}, GOOD, ahora=cuando)
+        self.assertAlmostEqual(st["last"], cuando)
+        self.assertAlmostEqual(st["due"], cuando + st["interval"] * DIA,
+                               delta=st["interval"] * DIA * 0.06)
 
 
 class TestDueLabel(unittest.TestCase):

@@ -1067,6 +1067,27 @@
    ],
    "answer": 0,
    "back": "It does three things at once: <b>acknowledges</b> without admitting liability, <b>names the impact</b> (which is what the client actually wants heard), and <b>states a concrete action already taken</b>.\nThe second is defensive, the third concedes liability before the facts are known, and the fourth is a wall of process language that reads as indifference."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "grammar",
+   "front": "Third person singular takes an -s: «She {{works}} here», but the negative drops it: «She doesn't {{work}} here».",
+   "back": "The -s moves to the auxiliary, so it never appears twice."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "phrasal verbs",
+   "front": "To {{look}} after someone is to take care of them; to {{look}} into something is to investigate it.",
+   "back": "Same verb, different particle, completely different meaning."
+  },
+  {
+   "reverse": true,
+   "level": 1,
+   "tags": "vocabulary",
+   "front": "How do you say «archivo adjunto» in English?",
+   "back": "Attachment"
   }
  ]
 }

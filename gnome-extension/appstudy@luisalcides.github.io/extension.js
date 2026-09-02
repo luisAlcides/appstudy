@@ -76,6 +76,68 @@ class Dato extends St.BoxLayout {
     }
 });
 
+/** La barra del objetivo del día, con las siete barritas de la semana debajo. */
+const Objetivo = GObject.registerClass(
+class Objetivo extends St.BoxLayout {
+    _init() {
+        super._init({vertical: true, x_expand: true, style_class: 'appstudy-goal'});
+        this._titulo = new St.Label({text: '', style_class: 'appstudy-goal-title'});
+        this.add_child(this._titulo);
+
+        // La barra: un carril con un relleno que se estira según el avance
+        this._carril = new St.Widget({style_class: 'appstudy-goal-track', x_expand: true});
+        this._relleno = new St.Widget({style_class: 'appstudy-goal-fill'});
+        this._carril.add_child(this._relleno);
+        this.add_child(this._carril);
+
+        this._semana = new St.BoxLayout({style_class: 'appstudy-week', x_expand: true});
+        this._barras = [];
+        for (let i = 0; i < 7; i++) {
+            const columna = new St.Widget({
+                style_class: 'appstudy-week-bar', y_align: Clutter.ActorAlign.END,
+                x_expand: true,
+            });
+            this._barras.push(columna);
+            this._semana.add_child(columna);
+        }
+        this.add_child(this._semana);
+    }
+
+    set(d) {
+        const meta = d.objetivo || 0;
+        const hechos = d.hoy || 0;
+        if (meta > 0) {
+            const cumplido = hechos >= meta;
+            this._titulo.text = cumplido
+                ? `Objetivo cumplido: ${hechos} de ${meta}`
+                : `Objetivo de hoy: ${hechos} de ${meta} · faltan ${meta - hechos}`;
+            const parte = Math.max(0, Math.min(1, hechos / meta));
+            this._relleno.style = `width: ${Math.round(parte * 100)}%;`;
+            if (cumplido)
+                this._relleno.add_style_class_name('appstudy-goal-done');
+            else
+                this._relleno.remove_style_class_name('appstudy-goal-done');
+            this._carril.show();
+        } else {
+            this._titulo.text = 'Últimos siete días';
+            this._carril.hide();
+        }
+
+        // Las barritas se escalan al día más alto de la semana
+        const semana = d.semana || [];
+        const tope = Math.max(1, ...semana, meta);
+        for (let i = 0; i < this._barras.length; i++) {
+            const n = semana[i] || 0;
+            const alto = Math.max(2, Math.round((n / tope) * 26));
+            this._barras[i].style = `height: ${alto}px;`;
+            if (meta > 0 && n >= meta)
+                this._barras[i].add_style_class_name('appstudy-week-done');
+            else
+                this._barras[i].remove_style_class_name('appstudy-week-done');
+        }
+    }
+});
+
 const Indicador = GObject.registerClass(
 class Indicador extends PanelMenu.Button {
     _init() {
@@ -117,6 +179,14 @@ class Indicador extends PanelMenu.Button {
             caja.add_child(d);
         fila.add_child(caja);
         this.menu.addMenuItem(fila);
+
+        // -- el objetivo del día y la semana de un vistazo
+        this._objetivo = new Objetivo();
+        const filaObjetivo = new PopupMenu.PopupBaseMenuItem({
+            reactive: false, can_focus: false,
+        });
+        filaObjetivo.add_child(this._objetivo);
+        this.menu.addMenuItem(filaObjetivo);
 
         this._proximo = new PopupMenu.PopupMenuItem('', {reactive: false, can_focus: false});
         this._proximo.label.add_style_class_name('appstudy-quote-by');
@@ -186,9 +256,15 @@ class Indicador extends PanelMenu.Button {
         this._hoy.set(d.hoy);
         this._racha.set(`${d.racha} d`);
         this._dominadas.set(d.dominadas);
+        this._objetivo.set(d);
         this._proximo.label.text = debidas > 0
             ? `${d.nuevas} sin estrenar · ${d.total} tarjetas en total`
             : (d.proximo ? `Todo al día. La siguiente, en ${d.proximo}.` : 'Todo al día.');
+        if (d.sanguijuelas > 0) {
+            const n = d.sanguijuelas;
+            this._proximo.label.text +=
+                `  ·  ${n} ${n === 1 ? 'atragantada' : 'atragantadas'}`;
+        }
 
         if (d.cita) {
             this._cita.text = `«${d.cita.frase}»`;

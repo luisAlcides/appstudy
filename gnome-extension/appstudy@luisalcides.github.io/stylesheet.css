@@ -41,3 +41,43 @@
   padding: 0 4px 4px 4px;
   max-width: 320px;
 }
+
+/* El objetivo del día */
+.appstudy-goal {
+  spacing: 6px;
+  padding: 2px 4px 6px 4px;
+  max-width: 320px;
+}
+
+.appstudy-goal-title {
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.appstudy-goal-track {
+  height: 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.appstudy-goal-fill {
+  height: 8px;
+  border-radius: 4px;
+  background-color: #3584e4;
+}
+
+.appstudy-goal-fill.appstudy-goal-done { background-color: #2ec27e; }
+
+/* Las siete barritas de la semana */
+.appstudy-week {
+  spacing: 4px;
+  height: 28px;
+  padding-top: 2px;
+}
+
+.appstudy-week-bar {
+  border-radius: 2px;
+  background-color: rgba(255, 255, 255, 0.22);
+}
+
+.appstudy-week-bar.appstudy-week-done { background-color: #2ec27e; }

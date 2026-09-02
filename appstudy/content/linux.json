@@ -725,6 +725,42 @@
    "tags": "seguridad,mantenimiento",
    "front": "Una copia de seguridad que no has restaurado no es una copia",
    "back": "La regla clásica es <b>3-2-1</b>: tres copias, en dos medios distintos, una de ellas fuera del sitio. Pero lo que separa una copia real de una ilusión es otra cosa: <b>haberla restaurado alguna vez</b>.\n\nUn guion mínimo que ya cumple:\n<code>rsync -aAX --delete --link-dest=../ultima \\\n  /datos/ /backup/$(date +%F)/</code>\n\nEl <code>--link-dest</code> es la clave: los archivos que no cambiaron se guardan como <b>enlaces duros</b> a la copia anterior, así que cada snapshot diario ocupa solo lo que cambió pero se ve como una copia completa.\n\nLo que hay que verificar cada cierto tiempo:\n• Que el archivo restaurado <b>abre</b>, no solo que existe.\n• Que la copia <b>no es accesible</b> desde el servidor con las mismas credenciales — si un ransomware entra, se lleva también el backup montado.\n• Que sabes <b>cuánto tarda</b> restaurar. Ese número es el que te van a preguntar el día malo."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "permisos, trucos",
+   "front": "En <tt>chmod 755</tt> el {{7}} es del dueño, el {{5}} del grupo y el último {{5::en octal}} del resto.",
+   "back": "Cada cifra suma lectura (4), escritura (2) y ejecución (1)."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "scripting, trucos",
+   "front": "La cabecera defensiva de un script es <tt>set -{{e}}uo pipefail</tt>: corta al primer error, avisa de variables sin definir y no se traga el fallo de una {{tubería}}.",
+   "back": "Sin pipefail, «false | true» devuelve éxito y el script sigue como si nada."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "red, diagnóstico",
+   "front": "Para ver qué proceso escucha en un puerto: <tt>ss -{{tlnp}}</tt>.",
+   "back": "t = TCP, l = escuchando, n = sin resolver nombres, p = el proceso."
+  },
+  {
+   "reverse": true,
+   "level": 1,
+   "tags": "shell, básico",
+   "front": "¿Qué comando muestra en qué directorio estás?",
+   "back": "pwd",
+   "reverse_hint": "Tres letras, del inglés «print working directory»."
+  },
+  {
+   "reverse": true,
+   "level": 2,
+   "tags": "procesos",
+   "front": "¿Qué señal manda <tt>kill</tt> por defecto?",
+   "back": "SIGTERM (15)"
   }
  ],
  "levels": [

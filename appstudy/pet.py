@@ -903,7 +903,8 @@ class PetWindow(Gtk.ApplicationWindow):
         self.card = None            # tarjeta que está enseñando ahora
         self.shown_at = 0.0
         self.last_nag = time.time()
-        self.ultimo_reproche = 0.0    # para no repetir la queja cada rato
+        self.ultimo_reproche = 0
+        self.ultimo_aviso_leech = 0.0    # para no repetir la queja cada rato
         self.ia_texto = ""            # lo que el modelo lleva escrito
         self.ia_cuerpo = None
         self.contexto_ia = ""         # la tarjeta desde la que preguntaste
@@ -1262,6 +1263,18 @@ class PetWindow(Gtk.ApplicationWindow):
             self.say(reproche(t["horas"]), titulo=f"{NOMBRE} te echa de menos",
                      boton=("Va, enséñame algo", self.teach))
             return True
+        if (t.get("sanguijuelas") and time.time() - self.ultimo_aviso_leech > 6 * 3600
+                and random.random() < 0.35):
+            # Las que se te atragantan no se arreglan estudiándolas más veces:
+            # hay que reescribirlas, así que te lo recuerda de vez en cuando.
+            self.ultimo_aviso_leech = time.time()
+            cuantas = t["sanguijuelas"]
+            self.say(f"Hay {cuantas} "
+                     f"{'tarjeta que se te atraganta' if cuantas == 1 else 'tarjetas que se te atragantan'}. "
+                     "Reescribirlas cuesta menos que seguir fallándolas.",
+                     titulo="Se te atragantan",
+                     boton=("Verlas", self.abrir_sanguijuelas))
+            return True
         if t["pendientes"] == 0 and t["nuevas"] == 0:
             # Nada que repasar: entonces te deja una frase para el rato
             self.quote()
@@ -1278,6 +1291,11 @@ class PetWindow(Gtk.ApplicationWindow):
         else:
             self.last_nag = time.time()
         return True
+
+    def abrir_sanguijuelas(self, *_):
+        """Abre la ventana principal en la lista de tarjetas atragantadas."""
+        self.close_bubble()
+        self.spawn("--leeches")
 
     # ------------------------------------------------------------------ globo
 

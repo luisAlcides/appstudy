@@ -688,6 +688,27 @@
    "tags": "estadística,estimación",
    "front": "¿Qué es la regla del 68-95-99,7 y para qué sirve mentalmente?",
    "back": "En una distribución normal:\n<b>68 %</b> de los datos cae a ±1 desviación típica, <b>95 %</b> a ±2 y <b>99,7 %</b> a ±3.\nSi una pieza mide 50 mm de media con $\\sigma = 0{,}2$ mm, el 95 % estará entre 49,6 y 50,4 mm.\nUn valor a más de 3σ aparece <b>1 vez de cada 370</b>: si lo ves dos veces seguidas, no es azar, es que el proceso cambió."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "trucos, porcentajes",
+   "front": "El 15 % de 240 es el 10 % ({{24}}) más la mitad de eso ({{12}}): {{36}}.",
+   "back": "Partir un porcentaje en 10 % y mitades es lo que lo hace mental."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "trucos, verificación",
+   "front": "La regla del {{72}} dice que un capital al 6 % anual se duplica en unos {{12}} años.",
+   "back": "72 dividido entre el tanto por ciento da los años. Al 8 %, nueve años."
+  },
+  {
+   "reverse": true,
+   "level": 1,
+   "tags": "trucos, multiplicación",
+   "front": "¿Cuál es el truco para multiplicar por 5?",
+   "back": "Multiplicar por 10 y partir por la mitad"
   }
  ]
 }
