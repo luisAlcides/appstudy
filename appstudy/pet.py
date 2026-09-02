@@ -176,6 +176,7 @@ class Creature(Gtk.DrawingArea):
         self.objetivo = [0.0, 0.0]
         self.puntero = None             # posición del ratón, normalizada
         self.hablando_hasta = 0.0
+        self.angulo_estrella = 0.0
         self.next_idle = time.time() + random.uniform(1.5, 4)
         self._sello_previo = None
 
@@ -264,6 +265,9 @@ class Creature(Gtk.DrawingArea):
     def tick(self, dt):
         dt = min(dt, 0.1)               # tras un tirón, no des un salto absurdo
         self.t += dt
+        vel_estrella = (0.85 if self.teaching else 0.22 * (1 - 0.75 * self.abandono))
+        self.angulo_estrella = (self.angulo_estrella + vel_estrella * dt) % math.tau
+
         ahora = time.time()
         self.anims = {k: v for k, v in self.anims.items() if ahora - v[0] < v[1]}
         self._mover_particulas(dt)
@@ -271,13 +275,7 @@ class Creature(Gtk.DrawingArea):
         for i in (0, 1):                # las pupilas alcanzan su objetivo con calma
             self.mirada[i] += (self.objetivo[i] - self.mirada[i]) * min(1.0, dt * 7)
 
-        # Pedir un repintado es lo caro (GTK rehace el fotograma entero), no el
-        # dibujo en sí: en reposo se salta cuando la pose no ha cambiado lo
-        # bastante como para notarse.
-        sello = self._sello()
-        if sello != self._sello_previo:
-            self._sello_previo = sello
-            self.queue_draw()
+        self.queue_draw()
 
     def _sello(self):
         if self.ocupada():
@@ -338,7 +336,14 @@ class Creature(Gtk.DrawingArea):
                 continue
             p["x"] += p["vx"] * dt
             p["y"] += p["vy"] * dt
-            p["vy"] += (34 if p["kind"] in ("corazon", "chispa", "nota") else 12) * dt
+            if p["kind"] in ("corazon", "chispa", "nota"):
+                p["vy"] += 34 * dt
+            elif p["kind"] == "gota":
+                p["vy"] += 45 * dt
+            elif p["kind"] == "z":
+                # La 'z' flota suavemente hacia arriba
+                p["vy"] = max(-26, p["vy"] - 2 * dt)
+                p["vx"] += 3 * dt
             vivas.append(p)
         self.particulas = vivas
 
@@ -474,7 +479,7 @@ class Creature(Gtk.DrawingArea):
         """
         cx, cy = 0, -19
         r = 57 * (1 - 0.10 * self.abandono)
-        vuelta = self.t * (0.85 if self.teaching else 0.22 * (1 - 0.75 * self.abandono))
+        vuelta = self.angulo_estrella
         p = self.phase("antena")
         if p is not None:
             vuelta += math.sin(p * math.pi * 4) * 0.35 * (1 - p)
@@ -800,8 +805,8 @@ class Creature(Gtk.DrawingArea):
     def _particulas(self, cr, cx, cy):
         for p in self.particulas:
             k = p["t"] / p["vida"]
-            alpha = (1 - k) * (0.35 if p["kind"] == "z" else 1.0) if k > 0.5 else 1.0
-            alpha = min(1.0, (1 - k) * 2.2)
+            base_alpha = 0.85 if p["kind"] == "z" else 1.0
+            alpha = min(1.0, (1 - k) * 2.2) * base_alpha
             cr.save()
             cr.translate(cx + p["x"], cy + p["y"])
             cr.rotate(p["giro"] * k)
@@ -852,26 +857,39 @@ class Creature(Gtk.DrawingArea):
         """La energía: baja con las horas sin repasar y con lo que se acumula."""
         ancho, alto = 78, 7
         x = cx - ancho / 2
-        for w, rgba in ((ancho, (0.16, 0.14, 0.12, 0.22)),
-                        (max(5, ancho * self.energy), _hex(color, 0.95))):
-            r = alto / 2
-            cr.new_sub_path()
-            cr.arc(x + w - r, y + r, r, -math.pi / 2, math.pi / 2)
-            cr.arc(x + r, y + r, r, math.pi / 2, 1.5 * math.pi)
-            cr.close_path()
-            cr.set_source_rgba(*rgba)
-            cr.fill()
+        r = alto / 2
+
+        # Fondo de la barra
+        cr.new_sub_path()
+        cr.arc(x + ancho - r, y + r, r, -math.pi / 2, math.pi / 2)
+        cr.arc(x + r, y + r, r, math.pi / 2, 1.5 * math.pi)
+        cr.close_path()
+        cr.set_source_rgba(0.16, 0.14, 0.12, 0.22)
+        cr.fill()
+
+        # Barra llena con esquinas redondeadas
+        w_llena = max(alto, ancho * self.energy)
+        cr.save()
+        cr.new_sub_path()
+        cr.arc(x + w_llena - r, y + r, r, -math.pi / 2, math.pi / 2)
+        cr.arc(x + r, y + r, r, math.pi / 2, 1.5 * math.pi)
+        cr.close_path()
+        cr.set_source_rgba(*_hex(color, 0.95))
+        cr.fill_preserve()
+        cr.clip()
+
         if self.energy > 0.05:          # un destello que recorre la barra llena
             q = (self.t * 0.35) % 1.6
             if q < 1.0:
-                bx = x + q * max(5, ancho * self.energy)
+                bx = x + q * w_llena
                 g = cairo.LinearGradient(bx - 9, 0, bx + 9, 0)
                 g.add_color_stop_rgba(0, 1, 1, 1, 0)
                 g.add_color_stop_rgba(0.5, 1, 1, 1, 0.35)
                 g.add_color_stop_rgba(1, 1, 1, 1, 0)
-                cr.rectangle(x, y, max(5, ancho * self.energy), alto)
+                cr.rectangle(x, y, w_llena, alto)
                 cr.set_source(g)
                 cr.fill()
+        cr.restore()
 
 
 class PetWindow(Gtk.ApplicationWindow):

@@ -8,12 +8,13 @@ Los libros **no se copian ni se tocan**: se leen donde están. De un libro solo
 acaba en la base de datos lo que tú decidas guardar — un capítulo para leer o
 las tarjetas que apruebes.
 """
+import hashlib
 import html
-import json
 import os
 import re
 import shutil
 import subprocess
+import time
 import zipfile
 from pathlib import Path
 
@@ -21,7 +22,6 @@ from . import db
 
 EXTENSIONES = (".pdf", ".epub", ".txt", ".md")
 ESPERA = 90                      # segundos para extraer texto de un libro gordo
-PAGINAS_POR_TRAMO = 12           # cuando el libro no dice dónde empiezan sus partes
 
 
 def carpeta(con) -> Path:
@@ -166,73 +166,10 @@ def _html_a_texto(crudo: str) -> str:
         return html.unescape(re.sub(r"<[^>]+>", " ", limpio))
 
 
-# ---------------------------------------------------------------- secciones
-
-# Un encabezado de capítulo: corto, solo, y empezando por una de estas fórmulas
-_CABECERA = re.compile(
-    r"^\s{0,20}((?:cap[ií]tulo|chapter|parte|part|unidad|tema|lecci[óo]n|secci[óo]n)"
-    r"\s+(?:\d{1,2}|[ivxlc]{1,6})\b.{0,70}|\d{1,2}[.)]\s+[A-ZÁÉÍÓÚÑ][^.]{3,60})\s*$",
-    re.I | re.M)
-
-
-def secciones(texto_libro: str, paginas_total: int = 0) -> list:
-    """Trocea el libro en partes manejables: por sus capítulos si los declara.
-
-    Si no hay encabezados reconocibles —y en muchos libros no los hay— se corta
-    en tramos de páginas, que para estudiar funciona igual de bien.
-    """
-    paginas_texto = texto_libro.split("\f")
-    encontrados = []
-    for i, pagina in enumerate(paginas_texto, start=1):
-        for m in _CABECERA.finditer(pagina):
-            titulo = re.sub(r"\s{2,}", " ", m.group(1)).strip()
-            if len(titulo) > 4 and (not encontrados or encontrados[-1]["desde"] < i):
-                encontrados.append({"titulo": titulo[:80], "desde": i})
-                break
-
-    total = paginas_total or len(paginas_texto)
-    arranque = primera_util(texto_libro)
-    if len(encontrados) >= 3:
-        for a, b in zip(encontrados, encontrados[1:]):
-            a["hasta"] = max(a["desde"], b["desde"] - 1)
-        encontrados[-1]["hasta"] = total
-        # Un «capítulo» de una página suele ser el índice: se descarta
-        return [s for s in encontrados if s["hasta"] - s["desde"] >= 1][:60]
-
-    tramos = []
-    for inicio in range(arranque, max(total, arranque) + 1, PAGINAS_POR_TRAMO):
-        fin = min(inicio + PAGINAS_POR_TRAMO - 1, total)
-        tramos.append({"titulo": f"Páginas {inicio}–{fin}", "desde": inicio, "hasta": fin})
-    return tramos[:60]
-
+# ------------------------------------------------------------ para la IA
 
 # Una línea de índice: «El motor diésel ......... 23» o «3.2 Inyección      45»
 _LINEA_INDICE = re.compile(r"(\.{4,}\s*\d{1,4}|\s{4,}\d{1,4})\s*$")
-
-
-def _parece_indice(pagina: str) -> bool:
-    """¿Esta página es sumario? Muchas líneas cortas acabadas en número de página."""
-    lineas = [l for l in pagina.splitlines() if l.strip()]
-    if len(lineas) < 6:
-        return False
-    con_numero = sum(1 for l in lineas if _LINEA_INDICE.search(l))
-    return con_numero / len(lineas) > 0.35
-
-
-def primera_util(texto_libro: str) -> int:
-    """La primera página con prosa de verdad: se salta portada, créditos e índice.
-
-    Sin esto, las primeras tarjetas de un libro salen del sumario — preguntas
-    sobre en qué página empieza cada capítulo, que no es estudiar nada.
-    """
-    paginas_texto = texto_libro.split("\f")
-    for i, pagina in enumerate(paginas_texto, start=1):
-        letras = sum(c.isalpha() for c in pagina)
-        if letras > 700 and not _parece_indice(pagina):
-            return i
-        if i > 40:                       # no buscar eternamente en un libro raro
-            break
-    return 1
 
 
 def limpiar_texto(crudo: str, maximo: int = 14000) -> str:
@@ -251,6 +188,67 @@ def limpiar_texto(crudo: str, maximo: int = 14000) -> str:
     return texto_limpio[:maximo]
 
 
+# ----------------------------------------------------------- ver las páginas
+
+def cache() -> Path:
+    d = db.DATA_DIR / "paginas"
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _clave(ruta: str) -> str:
+    return hashlib.sha1(str(ruta).encode()).hexdigest()[:16]
+
+
+def render(ruta: str, pagina: int, ancho: int = 900) -> str:
+    """Dibuja una página del PDF a PNG y devuelve su ruta, con caché.
+
+    Se usa `pdftocairo`, que viene con poppler igual que `pdftotext` y suaviza
+    mucho mejor que `pdftoppm`. Cada página renderizada se guarda, así que
+    volver atrás es instantáneo.
+    """
+    ancho = max(200, min(2600, int(ancho)))
+    destino = cache() / f"{_clave(ruta)}-{int(pagina)}-{ancho}.png"
+    if destino.exists() and destino.stat().st_size > 0:
+        return str(destino)
+    if not shutil.which("pdftocairo"):
+        raise LibroError("Falta pdftocairo. Instálalo con: sudo apt install poppler-utils")
+    base = str(destino)[:-4]              # pdftocairo le pone la extensión él
+    orden = ["pdftocairo", "-png", "-r", "0", "-scale-to-x", str(ancho),
+             "-scale-to-y", "-1", "-f", str(int(pagina)), "-l", str(int(pagina)),
+             "-singlefile", str(ruta), base]
+    try:
+        r = subprocess.run(orden, capture_output=True, text=True, timeout=45)
+    except (OSError, subprocess.SubprocessError) as e:
+        raise LibroError(f"No pude dibujar la página: {e}") from e
+    if not destino.exists():
+        raise LibroError(f"No pude dibujar la página {pagina}: "
+                         f"{(r.stderr or 'error desconocido').strip()[:120]}")
+    return str(destino)
+
+
+def portada(ruta: str, ancho: int = 150) -> str | None:
+    """La primera página en pequeño, para el estante. None si no se puede."""
+    try:
+        return render(ruta, 1, ancho)
+    except LibroError:
+        return None
+
+
+def limpiar_cache(dias: int = 30) -> int:
+    """Borra páginas dibujadas hace tiempo; se vuelven a dibujar si hacen falta."""
+    corte = time.time() - dias * 86400
+    n = 0
+    for f in cache().glob("*.png"):
+        try:
+            if f.stat().st_mtime < corte:
+                f.unlink()
+                n += 1
+        except OSError:
+            continue
+    return n
+
+
 # ------------------------------------------------------- guardar en la base
 
 def mazo_para(con, libro: dict) -> dict:
@@ -263,19 +261,3 @@ def mazo_para(con, libro: dict) -> dict:
     db.upsert_deck(con, clave, f"📚 {tema}", "📚", "#7A5C9E", 20,
                    ["Básico", "Intermedio", "Avanzado"])
     return dict(con.execute("SELECT * FROM decks WHERE key=?", (clave,)).fetchone())
-
-
-def guardar_lectura(con, libro: dict, seccion: dict, cuerpo: str) -> int:
-    """Guarda una sección como capítulo de lectura, dentro del mazo del libro."""
-    mazo = mazo_para(con, libro)
-    parrafos = [p.strip() for p in re.split(r"\n\s*\n", cuerpo) if len(p.strip()) > 40]
-    bloques = [{"p": p[:1800]} for p in parrafos[:60]] or [{"p": cuerpo[:1800]}]
-    pos = con.execute("SELECT COUNT(*) FROM chapters WHERE deck_id=?",
-                      (mazo["id"],)).fetchone()[0] + 1
-    minutos = max(3, min(30, len(cuerpo) // 1100))
-    cid, _ = db.upsert_chapter(con, mazo["id"], mazo["key"], {
-        "level": 2, "pos": pos, "title": f"{libro['nombre']} · {seccion['titulo']}",
-        "subtitle": f"De tu biblioteca · {seccion['titulo']}",
-        "minutes": minutos, "tags": "libro", "body": bloques})
-    con.commit()
-    return cid

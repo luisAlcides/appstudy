@@ -406,28 +406,40 @@ su historial. Tus tarjetas propias nunca se tocan.
 
 ## Tu biblioteca
 
-La pestaña **Biblioteca** abre la carpeta donde tengas tus libros y los convierte
-en material de estudio. Los libros **no se copian ni se tocan**: se leen donde
-están, y a la base de datos solo pasa lo que tú apruebes.
+La pestaña **Biblioteca** organiza los libros que ya tienes y los abre **dentro de
+AppStudy**, con un lector de PDF que recuerda por dónde ibas. Los libros no se
+copian ni se tocan: se leen donde están, y en la base solo queda su ruta, la
+página y los minutos leídos.
 
-- **PDF** con `pdftotext` (paquete `poppler-utils`, casi siempre ya instalado) y
-  **EPUB** descomprimiendo su HTML; también TXT y MD. Si un PDF es un escaneo sin
-  texto, te lo dice en vez de fallar en silencio (para eso haría falta OCR).
-- El libro se parte en **secciones**: por sus capítulos si los declara
-  (`Capítulo 3`, `Chapter 7`, `4. Título`…) y, si no, en tramos de doce páginas.
-  Se saltan portada, créditos e índice — sin eso, las primeras tarjetas salen del
-  sumario y preguntan en qué página empieza cada capítulo.
-- De cada sección: **✦ Tarjetas** (el modelo las saca *solo de ese texto*, y tú
-  marcas cuáles se guardan) o **📖 Leer** (la guarda como capítulo de lectura).
-- Todo va a un mazo propio por carpeta —`📚 Mecanica`, `📚 Python`…— y las
-  tarjetas quedan etiquetadas `libro,ia` para poder encontrarlas o borrarlas.
+**El estante**
 
-La carpeta se elige con el botón de la carpeta, arriba a la derecha, o en
-Ajustes → Biblioteca. El listado es instantáneo aunque tengas miles de libros
-(se rellena por tandas), y abrir un PDF de 200 páginas tarda menos de un segundo.
+- Arriba, **Seguir leyendo**: los últimos libros que abriste, con su portada de
+  verdad (la primera página del PDF), la barra de avance y «pág. 77 de 198».
+- Debajo, tus carpetas convertidas en **estantes** que se despliegan —
+  `Mecanica`, `Python`, `SQL`…— con cuántos libros tiene cada una y cuántos
+  llevas empezados. Los libros de un estante se pintan al abrirlo, no antes: con
+  1.281 libros la diferencia es entre instantáneo y esperar.
+- El buscador filtra por título y por carpeta a la vez, y cada resultado enseña
+  su portada y su avance.
 
-⚠️ Un modelo local se inventa cosas: revisa siempre lo que propone antes de
-guardarlo. Un par de apriete mal copiado se estudia igual de bien que uno bueno.
+**El lector**
+
+| | |
+|---|---|
+| ← → · Espacio · AvPág/RePág | pasar página |
+| Inicio / Fin | primera y última |
+| + / − | seis niveles de zoom |
+| Casilla de página | saltar a una página concreta |
+| ★ | marcar como favorito |
+| ✦ Tarjetas | saca tarjetas de la página en la que estás y las dos siguientes |
+
+**El progreso se guarda solo**, en cada cambio de página: cierras el libro,
+vuelves mañana y sigues en la 77. Al salir también se anotan los minutos leídos.
+
+Las páginas se dibujan con `pdftocairo` (poppler, ya lo tienes) en un hilo
+aparte, y se guardan en `~/.local/share/appstudy/paginas`: dibujar una tarda
+~150 ms, volver a ella es instantáneo, y mientras lees una ya se está dibujando
+la siguiente. La caché se puede borrar cuando quieras — se rehace sola.
 
 ## Preguntarle a Bit (IA local)
 

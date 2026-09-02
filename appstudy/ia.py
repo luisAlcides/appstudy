@@ -333,23 +333,5 @@ def generar_desde_texto(cfg, fragmento: str, titulo: str, cuantas: int = 5) -> l
 
 # -------------------------------------------------------------------- hilos
 
-def hilo(trabajo, al_terminar, al_fallar=None):
-    """Corre `trabajo()` en segundo plano y devuelve el resultado en el hilo de GTK.
-
-    Una respuesta tarda segundos: hacerlo en el hilo principal congelaría la
-    ventana (y la mascota dejaría de moverse a media frase).
-    """
-    from gi.repository import GLib
-
-    def dentro():
-        try:
-            resultado = trabajo()
-        except Exception as e:                        # se enseña, no se traga
-            if al_fallar:
-                GLib.idle_add(al_fallar, e)
-            return
-        GLib.idle_add(al_terminar, resultado)
-
-    h = threading.Thread(target=dentro, daemon=True)
-    h.start()
-    return h
+# Vive en util porque no es cosa de la IA: lo usa cualquiera que tarde.
+hilo = util.hilo

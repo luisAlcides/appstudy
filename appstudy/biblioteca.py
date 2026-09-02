@@ -1,68 +1,70 @@
-"""La pestaña Biblioteca: tus libros, y cómo convertirlos en material de estudio.
+"""La pestaña Biblioteca: tus libros ordenados, y un lector de PDF dentro.
 
-Dos páginas: el estante (todos los libros de la carpeta, buscables) y el libro
-abierto (sus secciones, con lo que se puede hacer con cada una). Los libros se
-leen donde están; a la base solo pasa lo que apruebes.
+Dos páginas. **El estante**: arriba lo que estás leyendo, con portada y barra de
+avance; debajo, tus carpetas convertidas en estantes que se despliegan. **El
+lector**: el PDF página a página, con zoom y teclado, guardando por dónde vas.
 
-Todo lo lento —abrir un PDF de 400 páginas, o pedirle tarjetas al modelo— va en
-un hilo aparte, que si no la ventana se queda tiesa.
+Los libros no se copian ni se tocan: se leen donde están. De ellos, en la base
+solo queda la ruta, la página por la que ibas y los minutos que llevas leídos.
+
+Dibujar una página tarda ~150 ms, así que se hace en un hilo aparte y se guarda
+en caché; la siguiente se va dibujando mientras lees esta, y así pasar de página
+sale instantáneo.
 """
+import time
+
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, GLib, Gtk  # noqa: E402
+from gi.repository import Adw, Gdk, GLib, Gtk  # noqa: E402
 
-from . import ia, libros, util  # noqa: E402
+from . import db, ia, libros, util  # noqa: E402
 
-POR_TANDA = 60          # filas que se añaden de golpe; hay más de mil libros
+ANCHO_PORTADA = 108           # ancho de las portadas de «seguir leyendo»
+MAX_POR_ESTANTE = 240         # libros que se pintan al desplegar una carpeta
+ZOOMS = (700, 900, 1150, 1450, 1800, 2200)
+
+
+def _progreso(guardado: dict) -> float:
+    if not guardado or not guardado.get("paginas"):
+        return 0.0
+    return max(0.0, min(1.0, guardado.get("pagina", 1) / guardado["paginas"]))
 
 
 class Biblioteca(Adw.Bin):
     def __init__(self, ventana, con):
         super().__init__()
-        self.nav = Adw.NavigationView()
-        self.set_child(self.nav)
-        self.push = self.nav.push
-        self.pop = self.nav.pop
-        self.add = self.nav.add
-
         self.ventana = ventana
         self.con = con
-        self.estante = []           # lo último que se leyó del disco
-        self.pendientes = []
-        self.tanda = 0
-        self.libro = None           # el libro abierto
-        self.secciones = []
+        self.nav = Adw.NavigationView()
+        self.set_child(self.nav)
 
-        self.lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
-                                 css_classes=["boxed-list"])
-        for lado in ("start", "end", "bottom"):
-            getattr(self.lista, f"set_margin_{lado}")(16)
+        self.estante = []          # los libros que hay en el disco
+        self.guardados = {}        # lo que la base sabe de ellos, por ruta
 
         self.buscar = Gtk.SearchEntry(placeholder_text="Buscar entre tus libros…",
                                       hexpand=True)
-        self.buscar.connect("search-changed", lambda *_: self.refrescar())
+        self.buscar.connect("search-changed", lambda *_: self.pintar())
 
         cabecera = Gtk.Box(spacing=10)
-        for lado, v in (("top", 12), ("bottom", 8), ("start", 16), ("end", 16)):
+        for lado, v in (("top", 12), ("bottom", 4), ("start", 16), ("end", 16)):
             getattr(cabecera, f"set_margin_{lado}")(v)
         cabecera.append(self.buscar)
-        elegir = Gtk.Button(icon_name="folder-open-symbolic",
-                            tooltip_text="Elegir la carpeta de los libros")
-        elegir.connect("clicked", lambda *_: self.elegir_carpeta())
-        cabecera.append(elegir)
+        carpeta = Gtk.Button(icon_name="folder-open-symbolic",
+                             tooltip_text="Elegir la carpeta de los libros")
+        carpeta.connect("clicked", lambda *_: self.elegir_carpeta())
+        cabecera.append(carpeta)
 
-        self.resumen = Gtk.Label(xalign=0, css_classes=["caption", "as-dim"])
-        self.resumen.set_margin_start(18)
-        self.resumen.set_margin_bottom(6)
+        self.columna = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+        for lado, v in (("top", 6), ("bottom", 28), ("start", 16), ("end", 16)):
+            getattr(self.columna, f"set_margin_{lado}")(v)
 
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         caja.append(cabecera)
-        caja.append(self.resumen)
         scroll = Gtk.ScrolledWindow(vexpand=True)
-        clamp = Adw.Clamp(maximum_size=1000)
-        clamp.set_child(self.lista)
+        clamp = Adw.Clamp(maximum_size=1040)
+        clamp.set_child(self.columna)
         scroll.set_child(clamp)
         caja.append(scroll)
 
@@ -72,64 +74,156 @@ class Biblioteca(Adw.Bin):
         pagina.set_child(tv)
         self.nav.add(pagina)
 
-    # ------------------------------------------------------------- el estante
+    # ==================================================== el estante
 
     def refrescar(self):
-        """Relee la carpeta y pinta el estante, por tandas para no atascarse."""
-        self.nav.pop_to_tag("estante")       # por si había un libro abierto
-        raiz = libros.carpeta(self.con)
-        self.estante = libros.listar(raiz, self.buscar.get_text().strip())
-        while (c := self.lista.get_first_child()) is not None:
-            self.lista.remove(c)
+        self.nav.pop_to_tag("estante")
+        self.estante = libros.listar(libros.carpeta(self.con))
+        self.guardados = db.books_todos(self.con)
+        self.pintar()
 
-        if not raiz.is_dir():
-            self.resumen.set_text(f"No encuentro la carpeta {raiz}")
-            self.lista.append(Adw.ActionRow(
-                title="Elige dónde tienes los libros",
-                subtitle="Con el botón de la carpeta, arriba a la derecha"))
-            return
+    def pintar(self):
+        """Rehace el estante: lo que sigues leyendo y tus carpetas."""
+        while (c := self.columna.get_first_child()) is not None:
+            self.columna.remove(c)
+        filtro = self.buscar.get_text().strip().lower()
+
         if not self.estante:
-            self.resumen.set_text(str(raiz))
-            self.lista.append(Adw.ActionRow(
-                title="Sin resultados",
-                subtitle="Prueba con otra búsqueda. Se leen PDF, EPUB, TXT y MD."))
+            estado = Adw.StatusPage(
+                title="Aquí no hay libros",
+                description=f"Miré en {libros.carpeta(self.con)}. Elige otra carpeta "
+                            "con el botón de arriba a la derecha. Se leen PDF, EPUB, "
+                            "TXT y MD.",
+                icon_name="folder-symbolic")
+            estado.set_vexpand(True)
+            self.columna.append(estado)
             return
 
-        temas = len({l["tema"] for l in self.estante})
+        if filtro:
+            palabras = filtro.split()
+            hallados = [l for l in self.estante
+                        if all(p in f"{l['nombre']} {l['tema']}".lower() for p in palabras)]
+            self.columna.append(self.titulillo(
+                f"{len(hallados)} resultados para «{filtro}»"))
+            lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                                css_classes=["boxed-list"])
+            for l in hallados[:200]:
+                lista.append(self.fila_libro(l))
+            self.columna.append(lista)
+            return
+
+        leyendo = [b for b in db.books_leyendo(self.con, 12)
+                   if any(l["ruta"] == b["ruta"] for l in self.estante)]
+        if leyendo:
+            self.columna.append(self.titulillo("Seguir leyendo"))
+            self.columna.append(self.tira(leyendo))
+
+        temas = {}
+        for l in self.estante:
+            temas.setdefault(l["tema"], []).append(l)
         gigas = sum(l["tam"] for l in self.estante) / 1e9
-        self.resumen.set_text(f"{len(self.estante)} libros · {temas} temas · "
-                              f"{gigas:.1f} GB · {raiz}")
-        self.tanda += 1
-        self.pendientes = list(self.estante)
-        self.llenar(self.tanda, 30)
+        self.columna.append(self.titulillo(
+            f"Tus estantes · {len(self.estante)} libros · {len(temas)} temas · "
+            f"{gigas:.1f} GB"))
 
-    def llenar(self, tanda, cuantas=POR_TANDA):
-        if tanda != self.tanda:
-            return False                     # otra búsqueda mandó; este relleno sobra
-        tema_previo = None
-        for l in self.pendientes[:cuantas]:
-            if l["tema"] != tema_previo:
-                tema_previo = l["tema"]
-                cab = Adw.ActionRow(title=util.as_label(l["tema"].upper()),
-                                    css_classes=["as-level-header"])
-                cab.set_activatable(False)
-                self.lista.append(cab)
-            self.lista.append(self.fila(l))
-        del self.pendientes[:cuantas]
-        if self.pendientes:
-            GLib.idle_add(self.llenar, tanda)
-        return False
+        grupo = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                            css_classes=["boxed-list"])
+        for tema, del_tema in sorted(temas.items(), key=lambda x: x[0].lower()):
+            grupo.append(self.estante_de(tema, del_tema))
+        self.columna.append(grupo)
 
-    def fila(self, libro):
-        row = Adw.ActionRow(title=util.as_label(libro["nombre"]))
-        row.set_title_lines(2)
-        row.set_subtitle(f"{libro['ext'].upper()} · {libro['tam'] / 1e6:.1f} MB")
-        row.set_activatable(True)
-        row.connect("activated", lambda *_: self.abrir(libro))
-        row.add_prefix(Gtk.Label(label="📕" if libro["ext"] == "pdf" else "📗",
-                                 css_classes=["as-deck-row-icon"]))
-        row.add_suffix(Gtk.Image.new_from_icon_name("go-next-symbolic"))
-        return row
+    @staticmethod
+    def titulillo(texto):
+        return Gtk.Label(label=texto, xalign=0, css_classes=["title-4"])
+
+    def estante_de(self, tema, del_tema):
+        """Una carpeta. Sus libros se pintan al desplegarla, no antes."""
+        empezados = sum(1 for l in del_tema
+                        if self.guardados.get(l["ruta"], {}).get("abierto"))
+        fila = Adw.ExpanderRow(title=util.as_label(tema))
+        fila.set_subtitle(f"{len(del_tema)} libros" +
+                          (f" · {empezados} empezados" if empezados else ""))
+        fila.add_prefix(Gtk.Label(label="📚", css_classes=["as-deck-row-icon"]))
+        hecho = {"si": False}
+
+        def desplegar(*_):
+            if hecho["si"] or not fila.get_expanded():
+                return
+            hecho["si"] = True
+            for l in del_tema[:MAX_POR_ESTANTE]:
+                fila.add_row(self.fila_libro(l))
+
+        fila.connect("notify::expanded", desplegar)
+        return fila
+
+    def fila_libro(self, libro):
+        guardado = self.guardados.get(libro["ruta"])
+        fila = Adw.ActionRow(title=util.as_label(libro["nombre"]))
+        fila.set_title_lines(2)
+        detalle = f"{libro['ext'].upper()} · {libro['tam'] / 1e6:.1f} MB"
+        if guardado and guardado["paginas"]:
+            detalle += (f" · vas por la página {guardado['pagina']} de "
+                        f"{guardado['paginas']} ({_progreso(guardado) * 100:.0f} %)")
+        fila.set_subtitle(detalle)
+        fila.set_activatable(True)
+        fila.connect("activated", lambda *_: self.abrir(libro))
+
+        if libro["ext"] == "pdf":
+            miniatura = Gtk.Picture(width_request=34, height_request=46,
+                                    content_fit=Gtk.ContentFit.CONTAIN)
+            fila.add_prefix(miniatura)
+            self.poner_portada(miniatura, libro["ruta"], 90)
+        else:
+            fila.add_prefix(Gtk.Label(label="📗", css_classes=["as-deck-row-icon"]))
+
+        if guardado and guardado["paginas"]:
+            fila.add_suffix(Gtk.ProgressBar(
+                fraction=_progreso(guardado), valign=Gtk.Align.CENTER,
+                width_request=90, css_classes=["as-progress"]))
+        fila.add_suffix(Gtk.Image.new_from_icon_name("go-next-symbolic"))
+        return fila
+
+    def tira(self, leyendo):
+        """La fila de portadas de «seguir leyendo»."""
+        caja = Gtk.Box(spacing=14)
+        caja.set_margin_bottom(4)
+        for b in leyendo:
+            libro = next((l for l in self.estante if l["ruta"] == b["ruta"]), None)
+            tarjeta = Gtk.Button(css_classes=["card"],
+                                 width_request=ANCHO_PORTADA + 24)
+            dentro = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+            for lado in ("top", "bottom", "start", "end"):
+                getattr(dentro, f"set_margin_{lado}")(10)
+            portada = Gtk.Picture(width_request=ANCHO_PORTADA, height_request=150,
+                                  content_fit=Gtk.ContentFit.CONTAIN)
+            dentro.append(portada)
+            self.poner_portada(portada, b["ruta"], 220)
+            nombre = Gtk.Label(
+                label=util.as_label(b["titulo"]), use_markup=True, wrap=True,
+                width_chars=14, max_width_chars=14, lines=2, xalign=0, ellipsize=3,
+                css_classes=["caption-heading"])
+            nombre.set_wrap_mode(2)                # parte también dentro de palabra
+            dentro.append(nombre)
+            dentro.append(Gtk.ProgressBar(fraction=_progreso(b),
+                                          css_classes=["as-progress"]))
+            dentro.append(Gtk.Label(
+                label=f"pág. {b['pagina']} de {b['paginas'] or '?'}", xalign=0,
+                css_classes=["caption", "as-dim"]))
+            tarjeta.set_child(dentro)
+            if libro:
+                tarjeta.connect("clicked", lambda _b, l=libro: self.abrir(l))
+            caja.append(tarjeta)
+        scroll = Gtk.ScrolledWindow(vscrollbar_policy=Gtk.PolicyType.NEVER,
+                                    propagate_natural_height=True)
+        scroll.set_child(caja)
+        return scroll
+
+    @staticmethod
+    def poner_portada(imagen, ruta, ancho):
+        """Dibuja la portada aparte; la caché hace que la próxima vez vuele."""
+        util.hilo(lambda: libros.portada(ruta, ancho),
+                  lambda png: imagen.set_filename(png) if png else None,
+                  lambda e: None)
 
     def elegir_carpeta(self):
         dlg = Gtk.FileDialog(title="¿Dónde tienes los libros?")
@@ -137,122 +231,199 @@ class Biblioteca(Adw.Bin):
 
     def on_carpeta(self, dlg, resultado):
         try:
-            carpeta = dlg.select_folder_finish(resultado)
+            elegida = dlg.select_folder_finish(resultado)
         except GLib.Error:
             return
-        if carpeta and carpeta.get_path():
-            libros.set_carpeta(self.con, carpeta.get_path())
+        if elegida and elegida.get_path():
+            libros.set_carpeta(self.con, elegida.get_path())
             self.refrescar()
 
-    # -------------------------------------------------------------- el libro
+    # ==================================================== abrir el lector
 
     def abrir(self, libro):
-        """Abre el libro: extrae el texto en segundo plano y enseña sus secciones."""
-        self.libro = libro
-        pagina = Adw.NavigationPage(title=util.plain(libro["nombre"])[:60])
-        self.caja_libro = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
-        for lado, v in (("top", 18), ("bottom", 28), ("start", 20), ("end", 20)):
-            getattr(self.caja_libro, f"set_margin_{lado}")(v)
-        self.caja_libro.append(Gtk.Label(
-            label=util.as_label(libro["nombre"]), use_markup=True, wrap=True, xalign=0,
-            css_classes=["as-read-h1"]))
-        self.cargando = Adw.StatusPage(title="Abriendo el libro…",
-                                       description="Sacando el texto y buscando sus partes")
-        self.cargando.set_vexpand(True)
-        self.caja_libro.append(self.cargando)
-
-        scroll = Gtk.ScrolledWindow(vexpand=True)
-        clamp = Adw.Clamp(maximum_size=880)
-        clamp.set_child(self.caja_libro)
-        scroll.set_child(clamp)
-        tv = Adw.ToolbarView()
-        tv.add_top_bar(Adw.HeaderBar())
-        tv.set_content(scroll)
-        pagina.set_child(tv)
-        self.nav.push(pagina)
-
-        ruta = libro["ruta"]
-        ia.hilo(lambda: self._leer(ruta), self.pintar_secciones, self.error_libro)
-
-    @staticmethod
-    def _leer(ruta):
-        texto = libros.texto(ruta)
-        return texto, libros.secciones(texto, libros.paginas(ruta))
-
-    def error_libro(self, e):
-        self.cargando.set_title("No pude abrirlo")
-        self.cargando.set_description(str(e))
-
-    def pintar_secciones(self, datos):
-        texto, secciones = datos
-        self.secciones = secciones
-        self.caja_libro.remove(self.cargando)
-        letras = sum(c.isalpha() for c in texto)
-        self.caja_libro.append(Gtk.Label(
-            label=f"{len(secciones)} partes · {letras // 1000} mil caracteres de texto",
-            xalign=0, css_classes=["caption", "as-dim"]))
-        self.caja_libro.append(Gtk.Label(
-            label="De cada parte puedes sacar <b>tarjetas</b> (las revisas antes de "
-                  "guardarlas) o guardarla como <b>capítulo de lectura</b>. Se guarda "
-                  "en un mazo propio del tema del libro.",
-            use_markup=True, wrap=True, xalign=0, css_classes=["as-read-p"]))
-
-        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
-                            css_classes=["boxed-list"])
-        for s in secciones:
-            fila = Adw.ActionRow(title=util.as_label(s["titulo"]))
-            fila.set_subtitle(f"{s['hasta'] - s['desde'] + 1} páginas")
-            tarjetas = Gtk.Button(label="✦ Tarjetas", valign=Gtk.Align.CENTER,
-                                  css_classes=["suggested-action"],
-                                  tooltip_text="Sacar tarjetas de esta parte con la IA")
-            tarjetas.connect("clicked", lambda _b, s=s: self.hacer_tarjetas(s))
-            fila.add_suffix(tarjetas)
-            leer = Gtk.Button(label="📖 Leer", valign=Gtk.Align.CENTER,
-                              tooltip_text="Guardarla como capítulo en Leer")
-            leer.connect("clicked", lambda _b, s=s: self.hacer_lectura(s))
-            fila.add_suffix(leer)
-            lista.append(fila)
-        self.caja_libro.append(lista)
-
-    # ------------------------------------------------------------- acciones
-
-    def _fragmento(self, seccion, maximo=9000):
-        crudo = libros.texto(self.libro["ruta"], seccion["desde"], seccion["hasta"])
-        return libros.limpiar_texto(crudo, maximo)
-
-    def hacer_tarjetas(self, seccion):
-        if not ia.config(self.con)["activa"]:
-            self.ventana.notify_user("Activa la IA en Ajustes para sacar tarjetas")
+        if libro["ext"] != "pdf":
+            self.ventana.notify_user("El lector abre PDF; de los otros formatos puedo "
+                                     "sacar tarjetas, pero no pasarte las hojas")
             return
-        self.ventana.notify_user(f"Leyendo «{seccion['titulo']}» y pensando tarjetas…")
+        lector = Lector(self, libro)
+        self.nav.push(lector.pagina)
+
+
+class Lector:
+    """El PDF abierto: una página cada vez, con zoom, teclado y avance guardado."""
+
+    def __init__(self, biblioteca, libro):
+        self.bib = biblioteca
+        self.con = biblioteca.con
+        self.libro = libro
+        self.zoom = 2                      # índice dentro de ZOOMS
+        self.desde = time.time()           # para contar los minutos leídos
+        self.pendiente = None              # (página, ancho) que se está dibujando
+
+        total = libros.paginas(libro["ruta"])
+        guardado = db.book_abrir(self.con, libro["ruta"], libro["nombre"],
+                                 libro["tema"], total)
+        self.total = total or guardado["paginas"] or 1
+        self.n = min(max(1, guardado["pagina"]), self.total)
+
+        self.imagen = Gtk.Picture(content_fit=Gtk.ContentFit.CONTAIN, vexpand=True)
+        self.scroll = Gtk.ScrolledWindow(vexpand=True, hexpand=True)
+        self.scroll.set_child(self.imagen)
+
+        cuerpo = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        cuerpo.append(self.scroll)
+        cuerpo.append(self.barra())
+
+        self.pagina = Adw.NavigationPage(title=util.plain(libro["nombre"])[:60])
+        tv = Adw.ToolbarView()
+        cab = Adw.HeaderBar()
+        self.titulo = Adw.WindowTitle(title=util.plain(libro["nombre"])[:48], subtitle="")
+        cab.set_title_widget(self.titulo)
+        fav = Gtk.ToggleButton(icon_name="starred-symbolic", tooltip_text="Favorito",
+                               active=bool(guardado.get("favorito")))
+        fav.connect("toggled", lambda b: db.book_favorito(self.con, libro["ruta"],
+                                                          b.get_active()))
+        cab.pack_end(fav)
+        tv.add_top_bar(cab)
+        tv.set_content(cuerpo)
+        self.pagina.set_child(tv)
+        self.pagina.connect("hidden", lambda *_: self.cerrar())
+
+        teclas = Gtk.EventControllerKey()
+        teclas.connect("key-pressed", self.on_key)
+        self.pagina.add_controller(teclas)
+
+        self.ir(self.n)
+
+    # ------------------------------------------------------------- barra
+
+    def barra(self):
+        caja = Gtk.Box(spacing=8, css_classes=["toolbar"])
+        for lado, v in (("top", 6), ("bottom", 8), ("start", 12), ("end", 12)):
+            getattr(caja, f"set_margin_{lado}")(v)
+
+        anterior = Gtk.Button(icon_name="go-previous-symbolic",
+                              tooltip_text="Anterior (←)")
+        anterior.connect("clicked", lambda *_: self.ir(self.n - 1))
+        caja.append(anterior)
+
+        self.caja_pagina = Gtk.Entry(width_chars=4, xalign=0.5,
+                                     tooltip_text="Ir a una página")
+        self.caja_pagina.connect("activate", self.on_saltar)
+        caja.append(self.caja_pagina)
+        caja.append(Gtk.Label(label=f"de {self.total}", css_classes=["as-dim"]))
+
+        siguiente = Gtk.Button(icon_name="go-next-symbolic",
+                               tooltip_text="Siguiente (→)")
+        siguiente.connect("clicked", lambda *_: self.ir(self.n + 1))
+        caja.append(siguiente)
+
+        self.avance = Gtk.ProgressBar(hexpand=True, valign=Gtk.Align.CENTER,
+                                      show_text=True, css_classes=["as-progress"])
+        caja.append(self.avance)
+
+        menos = Gtk.Button(icon_name="zoom-out-symbolic", tooltip_text="Alejar (−)")
+        menos.connect("clicked", lambda *_: self.cambiar_zoom(-1))
+        caja.append(menos)
+        mas = Gtk.Button(icon_name="zoom-in-symbolic", tooltip_text="Acercar (+)")
+        mas.connect("clicked", lambda *_: self.cambiar_zoom(1))
+        caja.append(mas)
+
+        tarjetas = Gtk.Button(label="✦ Tarjetas",
+                              tooltip_text="Sacar tarjetas de estas páginas con la IA")
+        tarjetas.connect("clicked", lambda *_: self.hacer_tarjetas())
+        caja.append(tarjetas)
+        return caja
+
+    # ------------------------------------------------------------ páginas
+
+    def ir(self, n):
+        n = max(1, min(int(n), self.total))
+        self.n = n
+        self.caja_pagina.set_text(str(n))
+        self.avance.set_fraction(n / self.total)
+        self.avance.set_text(f"{n / self.total * 100:.0f} %")
+        self.titulo.set_subtitle(f"página {n} de {self.total}")
+        db.book_progreso(self.con, self.libro["ruta"], n)
+
+        ruta, ancho = self.libro["ruta"], ZOOMS[self.zoom]
+        self.pendiente = (n, ancho)
+        util.hilo(lambda: (n, ancho, libros.render(ruta, n, ancho)),
+                  self.pintar, self.fallo)
+
+    def pintar(self, datos):
+        n, ancho, png = datos
+        if self.pendiente != (n, ancho):
+            return                       # llegó tarde: ya ibas por otra página
+        self.imagen.set_filename(png)
+        self.scroll.get_vadjustment().set_value(0)
+        if n < self.total:               # la siguiente, mientras lees esta
+            ruta = self.libro["ruta"]
+            util.hilo(lambda: libros.render(ruta, n + 1, ancho),
+                      lambda *_: None, lambda e: None)
+
+    def fallo(self, e):
+        self.bib.ventana.notify_user(str(e))
+
+    def cambiar_zoom(self, paso):
+        nuevo = max(0, min(len(ZOOMS) - 1, self.zoom + paso))
+        if nuevo != self.zoom:
+            self.zoom = nuevo
+            self.ir(self.n)
+
+    def on_saltar(self, entrada):
+        try:
+            self.ir(int(entrada.get_text().strip()))
+        except ValueError:
+            self.caja_pagina.set_text(str(self.n))
+
+    def on_key(self, _c, keyval, _code, _estado):
+        tecla = Gdk.keyval_name(keyval)
+        saltos = {"Left": -1, "Page_Up": -1, "Up": -1,
+                  "Right": 1, "Page_Down": 1, "Down": 1, "space": 1}
+        if tecla in saltos:
+            self.ir(self.n + saltos[tecla])
+            return True
+        if tecla in ("Home", "End"):
+            self.ir(1 if tecla == "Home" else self.total)
+            return True
+        if tecla in ("plus", "equal", "KP_Add"):
+            self.cambiar_zoom(1)
+            return True
+        if tecla in ("minus", "KP_Subtract"):
+            self.cambiar_zoom(-1)
+            return True
+        return False
+
+    def cerrar(self):
+        """Al salir se anotan los minutos leídos y se repinta el estante."""
+        minutos = min(180.0, (time.time() - self.desde) / 60)
+        db.book_progreso(self.con, self.libro["ruta"], self.n, minutos)
+        self.bib.guardados = db.books_todos(self.con)
+        self.bib.pintar()
+
+    # ------------------------------------------------------------ tarjetas
+
+    def hacer_tarjetas(self):
+        """Tarjetas de lo que tienes delante: esta página y las dos siguientes."""
+        if not ia.config(self.con)["activa"]:
+            self.bib.ventana.notify_user("Activa la IA en Ajustes para sacar tarjetas")
+            return
+        desde, hasta = self.n, min(self.total, self.n + 2)
+        self.bib.ventana.notify_user(f"Leyendo las páginas {desde}–{hasta}…")
         cfg = ia.config(self.con)
-        libro, titulo = self.libro, seccion["titulo"]
-
-        def trabajo():
-            fragmento = self._fragmento(seccion)
-            if len(fragmento) < 400:
-                raise libros.LibroError("Esta parte casi no tiene texto: prueba con otra.")
-            return ia.generar_desde_texto(cfg, fragmento, f"{libro['nombre']} · {titulo}", 5)
-
-        ia.hilo(trabajo,
-                lambda tarjetas: self.ventana.revisar_generadas(
-                    tarjetas, libros.mazo_para(self.con, libro),
-                    f"{libro['nombre']} · {titulo}", etiquetas="libro,ia"),
-                lambda e: self.ventana.notify_user(f"No pude: {e}"))
-
-    def hacer_lectura(self, seccion):
-        self.ventana.notify_user(f"Guardando «{seccion['titulo']}» para leer…")
         libro = self.libro
 
         def trabajo():
-            return self._fragmento(seccion, 30000)
+            fragmento = libros.limpiar_texto(
+                libros.texto(libro["ruta"], desde, hasta), 9000)
+            if len(fragmento) < 400:
+                raise libros.LibroError("Estas páginas casi no tienen texto.")
+            return ia.generar_desde_texto(
+                cfg, fragmento, f"{libro['nombre']} (págs. {desde}–{hasta})", 5)
 
-        def guardar(cuerpo):
-            if len(cuerpo) < 200:
-                self.ventana.notify_user("Esa parte casi no tiene texto")
-                return
-            libros.guardar_lectura(self.con, libro, seccion, cuerpo)
-            self.ventana.notify_user(f"«{seccion['titulo']}» ya está en Leer")
-            self.ventana.refresh()
-
-        ia.hilo(trabajo, guardar, lambda e: self.ventana.notify_user(f"No pude: {e}"))
+        util.hilo(trabajo,
+                  lambda tarjetas: self.bib.ventana.revisar_generadas(
+                      tarjetas, libros.mazo_para(self.con, libro),
+                      f"{libro['nombre']} · págs. {desde}–{hasta}", etiquetas="libro,ia"),
+                  lambda e: self.bib.ventana.notify_user(f"No pude: {e}"))

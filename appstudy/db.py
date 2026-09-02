@@ -76,6 +76,20 @@ CREATE TABLE IF NOT EXISTS reading (
     ts         REAL NOT NULL DEFAULT 0
 );
 
+-- Los libros de tu biblioteca: solo la ruta y por dónde vas. El PDF se queda
+-- donde está; aquí no se copia nada.
+CREATE TABLE IF NOT EXISTS books (
+    id       INTEGER PRIMARY KEY,
+    ruta     TEXT UNIQUE NOT NULL,
+    titulo   TEXT NOT NULL,
+    tema     TEXT NOT NULL DEFAULT '',
+    paginas  INTEGER NOT NULL DEFAULT 0,
+    pagina   INTEGER NOT NULL DEFAULT 1,   -- por dónde ibas
+    abierto  REAL NOT NULL DEFAULT 0,      -- cuándo lo abriste por última vez
+    minutos  REAL NOT NULL DEFAULT 0,      -- tiempo leído, acumulado
+    favorito INTEGER NOT NULL DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);
 
 """
@@ -86,6 +100,7 @@ CREATE INDEX IF NOT EXISTS idx_cards_level ON cards(level);
 CREATE INDEX IF NOT EXISTS idx_state_due   ON state(due);
 CREATE INDEX IF NOT EXISTS idx_log_ts      ON log(ts);
 CREATE INDEX IF NOT EXISTS idx_chap_deck   ON chapters(deck_id, level, pos);
+CREATE INDEX IF NOT EXISTS idx_books_abierto ON books(abierto DESC);
 """
 
 
@@ -272,6 +287,51 @@ def reading_totals(con):
            WHERE d.enabled = 1""").fetchone()
     return {"total": r["total"] or 0, "leidos": r["leidos"] or 0,
             "minutos": r["minutos"] or 0}
+
+
+# ------------------------------------------------------------------- libros
+
+def book(con, ruta: str) -> dict | None:
+    fila = con.execute("SELECT * FROM books WHERE ruta=?", (str(ruta),)).fetchone()
+    return dict(fila) if fila else None
+
+
+def book_abrir(con, ruta: str, titulo: str, tema: str, paginas: int) -> dict:
+    """Registra el libro (si es la primera vez) y anota que lo acabas de abrir."""
+    con.execute(
+        """INSERT INTO books(ruta, titulo, tema, paginas, pagina, abierto)
+           VALUES(?,?,?,?,1,?)
+           ON CONFLICT(ruta) DO UPDATE SET titulo=excluded.titulo, tema=excluded.tema,
+                                           paginas=excluded.paginas, abierto=excluded.abierto""",
+        (str(ruta), titulo, tema, paginas, time.time()))
+    con.commit()
+    return book(con, ruta)
+
+
+def book_progreso(con, ruta: str, pagina: int, minutos: float = 0.0):
+    """Guarda por dónde vas. Es lo que hace que retomes donde lo dejaste."""
+    con.execute(
+        """UPDATE books SET pagina=?, abierto=?, minutos=minutos+? WHERE ruta=?""",
+        (max(1, int(pagina)), time.time(), max(0.0, minutos), str(ruta)))
+    con.commit()
+
+
+def book_favorito(con, ruta: str, favorito: bool):
+    con.execute("UPDATE books SET favorito=? WHERE ruta=?", (int(favorito), str(ruta)))
+    con.commit()
+
+
+def books_leyendo(con, cuantos: int = 12) -> list:
+    """Los últimos que abriste y aún no terminaste: para «seguir leyendo»."""
+    filas = con.execute(
+        """SELECT * FROM books WHERE abierto > 0 ORDER BY abierto DESC LIMIT ?""",
+        (cuantos,)).fetchall()
+    return [dict(f) for f in filas]
+
+
+def books_todos(con) -> dict:
+    """Todo lo que se sabe de tus libros, indexado por ruta."""
+    return {f["ruta"]: dict(f) for f in con.execute("SELECT * FROM books")}
 
 
 def delete_card(con, card_id):

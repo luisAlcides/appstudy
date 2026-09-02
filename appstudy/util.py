@@ -1,5 +1,6 @@
 """Utilidades de texto y color para la interfaz."""
 import re
+import threading
 
 import gi
 
@@ -119,3 +120,26 @@ def shade(hex_color: str, alpha: float) -> str:
     h = hex_color.lstrip("#")
     r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
     return f"rgba({r},{g},{b},{alpha})"
+
+
+def hilo(trabajo, al_terminar, al_fallar=None):
+    """Corre `trabajo()` aparte y devuelve el resultado en el hilo de GTK.
+
+    Dibujar una página de PDF o esperar a un modelo tarda cientos de
+    milisegundos o segundos: hacerlo en el hilo de la interfaz congelaría la
+    ventana. GTK solo se puede tocar desde su propio hilo, de ahí el idle_add.
+    """
+    from gi.repository import GLib
+
+    def dentro():
+        try:
+            resultado = trabajo()
+        except Exception as e:                        # se enseña, no se traga
+            if al_fallar:
+                GLib.idle_add(al_fallar, e)
+            return
+        GLib.idle_add(al_terminar, resultado)
+
+    h = threading.Thread(target=dentro, daemon=True)
+    h.start()
+    return h
