@@ -11,6 +11,8 @@ from gi.repository import Adw, GLib, Gtk, Pango  # noqa: E402
 
 from . import db, hotkey, ia, libros, pet, scheduler, sonido, util  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
+
+MAX_FILAS = 120        # tarjetas que se pintan a la vez en el explorador
 from .reader import ChapterView  # noqa: E402
 
 
@@ -39,8 +41,6 @@ class MainWindow(Adw.ApplicationWindow):
         # rehace cientos de filas), así que solo se refresca la que se está
         # mirando; las demás quedan apuntadas y se ponen al día al abrirlas.
         self.sucias: set[str] = set()
-        self.tanda = 0               # relleno por tandas del explorador
-        self.pendientes: list = []
         self.stack.connect("notify::visible-child-name", lambda *_: self.on_switch())
 
         header = Adw.HeaderBar()
@@ -376,18 +376,21 @@ class MainWindow(Adw.ApplicationWindow):
         barra.append(self.btn_ia)
         box.append(barra)
 
-        self.browser_list = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
-                                        css_classes=["boxed-list"])
-        self.browser_list.set_margin_start(16)
-        self.browser_list.set_margin_end(16)
-        self.browser_list.set_margin_bottom(16)
-
+        self.browser_list = self.lista_vacia()
         scroll = Gtk.ScrolledWindow(vexpand=True)
-        clamp = Adw.Clamp(maximum_size=1000)
-        clamp.set_child(self.browser_list)
-        scroll.set_child(clamp)
+        self.browser_clamp = Adw.Clamp(maximum_size=1000)
+        self.browser_clamp.set_child(self.browser_list)
+        scroll.set_child(self.browser_clamp)
         box.append(scroll)
         return box
+
+    @staticmethod
+    def lista_vacia():
+        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                            css_classes=["boxed-list"])
+        for lado in ("start", "end", "bottom"):
+            getattr(lista, f"set_margin_{lado}")(16)
+        return lista
 
     def on_deck_filter(self):
         self.level_filter.set_selected(0)
@@ -435,42 +438,41 @@ class MainWindow(Adw.ApplicationWindow):
             args.append(nivel)
         if cond:
             sql += " WHERE " + " AND ".join(cond)
-        sql += " ORDER BY d.pos, c.level, c.id LIMIT 500"
+        sql += " ORDER BY d.pos, c.level, c.id LIMIT 501"
         filas = self.con.execute(sql, args).fetchall()
 
-        while (c := self.browser_list.get_first_child()) is not None:
-            self.browser_list.remove(c)
-
+        # Se arma una lista NUEVA fuera del árbol de widgets: si se le van
+        # añadiendo filas mientras está enchufada, GTK recoloca en cada una y la
+        # pestaña se congela más de un segundo.
+        nueva = self.lista_vacia()
         if not filas:
-            self.browser_list.append(Adw.ActionRow(
+            nueva.append(Adw.ActionRow(
                 title="Sin resultados",
                 subtitle="Prueba otra búsqueda o crea una tarjeta nueva."))
+            self.browser_list = nueva
+            self.browser_clamp.set_child(nueva)
             return
 
-        # Cientos de filas de golpe congelan la ventana casi dos segundos, así
-        # que se llena por tandas: la primera se ve al instante y el resto entra
-        # en los ratos libres. Cada refresco estrena número de tanda para que un
-        # relleno a medias se abandone si cambias el filtro mientras tanto.
-        self.tanda += 1
-        self.pendientes = list(filas)
-        self.llenar_browser(self.tanda, 30)
-
-    def llenar_browser(self, tanda, cuantas=60):
-        if tanda != self.tanda:
-            return False               # otro filtro mandó: este relleno ya no vale
-        for f in self.pendientes[:cuantas]:
-            self.browser_list.append(self.card_row(f))
-        del self.pendientes[:cuantas]
-        if self.pendientes:
-            GLib.idle_add(self.llenar_browser, tanda)
-        return False
+        # GTK tarda ~3,5 ms en medir y colocar cada fila: con las 450 tarjetas
+        # de golpe son casi dos segundos de pestaña congelada. Se enseñan las
+        # primeras y el resto se encuentra buscando, que es como se usa.
+        for f in filas[:MAX_FILAS]:
+            nueva.append(self.card_row(f))
+        if len(filas) > MAX_FILAS:
+            resto = Adw.ActionRow(
+                title=f"…y {len(filas) - MAX_FILAS} tarjetas más",
+                subtitle="Búscalas por texto, o filtra por mazo y nivel")
+            resto.add_prefix(Gtk.Image.new_from_icon_name("system-search-symbolic"))
+            nueva.append(resto)
+        self.browser_list = nueva
+        self.browser_clamp.set_child(nueva)
 
     def card_row(self, f):
         row = Adw.ActionRow(title=util.as_label(f["front"])[:140])
         row.set_title_lines(2)
-        estado = ("sin ver" if f["reps"] == 0
-                  else f"repaso en {scheduler.due_label(f['due'])}")
-        tipo = {"quiz": "Reto", "lesson": "Lección"}.get(f["kind"], "Tarjeta")
+        estado = ("✨ sin ver" if f["reps"] == 0
+                  else f"🔄 repaso en {scheduler.due_label(f['due'])}")
+        tipo = {"quiz": "⚡ Reto", "lesson": "📖 Lección"}.get(f["kind"], "📝 Tarjeta")
         row.set_subtitle(f"{f['icon']} {f['deck_name']} · "
                          f"{db.level_name(f['deck_levels'], f['level'])} · "
                          f"{tipo} · {estado}")
@@ -478,14 +480,15 @@ class MainWindow(Adw.ApplicationWindow):
         row.connect("activated", lambda _r, cid=f["id"]: self.card_editor(cid))
 
         edit = Gtk.Button(icon_name="document-edit-symbolic", css_classes=["flat"],
-                          valign=Gtk.Align.CENTER, tooltip_text="Editar")
+                          valign=Gtk.Align.CENTER)
         edit.connect("clicked", lambda _b, cid=f["id"]: self.card_editor(cid))
+        util.tooltip_perezoso(edit, "Editar")
         row.add_suffix(edit)
 
         rm = Gtk.Button(icon_name="user-trash-symbolic",
-                        css_classes=["flat", "error"], valign=Gtk.Align.CENTER,
-                        tooltip_text="Eliminar")
+                        css_classes=["flat", "error"], valign=Gtk.Align.CENTER)
         rm.connect("clicked", lambda _b, cid=f["id"]: self.confirm_delete(cid))
+        util.tooltip_perezoso(rm, "Eliminar")
         row.add_suffix(rm)
         return row
 

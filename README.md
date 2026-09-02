@@ -424,14 +424,25 @@ página y los minutos leídos.
 
 **El lector**
 
-| | |
+| Tecla | |
 |---|---|
-| ← → · Espacio · AvPág/RePág | pasar página |
+| ← → · Espacio · AvPág/RePág | pasar página (la rueda al final de la hoja también) |
 | Inicio / Fin | primera y última |
-| + / − | seis niveles de zoom |
-| Casilla de página | saltar a una página concreta |
-| ★ | marcar como favorito |
-| ✦ Tarjetas | saca tarjetas de la página en la que estás y las dos siguientes |
+| + / − · Ctrl+rueda | zoom, del 35 % al 400 % |
+| F | alternar ajuste **al ancho** / **a la página** |
+| Ctrl+F | buscar en todo el libro |
+| M | marcador en esta página |
+| N | modo noche |
+
+- **Zoom de verdad**: la hoja pide su tamaño y el lector la deja desplazarse. Se
+  recuerda por libro cómo lo estabas leyendo (ajuste y escala).
+- **Buscar en todo el libro**: saca el texto entero una vez y enseña en qué
+  página está cada aparición, con su frase; pulsas y saltas allí.
+- **Marcadores** por página, con su lista en el menú ⋯.
+- **Modo noche**: invierte la página *en la GPU* (mezcla por diferencia), sin
+  reprocesar la imagen ni gastar memoria.
+- **Copiar el texto de la página** y **✦ Tarjetas** de las páginas que tienes
+  delante, desde el mismo menú.
 
 **El progreso se guarda solo**, en cada cambio de página: cierras el libro,
 vuelves mañana y sigues en la 77. Al salir también se anotan los minutos leídos.

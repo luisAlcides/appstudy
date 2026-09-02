@@ -1160,7 +1160,6 @@ class PetWindow(Gtk.ApplicationWindow):
     def aplicar_escala_tarjeta(self):
         scale = getattr(self, "card_scale", 1.15)
         min_w = int(280 * scale)
-        max_w = int(460 * scale)
         pad_h = int(14 * scale)
         pad_v = int(12 * scale)
         font_front = f"{1.06 * scale:.2f}rem"
@@ -1171,9 +1170,10 @@ class PetWindow(Gtk.ApplicationWindow):
         btn_pad_v = int(5 * scale)
         btn_pad_h = int(12 * scale)
         css_data = f"""
+        /* Sin max-width: GTK4 no tiene esa propiedad (avisaba en cada tarjeta).
+           El ancho lo limitan los max_width_chars de cada etiqueta. */
         window.as-pet box.as-bubble {{
             min-width: {min_w}px;
-            max-width: {max_w}px;
             padding: {pad_v}px {pad_h}px;
         }}
         window.as-pet .as-bubble-title {{
@@ -1324,21 +1324,48 @@ class PetWindow(Gtk.ApplicationWindow):
             self.move_to(x, y)
         return False
 
-    def bubble_header(self, titulo, color=None):
-        fila = Gtk.Box(spacing=6)
+    def bubble_header(self, titulo, color=None, mazo=None, nivel=None):
+        """La cabecera de la tarjeta: de qué mazo es, qué toca hacer, y cerrar.
+
+        Devuelve una columna: la fila con el chip del mazo y el título, y debajo
+        una línea del color del mazo que separa la cabecera del contenido.
+        """
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        fila = Gtk.Box(spacing=8)
+
+        if mazo:
+            chip = Gtk.Label(label=mazo, css_classes=["as-chip-mazo"],
+                             valign=Gtk.Align.CENTER, ellipsize=3, max_width_chars=18)
+            if color:
+                self.pintar(chip, f"label {{ background:{util.shade(color, 0.20)};"
+                                  f" color:{util.shade(color, 0.98)}; }}")
+            fila.append(chip)
+
         etiqueta = Gtk.Label(label=titulo, xalign=0, hexpand=True, wrap=True,
-                             css_classes=["as-bubble-title"])
+                             valign=Gtk.Align.CENTER, css_classes=["as-bubble-title"])
         fila.append(etiqueta)
+
         cerrar = Gtk.Button(icon_name="window-close-symbolic",
-                            css_classes=["flat", "circular"], valign=Gtk.Align.START)
+                            css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
         cerrar.connect("clicked", self.close_bubble)
         fila.append(cerrar)
+        caja.append(fila)
+
+        if nivel:
+            etiqueta.set_tooltip_text(nivel)
+
+        linea = Gtk.Box(css_classes=["as-bubble-linea"])   # el filo del color del mazo
         if color:
-            css = Gtk.CssProvider()
-            css.load_from_data(f"label {{ color:{util.shade(color, 0.95)}; }}".encode())
-            etiqueta.get_style_context().add_provider(
-                css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-        return fila
+            self.pintar(linea, f"box {{ background:{util.shade(color, 0.55)}; }}")
+        caja.append(linea)
+        return caja
+
+    @staticmethod
+    def pintar(widget, css):
+        proveedor = Gtk.CssProvider()
+        proveedor.load_from_data(css.encode())
+        widget.get_style_context().add_provider(
+            proveedor, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
     def say(self, texto, titulo=f"{NOMBRE} dice", boton=None):
         """Un mensaje corto, con un botón opcional."""
@@ -1384,7 +1411,21 @@ class PetWindow(Gtk.ApplicationWindow):
 
     def teach(self):
         """Saca una tarjeta y te la explica: pregunta y respuesta, las dos."""
-        self.card = scheduler.next_card(self.con)
+        current_id = self.card["id"] if self.card else None
+        if not hasattr(self, "recent_card_ids"):
+            self.recent_card_ids = []
+        if current_id and current_id not in self.recent_card_ids:
+            self.recent_card_ids.append(current_id)
+            if len(self.recent_card_ids) > 30:
+                self.recent_card_ids.pop(0)
+
+        self.card = scheduler.next_card(self.con, exclude_ids=self.recent_card_ids,
+                                        exclude_id=current_id)
+        if not self.card and current_id:
+            # Si se excluyeron todas, limpiamos historial reciente y reintentamos
+            self.recent_card_ids = [current_id]
+            self.card = scheduler.next_card(self.con, exclude_id=current_id)
+
         if not self.card:
             self.say("No me quedan tarjetas que enseñarte. Añade alguna 😊",
                      boton=("Abrir AppStudy", self.open_main))
@@ -1400,7 +1441,8 @@ class PetWindow(Gtk.ApplicationWindow):
         titulo = {"quiz": "Fíjate en esto", "lesson": "¿Sabías esto?"}.get(
             c["kind"], "Repasemos esto")
         self.bubble_box.append(self.bubble_header(
-            f"{c['deck_icon']} {titulo}", c["deck_color"]))
+            titulo, c["deck_color"], mazo=f"{c['deck_icon']} {c['deck_name']}",
+            nivel=db.level_name(c["deck_levels"], c["level"])))
 
         self.bubble_box.append(Gtk.Label(
             label=util.to_markup(c["front"]), use_markup=True, wrap=True, xalign=0,
@@ -1482,7 +1524,20 @@ class PetWindow(Gtk.ApplicationWindow):
 
     def quiz(self):
         """Te pone a prueba, y cada vez de una manera distinta."""
-        self.card = scheduler.next_card(self.con)
+        current_id = self.card["id"] if self.card else None
+        if not hasattr(self, "recent_card_ids"):
+            self.recent_card_ids = []
+        if current_id and current_id not in self.recent_card_ids:
+            self.recent_card_ids.append(current_id)
+            if len(self.recent_card_ids) > 30:
+                self.recent_card_ids.pop(0)
+
+        self.card = scheduler.next_card(self.con, exclude_ids=self.recent_card_ids,
+                                        exclude_id=current_id)
+        if not self.card and current_id:
+            self.recent_card_ids = [current_id]
+            self.card = scheduler.next_card(self.con, exclude_id=current_id)
+
         if not self.card:
             self.say("No me quedan tarjetas con las que retarte. Añade alguna 😊",
                      boton=("Abrir AppStudy", self.open_main))
@@ -1502,7 +1557,9 @@ class PetWindow(Gtk.ApplicationWindow):
         r, c = self.reto, self.card
         self.clear_bubble()
         self.bubble_box.append(self.bubble_header(
-            f"{r['icono']} {r['titulo']}", c["deck_color"]))
+            f"{r['icono']} {r['titulo']}", c["deck_color"],
+            mazo=f"{c['deck_icon']} {c['deck_name']}",
+            nivel=db.level_name(c["deck_levels"], c["level"])))
         self.bubble_box.append(self.cuenta_atras())
         self.bubble_box.append(self.enunciado())
         self.bubble_box.append({
@@ -1606,7 +1663,7 @@ class PetWindow(Gtk.ApplicationWindow):
         self.clear_bubble()
         self.bubble_box.append(self.bubble_header(
             "⏱ Se acabó el tiempo" if agotado else "⚡ A ver si coincidimos",
-            c["deck_color"]))
+            c["deck_color"], mazo=f"{c['deck_icon']} {c['deck_name']}"))
         self.bubble_box.append(Gtk.Label(
             label=util.to_markup(c["front"]), use_markup=True, wrap=True, xalign=0,
             max_width_chars=self.char_width(30), css_classes=["as-bubble-front"]))

@@ -1,6 +1,7 @@
 """Utilidades de texto y color para la interfaz."""
 import re
 import threading
+from concurrent.futures import ThreadPoolExecutor
 
 import gi
 
@@ -122,12 +123,21 @@ def shade(hex_color: str, alpha: float) -> str:
     return f"rgba({r},{g},{b},{alpha})"
 
 
-def hilo(trabajo, al_terminar, al_fallar=None):
-    """Corre `trabajo()` aparte y devuelve el resultado en el hilo de GTK.
+# Dos colas pequeñas en vez de un hilo por trabajo. Al desplegar un estante se
+# piden doscientas portadas de golpe: con un hilo cada una el sistema se atasca,
+# con dos obreros salen en fila y la ventana no se entera.
+#   - «ui»    lo que estás mirando ahora: la página del PDF que acabas de pedir.
+#   - «fondo» lo que puede esperar: portadas y páginas que aún no has pasado.
+# Lo muy largo (una respuesta del modelo, que tarda segundos) va en su propio
+# hilo para no ocupar un obrero durante medio minuto.
+_UI = ThreadPoolExecutor(max_workers=2, thread_name_prefix="as-ui")
+_FONDO = ThreadPoolExecutor(max_workers=2, thread_name_prefix="as-fondo")
 
-    Dibujar una página de PDF o esperar a un modelo tarda cientos de
-    milisegundos o segundos: hacerlo en el hilo de la interfaz congelaría la
-    ventana. GTK solo se puede tocar desde su propio hilo, de ahí el idle_add.
+
+def hilo(trabajo, al_terminar=None, al_fallar=None, fondo=False, largo=False):
+    """Corre `trabajo()` fuera del hilo de la interfaz y devuelve el resultado en él.
+
+    GTK solo se puede tocar desde su hilo, de ahí el `idle_add` del final.
     """
     from gi.repository import GLib
 
@@ -138,8 +148,30 @@ def hilo(trabajo, al_terminar, al_fallar=None):
             if al_fallar:
                 GLib.idle_add(al_fallar, e)
             return
-        GLib.idle_add(al_terminar, resultado)
+        if al_terminar:
+            GLib.idle_add(al_terminar, resultado)
 
-    h = threading.Thread(target=dentro, daemon=True)
-    h.start()
-    return h
+    if largo:
+        h = threading.Thread(target=dentro, daemon=True)
+        h.start()
+        return h
+    return (_FONDO if fondo else _UI).submit(dentro)
+
+
+def tooltip_perezoso(widget, texto):
+    """Pone el tooltip la primera vez que le pasas el ratón por encima.
+
+    Asignar un tooltip cuesta ~11 ms: GTK monta al vuelo la maquinaria que lo
+    enseña. En una lista de cientos de filas con dos botones cada una eso son
+    segundos de ventana congelada, y la inmensa mayoría de esos botones no
+    llegan a ver el ratón nunca. Así que se les pone cuando toca.
+    """
+    from gi.repository import Gtk
+
+    def entrar(controlador, *_):
+        widget.set_tooltip_text(texto)
+        widget.remove_controller(controlador)
+
+    controlador = Gtk.EventControllerMotion()
+    controlador.connect("enter", lambda *_: entrar(controlador))
+    widget.add_controller(controlador)

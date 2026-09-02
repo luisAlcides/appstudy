@@ -87,7 +87,9 @@ CREATE TABLE IF NOT EXISTS books (
     pagina   INTEGER NOT NULL DEFAULT 1,   -- por dónde ibas
     abierto  REAL NOT NULL DEFAULT 0,      -- cuándo lo abriste por última vez
     minutos  REAL NOT NULL DEFAULT 0,      -- tiempo leído, acumulado
-    favorito INTEGER NOT NULL DEFAULT 0
+    favorito INTEGER NOT NULL DEFAULT 0,
+    marcas   TEXT NOT NULL DEFAULT '[]',   -- JSON: páginas marcadas
+    zoom     TEXT NOT NULL DEFAULT ''      -- cómo lo estabas leyendo
 );
 
 CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);
@@ -124,7 +126,9 @@ def migrate(con):
     """Añade a una base anterior las columnas que hayan aparecido después."""
     for tabla, columna, definicion in (
             ("cards", "level", "INTEGER NOT NULL DEFAULT 1"),
-            ("decks", "levels", "TEXT NOT NULL DEFAULT ''")):
+            ("decks", "levels", "TEXT NOT NULL DEFAULT ''"),
+            ("books", "marcas", "TEXT NOT NULL DEFAULT '[]'"),
+            ("books", "zoom", "TEXT NOT NULL DEFAULT ''")):
         existentes = {r["name"] for r in con.execute(f"PRAGMA table_info({tabla})")}
         if columna not in existentes:
             con.execute(f"ALTER TABLE {tabla} ADD COLUMN {columna} {definicion}")
@@ -319,6 +323,34 @@ def book_progreso(con, ruta: str, pagina: int, minutos: float = 0.0):
 def book_favorito(con, ruta: str, favorito: bool):
     con.execute("UPDATE books SET favorito=? WHERE ruta=?", (int(favorito), str(ruta)))
     con.commit()
+
+
+def book_marcas(con, ruta: str) -> list:
+    fila = con.execute("SELECT marcas FROM books WHERE ruta=?", (str(ruta),)).fetchone()
+    try:
+        return sorted(json.loads(fila["marcas"])) if fila else []
+    except (ValueError, TypeError):
+        return []
+
+
+def book_marcar(con, ruta: str, pagina: int) -> list:
+    """Pone o quita el marcador de una página. Devuelve cómo quedan."""
+    marcas = book_marcas(con, ruta)
+    marcas.remove(pagina) if pagina in marcas else marcas.append(pagina)
+    con.execute("UPDATE books SET marcas=? WHERE ruta=?",
+                (json.dumps(sorted(marcas)), str(ruta)))
+    con.commit()
+    return sorted(marcas)
+
+
+def book_zoom(con, ruta: str, ajuste: str = None):
+    """Guarda o lee cómo estabas leyendo el libro (ajuste y escala)."""
+    if ajuste is None:
+        fila = con.execute("SELECT zoom FROM books WHERE ruta=?", (str(ruta),)).fetchone()
+        return fila["zoom"] if fila else ""
+    con.execute("UPDATE books SET zoom=? WHERE ruta=?", (ajuste, str(ruta)))
+    con.commit()
+    return ajuste
 
 
 def books_leyendo(con, cuantos: int = 12) -> list:

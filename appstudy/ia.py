@@ -333,5 +333,7 @@ def generar_desde_texto(cfg, fragmento: str, titulo: str, cuantas: int = 5) -> l
 
 # -------------------------------------------------------------------- hilos
 
-# Vive en util porque no es cosa de la IA: lo usa cualquiera que tarde.
-hilo = util.hilo
+def hilo(trabajo, al_terminar=None, al_fallar=None):
+    """Como util.hilo, pero siempre en un hilo propio: una respuesta tarda
+    segundos y no debe ocupar a los obreros que dibujan páginas."""
+    return util.hilo(trabajo, al_terminar, al_fallar, largo=True)

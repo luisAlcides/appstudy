@@ -14,6 +14,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 import zipfile
 from pathlib import Path
@@ -96,14 +97,36 @@ def paginas(ruta: str) -> int:
     return int(m.group(1)) if m else 0
 
 
-def texto(ruta: str, desde: int = 0, hasta: int = 0) -> str:
-    """El texto del libro, o el de un tramo de páginas si se pide (solo PDF)."""
+def tamano_pagina(ruta: str) -> tuple:
+    """El tamaño de la página en puntos, (ancho, alto). A4 si no se sabe."""
+    if not str(ruta).lower().endswith(".pdf") or not shutil.which("pdfinfo"):
+        return (595.0, 842.0)
+    try:
+        salida = subprocess.run(["pdfinfo", str(ruta)], capture_output=True, text=True,
+                                timeout=20).stdout
+    except (OSError, subprocess.SubprocessError):
+        return (595.0, 842.0)
+    m = re.search(r"^Page size:\s*([\d.]+)\s*x\s*([\d.]+)", salida, re.M)
+    if not m:
+        return (595.0, 842.0)
+    ancho, alto = float(m.group(1)), float(m.group(2))
+    if "rotated 90" in salida or "rotated 270" in salida:
+        ancho, alto = alto, ancho
+    return (ancho or 595.0, alto or 842.0)
+
+
+def texto(ruta: str, desde: int = 0, hasta: int = 0, saltos: bool = False) -> str:
+    """El texto del libro, o el de un tramo de páginas si se pide (solo PDF).
+
+    Con `saltos=True` se conservan los saltos de página (\f), que es como se
+    sabe en qué página está cada cosa — lo necesita la búsqueda del lector.
+    """
     p = Path(ruta)
     if not p.exists():
         raise LibroError(f"No encuentro el archivo:\n{ruta}")
     ext = p.suffix.lower()
     if ext == ".pdf":
-        return _texto_pdf(p, desde, hasta)
+        return _texto_pdf(p, desde, hasta, saltos)
     if ext == ".epub":
         return _texto_epub(p)
     try:
@@ -112,10 +135,10 @@ def texto(ruta: str, desde: int = 0, hasta: int = 0) -> str:
         raise LibroError(f"No pude leerlo: {e}") from e
 
 
-def _texto_pdf(p: Path, desde: int, hasta: int) -> str:
+def _texto_pdf(p: Path, desde: int, hasta: int, saltos: bool = False) -> str:
     if not shutil.which("pdftotext"):
         raise LibroError("Falta pdftotext. Instálalo con: sudo apt install poppler-utils")
-    orden = ["pdftotext", "-layout", "-nopgbrk"]
+    orden = ["pdftotext", "-layout"] + ([] if saltos else ["-nopgbrk"])
     if desde:
         orden += ["-f", str(desde)]
     if hasta:
@@ -225,6 +248,40 @@ def render(ruta: str, pagina: int, ancho: int = 900) -> str:
         raise LibroError(f"No pude dibujar la página {pagina}: "
                          f"{(r.stderr or 'error desconocido').strip()[:120]}")
     return str(destino)
+
+
+def render_varias(ruta: str, desde: int, hasta: int, ancho: int = 900) -> list:
+    """Dibuja un tramo de páginas en **una sola** llamada a pdftocairo.
+
+    Abrir y analizar el PDF es lo caro (en un libro de 64 MB son ~250 ms), y se
+    paga una vez por proceso. Pedir cuatro páginas de golpe cuesta poco más que
+    pedir una, y es lo que hace que pasar hoja salga instantáneo.
+    """
+    ancho = max(200, min(2600, int(ancho)))
+    faltan = [n for n in range(int(desde), int(hasta) + 1)
+              if not (cache() / f"{_clave(ruta)}-{n}-{ancho}.png").exists()]
+    if not faltan or not shutil.which("pdftocairo"):
+        return []
+    desde, hasta = min(faltan), max(faltan)
+    with tempfile.TemporaryDirectory(dir=cache()) as tmp:
+        orden = ["pdftocairo", "-png", "-r", "0", "-scale-to-x", str(ancho),
+                 "-scale-to-y", "-1", "-f", str(desde), "-l", str(hasta),
+                 str(ruta), str(Path(tmp) / "p")]
+        try:
+            subprocess.run(orden, capture_output=True, timeout=ESPERA)
+        except (OSError, subprocess.SubprocessError):
+            return []
+        hechas = []
+        for f in Path(tmp).glob("p-*.png"):
+            try:                       # pdftocairo numera con ceros a la izquierda
+                n = int(f.stem.rsplit("-", 1)[1])
+            except (IndexError, ValueError):
+                continue
+            destino = cache() / f"{_clave(ruta)}-{n}-{ancho}.png"
+            if not destino.exists():
+                f.replace(destino)
+            hechas.append(str(destino))
+    return hechas
 
 
 def portada(ruta: str, ancho: int = 150) -> str | None:

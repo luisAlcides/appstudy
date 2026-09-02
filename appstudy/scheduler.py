@@ -103,11 +103,14 @@ def undo_recent(con, segundos: float = 86400) -> int:
 
 
 def next_card(con, deck_key: str | None = None, new_ratio: float = 0.25,
-              level: int | None = None, tags: str | None = None):
+              level: int | None = None, tags: str | None = None,
+              exclude_id: int | None = None,
+              exclude_ids: set[int] | list[int] | None = None):
     """Elige la próxima tarjeta: primero lo vencido, si no algo nuevo, si no un repaso adelantado.
 
     `deck_key`, `level` y `tags` acotan la selección — es lo que usa «practicar
     este capítulo» para preguntar solo sobre lo que acabas de leer.
+    `exclude_id` / `exclude_ids` evitan repetir la tarjeta actual al pedir otra.
     """
     now = time.time()
     where = "d.enabled=1" if not deck_key else "d.key=?"
@@ -132,8 +135,17 @@ def next_card(con, deck_key: str | None = None, new_ratio: float = 0.25,
     def q(extra, extra_args=(), limit=1):
         return con.execute(f"{base} {extra} LIMIT {limit}", (*args, *extra_args)).fetchall()
 
-    due = q("AND s.reps>0 AND s.due<=? ORDER BY s.due ASC", (now,), 12)
-    new = q("AND s.reps=0 ORDER BY c.level ASC, RANDOM()", (), 8)
+    excluded = set()
+    if exclude_id is not None:
+        excluded.add(exclude_id)
+    if exclude_ids:
+        excluded.update(exclude_ids)
+
+    raw_due = q("AND s.reps>0 AND s.due<=? ORDER BY s.due ASC", (now,), 50)
+    raw_new = q("AND s.reps=0 ORDER BY c.level ASC, RANDOM()", (), 50)
+
+    due = [c for c in raw_due if c["id"] not in excluded]
+    new = [c for c in raw_new if c["id"] not in excluded]
 
     pool = []
     if due and new:
@@ -144,13 +156,28 @@ def next_card(con, deck_key: str | None = None, new_ratio: float = 0.25,
         pool = new
     else:
         # Todo al día: repaso de refuerzo, priorizando lo que vence antes
-        pool = q("ORDER BY s.due ASC", (), 20)
+        raw_fallback = q("ORDER BY s.due ASC", (), 50)
+        fallback = [c for c in raw_fallback if c["id"] not in excluded]
+        if fallback:
+            pool = fallback
+        elif raw_fallback:
+            pool = raw_fallback
+
+    # Si por estar excluido se quedó sin candidatos pero en raw había opciones:
+    if not pool:
+        if raw_due:
+            pool = [c for c in raw_due if c["id"] != exclude_id] or raw_due
+        elif raw_new:
+            pool = [c for c in raw_new if c["id"] != exclude_id] or raw_new
+
     if not pool:
         return None
-    if pool is new:
+
+    if pool is new or (not due and pool is raw_new):
         # Entre las nuevas se respeta el nivel: solo se sortea dentro del más bajo
         minimo = pool[0]["level"]
         pool = [c for c in pool if c["level"] == minimo]
+
     return dict(random.choice(pool[:6]) if len(pool) > 1 else pool[0])
 
 

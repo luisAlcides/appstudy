@@ -28,12 +28,14 @@ class PopupWindow(Adw.Window):
         self.tags = tags
         self.card = None
         self.revealed = False
+        self.hint_revealed = False
         self.answered = None          # índice elegido en un quiz
         self.shown_at = 0.0
+        self.recent_ids = []
 
         self.card_scale = self.card_escala_guardada()
-        w = max(560, int(660 * self.card_scale))
-        h = max(450, int(530 * self.card_scale))
+        w = max(580, int(680 * self.card_scale))
+        h = max(480, int(560 * self.card_scale))
         self.set_default_size(w, h)
         self.set_resizable(True)
         self.add_css_class("as-popup")
@@ -81,18 +83,18 @@ class PopupWindow(Adw.Window):
         root.append(header)
 
         self.body = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
-        self.body.set_margin_start(22)
-        self.body.set_margin_end(22)
+        self.body.set_margin_start(20)
+        self.body.set_margin_end(20)
         self.body.set_margin_bottom(10)
         scroller = Gtk.ScrolledWindow(vexpand=True,
                                       hscrollbar_policy=Gtk.PolicyType.NEVER)
         scroller.set_child(self.body)
         root.append(scroller)
 
-        self.footer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        self.footer.set_margin_start(22)
-        self.footer.set_margin_end(22)
-        self.footer.set_margin_bottom(18)
+        self.footer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.footer.set_margin_start(20)
+        self.footer.set_margin_end(20)
+        self.footer.set_margin_bottom(16)
         self.footer.set_margin_top(4)
         root.append(self.footer)
 
@@ -132,10 +134,10 @@ class PopupWindow(Adw.Window):
 
     def aplicar_escala_tarjeta(self):
         scale = getattr(self, "card_scale", 1.15)
-        font_front = f"{1.50 * scale:.2f}rem"
-        font_back = f"{1.08 * scale:.2f}rem"
-        font_choice = f"{1.02 * scale:.2f}rem"
-        font_chip = f"{0.84 * scale:.2f}rem"
+        font_front = f"{1.48 * scale:.2f}rem"
+        font_back = f"{1.06 * scale:.2f}rem"
+        font_choice = f"{1.00 * scale:.2f}rem"
+        font_chip = f"{0.80 * scale:.2f}rem"
         css_data = f"""
         .as-popup .as-front {{
             font-size: {font_front};
@@ -143,11 +145,11 @@ class PopupWindow(Adw.Window):
         .as-popup .as-back {{
             font-size: {font_back};
         }}
-        .as-popup .as-choice {{
+        .as-popup .as-choice-btn {{
             font-size: {font_choice};
-            padding: {int(12 * scale)}px {int(16 * scale)}px;
+            padding: {int(11 * scale)}px {int(15 * scale)}px;
         }}
-        .as-popup .as-chip {{
+        .as-popup .as-chip, .as-popup .as-badge {{
             font-size: {font_chip};
         }}
         """
@@ -190,16 +192,34 @@ class PopupWindow(Adw.Window):
     def set_filter(self, deck_key=None, level=None, tags=None):
         """Reapunta el popup (por ejemplo al practicar un capítulo concreto)."""
         self.deck_key, self.level, self.tags = deck_key, level, tags
+        self.recent_ids = []
         self.load_card()
 
     def load_card(self):
+        current_id = self.card["id"] if self.card else None
+        if not hasattr(self, "recent_ids"):
+            self.recent_ids = []
+        if current_id and current_id not in self.recent_ids:
+            self.recent_ids.append(current_id)
+            if len(self.recent_ids) > 30:
+                self.recent_ids.pop(0)
+
         self.card = scheduler.next_card(self.con, self.deck_key, level=self.level,
-                                        tags=self.tags)
+                                        tags=self.tags, exclude_ids=self.recent_ids,
+                                        exclude_id=current_id)
         if self.card is None and (self.level or self.tags):
             # El capítulo ya no tiene tarjetas pendientes: se amplía al mazo entero
             self.level = self.tags = None
-            self.card = scheduler.next_card(self.con, self.deck_key)
+            self.card = scheduler.next_card(self.con, self.deck_key,
+                                            exclude_ids=self.recent_ids,
+                                            exclude_id=current_id)
+        if self.card is None:
+            # Si se excluyeron todas las del mazo, vaciamos el historial reciente y reintentamos
+            self.recent_ids = [current_id] if current_id else []
+            self.card = scheduler.next_card(self.con, self.deck_key, exclude_id=current_id)
+
         self.revealed = False
+        self.hint_revealed = False
         self.answered = None
         self.shown_at = time.time()
         self.render()
@@ -227,96 +247,147 @@ class PopupWindow(Adw.Window):
             return
 
         c = self.card
+        self.title_widget.set_title(f"{c['deck_icon']} {c['deck_name']}")
         self.title_widget.set_subtitle(
-            f"{c['deck_icon']}  {c['deck_name']} · "
-            f"{db.level_name(c['deck_levels'], c['level'])}")
+            f"{db.level_name(c['deck_levels'], c['level'])} · {self.progress_text()}")
 
-        # Cabecera: mazo + tipo + estado de repaso
-        top = Gtk.Box(spacing=8)
-        top.set_margin_top(6)
-        top.append(self.chip(f"{c['deck_icon']} {c['deck_name']}", c["deck_color"]))
-        kind_label = {"quiz": "RETO", "lesson": "LECCIÓN"}.get(c["kind"], "REPASO")
-        top.append(self.chip(kind_label, c["deck_color"], soft=True))
-        top.append(self.chip(db.level_name(c["deck_levels"], c["level"]).upper(),
-                             c["deck_color"], soft=True))
-        top.append(Gtk.Box(hexpand=True))
-        top.append(Gtk.Label(label=self.progress_text(), css_classes=["as-dim", "caption"]))
-        self.body.append(top)
+        # Estructura de la tarjeta moderna
+        card_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, css_classes=["as-flashcard"])
 
-        # Pregunta / enunciado
+        # Franja superior de color de mazo
+        accent = Gtk.Box(css_classes=["as-flashcard-accent"])
+        css_acc = Gtk.CssProvider()
+        css_acc.load_from_data(f"box {{ background-color: {c['deck_color']}; }}".encode())
+        accent.get_style_context().add_provider(css_acc, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        card_box.append(accent)
+
+        # Contenido interior de la tarjeta
+        inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14,
+                        css_classes=["as-flashcard-inner"])
+
+        # Metadatos / Badges
+        meta = Gtk.Box(spacing=8, css_classes=["as-card-meta"])
+        meta.append(self.chip(f"{c['deck_icon']} {c['deck_name']}", c["deck_color"]))
+        kind_label = {"quiz": "RETO", "lesson": "LECCIÓN"}.get(c["kind"], "TARJETA")
+        meta.append(self.chip(kind_label, c["deck_color"], soft=True))
+        meta.append(self.chip(db.level_name(c["deck_levels"], c["level"]).upper(),
+                              c["deck_color"], soft=True))
+
+        meta.append(Gtk.Box(hexpand=True))
+
+        # Estado de la tarjeta (nueva / repaso)
+        status_text = "✨ Nueva" if c["reps"] == 0 else (
+            "⚡ Repaso" if c["due"] <= time.time() else f"🔄 En {scheduler.due_label(c['due'])}")
+        meta.append(Gtk.Label(label=status_text, css_classes=["as-badge-status"]))
+        inner.append(meta)
+
+        # Pregunta / Enunciado
         front = Gtk.Label(label=util.to_markup(c["front"]), use_markup=True, wrap=True,
                           xalign=0, css_classes=["as-front"], selectable=True)
-        front.set_margin_top(6)
-        self.body.append(front)
+        inner.append(front)
+
+        # Pista si existe
+        if c.get("hint"):
+            hint_wrap = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+            if not getattr(self, "hint_revealed", False):
+                h_btn = Gtk.Button(label="💡 Ver pista", halign=Gtk.Align.START,
+                                   css_classes=["as-hint-btn", "flat"])
+                h_btn.connect("clicked", lambda *_: self.toggle_hint())
+                hint_wrap.append(h_btn)
+            else:
+                h_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3,
+                                css_classes=["as-hint-box"])
+                h_box.append(Gtk.Label(label="💡 PISTA", xalign=0, css_classes=["as-hint-title"]))
+                h_box.append(Gtk.Label(label=util.to_markup(c["hint"]), use_markup=True,
+                                       wrap=True, xalign=0, css_classes=["as-hint-text"]))
+                hint_wrap.append(h_box)
+            inner.append(hint_wrap)
 
         if c["kind"] == "lesson":
-            self.render_lesson()
+            self.render_lesson_body(inner)
         elif c["kind"] == "quiz" and c["choices"]:
-            self.render_quiz()
+            self.render_quiz_body(inner)
         else:
-            self.render_basic()
+            self.render_basic_body(inner)
 
-    def render_lesson(self):
-        self.body.append(self.back_card(self.card["back"]))
+        card_box.append(inner)
+        self.body.append(card_box)
+
+    def toggle_hint(self):
+        self.hint_revealed = True
+        self.render()
+
+    def render_lesson_body(self, inner):
+        inner.append(Gtk.Separator(css_classes=["as-flashcard-divider"]))
+        inner.append(self.answer_box(self.card["back"], titulo="Contenido de la lección"))
         self.revealed = True
         self.rating_row(labels={scheduler.GOOD: "Entendido", scheduler.AGAIN: "Repasar pronto"})
 
-    def render_basic(self):
+    def render_basic_body(self, inner):
         c = self.card
         if not self.revealed:
-            if c["hint"]:
-                exp = Gtk.Expander(label="Ver pista")
-                lab = Gtk.Label(label=util.to_markup(c["hint"]), use_markup=True, wrap=True,
-                                xalign=0, css_classes=["as-hint"])
-                lab.set_margin_top(6)
-                lab.set_margin_start(6)
-                exp.set_child(lab)
-                self.body.append(exp)
-            btn = Gtk.Button(label="Mostrar respuesta", halign=Gtk.Align.CENTER,
-                             css_classes=["suggested-action", "pill"])
+            btn = Gtk.Button(css_classes=["suggested-action", "pill"], halign=Gtk.Align.CENTER)
+            btn_box = Gtk.Box(spacing=8)
+            btn_box.append(Gtk.Image.new_from_icon_name("view-reveal-symbolic"))
+            btn_box.append(Gtk.Label(label="Mostrar respuesta", css_classes=["heading"]))
+            btn.set_child(btn_box)
             btn.connect("clicked", lambda *_: self.reveal())
             self.footer.append(btn)
-            self.footer.append(self.hints("Espacio  mostrar respuesta   ·   N  otra   ·   Esc  cerrar"))
+            self.footer.append(self.hints_bar([("Espacio", "Mostrar respuesta"),
+                                               ("N", "Otra tarjeta"),
+                                               ("Esc", "Cerrar")]))
         else:
-            self.body.append(self.back_card(c["back"]))
+            inner.append(Gtk.Separator(css_classes=["as-flashcard-divider"]))
+            inner.append(self.answer_box(c["back"], titulo="Respuesta"))
             self.rating_row()
 
-    def render_quiz(self):
+    def render_quiz_body(self, inner):
         import json
         c = self.card
         choices = json.loads(c["choices"])
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-        box.set_margin_top(8)
+        box.set_margin_top(6)
+
         for i, texto in enumerate(choices):
-            b = Gtk.Button(css_classes=["as-choice"])
+            b = Gtk.Button(css_classes=["as-choice-btn"])
             row = Gtk.Box(spacing=12)
-            row.append(Gtk.Label(label=str(i + 1), css_classes=["as-kbd"],
+            row.append(Gtk.Label(label=str(i + 1), css_classes=["as-choice-num"],
                                  valign=Gtk.Align.CENTER))
             row.append(Gtk.Label(label=util.to_markup(texto), use_markup=True, wrap=True,
                                  xalign=0, hexpand=True))
-            b.set_child(row)
+
             if self.answered is not None:
                 b.set_sensitive(False)
                 if i == c["answer"]:
                     b.add_css_class("as-choice-right")
+                    row.append(Gtk.Label(label="✅", valign=Gtk.Align.CENTER))
                 elif i == self.answered:
                     b.add_css_class("as-choice-wrong")
+                    row.append(Gtk.Label(label="❌", valign=Gtk.Align.CENTER))
             else:
                 b.connect("clicked", lambda _b, idx=i: self.answer(idx))
+
+            b.set_child(row)
             box.append(b)
-        self.body.append(box)
+        inner.append(box)
 
         if self.answered is None:
-            self.footer.append(self.hints("1-4  responder   ·   N  otra   ·   Esc  cerrar"))
+            self.footer.append(self.hints_bar([("1-4", "Responder opción"),
+                                               ("N", "Otra tarjeta"),
+                                               ("Esc", "Cerrar")]))
             return
 
         ok = self.answered == c["answer"]
-        veredicto = Gtk.Label(xalign=0, use_markup=True, wrap=True, css_classes=["as-back"])
-        veredicto.set_markup(
-            f"<b>{'✅ ¡Correcto!' if ok else '❌ Incorrecto'}</b>")
-        self.body.append(veredicto)
+        veredicto = Gtk.Box(spacing=8, css_classes=["as-verdict",
+                            "as-verdict-ok" if ok else "as-verdict-wrong"])
+        veredicto.set_margin_top(4)
+        veredicto.append(Gtk.Label(label="🎉 ¡Respuesta correcta!" if ok else
+                                   f"❌ Respuesta incorrecta. La opción correcta era la {c['answer'] + 1}.",
+                                   xalign=0, use_markup=True))
+        inner.append(veredicto)
+
         if c["back"]:
-            self.body.append(self.back_card(c["back"], titulo="Por qué"))
+            inner.append(self.answer_box(c["back"], titulo="Explicación del reto"))
         self.rating_row(prefill=scheduler.GOOD if ok else scheduler.AGAIN)
 
     # ------------------------------------------------------------------ piezas
@@ -324,29 +395,44 @@ class PopupWindow(Adw.Window):
     def chip(self, text, color, soft=False):
         lab = Gtk.Label(label=text, css_classes=["as-chip"])
         css = Gtk.CssProvider()
-        bg = util.shade(color, 0.16 if soft else 0.22)
+        bg = util.shade(color, 0.16 if soft else 0.24)
         fg = color if not soft else util.shade(color, 0.95)
         css.load_from_data(f"label {{ background:{bg}; color:{fg}; }}".encode())
         lab.get_style_context().add_provider(css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
         return lab
 
-    def back_card(self, text, titulo=None):
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        box.add_css_class("as-card")
-        box.set_margin_top(6)
-        box.set_margin_bottom(4)
-        inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        inner.set_margin_top(14)
-        inner.set_margin_bottom(14)
-        inner.set_margin_start(16)
-        inner.set_margin_end(16)
+    def answer_box(self, text, titulo="Respuesta"):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8,
+                      css_classes=["as-answer-box"])
         if titulo:
-            inner.append(Gtk.Label(label=titulo.upper(), xalign=0,
-                                   css_classes=["as-stat-label"]))
-        inner.append(Gtk.Label(label=util.to_markup(text), use_markup=True, wrap=True,
-                               xalign=0, css_classes=["as-back"], selectable=True))
-        box.append(inner)
+            box.append(Gtk.Label(label=titulo.upper(), xalign=0,
+                                 css_classes=["as-answer-title"]))
+        box.append(Gtk.Label(label=util.to_markup(text), use_markup=True, wrap=True,
+                             xalign=0, css_classes=["as-back"], selectable=True))
+
+        # Enlace a lectura si existe capítulo asociado
+        cap = db.chapter_for_card(self.con, self.card) if self.card else None
+        if cap:
+            btn_link = Gtk.Button(css_classes=["as-chapter-link", "flat"],
+                                  halign=Gtk.Align.START)
+            btn_box = Gtk.Box(spacing=6)
+            btn_box.append(Gtk.Label(label=f"📖 Leer en «{cap['title']}» →"))
+            btn_link.set_child(btn_box)
+            btn_link.connect("clicked", lambda *_: self.open_chapter_for_card(cap))
+            box.append(btn_link)
+
         return box
+
+    def open_chapter_for_card(self, cap):
+        app = self.get_application()
+        if hasattr(app, "show_reading_for_card") and self.card:
+            app.show_reading_for_card(self.card["id"])
+            self.close()
+        elif hasattr(app, "show_main_window"):
+            app.show_main_window()
+            if hasattr(app, "main_window"):
+                app.main_window.abrir_lectura(cap, buscar=f"{self.card['front']} {self.card['back']}")
+            self.close()
 
     def rating_row(self, labels=None, prefill=None):
         labels = labels or {}
@@ -354,31 +440,41 @@ class PopupWindow(Adw.Window):
         for rating, texto, tecla, clase in RATINGS:
             if labels and rating not in labels:
                 continue
-            b = Gtk.Button(css_classes=["as-rate", clase])
-            inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
-            inner.append(Gtk.Label(label=labels.get(rating, texto)))
+            b = Gtk.Button(css_classes=["as-rate-tile", clase])
+            inner = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+
+            top_row = Gtk.Box(spacing=4, halign=Gtk.Align.CENTER)
+            top_row.append(Gtk.Label(label=tecla, css_classes=["as-rate-num"]))
+            top_row.append(Gtk.Label(label=labels.get(rating, texto),
+                                     css_classes=["as-rate-title"]))
+            inner.append(top_row)
+
             inner.append(Gtk.Label(
                 label=self.preview(rating),
-                css_classes=["caption", "as-dim"]))
+                css_classes=["as-rate-due"]))
             b.set_child(inner)
             if prefill == rating:
                 b.add_css_class("suggested-action")
             b.connect("clicked", lambda _b, r=rating: self.rate(r))
             grid.append(b)
         self.footer.append(grid)
-        self.footer.append(self.hints(
-            "1 Otra vez · 2 Difícil · 3 Bien · 4 Fácil   ·   N otra   ·   Esc cerrar"
-            if not labels else "3 Entendido · 1 Repasar pronto   ·   N otra   ·   Esc cerrar"))
+        self.footer.append(self.hints_bar([("1-4", "Calificar dificultad"),
+                                           ("N", "Otra tarjeta"),
+                                           ("Esc", "Cerrar")]))
 
     def preview(self, rating):
         st = scheduler.review(dict(self.card), rating)
         return scheduler.due_label(st["due"])
 
-    def hints(self, text):
-        lab = Gtk.Label(label=text, css_classes=["caption", "as-dim"],
-                        halign=Gtk.Align.CENTER, wrap=True)
-        lab.set_margin_top(4)
-        return lab
+    def hints_bar(self, items):
+        box = Gtk.Box(spacing=12, halign=Gtk.Align.CENTER, css_classes=["as-footer-hints"])
+        box.set_margin_top(4)
+        for kbd, desc in items:
+            item_box = Gtk.Box(spacing=4)
+            item_box.append(Gtk.Label(label=kbd, css_classes=["as-kbd-badge"]))
+            item_box.append(Gtk.Label(label=desc))
+            box.append(item_box)
+        return box
 
     def progress_text(self):
         t = db.totals(self.con)

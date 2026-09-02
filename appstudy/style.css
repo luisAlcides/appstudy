@@ -1,44 +1,126 @@
 /* AppStudy — hoja de estilo. Los colores base los aporta libadwaita. */
 
 .as-popup {
+  border-radius: 22px;
+}
+
+/* Tarjeta Flashcard moderna y contenedores */
+.as-flashcard {
+  background: @card_bg_color;
   border-radius: 20px;
+  border: 1px solid alpha(currentColor, 0.09);
+  box-shadow: 0 6px 24px alpha(black, 0.08);
+  transition: all 200ms ease;
+}
+
+.as-flashcard-accent {
+  min-height: 4px;
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.as-flashcard-inner {
+  padding: 20px 22px 22px 22px;
 }
 
 .as-card {
   background: @card_bg_color;
   border-radius: 18px;
   border: 1px solid alpha(currentColor, 0.08);
+  box-shadow: 0 4px 16px alpha(black, 0.05);
 }
 
-.as-chip {
+.as-chip, .as-badge {
   border-radius: 999px;
-  padding: 3px 12px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  padding: 4px 12px;
+  font-size: 0.80rem;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+}
+
+.as-badge-status {
+  font-size: 0.78rem;
+  font-weight: 650;
+  opacity: 0.85;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: alpha(currentColor, 0.07);
 }
 
 .as-deck-chip {
   border-radius: 999px;
   padding: 4px 14px 4px 10px;
-  font-weight: 700;
+  font-weight: 750;
 }
 
 .as-front {
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.35;
+  font-size: 1.48rem;
+  font-weight: 750;
+  line-height: 1.40;
+  letter-spacing: -0.01em;
+}
+
+.as-flashcard-divider {
+  margin: 16px 0 14px 0;
+  opacity: 0.12;
+}
+
+.as-answer-box {
+  background: alpha(currentColor, 0.035);
+  border: 1px solid alpha(currentColor, 0.07);
+  border-left: 4px solid alpha(#3584e4, 0.85);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+
+.as-answer-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-bottom: 6px;
 }
 
 .as-back {
-  font-size: 1.05rem;
-  line-height: 1.55;
+  font-size: 1.06rem;
+  line-height: 1.58;
 }
 
-.as-hint {
-  font-size: 0.95rem;
+.as-hint-btn {
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 650;
+  padding: 5px 12px;
+  background: alpha(#e5a50a, 0.12);
+  color: #e5a50a;
+}
+
+.as-hint-btn:hover {
+  background: alpha(#e5a50a, 0.22);
+}
+
+.as-hint-box {
+  background: alpha(#e5a50a, 0.10);
+  border: 1px solid alpha(#e5a50a, 0.35);
+  border-left: 3.5px solid #e5a50a;
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.as-hint-title {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #e5a50a;
+  margin-bottom: 3px;
+}
+
+.as-hint-text {
+  font-size: 0.96rem;
+  line-height: 1.48;
   font-style: italic;
-  opacity: 0.75;
+  opacity: 0.92;
 }
 
 .as-kbd {
@@ -49,35 +131,152 @@
   padding: 1px 6px;
 }
 
-.as-choice {
-  border-radius: 12px;
+.as-kbd-badge {
+  font-family: monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: alpha(currentColor, 0.10);
+  border: 1px solid alpha(currentColor, 0.14);
+  border-radius: 6px;
+  padding: 2px 6px;
+  margin: 0 2px;
+}
+
+.as-choice, .as-choice-btn {
+  border-radius: 14px;
   padding: 12px 16px;
   font-size: 1.0rem;
+  background: alpha(currentColor, 0.04);
+  border: 1px solid alpha(currentColor, 0.10);
+  transition: all 180ms ease;
+}
+
+.as-choice-btn:hover {
+  background: alpha(currentColor, 0.08);
+  border-color: alpha(currentColor, 0.22);
+}
+
+.as-choice-num {
+  font-family: monospace;
+  font-size: 0.85rem;
+  font-weight: 800;
+  background: alpha(currentColor, 0.10);
+  border-radius: 999px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 2px 7px;
 }
 
 .as-choice-right {
-  background: alpha(#2ec27e, 0.22);
-  border: 1px solid alpha(#2ec27e, 0.7);
+  background: alpha(#2ec27e, 0.22) !important;
+  border: 1.5px solid #2ec27e !important;
   color: inherit;
   font-weight: 700;
 }
 
 .as-choice-wrong {
-  background: alpha(#e01b24, 0.20);
-  border: 1px solid alpha(#e01b24, 0.7);
+  background: alpha(#e01b24, 0.20) !important;
+  border: 1.5px solid #e01b24 !important;
   color: inherit;
 }
 
-.as-rate {
+.as-verdict {
   border-radius: 12px;
-  padding: 8px 6px;
-  font-weight: 700;
+  padding: 10px 14px;
+  font-weight: 750;
+  font-size: 0.98rem;
 }
-.as-rate-again { background: alpha(#e01b24, 0.16); }
-.as-rate-hard  { background: alpha(#e5a50a, 0.18); }
-.as-rate-good  { background: alpha(#3584e4, 0.18); }
-.as-rate-easy  { background: alpha(#2ec27e, 0.18); }
-.as-rate:hover { background: alpha(currentColor, 0.12); }
+
+.as-verdict-ok {
+  background: alpha(#2ec27e, 0.16);
+  color: #2ec27e;
+  border: 1px solid alpha(#2ec27e, 0.45);
+}
+
+.as-verdict-wrong {
+  background: alpha(#e01b24, 0.16);
+  color: #e01b24;
+  border: 1px solid alpha(#e01b24, 0.45);
+}
+
+.as-rate, .as-rate-tile {
+  border-radius: 14px;
+  padding: 10px 8px;
+  font-weight: 750;
+  border: 1px solid alpha(currentColor, 0.10);
+  transition: all 150ms ease;
+}
+
+.as-rate-tile:hover {
+  border-color: alpha(currentColor, 0.26);
+}
+
+.as-rate-num {
+  font-family: monospace;
+  font-size: 0.76rem;
+  font-weight: 800;
+  background: alpha(currentColor, 0.14);
+  border-radius: 6px;
+  padding: 1px 5px;
+  margin-right: 4px;
+}
+
+.as-rate-title {
+  font-size: 0.94rem;
+  font-weight: 750;
+}
+
+.as-rate-due {
+  font-size: 0.78rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.as-rate-again {
+  background: alpha(#e01b24, 0.15);
+  border-color: alpha(#e01b24, 0.35);
+}
+.as-rate-again:hover {
+  background: alpha(#e01b24, 0.25);
+}
+
+.as-rate-hard {
+  background: alpha(#e5a50a, 0.16);
+  border-color: alpha(#e5a50a, 0.35);
+}
+.as-rate-hard:hover {
+  background: alpha(#e5a50a, 0.26);
+}
+
+.as-rate-good {
+  background: alpha(#3584e4, 0.16);
+  border-color: alpha(#3584e4, 0.35);
+}
+.as-rate-good:hover {
+  background: alpha(#3584e4, 0.26);
+}
+
+.as-rate-easy {
+  background: alpha(#2ec27e, 0.16);
+  border-color: alpha(#2ec27e, 0.35);
+}
+.as-rate-easy:hover {
+  background: alpha(#2ec27e, 0.26);
+}
+
+.as-chapter-link {
+  border-radius: 10px;
+  padding: 7px 14px;
+  font-size: 0.86rem;
+  font-weight: 650;
+  opacity: 0.90;
+  background: alpha(currentColor, 0.05);
+}
+
+.as-chapter-link:hover {
+  background: alpha(currentColor, 0.10);
+  opacity: 1.0;
+}
 
 .as-stat-value {
   font-size: 1.9rem;
