@@ -705,6 +705,89 @@
    ]
   },
   {
+   "level": 2,
+   "minutes": 18,
+   "tags": "passive,technical,procedures,grammar",
+   "title": "Technical procedures, passive voice and instructions",
+   "subtitle": "How to write standard operating procedures, describe workflows and give clear technical instructions.",
+   "body": [
+    {
+     "p": "In technical English, the focus of communication shifts from <i>who</i> is doing the action to <b>what is being done to the system</b>. Whether you are reading an equipment manual, logging a repair, or writing a procedure, two structures dominate: the <b>passive voice</b> and <b>sequenced instructions</b>."
+    },
+    {
+     "h": "The Passive Voice in technical writing"
+    },
+    {
+     "p": "Formed with <b>be + past participle</b>. Spanish often uses the reflexive passive (<i>«se cambia el aceite»</i>); English uses the passive voice to maintain an objective, impersonal tone:"
+    },
+    {
+     "code": "Present Simple   The hydraulic oil IS FILTERED before entering the tank.\nPast Simple      The cracked hose WAS REPLACED during the morning shift.\nPresent Perfect  The relief valve HAS BEEN CALIBRATED.\nFuture / Modal   The safety guard MUST BE SECURED prior to startup.\nInfinitive       The bolts need TO BE TIGHTENED to 120 Nm."
+    },
+    {
+     "key": "In maintenance logs and technical manuals, <i>The bearings were lubricated at 5,000 hours</i> is standard. You only add <b>by + agent</b> when knowing who performed the action is critical: <i>The inspection was conducted by a certified Caterpillar technician.</i>"
+    },
+    {
+     "h": "Sequencing words for step-by-step procedures"
+    },
+    {
+     "p": "Standard Operating Procedures (SOPs) require chronological clarity. Avoid repeating «and then»:"
+    },
+    {
+     "list": [
+      "<b>Initiating</b>: <i>First, initially, to begin with, prior to starting the engine...</i>",
+      "<b>Continuing</b>: <i>Next, then, subsequently, after that, following the inspection...</i>",
+      "<b>Simultaneous actions</b>: <i>Meanwhile, simultaneously, while the oil is draining...</i>",
+      "<b>Concluding</b>: <i>Finally, lastly, to conclude, once completed...</i>"
+     ]
+    },
+    {
+     "warn": "<b>Prior to</b> and <b>following</b> are followed by a noun or an <b>-ing verb</b>: <i>Prior to <b>starting</b> the pump</i> ✅ (never <s>prior to start</s>). <i>Following the <b>replacement</b> of the seal...</i>"
+    },
+    {
+     "h": "Giving instructions, cautions and safety warnings"
+    },
+    {
+     "p": "Technical manuals distinguish between three levels of severity in instructions:"
+    },
+    {
+     "code": "NOTE      Highlights useful information:\n          Ensure the O-ring is properly seated.\n\nCAUTION   Warns against equipment damage:\n          Do not over-tighten the fitting. Excessive torque will strip the threads.\n\nWARNING   Warns against personal injury or death:\n          Never disconnect hydraulic lines under pressure. Relieve residual pressure first."
+    },
+    {
+     "steps": [
+      "<b>Make sure / Ensure that</b>: <i>Ensure that the master disconnect switch is turned off.</i>",
+      "<b>Always / Never + base verb</b>: <i>Always wear safety glasses. Never operate with worn brake pads.</i>",
+      "<b>Prohibitions</b>: <i>Under no circumstances should the bypass valve be locked open.</i>",
+      "<b>Conditions</b>: <i>In the event of an oil leak, shut down the engine immediately.</i>"
+     ]
+    },
+    {
+     "h": "Relative clauses: defining with precision"
+    },
+    {
+     "p": "In technical discussions, relative clauses specify exactly which component or condition is being discussed:"
+    },
+    {
+     "code": "WHO      people       The technician WHO inspected the machine.\nWHICH    things       The filter WHICH was blocked caused the pressure drop.\nTHAT     things/info  The torque wrench THAT I used was calibrated.\nWHERE    locations    The compartment WHERE the ECU is housed.\nWHOSE    possession   The excavator WHOSE boom cylinder is leaking."
+    },
+    {
+     "note": "When the relative pronoun is the <b>object</b> of the clause, you can omit it for brevity: <i>The part <b>(that)</b> we ordered arrived today.</i>"
+    },
+    {
+     "h": "Troubleshooting: linking symptoms, causes and solutions"
+    },
+    {
+     "code": "SYMPTOM (What is observed)    ──>  The engine cranks but fails to start.\nPROBABLE CAUSE (Why it fails) ──>  Air in the fuel lines or clogged fuel filter.\nCORRECTIVE ACTION (How to fix)──>  Bleed the fuel system and replace the primary filter."
+    },
+    {
+     "list": [
+      "<i>The pump is overheating <b>due to</b> low fluid levels.</i>",
+      "<i>The vibration <b>is caused by</b> a misaligned drive shaft.</i>",
+      "<i>The fault <b>resulted from</b> inadequate lubrication.</i>"
+     ]
+    }
+   ]
+  },
+  {
    "level": 3,
    "minutes": 19,
    "tags": "grammar,vocabulary,writing",
@@ -898,6 +981,80 @@
     },
     {
      "key": "Read your email once and delete every sentence that does not either give information or ask for something. English business writing rewards brevity in a way Spanish correspondence does not."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 18,
+   "tags": "business,reports,emails,writing",
+   "title": "Professional correspondence, incident reports and data commentary",
+   "subtitle": "Writing effective emails, structuring technical failure reports and describing performance trends.",
+   "body": [
+    {
+     "p": "At B2 level, professional communication requires conciseness, diplomatic tone and structured clarity. Whether communicating with overseas suppliers, writing incident reports for management, or analysing operational downtime, standard formats and precise vocabulary are indispensable."
+    },
+    {
+     "h": "Structuring the professional business email"
+    },
+    {
+     "p": "English professional emails value brevity: state the purpose in the opening paragraph, details in bullet points, and the action requested on its own line."
+    },
+    {
+     "quote": "Dear Mr. Davis,\n\nI am writing to follow up on our spare parts order (#PO-8492) placed on 14 August.\n\nCould you please confirm the dispatch date and provide the tracking number? We urgently require the hydraulic seal kits for scheduled maintenance next Tuesday.\n\nPlease find the purchase order attached for your reference.\n\nI look forward to hearing from you.\n\nBest regards,\nLuis Blandón\nMaintenance Supervisor"
+    },
+    {
+     "list": [
+      "<b>Stating purpose</b>: <i>I am writing with regard to... / I am writing to inquire about... / I am writing to confirm...</i>",
+      "<b>Polite requests</b>: <i>Could you please confirm...? / I would appreciate it if you could send...</i>",
+      "<b>Enclosing files</b>: <i>Please find attached the diagnostic report. / Attached is the quotation.</i>",
+      "<b>Standard sign-offs</b>: <i>Kind regards / Best regards / Yours sincerely (when name is known).</i>"
+     ]
+    },
+    {
+     "h": "Technical Incident & Failure Analysis Reports"
+    },
+    {
+     "p": "When a catastrophic breakdown occurs, the formal report must separate factual evidence from engineering interpretation:"
+    },
+    {
+     "steps": [
+      "<b>1. Executive Summary</b>: state the core conclusion and financial/safety impact in three lines right at the top.",
+      "<b>2. Incident Description & Background</b>: machine serial number, operating hours, date, time and operator account.",
+      "<b>3. Factual Findings</b>: objective measurements only (e.g. <i>«Oil analysis revealed 65 ppm silicon and severe metal shavings in the return filter»</i>).",
+      "<b>4. Root Cause Analysis (RCA)</b>: technical deduction (e.g. <i>«The failure is attributable to intake duct rupture, which allowed abrasive dust to bypass filtration»</i>).",
+      "<b>5. Corrective & Preventive Actions (CAPA)</b>: numbered, actionable steps with assigned responsible persons and deadlines."
+     ]
+    },
+    {
+     "h": "Describing trends, graphs and metrics"
+    },
+    {
+     "p": "Communicating fleet reliability and downtime requires accurate trend vocabulary:"
+    },
+    {
+     "code": "UPWARD TREND    rise · increase · climb · surge · soar · double\nDOWNWARD TREND  fall · drop · decline · plummet · plunge · halve\nSTABLE          remain steady · level off · reach a plateau\nFLUCTUATING     fluctuate · vary between X and Y\nPEAK            reach a peak of · peak at"
+    },
+    {
+     "list": [
+      "<b>Adverbs of degree</b>: <i>sharply, steeply, dramatically, significantly, steadily, marginally, gradually.</i>",
+      "<b>The preposition rule</b>: <i>Downtime fell <b>BY</b> 25%</i> (the difference/change) vs. <i>Downtime fell <b>TO</b> 10 hours</i> (the final number).",
+      "<b>Time prepositions</b>: <i>Between January and March / From 2024 to 2026 / Over a period of six months.</i>"
+     ]
+    },
+    {
+     "h": "Professional collocations and business verbs"
+    },
+    {
+     "list": [
+      "<b>meet a deadline</b> — cumplir un plazo de entrega",
+      "<b>carry out an overhaul</b> — realizar una revisión completa",
+      "<b>conduct an audit</b> — llevar a cabo una auditoría",
+      "<b>address a concern</b> — atender una inquietud / problema",
+      "<b>mitigate a risk</b> — mitigar un riesgo",
+      "<b>reach an agreement</b> — llegar a un acuerdo",
+      "<b>fall within specifications</b> — estar dentro de las tolerancias"
+     ]
     }
    ]
   },
@@ -1118,43 +1275,116 @@
     }
    ]
   },
-{
- "level": 4, "minutes": 12, "tags": "writing,register,grammar,vocabulary",
- "title": "Writing that gets read",
- "subtitle": "Participle clauses, impersonal reporting, cause-and-effect vocabulary and the structure of an email people actually answer.",
- "body": [
-  {"p": "At C1 the grammar is mostly behind you. What separates a good report from a bad one is <b>structure</b> and <b>precision</b>: saying exactly how strong your claim is, and putting the important part where the reader will actually see it."},
-  {"h": "Two ideas in one line"},
-  {"p": "<b>Participle clauses</b> compress a sentence without losing meaning — the backbone of technical writing."},
-  {"code": "Having checked the pressure, we replaced the valve.   (after)\nWorking under load, the pump overheats.               (while)\nDamaged by vibration, the bracket failed.             (passive)"},
-  {"warn": "The hidden subject must match the main clause. <i>Having replaced the seal, the machine worked</i> says the machine replaced its own seal. That is a <b>dangling participle</b>, and in a report it reads as carelessness."},
-  {"h": "Saying it without saying who"},
-  {"p": "Investigations rarely want to name a person. English has a ready-made structure for that:"},
-  {"code": "It is believed that the seal failed.\nThe seal is believed to have failed.\nThe delay is thought to have been caused by a parts shortage."},
-  {"p": "Past reference takes the perfect infinitive: <i>is believed <b>to have</b> failed</i>. The same pattern works with <i>is said to</i>, <i>is expected to</i>, <i>is reported to</i>."},
-  {"h": "Cause and effect, in both directions"},
-  {"p": "Half the mistakes in technical English are a reversed causal chain. Keep the two families apart:"},
-  {"list": ["<b>Cause → effect</b>: <i>led to · resulted in · brought about · gave rise to · triggered</i>", "<b>Effect → cause</b>: <i>resulted from · stemmed from · was attributable to · arose from</i>", "<b>Partial cause</b>: <i>contributed to · was a factor in · compounded</i>"]},
-  {"key": "<b>result in</b> = cause. <b>result from</b> = be caused by. One preposition turns your sentence around, and nobody will tell you."},
-  {"h": "The comma that changes the fleet"},
-  {"code": "The pumps that failed were replaced.     → only those ones\nThe pumps, which failed, were replaced.  → all of them failed"},
-  {"p": "Defining clauses take no comma (<i>that</i> or <i>which</i>); non-defining ones take commas and only <i>which</i>. This is not decoration: it decides whether you replaced two pumps or twenty."},
-  {"h": "Precision about size and change"},
-  {"p": "Vague quantities make a report sound unreliable. English is rich here, so use it:"},
-  {"code": "small    a slight / marginal increase · edged up · tailed off\nlarge    a sharp / steep rise · soared · plummeted\nsteady   a gradual decline · levelled off · plateaued\nabout    roughly · in the region of · just under · upwards of"},
-  {"p": "<i>Downtime <b>edged up</b> in March, then <b>plateaued</b> at <b>just under</b> 40 hours.</i> Three precise words carry more authority than a paragraph of hedging."},
-  {"h": "Emphasis on the page"},
-  {"p": "In writing you have no tone of voice. English puts stress with structure instead:"},
-  {"code": "What surprised us was the cost, not the delay.\nWhat we need is a second pump.\nThe vibration did stop after the alignment.\nIt was only after the third test that the fault appeared."},
-  {"note": "One per paragraph. Used twice in a row, emphasis stops being emphasis."},
-  {"h": "Bad news, professionally"},
-  {"p": "Three moves, always in this order: an apologetic opener, a distancing verb, and — this is the one people forget — <b>an alternative</b>."},
-  {"code": "Direct:      We can't deliver on Friday.\nProfessional: Unfortunately, we won't be able to deliver on Friday.\nDiplomatic:  I'm afraid Friday is looking unlikely — would Monday work?"},
-  {"h": "The four-line email"},
-  {"steps": ["<b>Purpose</b> — <i>I'm writing to confirm the delivery date for the hydraulic kit.</i>", "<b>Context</b> — <i>As discussed on Tuesday, the original date was 12 March.</i>", "<b>Request</b> — <i>Could you confirm whether the revised date works on your side?</i>", "<b>Close</b> — <i>Happy to call if that's easier. Best regards, …</i>"]},
-  {"p": "One idea per paragraph and the request on its own line. Most people read the first two lines and the last one — so never bury the ask at the bottom."},
-  {"key": "Verbs that make you sound like you know what you are doing: <i>establish · ascertain · corroborate · preclude · mitigate · warrant · defer · escalate</i>. <i>The evidence did not <b>corroborate</b> the operator's account, but the wear pattern <b>warrants</b> a full inspection.</i>"}
+  {
+   "level": 4,
+   "minutes": 12,
+   "tags": "writing,register,grammar,vocabulary",
+   "title": "Writing that gets read",
+   "subtitle": "Participle clauses, impersonal reporting, cause-and-effect vocabulary and the structure of an email people actually answer.",
+   "body": [
+    {
+     "p": "At C1 the grammar is mostly behind you. What separates a good report from a bad one is <b>structure</b> and <b>precision</b>: saying exactly how strong your claim is, and putting the important part where the reader will actually see it."
+    },
+    {
+     "h": "Two ideas in one line"
+    },
+    {
+     "p": "<b>Participle clauses</b> compress a sentence without losing meaning — the backbone of technical writing."
+    },
+    {
+     "code": "Having checked the pressure, we replaced the valve.   (after)\nWorking under load, the pump overheats.               (while)\nDamaged by vibration, the bracket failed.             (passive)"
+    },
+    {
+     "warn": "The hidden subject must match the main clause. <i>Having replaced the seal, the machine worked</i> says the machine replaced its own seal. That is a <b>dangling participle</b>, and in a report it reads as carelessness."
+    },
+    {
+     "h": "Saying it without saying who"
+    },
+    {
+     "p": "Investigations rarely want to name a person. English has a ready-made structure for that:"
+    },
+    {
+     "code": "It is believed that the seal failed.\nThe seal is believed to have failed.\nThe delay is thought to have been caused by a parts shortage."
+    },
+    {
+     "p": "Past reference takes the perfect infinitive: <i>is believed <b>to have</b> failed</i>. The same pattern works with <i>is said to</i>, <i>is expected to</i>, <i>is reported to</i>."
+    },
+    {
+     "h": "Cause and effect, in both directions"
+    },
+    {
+     "p": "Half the mistakes in technical English are a reversed causal chain. Keep the two families apart:"
+    },
+    {
+     "list": [
+      "<b>Cause → effect</b>: <i>led to · resulted in · brought about · gave rise to · triggered</i>",
+      "<b>Effect → cause</b>: <i>resulted from · stemmed from · was attributable to · arose from</i>",
+      "<b>Partial cause</b>: <i>contributed to · was a factor in · compounded</i>"
+     ]
+    },
+    {
+     "key": "<b>result in</b> = cause. <b>result from</b> = be caused by. One preposition turns your sentence around, and nobody will tell you."
+    },
+    {
+     "h": "The comma that changes the fleet"
+    },
+    {
+     "code": "The pumps that failed were replaced.     → only those ones\nThe pumps, which failed, were replaced.  → all of them failed"
+    },
+    {
+     "p": "Defining clauses take no comma (<i>that</i> or <i>which</i>); non-defining ones take commas and only <i>which</i>. This is not decoration: it decides whether you replaced two pumps or twenty."
+    },
+    {
+     "h": "Precision about size and change"
+    },
+    {
+     "p": "Vague quantities make a report sound unreliable. English is rich here, so use it:"
+    },
+    {
+     "code": "small    a slight / marginal increase · edged up · tailed off\nlarge    a sharp / steep rise · soared · plummeted\nsteady   a gradual decline · levelled off · plateaued\nabout    roughly · in the region of · just under · upwards of"
+    },
+    {
+     "p": "<i>Downtime <b>edged up</b> in March, then <b>plateaued</b> at <b>just under</b> 40 hours.</i> Three precise words carry more authority than a paragraph of hedging."
+    },
+    {
+     "h": "Emphasis on the page"
+    },
+    {
+     "p": "In writing you have no tone of voice. English puts stress with structure instead:"
+    },
+    {
+     "code": "What surprised us was the cost, not the delay.\nWhat we need is a second pump.\nThe vibration did stop after the alignment.\nIt was only after the third test that the fault appeared."
+    },
+    {
+     "note": "One per paragraph. Used twice in a row, emphasis stops being emphasis."
+    },
+    {
+     "h": "Bad news, professionally"
+    },
+    {
+     "p": "Three moves, always in this order: an apologetic opener, a distancing verb, and — this is the one people forget — <b>an alternative</b>."
+    },
+    {
+     "code": "Direct:      We can't deliver on Friday.\nProfessional: Unfortunately, we won't be able to deliver on Friday.\nDiplomatic:  I'm afraid Friday is looking unlikely — would Monday work?"
+    },
+    {
+     "h": "The four-line email"
+    },
+    {
+     "steps": [
+      "<b>Purpose</b> — <i>I'm writing to confirm the delivery date for the hydraulic kit.</i>",
+      "<b>Context</b> — <i>As discussed on Tuesday, the original date was 12 March.</i>",
+      "<b>Request</b> — <i>Could you confirm whether the revised date works on your side?</i>",
+      "<b>Close</b> — <i>Happy to call if that's easier. Best regards, …</i>"
+     ]
+    },
+    {
+     "p": "One idea per paragraph and the request on its own line. Most people read the first two lines and the last one — so never bury the ask at the bottom."
+    },
+    {
+     "key": "Verbs that make you sound like you know what you are doing: <i>establish · ascertain · corroborate · preclude · mitigate · warrant · defer · escalate</i>. <i>The evidence did not <b>corroborate</b> the operator's account, but the wear pattern <b>warrants</b> a full inspection.</i>"
+    }
+   ]
+  }
  ]
-}
-]
 }

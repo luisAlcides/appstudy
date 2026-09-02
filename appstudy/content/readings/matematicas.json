@@ -1,0 +1,347 @@
+{
+ "deck": "matematicas",
+ "chapters": [
+  {
+   "level": 1,
+   "minutes": 10,
+   "tags": "aritmética,suma,resta,cálculo mental",
+   "title": "Suma, resta y complementos relámpago",
+   "subtitle": "Cálculo de izquierda a derecha, redondeo compensatorio y el método del complemento.",
+   "body": [
+    {
+     "p": "En la escuela nos enseñaron a calcular en papel de derecha a izquierda (unidades, decenas, centenas) arrastrando acarreos. Para el <b>cálculo mental rápido</b>, el orden es exactamente el inverso: <b>calcular de izquierda a derecha</b> (de mayor a menor valor posicional). Esto permite obtener una aproximación instantánea y refinarla en milisegundos."
+    },
+    {
+     "h": "Suma mental de izquierda a derecha"
+    },
+    {
+     "p": "En lugar de sumar $458 + 326$ alineando columnas, descompón el segundo sumando en centenas, decenas y unidades:"
+    },
+    {
+     "steps": [
+      "<b>1. Sumar las centenas</b>: $458 + 300 = 758$",
+      "<b>2. Sumar las decenas</b>: $758 + 20 = 778$",
+      "<b>3. Sumar las unidades</b>: $778 + 6 = 784$"
+     ]
+    },
+    {
+     "key": "Al calcular de izquierda a derecha, tu mente siempre mantiene la magnitud real del resultado y no satura la memoria de trabajo con acarreos olvidados."
+    },
+    {
+     "h": "Técnica de redondeo y compensación"
+    },
+    {
+     "p": "Cuando uno de los números está cerca de una decena o centena redonda ($9, 19, 98, 297, 495$), suma el número redondo y luego <b>resta la diferencia</b>:"
+    },
+    {
+     "code": "Ejemplo:  647 + 298\n           = 647 + 300 - 2\n           = 947 - 2 = 945\n\nEjemplo:  834 + 495\n           = 834 + 500 - 5\n           = 1334 - 5 = 1329"
+    },
+    {
+     "h": "Resta rápida por descomposición hacia adelante"
+    },
+    {
+     "p": "Para restar $83 - 47$, en lugar de «pedir prestado al vecino», resta en dos saltos amigables:"
+    },
+    {
+     "steps": [
+      "<b>Paso 1 (Restar las decenas)</b>: $83 - 40 = 43$",
+      "<b>Paso 2 (Restar las unidades)</b>: $43 - 7 = 36$"
+     ]
+    },
+    {
+     "h": "El método del complemento a 10, 100 y 1.000"
+    },
+    {
+     "p": "Restar un número cualquiera de una potencia de 10 ($100, 1000, 10000$) se resuelve con una regla ancestral védica: <b>«Todos a 9 y el último a 10»</b>. Resta cada dígito de 9 y el último dígito de la derecha de 10:"
+    },
+    {
+     "code": "Calcular: 1.000 - 647\n  - Primer dígito (6):  9 - 6 = 3\n  - Segundo dígito (4): 9 - 4 = 5\n  - Último dígito (7): 10 - 7 = 3\n  Resultado: 353\n\nCalcular: 10.000 - 3.824\n  - 9 - 3 = 6\n  - 9 - 8 = 1\n  - 9 - 2 = 7\n  - 10 - 4 = 6\n  Resultado: 6.176"
+    },
+    {
+     "note": "Si el número termina en ceros (ej. $1.000 - 460$), el «último» dígito para la regla es el último dígito distinto de cero: $9-4=5$, $10-6=4$, y conservas el cero final $\\rightarrow 540$."
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 10,
+   "tags": "multiplicación,división,trucos,aritmética",
+   "title": "Multiplicaciones relámpago y atajos directos",
+   "subtitle": "Multiplicar y dividir por 5/25, duplicar y partir, multiplicar por 11/9/15, y cuadrados de números terminados en 5.",
+   "body": [
+    {
+     "p": "Multiplicar mentalmente no requiere memorizar tablas infinitas: requiere aprovechar las propiedades del sistema decimal para transformar multiplicaciones difíciles en divisiones o desplazamientos de ceros sumamente sencillos."
+    },
+    {
+     "h": "Multiplicar por 5, 50 y 500"
+    },
+    {
+     "p": "Como $5 = \\frac{10}{2}$, multiplicar por 5 equivale a <b>añadir un cero (o multiplicar por 10) y dividir entre 2</b> (sacar la mitad):"
+    },
+    {
+     "code": "48 × 5   ──>  480 / 2 = 240   (o la mitad de 48 = 24 -> 240)\n86 × 50  ──>  8600 / 2 = 4300\n64 × 500 ──>  64000 / 2 = 32000"
+    },
+    {
+     "h": "Dividir entre 5 al instante"
+    },
+    {
+     "p": "Dividir entre 5 es la operación inversa: <b>duplicar el número y correr la coma decimal un lugar a la izquierda</b> (dividir entre 10):"
+    },
+    {
+     "code": "240 ÷ 5   ──>  (240 × 2) / 10 = 480 / 10 = 48\n135 ÷ 5   ──>  (135 × 2) / 10 = 270 / 10 = 27\n43 ÷ 5    ──>  (43 × 2) / 10  = 86 / 10  = 8.6"
+    },
+    {
+     "h": "La técnica de duplicar y dividir a la mitad"
+    },
+    {
+     "p": "Si un número es par y el otro termina en 5 o es incómodo, <b>saca la mitad de uno y duplica el otro</b> (el producto no cambia):"
+    },
+    {
+     "code": "18 × 35  ──>  (18 / 2) × (35 × 2) = 9 × 70 = 630\n16 × 25  ──>  8 × 50 = 4 × 100 = 400\n24 × 15  ──>  12 × 30 = 360"
+    },
+    {
+     "h": "Multiplicar por 11 (números de 2 y 3 cifras)"
+    },
+    {
+     "p": "Para multiplicar cualquier número de 2 cifras por 11: <b>abre los dos dígitos y coloca en el medio la suma de ambos</b>:"
+    },
+    {
+     "code": "43 × 11  ──>  Extremos: 4 y 3. Centro: 4 + 3 = 7   ──>  473\n52 × 11  ──>  Extremos: 5 y 2. Centro: 5 + 2 = 7   ──>  572\n\nSi la suma supera 9 (acarreo):\n78 × 11  ──>  Centro: 7 + 8 = 15. Suma 1 al 7: (7+1)_5_8  ──>  858\n95 × 11  ──>  Centro: 9 + 5 = 14. Suma 1 al 9: (9+1)_4_5  ──>  1045"
+    },
+    {
+     "h": "Multiplicar por 9, 99 y 999"
+    },
+    {
+     "p": "Multiplicar por 9 es multiplicar por $(10 - 1)$; por 99 es $(100 - 1)$:"
+    },
+    {
+     "code": "37 × 9   ──>  (37 × 10) - 37 = 370 - 37 = 333\n46 × 99  ──>  (46 × 100) - 46 = 4600 - 46 = 4554\n28 × 999 ──>  28000 - 28 = 27972"
+    },
+    {
+     "h": "Cuadrado de números que terminan en 5"
+    },
+    {
+     "p": "El cuadrado de cualquier número terminado en 5 ($15, 25, 35, \\dots, 95$) <b>siempre termina en 25</b>. La parte delantera es simplemente el producto del dígito de la decena por su número siguiente ($n \\times (n+1)$):"
+    },
+    {
+     "code": "35²  ──>  Decena 3: 3 × (3+1) = 3 × 4 = 12  ──>  1225\n65²  ──>  Decena 6: 6 × 7 = 42               ──>  4225\n85²  ──>  Decena 8: 8 × 9 = 72               ──>  7225\n105² ──>  Decena 10: 10 × 11 = 110          ──>  11025"
+    },
+    {
+     "key": "Un atajo que ahorra calculadora en cualquier problema geométrico o técnico con radios de $1.5, 2.5, 3.5, \\dots$ ($3.5^2 = 12.25$)."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "porcentajes,fracciones,proporciones,trucos",
+   "title": "Porcentajes instantáneos y la regla reversible",
+   "subtitle": "La propiedad conmutativa $x\\%$ de $y = y\\%$ de $x$, bloques modulares y factores de cambio.",
+   "body": [
+    {
+     "p": "Los cálculos de porcentajes suelen intimidar porque intentamos resolver multiplicaciones con decimales complejos. Con dos propiedades fundamentales, cualquier porcentaje comercial o técnico se obtiene en 5 segundos sin papel."
+    },
+    {
+     "h": "La regla de reversibilidad: $x\\%$ de $y = y\\%$ de $x$"
+    },
+    {
+     "p": "Porcentaje significa «dividir entre 100». Como la multiplicación es conmutativa:"
+    },
+    {
+     "math": "x\\% \\times y = \\frac{x \\times y}{100} = \\frac{y \\times x}{100} = y\\% \\times x"
+    },
+    {
+     "code": "¿Cuánto es el 16% de 50?\n  Difícil de cabeza. Inviértelo:\n  = 50% de 16 = la mitad de 16 = 8\n\n¿Cuánto es el 18% de 25?\n  Inviértelo: = 25% de 18 = la cuarta parte de 18 = 4.5\n\n¿Cuánto es el 84% de 50?\n  Inviértelo: = 50% de 84 = 42"
+    },
+    {
+     "key": "Siempre que el porcentaje o el número objetivo sea $25, 50, 75\\text{ o }20$, inviértelos de inmediato para transformar un cálculo denso en una simple fracción."
+    },
+    {
+     "h": "El método de los bloques básicos (1%, 5%, 10%, 25%, 50%)"
+    },
+    {
+     "p": "Cualquier porcentaje se descompone sumando o restando bloques sencillos derivados del número original:"
+    },
+    {
+     "steps": [
+      "<b>10%</b>: corre la coma un lugar a la izquierda ($10\\%\\text{ de } 240 = 24$).",
+      "<b>5%</b>: la mitad del 10% ($12$).",
+      "<b>1%</b>: corre la coma dos lugares a la izquierda ($2.4$).",
+      "<b>20%</b>: el doble del 10% ($48$).",
+      "<b>15% (propina / recargo)</b>: $10\\% + 5\\% = 24 + 12 = 36$."
+     ]
+    },
+    {
+     "code": "Ejemplo: Calcular el 35% de 80\n  - 10% = 8\n  - 30% = 8 × 3 = 24\n  - 5%  = 4\n  - 35% = 24 + 4 = 28"
+    },
+    {
+     "h": "Multiplicadores para aumentos y descuentos directos"
+    },
+    {
+     "p": "Nunca calcules el descuento por separado para luego restarlo. Utiliza el **factor multiplicador decimal** directo:"
+    },
+    {
+     "list": [
+      "<b>Descuento del 20%</b>: pagas el 80% $\\rightarrow$ Multiplica por $\\mathbf{0.8}$.",
+      "<b>Descuento del 30%</b>: pagas el 70% $\\rightarrow$ Multiplica por $\\mathbf{0.7}$.",
+      "<b>Aumento o IVA del 16%</b>: $\\rightarrow$ Multiplica por $\\mathbf{1.16}$.",
+      "<b>Aumento del 25%</b>: $\\rightarrow$ Multiplica por $\\mathbf{1.25}$ (o suma su cuarta parte)."
+     ]
+    },
+    {
+     "h": "Suma de fracciones: el método mariposa"
+    },
+    {
+     "p": "Para sumar o restar fracciones con distinto denominador sin calcular el mínimo común múltiplo:"
+    },
+    {
+     "math": "\\frac{a}{b} + \\frac{c}{d} = \\frac{a \\cdot d + b \\cdot c}{b \\cdot d}"
+    },
+    {
+     "code": "Ejemplo: 3/4 + 2/5\n  - Cruz 1: 3 × 5 = 15\n  - Cruz 2: 4 × 2 = 8\n  - Numerador: 15 + 8 = 23\n  - Denominador: 4 × 5 = 20\n  Resultado: 23/20 = 1.15"
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "multiplicación,védica,álgebra,trucos",
+   "title": "Multiplicación védica cruzada y método de la base 100",
+   "subtitle": "Multiplicación de números cercanos a 100 y método en cruz para dos cifras.",
+   "body": [
+    {
+     "p": "Cuando ambos números son de dos cifras y no terminan en 5 ni en 9, existen dos métodos que reducen el cálculo a operaciones de suma básica de un solo dígito."
+    },
+    {
+     "h": "Método de la base 100 (números cercanos a 100)"
+    },
+    {
+     "p": "Para multiplicar dos números entre 90 y 99, calcula sus **desviaciones (lo que les falta para llegar a 100)**:"
+    },
+    {
+     "code": "Calcular: 96 × 93\n  - Desviación de 96: (100 - 96) = -4\n  - Desviación de 93: (100 - 93) = -7\n\n  1. Parte izquierda: resta cruzada  ──>  96 - 7 = 89  (o 93 - 4 = 89)\n  2. Parte derecha: multiplica desviaciones ──>  (-4) × (-7) = 28\n\n  Resultado final uniendo ambas partes: 8928"
+    },
+    {
+     "p": "El método funciona exactamente igual para **números mayores que 100**:"
+    },
+    {
+     "code": "Calcular: 104 × 107\n  - Desviaciones: +4 y +7\n  1. Parte izquierda: 104 + 7 = 111\n  2. Parte derecha: 4 × 7 = 28\n  Resultado final: 11128"
+    },
+    {
+     "note": "Si el producto de las desviaciones es de un solo dígito (ej. $2 \\times 3 = 6$), debes colocar un cero delante: $06$."
+    },
+    {
+     "h": "Multiplicación cruzada $2 \\times 2$ (Vertically & Crosswise)"
+    },
+    {
+     "p": "Para multiplicar dos números cualesquiera de 2 cifras (ej. $32 \\times 41$) en una sola línea mental:"
+    },
+    {
+     "steps": [
+      "<b>Paso 1 (Vertical derecha)</b>: multiplica las unidades $\\rightarrow 2 \\times 1 = \\mathbf{2}$",
+      "<b>Paso 2 (Cruzado y suma)</b>: multiplica en cruz y suma $\\rightarrow (3 \\times 1) + (2 \\times 4) = 3 + 8 = \\mathbf{11}$ (escribes 1, llevas 1)",
+      "<b>Paso 3 (Vertical izquierda)</b>: multiplica las decenas y suma el acarreo $\\rightarrow (3 \\times 4) + 1 = 12 + 1 = \\mathbf{13}$",
+      "<b>Resultado completo</b>: $\\mathbf{1312}$"
+     ]
+    },
+    {
+     "code": "Otro ejemplo: 23 × 14\n  - Unidades: 3 × 4 = 12  (escribes 2, llevas 1)\n  - Cruzado: (2 × 4) + (3 × 1) + 1 = 8 + 3 + 1 = 12  (escribes 2, llevas 1)\n  - Decenas: (2 × 1) + 1 = 3\n  Resultado: 322"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "álgebra,cuadrados,raíces,estimación",
+   "title": "Cuadrados, raíces y productos notables mentales",
+   "subtitle": "Identidades notables $(a\\pm b)^2$, diferencia de cuadrados y aproximación lineal de raíces.",
+   "body": [
+    {
+     "p": "El álgebra no es solo teoría de variables: es el motor más potente para el cálculo mental avanzado. Las identidades algebraicas permiten calcular cuadrados y raíces cuadradas complejas en segundos."
+    },
+    {
+     "h": "Cuadrado mental por diferencia simétrica: $x^2 = (x-d)(x+d) + d^2$"
+    },
+    {
+     "p": "Para elevar al cuadrado un número $x$, busca la decena redonda más cercana sumando o restando una distancia $d$:"
+    },
+    {
+     "code": "Calcular: 42²  (distancia d = 2 hacia 40)\n  = (42 - 2) × (42 + 2) + 2²\n  = 40 × 44 + 4\n  = 1760 + 4 = 1764\n\nCalcular: 49²  (distancia d = 1 hacia 50)\n  = (49 - 1) × (49 + 1) + 1²\n  = 48 × 50 + 1\n  = 2400 + 1 = 2401\n\nCalcular: 78²  (distancia d = 2 hacia 80)\n  = (78 - 2) × (78 + 2) + 2²\n  = 76 × 80 + 4\n  = 6080 + 4 = 6084"
+    },
+    {
+     "h": "Multiplicar números equidistantes: $(a-b)(a+b) = a^2 - b^2$"
+    },
+    {
+     "p": "Cuando dos números tienen un promedio redondo en el centro, su producto es la diferencia de cuadrados:"
+    },
+    {
+     "code": "53 × 47  ──>  Promedio central es 50 (distancia ±3)\n             = (50 + 3) × (50 - 3)\n             = 50² - 3² = 2500 - 9 = 2491\n\n64 × 56  ──>  Promedio central es 60 (distancia ±4)\n             = 60² - 4² = 3600 - 16 = 3584"
+    },
+    {
+     "h": "Aproximación lineal de raíces cuadradas no exactas"
+    },
+    {
+     "p": "Para calcular la raíz cuadrada aproximada de un número $N$, localiza el **cuadrado perfecto más cercano $A$** y aplica la aproximación diferencial de Taylor:"
+    },
+    {
+     "math": "\\sqrt{N} \\approx \\sqrt{A} + \\frac{N - A}{2\\sqrt{A}}"
+    },
+    {
+     "code": "Ejemplo: Calcular √50\n  - Cuadrado perfecto cercano A = 49 (√49 = 7)\n  - Diferencia: N - A = 50 - 49 = 1\n  - √50 ≈ 7 + 1 / (2 × 7) = 7 + 1/14 ≈ 7 + 0.071 = 7.071\n  (Valor real: 7.07106... ¡Precisión de 3 decimales!)\n\nEjemplo: Calcular √85\n  - Cuadrado perfecto cercano A = 81 (√81 = 9)\n  - √85 ≈ 9 + (85 - 81) / (2 × 9) = 9 + 4/18 = 9 + 0.222 = 9.222\n  (Valor real: 9.2195...)"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "verificación,regla del 72,divisibilidad,estimación",
+   "title": "Verificación por prueba del 9 y la Regla del 72",
+   "subtitle": "Prueba del 9 en 3 segundos, duplicación con la regla del 72 y criterios de divisibilidad.",
+   "body": [
+    {
+     "p": "Cerrar un cálculo técnico o de ingeniería exige saber si el resultado es correcto sin tener que repetir toda la operación. Para ello disponemos de la prueba del 9 y de herramientas de estimación exponencial rápida."
+    },
+    {
+     "h": "La prueba del 9 (Casting out nines)"
+    },
+    {
+     "p": "Permite verificar sumas y multiplicaciones calculando la **raíz digital** (sumar las cifras ignorando todos los 9s o sumas que den 9):"
+    },
+    {
+     "steps": [
+      "Supongamos que calculaste $38 \\times 47 = 1786$. ¿Es correcto?",
+      "<b>1. Raíz digital de 38</b>: $3 + 8 = 11 \\rightarrow 1 + 1 = \\mathbf{2}$",
+      "<b>2. Raíz digital de 47</b>: $4 + 7 = 11 \\rightarrow 1 + 1 = \\mathbf{2}$",
+      "<b>3. Producto de raíces</b>: $2 \\times 2 = \\mathbf{4}$",
+      "<b>4. Raíz digital del resultado 1786</b>: ignora $(1+8=9)$, queda $7 + 6 = 13 \\rightarrow 1 + 3 = \\mathbf{4}$",
+      "Como $4 = 4$, el cálculo supera la prueba con altísima probabilidad."
+     ]
+    },
+    {
+     "h": "La Regla del 72: tiempo para duplicar"
+    },
+    {
+     "p": "En finanzas, crecimiento exponencial o degradación acumulativa, el tiempo que tarda una cantidad en **duplicarse** al $R\\%$ de interés compuesto anual es aproximadamente:"
+    },
+    {
+     "math": "\\text{Años para duplicar} \\approx \\frac{72}{R}"
+    },
+    {
+     "code": "Al 6% anual   ──>  72 / 6  = 12 años para duplicar el capital\nAl 8% anual   ──>  72 / 8  = 9 años\nAl 12% anual  ──>  72 / 12 = 6 años\nAl 24% anual  ──>  72 / 24 = 3 años"
+    },
+    {
+     "h": "Criterios de divisibilidad clave"
+    },
+    {
+     "list": [
+      "<b>Divisible entre 3</b>: la suma de sus dígitos es múltiplo de 3.",
+      "<b>Divisible entre 4</b>: sus dos últimas cifras forman un múltiplo de 4 ($316 \\rightarrow 16$ es divisible).",
+      "<b>Divisible entre 6</b>: es par y divisible entre 3 simultáneamente.",
+      "<b>Divisible entre 8</b>: sus tres últimas cifras forman un múltiplo de 8 ($5120 \\rightarrow 120 / 8 = 15$).",
+      "<b>Divisible entre 11</b>: la suma de cifras en posición impar menos la suma de cifras en posición par es 0 o múltiplo de 11 ($7183 \\rightarrow (7+8) - (1+3) = 15 - 4 = 11$)."
+     ]
+    }
+   ]
+  }
+ ]
+}

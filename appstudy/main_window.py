@@ -9,7 +9,8 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib, Gtk, Pango  # noqa: E402
 
-from . import db, hotkey, pet, scheduler, util  # noqa: E402
+from . import db, hotkey, ia, libros, pet, scheduler, sonido, util  # noqa: E402
+from .biblioteca import Biblioteca  # noqa: E402
 from .reader import ChapterView  # noqa: E402
 
 
@@ -29,6 +30,9 @@ class MainWindow(Adw.ApplicationWindow):
                                         "view-paged-symbolic")
         self.stack.add_titled_with_icon(self.build_browser(), "tarjetas", "Tarjetas",
                                         "view-list-symbolic")
+        self.biblioteca = Biblioteca(self, self.con)
+        self.stack.add_titled_with_icon(self.biblioteca, "biblioteca", "Biblioteca",
+                                        "library-symbolic")
         self.stack.add_titled_with_icon(self.build_settings(), "ajustes", "Ajustes",
                                         "preferences-system-symbolic")
         # Refrescar las cuatro secciones cuesta más de un segundo (el explorador
@@ -365,6 +369,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.level_filter = Gtk.DropDown.new_from_strings(["Todos los niveles"])
         self.level_filter.connect("notify::selected", lambda *_: self.refresh_browser())
         barra.append(self.level_filter)
+
+        self.btn_ia = Gtk.Button(icon_name="starred-symbolic",
+                                 tooltip_text="Generar tarjetas con la IA")
+        self.btn_ia.connect("clicked", lambda *_: self.generar_con_ia())
+        barra.append(self.btn_ia)
         box.append(barra)
 
         self.browser_list = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
@@ -385,6 +394,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.refresh_browser()
 
     def refresh_browser(self):
+        self.btn_ia.set_visible(ia.config(self.con)["activa"])
         decks = db.deck_stats(self.con)
         etiquetas = ["Todos los mazos"] + [f"{d['icon']} {d['name']}" for d in decks]
         modelo = self.deck_filter.get_model()
@@ -678,6 +688,17 @@ class MainWindow(Adw.ApplicationWindow):
         self.pet_auto.connect("notify::active", self.on_pet_autostart)
         gp.add(self.pet_auto)
 
+        self.snd_switch = Adw.SwitchRow(
+            title="Sonidos",
+            subtitle="Avisos, aciertos y fallos · también desde su menú, en Silencio")
+        self.snd_switch.connect("notify::active", self.on_sonido)
+        gp.add(self.snd_switch)
+
+        self.snd_vol = Adw.SpinRow.new_with_range(0, 100, 10)
+        self.snd_vol.set_title("Volumen")
+        self.snd_vol.connect("notify::value", self.on_volumen)
+        gp.add(self.snd_vol)
+
         self.pet_every = Adw.SpinRow.new_with_range(5, 240, 5)
         self.pet_every.set_title("Cada cuántos minutos te habla")
         self.pet_every.set_subtitle("Solo insiste si tienes algo pendiente")
@@ -685,9 +706,54 @@ class MainWindow(Adw.ApplicationWindow):
         gp.add(self.pet_every)
         page.add(gp)
 
+        gia = Adw.PreferencesGroup(
+            title="Inteligencia artificial",
+            description="Un modelo que corre en tu propia máquina con Ollama: puedes "
+                        "preguntarle a Bit, pedirle que te explique una tarjeta de otra "
+                        "manera y generar tarjetas nuevas. Ni tus datos ni tus preguntas "
+                        "salen del equipo.")
+        self.ia_switch = Adw.SwitchRow(title="Activar la IA")
+        self.ia_switch.connect("notify::active", self.on_ia_toggle)
+        gia.add(self.ia_switch)
+
+        self.ia_url = Adw.EntryRow(title="Servidor")
+        self.ia_url.connect("apply", self.on_ia_url)
+        self.ia_url.set_show_apply_button(True)
+        gia.add(self.ia_url)
+
+        self.ia_modelo = Adw.EntryRow(title="Modelo")
+        self.ia_modelo.connect("apply", self.on_ia_modelo)
+        self.ia_modelo.set_show_apply_button(True)
+        gia.add(self.ia_modelo)
+
+        self.ia_estado = Adw.ActionRow(title="Estado", subtitle="Sin comprobar")
+        self.ia_estado.set_subtitle_lines(3)
+        probar = Gtk.Button(label="Probar conexión", valign=Gtk.Align.CENTER)
+        probar.connect("clicked", lambda *_: self.probar_ia())
+        self.ia_estado.add_suffix(probar)
+        gia.add(self.ia_estado)
+        page.add(gia)
+
+        glib_ = Adw.PreferencesGroup(
+            title="Biblioteca",
+            description="La carpeta donde tienes tus libros. Se leen donde están: "
+                        "AppStudy no los copia ni los modifica.")
+        self.libros_row = Adw.ActionRow(title="Carpeta")
+        self.libros_row.set_subtitle_selectable(True)
+        cambiar = Gtk.Button(label="Cambiar…", valign=Gtk.Align.CENTER)
+        cambiar.connect("clicked", lambda *_: self.biblioteca.elegir_carpeta())
+        self.libros_row.add_suffix(cambiar)
+        glib_.add(self.libros_row)
+        page.add(glib_)
+
         gpr = Adw.PreferencesGroup(
-            title="Progreso",
-            description="Para empezar de cero un día que no cuenta, o una racha que no es tuya.")
+            title="Apariencia y progreso",
+            description="Tamaño de elementos en pantalla y gestión del progreso.")
+        self.card_size = Adw.SpinRow.new_with_range(70, 250, 5)
+        self.card_size.set_title("Tamaño de las tarjetas (globo y popup)")
+        self.card_size.set_subtitle("En porcentaje (115% por defecto); también desde el clic derecho en la tarjeta")
+        self.card_size.connect("notify::value", self.on_card_size)
+        gpr.add(self.card_size)
         self.pet_size = Adw.SpinRow.new_with_range(50, 250, 10)
         self.pet_size.set_title(f"Tamaño de {pet.NOMBRE}")
         self.pet_size.set_subtitle("En porcentaje; también desde su menú, con Más grande / Más pequeño")
@@ -744,9 +810,124 @@ class MainWindow(Adw.ApplicationWindow):
     def on_pet_every(self, fila, _p):
         db.set_meta(self.con, "pet_every", int(fila.get_value()))
 
+    def on_sonido(self, fila, _p):
+        sonido.guardar(self.con, activo=fila.get_active())
+        if fila.get_active():
+            sonido.reproducir(sonido.config(self.con), "acierto")   # para oírlo
+
+    def on_volumen(self, fila, _p):
+        sonido.guardar(self.con, volumen=fila.get_value() / 100)
+        sonido.reproducir(sonido.config(self.con), "clic")
+
+    def on_card_size(self, fila, _p):
+        db.set_meta(self.con, "card_scale", round(fila.get_value() / 100, 2))
+
     def on_pet_size(self, fila, _p):
         # La mascota lo lee cada pocos segundos y se redimensiona sola
         db.set_meta(self.con, "pet_scale", round(fila.get_value() / 100, 2))
+
+    def on_ia_toggle(self, fila, _p):
+        ia.guardar(self.con, activa=fila.get_active())
+        if fila.get_active():
+            self.probar_ia()
+
+    def on_ia_url(self, fila):
+        ia.guardar(self.con, url=fila.get_text().strip() or ia.URL_DEFECTO)
+        self.probar_ia()
+
+    def on_ia_modelo(self, fila):
+        ia.guardar(self.con, modelo=fila.get_text().strip() or ia.MODELO_DEFECTO)
+        self.probar_ia()
+
+    def probar_ia(self):
+        """Pregunta al servidor sin congelar la ventana."""
+        self.ia_estado.set_subtitle("Comprobando…")
+        cfg = ia.config(self.con)          # SQLite no se puede tocar desde otro hilo
+        ia.hilo(lambda: ia.probar(cfg),
+                lambda r: self.ia_estado.set_subtitle(("✓ " if r[0] else "✗ ") + r[1]),
+                lambda e: self.ia_estado.set_subtitle(f"✗ {e}"))
+
+    # -------------------------------------------------------- tarjetas con IA
+
+    def generar_con_ia(self):
+        """Pide un tema y propone tarjetas; tú eliges cuáles se guardan."""
+        if not ia.config(self.con)["activa"]:
+            self.notify_user("Activa la IA en Ajustes para generar tarjetas")
+            return
+        dlg = Adw.AlertDialog(heading="Generar tarjetas con la IA",
+                              body="¿Sobre qué tema? El modelo propone y tú decides.")
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        tema = Gtk.Entry(placeholder_text="Ej.: sensores de presión en hidráulica")
+        tema.set_activates_default(True)
+        caja.append(tema)
+        mazos = db.deck_stats(self.con)
+        elegir = Gtk.DropDown.new_from_strings([f"{d['icon']} {d['name']}" for d in mazos])
+        caja.append(self.labeled("Mazo donde guardarlas", elegir))
+        cuantas = Gtk.SpinButton.new_with_range(1, 10, 1)
+        cuantas.set_value(5)
+        caja.append(self.labeled("Cuántas", cuantas))
+        dlg.set_extra_child(caja)
+        dlg.add_response("cancel", "Cancelar")
+        dlg.add_response("go", "Generar")
+        dlg.set_response_appearance("go", Adw.ResponseAppearance.SUGGESTED)
+        dlg.set_default_response("go")
+        dlg.connect("response", self.on_generar, tema, elegir, cuantas, mazos)
+        dlg.present(self)
+
+    def on_generar(self, _d, respuesta, tema, elegir, cuantas, mazos):
+        texto = tema.get_text().strip()
+        if respuesta != "go" or not texto:
+            return
+        mazo = mazos[elegir.get_selected()]
+        n = int(cuantas.get_value())
+        self.notify_user(f"Pensando {n} tarjetas sobre «{texto}»…")
+        cfg = ia.config(self.con)
+        ia.hilo(lambda: ia.generar_tarjetas(cfg, texto, n),
+                lambda tarjetas: self.revisar_generadas(tarjetas, mazo, texto),
+                lambda e: self.notify_user(f"No pude generar: {e}"))
+
+    def revisar_generadas(self, tarjetas, mazo, tema, etiquetas="ia"):
+        """Enseña lo que propuso el modelo con una casilla por tarjeta."""
+        dlg = Adw.AlertDialog(
+            heading=f"{len(tarjetas)} tarjetas sobre «{tema}»",
+            body="Revísalas antes de guardar: la IA se equivoca, y una tarjeta mala "
+                 "se estudia igual que una buena.")
+        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                            css_classes=["boxed-list"])
+        casillas = []
+        for t in tarjetas:
+            fila = Adw.ActionRow(title=util.as_label(t["front"]),
+                                 subtitle=util.as_label(t["back"]))
+            fila.set_title_lines(2)
+            fila.set_subtitle_lines(4)
+            marca = Gtk.CheckButton(active=True, valign=Gtk.Align.CENTER)
+            fila.add_prefix(marca)
+            fila.set_activatable_widget(marca)
+            lista.append(fila)
+            casillas.append((marca, t))
+        scroll = Gtk.ScrolledWindow(propagate_natural_height=True, max_content_height=420)
+        scroll.set_child(lista)
+        dlg.set_extra_child(scroll)
+        dlg.add_response("cancel", "Descartar")
+        dlg.add_response("save", "Guardar las marcadas")
+        dlg.set_response_appearance("save", Adw.ResponseAppearance.SUGGESTED)
+        dlg.connect("response", self.on_guardar_generadas, casillas, mazo, etiquetas)
+        dlg.present(self)
+
+    def on_guardar_generadas(self, _d, respuesta, casillas, mazo, etiquetas="ia"):
+        if respuesta != "save":
+            return
+        n = 0
+        for marca, t in casillas:
+            if not marca.get_active():
+                continue
+            db.add_card(self.con, mazo["id"], mazo["key"], "card", t["front"], t["back"],
+                        tags=etiquetas, level=2)
+            n += 1
+        self.con.commit()
+        self.notify_user(f"{n} tarjetas guardadas en {mazo['name']}" if n
+                         else "No marcaste ninguna")
+        self.refresh()
 
     def confirm_undo_today(self):
         n = db.totals(self.con)["hoy"]
@@ -805,9 +986,36 @@ class MainWindow(Adw.ApplicationWindow):
         self.pet_every.set_value(float(db.get_meta(self.con, "pet_every",
                                                    pet.DEFAULT_EVERY_MIN)))
         self.pet_every.handler_unblock_by_func(self.on_pet_every)
+        self.libros_row.set_subtitle(str(libros.carpeta(self.con)))
+
+        snd = sonido.config(self.con)
+        for fila, cb, valor in ((self.snd_switch, self.on_sonido, None),
+                                (self.snd_vol, self.on_volumen, None)):
+            fila.handler_block_by_func(cb)
+        self.snd_switch.set_active(snd["activo"])
+        self.snd_vol.set_value(round(snd["volumen"] * 100))
+        for fila, cb in ((self.snd_switch, self.on_sonido), (self.snd_vol, self.on_volumen)):
+            fila.handler_unblock_by_func(cb)
+
+        self.card_size.handler_block_by_func(self.on_card_size)
+        self.card_size.set_value(float(db.get_meta(self.con, "card_scale", 1.15)) * 100)
+        self.card_size.handler_unblock_by_func(self.on_card_size)
+
         self.pet_size.handler_block_by_func(self.on_pet_size)
         self.pet_size.set_value(float(db.get_meta(self.con, "pet_scale", 1.0)) * 100)
         self.pet_size.handler_unblock_by_func(self.on_pet_size)
+        c = ia.config(self.con)
+        for fila, cb in ((self.ia_switch, self.on_ia_toggle), (self.ia_url, self.on_ia_url),
+                         (self.ia_modelo, self.on_ia_modelo)):
+            fila.handler_block_by_func(cb)
+        self.ia_switch.set_active(c["activa"])
+        self.ia_url.set_text(c["url"])
+        self.ia_modelo.set_text(c["modelo"])
+        for fila, cb in ((self.ia_switch, self.on_ia_toggle), (self.ia_url, self.on_ia_url),
+                         (self.ia_modelo, self.on_ia_modelo)):
+            fila.handler_unblock_by_func(cb)
+        self.btn_ia.set_visible(c["activa"])
+
         t = db.totals(self.con)
         self.hoy_row.set_subtitle(f"{t['hoy']} repasos en las últimas 24 h; las tarjetas "
                                   "vuelven a como estaban")
@@ -875,11 +1083,12 @@ class MainWindow(Adw.ApplicationWindow):
 
     # ----------------------------------------------------------------- general
 
-    SECCIONES = ("panel", "leer", "tarjetas", "ajustes")
+    SECCIONES = ("panel", "leer", "tarjetas", "biblioteca", "ajustes")
 
     def refrescar_seccion(self, nombre):
         {"panel": self.refresh_panel, "leer": self.refresh_reader,
-         "tarjetas": self.refresh_browser, "ajustes": self.refresh_settings}[nombre]()
+         "tarjetas": self.refresh_browser, "biblioteca": self.biblioteca.refrescar,
+         "ajustes": self.refresh_settings}[nombre]()
 
     def on_switch(self):
         """Al cambiar de pestaña, se pone al día solo si quedó pendiente."""

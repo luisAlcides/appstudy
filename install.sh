@@ -24,6 +24,8 @@ from gi.repository import Gtk, Adw
 }
 python3 -c "import pygments" 2>/dev/null || \
   echo "  (aviso) falta pygments: el código se verá sin colores. sudo apt install python3-pygments"
+command -v ollama >/dev/null || \
+  echo "  (opcional) sin ollama no hay IA local. curl -fsSL https://ollama.com/install.sh | sh"
 
 echo "▸ Instalando el comando en $BIN_DIR/appstudy"
 mkdir -p "$BIN_DIR"

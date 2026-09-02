@@ -1,285 +1,507 @@
 {
-"deck": "maquinaria",
-"chapters": [
-{
- "level": 1, "minutes": 9, "tags": "básico,operación,seguridad,mantenimiento",
- "title": "Antes de mover la máquina",
- "subtitle": "Inspección de arranque, calentamiento, estabilidad y las reglas que evitan los accidentes que sí ocurren.",
- "body": [
-  {"p": "La mayoría de las fallas graves de maquinaria pesada no empiezan con una pieza rota: empiezan con una revisión que no se hizo. Este capítulo es el procedimiento que separa una máquina que dura 15.000 horas de una que se destruye en 6.000."},
-
-  {"h": "La familia de máquinas"},
-  {"list": [
-    "<b>Excavadora</b> — brazo y cucharón sobre orugas, giro de 360°. Excava, carga y demuele.",
-    "<b>Retroexcavadora</b> — sobre llantas, pala cargadora adelante y brazo excavador atrás. La todoterreno de obra urbana.",
-    "<b>Cargador frontal</b> — pala grande, mueve material a granel y carga volquetes.",
-    "<b>Bulldozer</b> — hoja empujadora, empuja y nivela grandes volúmenes.",
-    "<b>Motoniveladora</b> — hoja central entre ejes, afina rasantes con precisión milimétrica.",
-    "<b>Volquete</b> — camión de tolva basculante para transporte de material."
-  ]},
-
-  {"h": "La inspección de arranque"},
-  {"p": "Se hace con el <b>motor apagado y la máquina fría</b>, caminando alrededor en el mismo orden siempre. El orden fijo es lo que hace que no se te olvide nada."},
-  {"steps": [
-    "<b>Debajo de la máquina</b>: manchas frescas. Una gota de aceite hoy es una manguera reventada en dos semanas. Distingue el color: aceite de motor oscuro, hidráulico ámbar, refrigerante verde o rosado, combustible transparente con olor.",
-    "<b>Niveles</b>: aceite de motor con la varilla, refrigerante en el depósito de expansión (nunca abriendo el radiador caliente), aceite hidráulico en la mirilla y combustible.",
-    "<b>Mangueras y cilindros</b>: roces, abultamientos, mangueras rozando contra el chasis. Revisa los vástagos de los cilindros: un rayón profundo cortará el sello.",
-    "<b>Puntos de engrase</b>: que las graseras estén y no estén tapadas.",
-    "<b>Tren de rodaje o llantas</b>: tensión de cadena, barro acumulado, presión y cortes en llantas.",
-    "<b>Filtro de aire</b>: mira el indicador de restricción. No lo golpees ni lo sopples desde afuera.",
-    "<b>Cabina</b>: luces, alarma de retroceso, espejos, cinturón, extintor, y que los mandos vuelvan a neutro solos."
-  ]},
-  {"key": "Los tres fluidos que revisas <b>siempre</b>: aceite de motor, refrigerante y aceite hidráulico. Y el cuarto que nadie anota: combustible, porque quedarse sin diésel obliga a purgar todo el sistema."},
-
-  {"h": "Cómo se mide bien el aceite hidráulico"},
-  {"p": "En terreno nivelado, con los <b>cilindros en la posición de servicio</b> que indica el manual —normalmente todos retraídos— y el motor apagado. Si mides con los cilindros extendidos, hay litros de aceite fuera del tanque y vas a sobrellenar. Cuando después los retraigas, el aceite saldrá por el respiradero."},
-  {"warn": "Nunca abras el radiador ni el tanque hidráulico en caliente. El sistema está presurizado y el fluido sale disparado a más de 100 °C. Espera a que enfríe."},
-
-  {"h": "El calentamiento no es opcional"},
-  {"p": "En frío el aceite hidráulico está espeso. La bomba no alcanza a llenarse y <b>cavita</b>: se forman burbujas de vapor que implosionan y se comen el metal por dentro. Es un daño acumulativo e invisible hasta que la bomba muere."},
-  {"steps": [
-    "5 a 10 minutos en ralentí medio, no acelerado.",
-    "Mover todos los cilindros <b>sin carga</b> hasta el final de su recorrido, varias veces, para que el aceite circule por todo el circuito.",
-    "Recién entonces empezar a trabajar con carga."
-  ]},
-  {"p": "Al final del turno, el proceso inverso: si trabajaste pesado, deja el motor en ralentí <b>3 a 5 minutos antes de apagar</b>. El turbo gira a más de 100.000 rpm y se lubrica con el aceite del motor; si cortas de golpe, sigue girando sin aceite y el calor residual cocina los rodamientos."},
-
-  {"h": "Estabilidad: por qué vuelca una máquina"},
-  {"p": "El centro de gravedad debe mantenerse dentro de la base de apoyo. Todo lo que lo saque de ahí es riesgo:"},
-  {"list": [
-    "Carga <b>extendida y girada de lado</b>. El punto más inestable de una excavadora es a 90° del tren de rodaje, no al frente.",
-    "Trasladarse con el implemento <b>alto</b>. Va bajo y recogido, cerca del suelo y del cuerpo.",
-    "Trabajar <b>de través</b> en una pendiente. Las orugas van perpendiculares a la pendiente, y en desplazamiento el motor de traslación va en la parte alta.",
-    "Suelo blando o borde de talud sin evaluar. El terreno cede sin aviso."
-  ]},
-  {"key": "La regla que resume todo: <b>carga cerca del cuerpo, giros lentos, implemento abajo al moverte</b>."},
-
-  {"h": "El horómetro y el ralentí"},
-  {"p": "Todo el plan de mantenimiento va por <b>horas de motor</b>, no por kilómetros ni por calendario: 250 h, 500 h, 1000 h, 2000 h. El horómetro cuenta cualquier hora con el motor encendido, produzca o no."},
-  {"p": "Por eso el ralentí excesivo es caro dos veces: consume combustible sin trabajar y <b>adelanta todos los mantenimientos</b>. Además, en motores modernos impide que el filtro de partículas alcance temperatura de regeneración y termina taponándolo. Más de cinco minutos parado sin usar la máquina, mejor apagar."},
-
-  {"h": "Antes de meter las manos"},
-  {"warn": "Nunca trabajes bajo un implemento sostenido solo por presión hidráulica. Una manguera o un sello pueden ceder. Baja el implemento al suelo o asegúralo con <b>puntales mecánicos certificados</b>."},
-  {"p": "El procedimiento completo antes de intervenir: apagar, quitar la llave, <b>aliviar la presión residual</b> moviendo los mandos con el motor apagado, desconectar el corte maestro y aplicar bloqueo y etiquetado (LOTO) para que nadie encienda la máquina mientras estás debajo."},
-  {"p": "Y la cabina: el <b>ROPS/FOPS</b> es una estructura certificada contra vuelco y caída de objetos. No se suelda, no se perfora y no se modifica. Cualquier alteración anula su capacidad de absorber energía, que es exactamente lo que te salva la vida."}
- ]
-},
-{
- "level": 2, "minutes": 12, "tags": "hidráulica,diagnóstico,lubricación",
- "title": "Cómo funciona el sistema hidráulico",
- "subtitle": "Presión y caudal, los cinco componentes, el aceite como pieza de precisión y los síntomas que hay que saber leer.",
- "body": [
-  {"p": "Toda la fuerza de una excavadora sale de un principio que Pascal enunció en 1653: <b>la presión aplicada a un fluido confinado se transmite igual en todas direcciones</b>. Si conoces la presión y el área del pistón, conoces la fuerza: $F = P \\times A$. Por eso un cilindro más grueso levanta más con la misma bomba."},
-
-  {"h": "La distinción que lo explica casi todo"},
-  {"key": "La bomba genera <b>CAUDAL</b>, no presión. La presión la crea la <b>RESISTENCIA</b> a ese caudal. Sin carga no hay presión, aunque la bomba esté perfecta."},
-  {"p": "Esta distinción es la base de todo diagnóstico hidráulico:"},
-  {"list": [
-    "<b>Caudal</b> (litros por minuto) determina la <b>velocidad</b> del movimiento. Poco caudal = movimientos lentos, ciclos largos.",
-    "<b>Presión</b> (bar o psi) determina la <b>fuerza</b>. Poca presión = la máquina mueve pero no levanta."
-  ]},
-  {"p": "Así que cuando alguien dice «perdió fuerza», ya sabes por dónde empezar: si mueve rápido pero no levanta, es presión; si levanta pero lentísimo, es caudal. Son dos caminos de diagnóstico distintos."},
-
-  {"h": "Los cinco componentes"},
-  {"code": "TANQUE → BOMBA → VÁLVULAS DE CONTROL → ACTUADORES → FILTRO DE RETORNO → TANQUE\n  │        │            │                    │              │\nreserva  genera      dirigen el          cilindros y     limpia lo que\ny enfría  caudal      caudal              motores         generó el sistema"},
-  {"list": [
-    "<b>Tanque</b>: reserva, decanta y enfría. Su respiradero debe estar limpio: si se tapa, se genera vacío y la bomba sufre.",
-    "<b>Bomba</b>: de engranajes (caudal fijo, simple, tolerante) o de <b>pistones de caudal variable</b> (entrega solo lo que se necesita, mucho más eficiente, y mucho más sensible al aceite sucio). Las excavadoras modernas usan la segunda.",
-    "<b>Válvulas de control</b>: dirigen el caudal al actuador que pediste. Incluyen la <b>válvula de alivio</b>, que limita la presión máxima.",
-    "<b>Actuadores</b>: cilindros (movimiento lineal) y motores hidráulicos (giro y traslación).",
-    "<b>Filtros</b>: succión antes de la bomba, presión después, y retorno antes del tanque."
-  ]},
-
-  {"h": "La válvula de alivio"},
-  {"p": "Cuando la presión alcanza el límite, la válvula de alivio deriva el aceite de vuelta al tanque para proteger el sistema. Es un fusible hidráulico."},
-  {"p": "Si está mal ajustada o pegada, pasan dos cosas a la vez: la máquina <b>pierde fuerza</b> y el aceite <b>se calienta rápido</b>, porque toda la energía que no se convirtió en trabajo se convierte en calor. Sobrecalentamiento sin causa aparente + pérdida de fuerza = mide la presión de alivio antes de tocar nada más."},
-
-  {"h": "Cavitación y aireación: leer el aceite"},
-  {"p": "El aspecto del aceite es un diagnóstico gratuito:"},
-  {"list": [
-    "<b>Lechoso, blancuzco</b> — agua. Condensación en el tanque o un enfriador de aceite con el núcleo roto que está mezclando refrigerante.",
-    "<b>Espumoso, con burbujas</b> — aire. Nivel bajo, manguera de succión floja o agrietada, filtro de succión obstruido, o retorno que descarga por encima del nivel del aceite.",
-    "<b>Oscuro y con olor a quemado</b> — sobrecalentamiento sostenido. El aceite ya perdió sus aditivos.",
-    "<b>Con partículas brillantes</b> — desgaste metálico en curso. Busca el origen antes de que circule por todo el sistema."
-  ]},
-  {"p": "El aire en el sistema se nota además en el tacto: movimientos <b>esponjosos</b>, que no responden firme, y un ruido característico de la bomba como de piedras molidas. Eso es <b>cavitación</b>: burbujas de vapor que implosionan y erosionan el metal desde adentro."},
-
-  {"h": "El aceite es una pieza de precisión"},
-  {"p": "En un sistema con bomba de pistones y servoválvulas, las tolerancias internas son de <b>micras</b>. El aceite no es un consumible cualquiera: es un componente."},
-  {"code": "ISO 4406 →  18/16/13\n            │  │  │\n            │  │  └── partículas > 14 micras\n            │  └───── partículas > 6 micras\n            └──────── partículas > 4 micras\n\nCada punto de diferencia DUPLICA la cantidad de partículas."},
-  {"p": "Un sistema exigente pide <b>16/14/11</b> o mejor. Un aceite nuevo, recién sacado del barril, típicamente viene en <b>20/18/15</b>: está más sucio de lo que tu máquina tolera. Por eso el aceite se filtra al llenar, no se vierte directo."},
-  {"warn": "Aceite hidráulico, de motor y de transmisión <b>no son intercambiables</b>. El hidráulico es antidesgaste y antiespumante; el de motor lleva detergentes para el hollín; el de transmisión lleva aditivos de extrema presión para engranajes. Mezclarlos ataca sellos y bombas."},
-
-  {"h": "Los filtros y la trampa del bypass"},
-  {"p": "Cuando un filtro se satura, no deja de circular aceite: abre su <b>válvula de derivación</b> y deja pasar aceite <b>sin filtrar</b>. La máquina sigue trabajando normalmente mientras se destruye por dentro, sin ningún síntoma."},
-  {"key": "Por eso los filtros se cambian <b>por horas, no por síntoma</b>. Cuando aparece un síntoma, el daño ya lleva semanas ocurriendo."},
-
-  {"h": "Diagnóstico: de lo global a lo particular"},
-  {"steps": [
-    "<b>¿Falla todo o solo un movimiento?</b> Si fallan todos, la causa es común: bomba, alivio principal, filtro de succión, nivel o motor. Si falla uno solo, la causa es local: ese cilindro, esa válvula, ese motor.",
-    "<b>¿El motor mantiene sus rpm bajo carga?</b> Si el motor cae de vueltas, el problema no es hidráulico. Descártalo antes de seguir.",
-    "<b>Mide presión</b> en el puerto de prueba, a temperatura y rpm nominales, y compárala con el manual.",
-    "<b>Mide caudal</b> con un flow meter, en vacío y bajo carga. Una caída de más del 10-15% frente a lo especificado indica desgaste interno de la bomba.",
-    "<b>Prueba de intercambio</b>: si un solo lado falla, intercambia las mangueras del actuador. Si el síntoma cambia de lado, la falla viaja con el componente; si no, está aguas arriba."
-  ]},
-  {"p": "Un caso clásico: el cilindro del boom <b>baja solo</b> con la carga puesta y el mando en neutro. El aceite está pasando de un lado al otro del pistón por sellos gastados, o la válvula de bloqueo no sella. Se distingue desconectando la manguera de retorno: si sale un flujo continuo, son los sellos del cilindro."},
-
-  {"h": "El tiempo de ciclo, tu mejor indicador"},
-  {"p": "Es el tiempo que tarda un movimiento completo —extender el boom, por ejemplo— a temperatura y rpm nominales. Compáralo con el manual, pero sobre todo <b>regístralo cuando la máquina está sana</b>. Un ciclo que se alarga con los meses es pérdida de caudal, y te avisa mucho antes de que alguien note que «anda lenta»."},
-  {"warn": "Nunca busques una fuga hidráulica pasando la mano. Un chorro fino a 3.000 psi atraviesa la piel e inyecta aceite en el tejido: es una emergencia quirúrgica aunque casi no se vea la herida. Se localiza pasando un <b>cartón</b>, con guantes y gafas."}
- ]
-},
-{
- "level": 2, "minutes": 9, "tags": "tren de rodaje,operación,frenos,gestión",
- "title": "Tren de rodaje y volquete",
- "subtitle": "El componente que se lleva la mitad del presupuesto, y el sistema de aire que frena 30 toneladas.",
- "body": [
-  {"p": "En una máquina de orugas, el tren de rodaje puede representar <b>hasta el 50% del costo de mantenimiento</b> de toda su vida útil. Y casi todo ese gasto depende de decisiones del operador, no de la calidad de las piezas."},
-
-  {"h": "Las piezas y cómo se desgastan"},
-  {"list": [
-    "<b>Cadenas</b> — se «estiran» por desgaste en los pasadores y bujes, no porque el metal se alargue.",
-    "<b>Zapatas</b> — la garra se redondea. Zapatas más anchas de lo necesario aumentan la tensión sobre todo el conjunto.",
-    "<b>Rodillos inferiores y superiores</b> — soportan el peso. Con bordes filosos, hay desalineación.",
-    "<b>Rueda guía (idler)</b> — tensa y guía la cadena.",
-    "<b>Sprocket</b> — la rueda motriz. Dientes en forma de gancho indican cadena estirada más allá del límite."
-  ]},
-
-  {"h": "Tensión: el ajuste que más dinero ahorra"},
-  {"p": "Sobre suelo firme, se mide la <b>flecha</b> —la comba— entre la rueda guía y el primer rodillo superior. Normalmente entre <b>30 y 40 mm</b>, pero confirma el valor de tu modelo."},
-  {"list": [
-    "<b>Demasiado tensa</b>: multiplica la carga sobre pasadores, bujes y rodillos. Acelera el desgaste de todo el conjunto y aumenta el consumo de combustible.",
-    "<b>Demasiado floja</b>: la cadena late, golpea y termina saliéndose, normalmente en el peor momento y lugar."
-  ]},
-  {"note": "En terreno con barro o material que se compacta, se trabaja algo más floja: el material que se acumula dentro de la cadena la tensa por sí solo."},
-
-  {"h": "Lo que destruye el tren de rodaje"},
-  {"steps": [
-    "<b>Girar siempre hacia el mismo lado.</b> Alterna el sentido de los giros y de las rutas de trabajo.",
-    "<b>Trabajar de través en pendiente.</b> Carga lateralmente los rodillos y las guías.",
-    "<b>Desplazarse en reversa a alta velocidad y largas distancias.</b> El desgaste en reversa es mucho mayor.",
-    "<b>No lavar el barro.</b> El material compactado actúa como abrasivo permanente y sobretensa la cadena al congelarse o secarse.",
-    "<b>Contragiros bruscos</b> (una oruga adelante y otra atrás). Espectacular y carísimo."
-  ]},
-  {"key": "El desgaste se mide, no se estima. Con un calibrador de tren de rodaje se registra el <b>porcentaje de desgaste</b> de cada componente y se planifica el cambio antes de la rotura. Un pasador que rompe en obra cuesta varias veces lo que costaba el recambio programado."},
-
-  {"h": "El cucharón y sus dientes"},
-  {"p": "Los dientes se desgastan disparejo por razones que se corrigen operando distinto: cargar siempre de un solo lado, excavar usando el giro (swing) para arrancar material —lo que dobla adaptadores—, o mezclar dientes nuevos con gastados. Se rotan y se reemplazan <b>por juego completo</b>."},
-
-  {"h": "Frenos de aire: falla segura"},
-  {"p": "El sistema de frenos de aire de un volquete funciona al revés de lo que parece: el aire comprimido <b>libera</b> el freno, y un resorte potente lo <b>aplica</b>. Si se pierde presión, el resorte gana y el vehículo frena solo."},
-  {"key": "Ese diseño se llama <b>falla segura</b>: cuando el sistema se rompe, se rompe hacia el lado seguro. Por eso jamás debes circular con la presión por debajo del mínimo indicado, ni «ayudar» a liberar un freno de resorte sin entender el procedimiento."},
-  {"h": "Diagnóstico de pérdida de presión"},
-  {"steps": [
-    "Con el sistema cargado y el motor apagado, <b>escucha</b>: los silbidos delatan racores, cámaras y pulmones.",
-    "<b>Prueba de caída</b>: con el freno aplicado, la presión no debe caer más de unos 3 psi por minuto (verifica el valor de tu equipo).",
-    "<b>Drena los tanques</b> diariamente. Si sale agua, el secador de aire está vencido: su cartucho ya no retiene humedad.",
-    "Revisa el <b>secador</b> (purga y cartucho) y la válvula de gobierno del compresor.",
-    "El agua en el sistema no es un detalle: congela, oxida y arruina las válvulas desde adentro."
-  ]},
-
-  {"h": "Cargar bien un volquete"},
-  {"list": [
-    "Cargar por el <b>centro de la tolva</b>. Todo el peso atrás aligera el eje delantero y pierdes dirección y frenado.",
-    "Respetar el <b>peso bruto vehicular</b>. Sobrecargar destruye suspensión, frenos, llantas y chasis, y no hay ahorro que lo compense.",
-    "El material <b>húmedo pesa mucho más</b> que el mismo volumen seco. El nivel de la tolva no es una medida de peso.",
-    "<b>Bajar la tolva antes de moverse.</b> Volcar con la tolva arriba y tocar un cable o una estructura es uno de los accidentes más frecuentes y más caros."
-  ]},
-
-  {"h": "El costo por hora"},
-  {"p": "Saber cuánto cuesta una hora de máquina cambia las decisiones. Se calcula sumando el <b>costo fijo</b> (depreciación, seguros, financiación) y el <b>variable</b> (combustible, filtros y aceites, tren de rodaje, llantas, reparaciones, operador), dividido entre las horas realmente productivas."},
-  {"p": "Cuando ves los números, dos cosas saltan: el <b>combustible</b> suele ser el mayor rubro y el <b>tren de rodaje</b> la mitad del costo variable de una oruga. Reducir el ralentí y tensar bien las cadenas no son consejos de manual: son las dos palancas más grandes que tienes sobre el costo."}
- ]
-},
-{
- "level": 3, "minutes": 9, "tags": "diagnóstico,mantenimiento,motor,gestión",
- "title": "Diagnóstico ordenado y mantenimiento predictivo",
- "subtitle": "Medir en vez de adivinar, leer un análisis de aceite y anticiparse a la falla.",
- "body": [
-  {"p": "Cambiar piezas por sospecha es la forma más cara de diagnosticar. Un método ordenado no es burocracia: es lo que evita que gastes en una bomba cuando el problema era un filtro de succión de veinte dólares."},
-
-  {"h": "Los cinco pasos"},
-  {"steps": [
-    "<b>Verificar la queja.</b> Reproduce la falla tú mismo y en las mismas condiciones. «Pierde fuerza» puede significar cinco cosas distintas; averigua cuándo, con qué carga, en frío o en caliente.",
-    "<b>Lo simple y barato primero.</b> Nivel, filtro, fusible, conector suelto, respiradero tapado. Un porcentaje enorme de fallas termina aquí.",
-    "<b>Aislar el sistema.</b> ¿Es eléctrico, hidráulico o mecánico? Cada uno tiene su propia ruta y sus propios instrumentos.",
-    "<b>Medir, no adivinar.</b> Manómetro, flow meter, multímetro, escáner, termómetro infrarrojo. Un valor comparado con el manual vale más que diez opiniones.",
-    "<b>Reparar y verificar bajo carga real.</b> Una falla que no reaparece en vacío puede seguir ahí a plena carga."
-  ]},
-  {"key": "Regla de oro: <b>de lo global a lo particular</b>. Si fallan todos los movimientos, no empieces por un cilindro. Si falla uno solo, no empieces por la bomba."},
-
-  {"h": "Leer el humo del escape"},
-  {"list": [
-    "<b>Negro</b> — exceso de combustible o falta de aire: filtro de aire tapado, turbo con fuga, inyectores con mal patrón de pulverización, sobrecarga sostenida.",
-    "<b>Azul</b> — está quemando aceite: anillos gastados, guías de válvula, turbo con sellos vencidos, cárter sobrellenado.",
-    "<b>Blanco espeso y dulce</b> — refrigerante en la cámara: empaque de culata o culata fisurada.",
-    "<b>Blanco tenue en frío</b> — combustible sin quemar; normal unos segundos, sospechoso si persiste (baja compresión, inyector goteando, precalentadores)."
-  ]},
-
-  {"h": "El análisis de aceite"},
-  {"p": "Es la herramienta predictiva más rentable que existe: por el costo de unos litros de aceite te dice qué se está desgastando <b>meses antes</b> de que se rompa. Se toma una muestra en caliente, del flujo, no del fondo del cárter, y siempre en el mismo punto para que las tendencias sean comparables."},
-  {"code": "ELEMENTO      ORIGEN PROBABLE\nHierro        camisas, anillos, engranajes\nCromo         anillos\nCobre         bocines, cojinetes, núcleo del enfriador\nAluminio      pistones, bocines\nSilicio       TIERRA que entró (filtro de aire o sellos)\nSodio/Potasio refrigerante (empaque, enfriador)\nAgua/Glicol   fuga interna de refrigerante"},
-  {"key": "Un solo análisis no dice casi nada: lo que importa es la <b>tendencia</b> entre muestras sucesivas. Un hierro que sube de 20 a 45 ppm en dos muestras es una alarma, aunque 45 esté dentro del rango «normal» de la tabla."},
-  {"p": "El silicio merece atención especial: es tierra. Y la tierra que entra por una admisión mal sellada se convierte en hierro y cromo en la muestra siguiente. Si ves silicio alto, no busques en el motor: busca la entrada de aire sin filtrar."},
-
-  {"h": "Purgar el sistema de combustible"},
-  {"p": "El aire en las líneas impide que la bomba genere presión: el motor no arranca, o arranca y se apaga. Ocurre tras quedarse sin combustible, cambiar filtros o abrir una línea."},
-  {"steps": [
-    "Llenar los filtros nuevos con combustible limpio antes de instalarlos, si el diseño lo permite.",
-    "Accionar la bomba manual (cebador) hasta notar resistencia firme.",
-    "Aflojar el tornillo de purga del filtro y seguir bombeando hasta que salga combustible <b>sin burbujas</b>.",
-    "Repetir en el siguiente punto de purga siguiendo el orden del manual, desde el tanque hacia los inyectores.",
-    "Arrancar en ciclos cortos, dando descanso al motor de arranque."
-  ]},
-  {"warn": "En sistemas <b>common rail</b> no se afloja nada aguas abajo de la bomba de alta: se trabaja a más de 1.500 bar. La purga se hace solo por los puntos previstos y con el procedimiento del fabricante."},
-
-  {"h": "Sobrecalentamiento: el orden de sospecha"},
-  {"steps": [
-    "<b>Radiador y enfriadores obstruidos por fuera</b> — la causa más común con diferencia. Se sopla con aire a baja presión <b>desde adentro hacia afuera</b>, nunca al revés.",
-    "Nivel de refrigerante y su concentración (una mezcla mal hecha transfiere peor el calor que el agua sola).",
-    "Termostato pegado cerrado.",
-    "Correa del ventilador floja o embrague de ventilador defectuoso.",
-    "Bomba de agua con impulsor erosionado.",
-    "Y la que se olvida: <b>gases de combustión pasando al refrigerante</b> por un empaque de culata, que presurizan el sistema y forman burbujas."
-  ]},
-
-  {"h": "De reactivo a predictivo"},
-  {"p": "El mantenimiento reactivo repara lo que se rompió. El preventivo cambia por horas. El <b>predictivo</b> combina tres fuentes para cambiar justo antes de que falle:"},
-  {"list": [
-    "<b>Análisis de aceite</b> periódico, con tendencias por máquina.",
-    "<b>Telemetría</b>: horas, porcentaje de ralentí, códigos de falla, temperaturas y presiones registradas.",
-    "<b>Inspecciones estructuradas</b> con historial: la misma lista, siempre, y anotada."
-  ]},
-  {"key": "El objetivo del predictivo no es cambiar piezas antes: es <b>planificar el paro</b> en vez de sufrirlo. Una bomba cambiada un sábado programado cuesta una fracción de la misma bomba cambiada un martes con la obra detenida."}
- ]
-},
-{
- "level": 3, "minutes": 9, "tags": "hidráulica,lubricación,mantenimiento,diagnóstico",
- "title": "Hidráulica fina: bombas, alivios y temperatura",
- "subtitle": "Cómo se reparte la presión, qué hace de verdad una bomba de caudal variable y por qué el aceite caliente es un síntoma.",
- "body": [
-  {"p": "Un diagnóstico hidráulico bien hecho empieza siempre con la misma pregunta: <b>¿le pasa a todo o a un solo movimiento?</b> Esa respuesta parte el circuito por la mitad antes de sacar un solo manómetro."},
-  {"h": "Alivio principal y alivios de puerto"},
-  {"p": "La <b>válvula de alivio principal</b> limita la presión de todo el sistema: si se queda baja o abierta, todos los movimientos pierden fuerza a la vez. Las <b>secundarias</b>, una por puerto de cilindro o motor, protegen a cada actuador de los picos por choque; si falla una, pierde fuerza <b>solo ese movimiento</b> y normalmente en un solo sentido."},
-  {"key": "Todos los movimientos flojos → principal, bomba o falta de caudal. Un solo movimiento flojo → su alivio de puerto, su carrete o sus sellos. Media hora de diagnóstico ahorrada por una pregunta."},
-  {"h": "La bomba no es solo presión"},
-  {"p": "Una bomba de pistones de caudal variable inclina su <b>plato oscilante</b> para decidir cuánto entrega: más ángulo, más carrera, más caudal. Dos reguladores mandan sobre ese ángulo — el <b>compensador de presión</b>, que reduce el ángulo casi a cero al llegar a la presión de corte, y el <b>control de potencia</b>, que limita presión × caudal para no ahogar el motor diésel."},
-  {"warn": "Por eso una bomba puede dar la presión correcta y estar acabada: la presión se alcanza sin caudal. Sin medir <b>litros por minuto a temperatura de trabajo</b>, no has medido la bomba."},
-  {"p": "Y ahí aparece el síntoma más revelador de todos: la máquina que tiene fuerza en frío y la pierde a la media hora. Con el aceite frío y espeso, las holguras todavía sellan; caliente y fluido, el aceite se cuela por ellas y el caudal útil se desploma. Es el patrón clásico de bomba o distribuidor gastados."},
-  {"h": "El aceite: viscosidad y temperatura"},
-  {"p": "Un ISO VG 46 tiene 46 centistokes a 40 °C. En frío se espesa muchísimo, y ahí está el motivo real del ritual de calentar: mover suave y sin carga hasta pasar de unos 25 °C. Arrancar y trabajar con el aceite helado es pedirle a la bomba que aspire melaza — y eso es <b>cavitación</b>."},
-  {"p": "En marcha, la zona sana está entre <b>50 y 80 °C</b>. Por encima de 85–90 el aceite se oxida, pierde película y los sellos se endurecen: por cada 10 °C de más, aproximadamente la mitad de vida del aceite."},
-  {"note": "La temperatura alta no es una avería: es energía que se está convirtiendo en calor en algún sitio. Búscalo: alivio abierto todo el rato, fuga interna, enfriador tapado de tierra o ventilador que no gira."},
-  {"h": "Leer un plano"},
-  {"p": "Con cuatro símbolos sigues el aceite en la mayoría de los esquemas: <b>triángulo relleno</b> apuntando hacia fuera del círculo es una bomba (hacia dentro, un motor); <b>cuadrados en fila</b>, un distribuidor, donde cada cuadrado es una posición; <b>muelle contra flecha inclinada</b>, una válvula de alivio. Y las líneas: continua es presión, discontinua es pilotaje, punteada larga es drenaje."},
-  {"h": "Cambiar una bomba sin matarla"},
-  {"steps": ["Llena la carcasa de la bomba con aceite limpio antes de montarla: arrancar en seco la destruye en segundos.", "Purga el aire por el punto más alto, con el motor a ralentí.", "Aceite y filtros nuevos. Si la anterior se destruyó, el circuito está lleno de limalla y la nueva se la va a comer.", "Primeros minutos sin carga, vigilando temperatura y ruido.", "Cambia el filtro otra vez a las 50 horas."]},
-  {"p": "Saltarse el tercer paso es lo que explica casi todas las bombas nuevas que duran una semana."},
-  {"h": "El tren de rodaje se gasta por la tensión"},
-  {"p": "Una cadena <b>muy tensa</b> multiplica la carga sobre pasadores, bujes y rodillos: se calienta y se come el buje. <b>Muy floja</b>, golpea, se sale y concentra el desgaste en la rueda motriz. El juego se mide con la máquina en el terreno real de trabajo, porque en barro la tierra empaquetada tensa la cadena sola."},
-  {"h": "Y el combustible, que es lubricante"},
-  {"p": "En un common rail moderno, los inyectores trabajan a más de 1.500 bar con tolerancias de micras y se lubrican con el <b>propio gasóleo</b>. El biodiésel absorbe agua, y el agua rompe esa película: raya y gripa. Drenar el separador a diario y cambiar el filtro a las horas del manual es, en euros por hora, el mantenimiento más rentable de la máquina."},
-  {"key": "El plan va por <b>horas</b>, no por meses: 10 h inspección diaria, 250 h aceite de motor y filtros, 500 h hidráulico y combustible, 1.000/2.000 h aceite hidráulico, refrigerante y válvulas. Y el horómetro cuenta también el ralentí, así que las horas de una máquina mal operada engañan al alza."}
+ "deck": "maquinaria",
+ "chapters": [
+  {
+   "level": 1,
+   "minutes": 10,
+   "tags": "básico,operación,seguridad,mantenimiento",
+   "title": "La familia de maquinaria y la inspección pre-operacional",
+   "subtitle": "Inspección de 360°, calentamiento hidráulico, cuidado del turbo y normas críticas de estabilidad.",
+   "body": [
+    {
+     "p": "La mayoría de las averías catastróficas en maquinaria pesada no se originan por fatiga imprevista del metal: nacen de una inspección preoperacional omitida o de una mala práctica de arranque. Este capítulo detalla el procedimiento estándar que distingue a un operador profesional y garantiza que los equipos alcancen más de 15.000 horas de servicio productivo."
+    },
+    {
+     "h": "La familia de maquinaria pesada de obra"
+    },
+    {
+     "list": [
+      "<b>Excavadora hidráulica</b> — montada sobre orugas o ruedas, con tornamesa de giro continuo de 360°, pluma (boom), brazo (stick) y cucharón. Diseñada para excavación masiva, zanjeo, carga de camiones y demolición con martillo hidráulico.",
+      "<b>Retroexcavadora (pajarita / mixta)</b> — montada sobre neumáticos, equipada con cargador frontal delantero y brazo excavador trasero con estabilizadores hidráulicos. La máquina más versátil en obras urbanas y canalizaciones.",
+      "<b>Cargador frontal (payloader)</b> — chasis articulado sobre neumáticos gigantes con cuchara delantera de gran capacidad. Especializado en movimiento de tierras a granel, acopio y alimentación rápida de volquetes.",
+      "<b>Bulldozer (tractor de orugas)</b> — tractor pesado con hoja empujadora delantera y desgarrador trasero (ripper). Corta terreno virgen, empuja grandes volúmenes y realiza explanaciones agresivas.",
+      "<b>Motoniveladora (patrol)</b> — máquina de chasis articulado con hoja vertedera central orientable, diseñada para perfilado fino de rasantes, cunetas y mantenimiento de pistas mineras con precisión milimétrica.",
+      "<b>Camión Volquete (camión de volteo / dumper)</b> — vehículo pesado con tolva basculante accionado por cilindro hidráulico para el transporte de áridos, roca y material excavado."
+     ]
+    },
+    {
+     "h": "La inspección de 360° en frío (Walk-Around)"
+    },
+    {
+     "p": "La revisión diaria se realiza siempre con el <b>motor apagado, la máquina fría y en terreno nivelado</b>, siguiendo un recorrido circular en el mismo sentido (el método del reloj) para asegurar que ningún punto quede sin verificar."
+    },
+    {
+     "steps": [
+      "<b>1. Suelo y bajos de la máquina</b>: busca manchas frescas de fluidos. Una gota en el suelo hoy es una manguera reventada o un retén fallado en dos semanas. Identifica el fluido por su color y olor: negro/oscuro (aceite de motor), ámbar claro (hidráulico), verde/rosa (refrigerante), viscoso penetrante (valvulina de mandos finales) o transparente aceitoso (diésel).",
+      "<b>2. Niveles de fluidos</b>: comprueba el aceite de motor con la varilla (entre marcas MIN y MAX), el refrigerante en el depósito de expansión transparente (nunca abriendo la tapa del radiador presurizado) y el aceite hidráulico en la mirilla con los cilindros en posición de servicio.",
+      "<b>3. Mangueras, tuberías y cilindros</b>: inspecciona roces contra el chasis, abultamientos o grietas en mangueras. Revisa minuciosamente los vástagos cromados de los cilindros: un rayón o picadura cortará los sellos del cabezal y generará fugas inmediatas.",
+      "<b>4. Engrase y articulaciones</b>: verifica que todas las graseras estén presentes, limpias y con grasa fresca visible en pasadores del brazo, pluma, cucharón y pivotes de dirección.",
+      "<b>5. Tren de rodaje o neumáticos</b>: revisa la tensión de las cadenas, acumulación de barro compactado en rodillos, o presión y cortes en los neumáticos.",
+      "<b>6. Filtro de aire</b>: revisa el indicador de restricción de vacío (reloj o mirilla mecánica). Nunca abras la carcasa si el indicador está en zona verde; abrir innecesariamente el filtro introduce polvo en la admisión.",
+      "<b>7. Cabina y seguridad</b>: luces de trabajo, alarma acústica de retroceso, espejos retrovisores, cinturón de seguridad, extintor vigente y retorno suave de todos los joysticks a neutro."
+     ]
+    },
+    {
+     "key": "Los cuatro fluidos obligatorios de cada turno: <b>aceite de motor, refrigerante, aceite hidráulico y combustible diésel</b>. Quedarse sin combustible en una máquina diésel obliga a desarmar y purgar manualmente todo el circuito de inyección."
+    },
+    {
+     "h": "Medición correcta del nivel hidráulico"
+    },
+    {
+     "p": "El nivel de aceite hidráulico debe medirse con la máquina sobre suelo plano y con los <b>cilindros en la posición de servicio</b> indicada en el manual (generalmente pluma abajo, brazo recogido y cucharón plegado en el suelo). Si mides con cilindros extendidos, gran parte del aceite estará dentro de los actuadores: al rellenar en esa posición sobrellenarás el depósito y el aceite rebosará por el respiradero al recoger los cilindros."
+    },
+    {
+     "warn": "Nunca retires la tapa del radiador ni el respiradero del tanque hidráulico con el motor caliente. Los circuitos trabajan presurizados y el fluido hirviendo saldrá proyectado violentamente provocando quemaduras de extrema gravedad."
+    },
+    {
+     "h": "El protocolo de calentamiento y enfriamiento"
+    },
+    {
+     "p": "En frío, el aceite hidráulico presenta una viscosidad elevada. Si exiges carga inmediata, la bomba no logrará aspirar el caudal necesario y sufrirá <b>cavitación</b> (implosión de microburbujas de vapor que arrancan partículas metálicas internas de los pistones y platos)."
+    },
+    {
+     "steps": [
+      "Arranca y mantén el motor en ralentí bajo durante 3 a 5 minutos para que la presión de aceite lubrique el bloque y el turbocompresor.",
+      "Sube a ralentí medio y acciona todos los cilindros hidráulicos <b>sin carga</b>, extendiéndolos y recogiéndolos suavemente hasta el final de su carrera varias veces para que el aceite caliente circule por todo el sistema.",
+      "Al finalizar la jornada de trabajo pesado: deja el motor en ralentí de <b>3 a 5 minutos antes de apagar la llave</b>. El rotor del turbo gira a más de 100.000 rpm y alcanza temperaturas altísimas; si cortas el motor de golpe, el turbo sigue girando por inercia sin flujo de aceite y el calor residual carboniza (coquiza) el aceite en los cojinetes, destruyendo el turbo."
+     ]
+    },
+    {
+     "h": "Estabilidad y prevención de vuelcos"
+    },
+    {
+     "p": "Para evitar el volcamiento de una máquina, el centro de gravedad del conjunto (equipo + carga) debe mantenerse permanentemente dentro del polígono que forman las orugas o las ruedas de apoyo:"
+    },
+    {
+     "list": [
+      "<b>Traslado con carga</b>: el cucharón o implemento debe transportarse siempre <b>bajo y recogido</b>, a unos 30-40 cm del suelo. Elevar la carga eleva el centro de gravedad y multiplica el riesgo de vuelco ante cualquier desnivel.",
+      "<b>Posición más crítica de una excavadora</b>: el punto de menor estabilidad es con el brazo extendido a <b>90° respecto a la línea de las orugas</b> (trabajo lateral). En pendientes, las orugas deben colocarse siempre perpendiculares a la pendiente (apuntando hacia arriba o abajo) y nunca transversales.",
+      "<b>Estructuras ROPS y FOPS</b>: la cabina cuenta con certificación ROPS (protección contra vuelco) y FOPS (protección contra caída de rocas y objetos). <b>Está terminantemente prohibido soldar, perforar o modificar la estructura de la cabina</b>, ya que pierde su capacidad elástica certificada de absorción de impactos."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 10,
+   "tags": "básico,volquete,operación,seguridad",
+   "title": "El volquete: componentes, tolva y operación segura",
+   "subtitle": "Toma de fuerza (PTO), cilindro telescópico, distribución de carga y prevención de vuelcos en tolva.",
+   "body": [
+    {
+     "p": "El camión volquete es el eslabón fundamental de la logística de tierras en cualquier obra civil o minera. Transportar y bascular masas de 15 a más de 40 toneladas sobre chasis elevados convierte al volquete en un equipo de alto riesgo si no se dominan su mecánica de elevación y sus límites físicos de estabilidad."
+    },
+    {
+     "h": "Anatomía del sistema de volteo"
+    },
+    {
+     "p": "El sistema que eleva la tolva basculante es un circuito hidráulico de alta presión alimentado mecánicamente por el propio tren motriz del camión:"
+    },
+    {
+     "list": [
+      "<b>Toma de Fuerza (PTO / Power Take-Off)</b>: acoplamiento de engranajes instalado en la caja de cambios que transmite potencia mecánica del motor hacia la bomba hidráulica mediante un mando neumático o electrohidráulico en la cabina.",
+      "<b>Bomba de levante</b>: bomba hidráulica de engranajes o pistones de alto caudal montada directamente sobre la toma de fuerza.",
+      "<b>Válvula distribuidora de levante</b>: controla tres posiciones: <i>Subir</i> (envía caudal a presión), <i>Mantener / Neutro</i> (bloquea el aceite en el cilindro mediante válvulas de retención) y <i>Bajar</i> (permite el retorno controlado del aceite al tanque por gravedad).",
+      "<b>Cilindro telescópico</b>: cilindro hidráulico de simple efecto con múltiples camisas o etapas que se despliegan sucesivamente para alcanzar el ángulo de vaciado (típicamente entre 50° y 60°).",
+      "<b>Compuerta trasera con ganchos automáticos</b>: compuerta oscilante que se destraba automáticamente mediante cadenas y levas mecánicas conforme la tolva se eleva."
+     ]
+    },
+    {
+     "h": "Distribución correcta de la carga en la tolva"
+    },
+    {
+     "p": "La ubicación del material depositado por el cargador o la excavadora condiciona directamente la seguridad en ruta:"
+    },
+    {
+     "list": [
+      "<b>Carga centrada</b>: el material debe depositarse en el centro longitudinal y transversal de la tolva.",
+      "<b>Carga cargada hacia atrás (peligro de dirección)</b>: aligera el peso sobre el eje directriz delantero, provocando pérdida de control en la dirección y frenado ineficiente.",
+      "<b>Carga cargada hacia adelante</b>: sobrecarga el eje delantero y los neumáticos directrices, fatigando la suspensión delantera.",
+      "<b>Material húmedo vs. seco</b>: un metro cúbico de arcilla mojada o arena saturada pesa entre 1.8 y 2.2 toneladas, frente a 1.3 toneladas del material seco. <b>El volumen visual en la tolva no es indicador de peso</b>: respeta siempre el Peso Bruto Vehicular (PBV) autorizado de la tarjeta de pesaje."
+     ]
+    },
+    {
+     "h": "El momento crítico: maniobra de volteo y descarga"
+    },
+    {
+     "steps": [
+      "<b>1. Posicionamiento en terreno nivelado</b>: el camión debe detenerse sobre suelo <b>completamente horizontal y compactado</b>. Bascular con una inclinación lateral de apenas 5 grados desplaza el centro de gravedad de la tolva elevada (que alcanza más de 8 metros de altura) fuera del ancho de los neumáticos, provocando el <b>vuelco lateral instantáneo del camión</b>.",
+      "<b>2. Alineación de ruedas y bloqueo</b>: coloca las ruedas delanteras rectas, activa el freno de estacionamiento neumático y asegúrate de que no haya personal ni cables de alta tensión sobre la vertical de la tolva.",
+      "<b>3. Conexión de la PTO</b>: pisa el embrague a fondo, acciona el interruptor de la toma de fuerza, suelta el embrague suavemente y activa la palanca de levante.",
+      "<b>4. Vigilancia de descarga</b>: si el material (arcilla pegajosa o material congelado) se queda adherido a la parte alta de la tolva, <b>detén el levante y baja la tolva de inmediato</b>. El peso acumulado en el extremo superior de la tolva convierte al camión en un péndulo inestable.",
+      "<b>5. Desconexión antes de avanzar</b>: una vez descargado el material, baja la tolva completamente, desconecta la toma de fuerza (PTO) y verifica en el cuadro de instrumentos que la luz de tolva abajo esté apagada antes de mover el camión."
+     ]
+    },
+    {
+     "warn": "<b>Prohibido terminantemente circular con la tolva levantada</b>. Chocar contra puentes peatonales, señalizaciones o líneas eléctricas de alta tensión con la tolva arriba es una de las causas más recurrentes de accidentes mortales en obra."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "hidráulica,diagnóstico,lubricación,seguridad",
+   "title": "Fundamentos y circuitos del sistema hidráulico",
+   "subtitle": "Ley de Pascal, bombas de caudal variable, válvulas de alivio, cavitación y normas de limpieza ISO.",
+   "body": [
+    {
+     "p": "La potencia de una excavadora de 30 toneladas capaz de arrancar roca sólida proviene de un circuito hidráulico cerrado gobernado por la ley de Pascal: <i>la presión aplicada a un líquido confinado se transmite íntegramente y con la misma intensidad en todas direcciones</i> ($F = P \\times A$)."
+    },
+    {
+     "h": "La regla de oro del diagnóstico hidráulico"
+    },
+    {
+     "key": "<b>La bomba NO genera presión: la bomba genera CAUDAL</b>. La presión es el resultado de la <b>resistencia</b> que la carga o las restricciones mecánicas oponen al flujo de ese caudal."
+    },
+    {
+     "list": [
+      "<b>Caudal ($Q$ en litros/minuto)</b> determina la <b>velocidad</b> con la que se desplaza un cilindro o gira un motor hidráulico. Pérdida de caudal = ciclos lentos.",
+      "<b>Presión ($P$ en bar o psi)</b> determina la <b>fuerza de empuje o levante</b> ($F = P \\times A$). Pérdida de presión = la máquina mueve en vacío pero no tiene fuerza para excavar."
+     ]
+    },
+    {
+     "h": "Los cinco componentes del circuito"
+    },
+    {
+     "code": "TANQUE CON RESPIRADERO ──> BOMBA HIDRÁULICA ──> VÁLVULAS DE CONTROL (DISTRIBUIDOR)\n          ▲                                                    │\n          │                                                    ▼\n   FILTRO DE RETORNO <── RETORNO DE ACEITE <── ACTUADORES (CILINDROS / MOTORES)"
+    },
+    {
+     "list": [
+      "<b>Tanque hidráulico</b>: reserva de fluido, disipador de calor y desaireador. Su respiradero con filtro evita la formación de vacío durante la succión.",
+      "<b>Bomba principal</b>: en maquinaria moderna se emplean <b>bombas de pistones axiales de caudal variable</b>. Ajustan los litros por minuto entregados en función de la exigencia del joystick, maximizando la eficiencia energética.",
+      "<b>Bloque de válvulas de control (Distribuidor)</b>: canaliza el aceite hacia el actuador correspondiente. Integra la <b>válvula de alivio principal</b> (fusible hidráulico que protege al sistema de sobrepresiones) y <b>válvulas de alivio de puerto</b> (antishock individuales para cada línea de cilindro).",
+      "<b>Actuadores</b>: cilindros hidráulicos de doble efecto (fuerza lineal) y motores hidráulicos de pistones (giro de tornamesa y traslación de orugas).",
+      "<b>Sistema de filtración</b>: filtro de succión (malla metálica), filtros de presión y filtro de retorno con válvula de derivación (<i>bypass</i>)."
+     ]
+    },
+    {
+     "h": "La trampa de la válvula Bypass en los filtros"
+    },
+    {
+     "p": "Cuando un filtro de aceite hidráulico se satura de suciedad, no interrumpe el paso de aceite para no dejar a la máquina sin frenos o dirección: abre automáticamente su <b>válvula de derivación (bypass)</b>, permitiendo que el aceite sucio cargado de virutas metálicas circule libremente por todo el circuito. La máquina continúa trabajando sin alarmas aparentes mientras desgasta bombas y servoválvulas internamente."
+    },
+    {
+     "warn": "Los filtros de aceite hidráulico se reemplazan estrictamente por <b>horas de servicio (cada 500 h o 1.000 h)</b> o al encenderse el sensor de saturación, nunca esperando a que aparezca un síntoma mecánico de falla."
+    },
+    {
+     "h": "Lectura visual y diagnóstico del aceite hidráulico"
+    },
+    {
+     "list": [
+      "<b>Aceite lechoso o blanquecino</b>: contaminación por <b>agua o refrigerante</b> (condensación en tanque o fisura interna en el enfriador de aceite).",
+      "<b>Aceite espumoso con microburbujas</b>: entrada de <b>aire en la succión</b> (nivel bajo en el tanque, abrazadera de succión floja o sello del eje de la bomba deteriorado). Provoca movimientos esponjosos y pérdida severa de fuerza.",
+      "<b>Aceite negro con olor a quemado</b>: degradación térmica extrema por sobrecalentamiento continuo (válvula de alivio atascada abierta derivando caudal a alta presión de forma continua).",
+      "<b>Partículas metálicas doradas o plateadas</b>: desgaste severo en placas de bronce de la bomba de pistones o camisas de cilindros."
+     ]
+    },
+    {
+     "h": "Limpieza del aceite: Código ISO 4406"
+    },
+    {
+     "p": "La norma <b>ISO 4406</b> mide la cantidad de partículas microscópicas contaminantes en 1 ml de aceite clasificadas en tres tamaños: $>4\\,\\mu\\text{m} / >6\\,\\mu\\text{m} / >14\\,\\mu\\text{m}$ (por ejemplo, <b>16/14/11</b>). En esta escala logarítmica, <b>cada incremento de un punto duplica la cantidad de suciedad</b>."
+    },
+    {
+     "note": "El aceite nuevo en barril cerrado suele tener un código de limpieza aproximado de <b>20/18/15</b>, el cual está <b>demasiado sucio</b> para las tolerancias micrométricas de una excavadora moderna. Todo aceite nuevo debe bombearse al tanque a través de un carro de microfiltración externo."
+    },
+    {
+     "h": "Emergencia médica: Inyección de fluido a alta presión"
+    },
+    {
+     "warn": "<b>Bajo ninguna circunstancia pases la mano o los dedos sobre mangueras o conexiones para buscar una fuga</b>. Un microorificio (<i>pinhole</i>) a 3.000 psi genera un chorro microscópico con velocidad suficiente para perforar guantes de cuero y penetrar la piel humana, inyectando aceite tóxico en los tejidos profundos. Es una <b>emergencia médica quirúrgica crítica</b> que requiere intervención inmediata para evitar amputaciones. Utiliza siempre un cartón o un trozo de madera."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "tren de rodaje,mantenimiento,operación,neumáticos",
+   "title": "Tren de rodaje, mandos finales y neumáticos gigantes",
+   "subtitle": "Gestión de desgaste en orugas, tensión de cadena, mandos planetarios e índice TKPH en neumáticos.",
+   "body": [
+    {
+     "p": "En una máquina sobre orugas, el tren de rodaje representa <b>entre el 45% y el 50% de los costes totales de mantenimiento</b> durante toda su vida útil. Prácticamente todo ese presupuesto depende de la tensión de la cadena y de los hábitos del operador al volante."
+    },
+    {
+     "h": "Componentes del tren de rodaje"
+    },
+    {
+     "list": [
+      "<b>Eslabones, pasadores y bujes</b>: forman la cadena articulada. El «estiramiento» de la cadena no se debe a la deformación del metal, sino al desgaste por fricción entre el pasador interno y el buje.",
+      "<b>Zapatas (tejas)</b>: placas de acero atornilladas a la cadena. Su garra proporciona tracción. En terrenos duros o rocosos se utilizan zapatas estrechas para no transmitir torsión excesiva a los rodillos.",
+      "<b>Rodillos inferiores y superiores</b>: guían la cadena y soportan el peso del equipo. Cuentan con sellos de doble cono (Duo-Cone) bañados en aceite permanente.",
+      "<b>Rueda guía delantera (Idler)</b>: mantiene la alineación y amortigua impactos frontales mediante un gran resorte de retroceso acoplado a un cilindro tensor de grasa.",
+      "<b>Rueda motriz (Sprocket / Rueda cabilla)</b>: corona dentada acoplada al mando final que engrana los bujes para impulsar la oruga."
+     ]
+    },
+    {
+     "h": "Tensión de la cadena: el ajuste más rentable"
+    },
+    {
+     "p": "La tensión se mide con la máquina posicionada sobre suelo firme y plano, midiendo la <b>flecha (comba o combamiento)</b> que forma la cadena entre la rueda guía delantera y el primer rodillo superior (típicamente entre <b>30 mm y 45 mm</b> según el manual del fabricante)."
+    },
+    {
+     "list": [
+      "<b>Cadena demasiado tensa</b>: multiplica por tres la carga sobre bujes, pasadores y cojinetes de los rodillos, provocando sobrecalentamiento, desgaste acelerado y un aumento del 10% en el consumo de combustible.",
+      "<b>Cadena demasiado floja</b>: la cadena flamea y golpea contra la estructura, desgastando los dientes del sprocket en forma de gancho y arriesgando el descarrilamiento en plena faena."
+     ]
+    },
+    {
+     "note": "En terrenos con lodo denso o arcilla, la tierra se acumula y compacta dentro de la cadena tensándola de forma natural. En esas condiciones de trabajo, la flecha debe ajustarse intencionadamente 10-15 mm más holgada de lo habitual."
+    },
+    {
+     "h": "Hábitos de operación que destruyen el tren de rodaje"
+    },
+    {
+     "steps": [
+      "<b>1. Desplazarse marcha atrás a alta velocidad</b>: el desgaste de los bujes y sprockets en reversa es casi el doble que hacia adelante.",
+      "<b>2. Girar continuamente en el mismo sentido</b>: desgasta los rodillos y pestañas de un solo lado. Alterna los giros y los circuitos de acarreo.",
+      "<b>3. Contragiros rápidos (spin-turns)</b>: hacer girar una oruga hacia adelante y la otra hacia atrás sobre terreno rocoso genera torsiones brutales en los bastidores.",
+      "<b>4. No lavar el lodo al final del turno</b>: el barro seco o congelado solidifica como cemento alrededor de los rodillos impidiendo que giren, lo que provoca que la cadena deslice sobre ellos lijando sus pestañas de forma plana."
+     ]
+    },
+    {
+     "h": "Mandos finales (Final Drives)"
+    },
+    {
+     "p": "Los mandos finales son reductores de engranajes planetarios que multiplican el par motor y reducen las revoluciones antes de entregarlas a la rueda motriz o a las ruedas de tracción. Emplean aceite pesado de extrema presión (SAE 80W-90, TO-4 o GL-5). Su inspección periódica exige drenar unas gotas para verificar que el tapón magnético no tenga virutas de acero desprendidas de los rodamientos."
+    },
+    {
+     "h": "Neumáticos gigantes y factor TKPH"
+    },
+    {
+     "p": "En cargadores frontales y volquetes fuera de carretera (OTR), los neumáticos son componentes críticos de altísimo coste. El parámetro <b>TKPH (Toneladas-Kilómetro Por Hora)</b> mide la capacidad térmica del neumático: si el camión transporta exceso de carga o viaja a velocidad excesiva en ciclos largos, el calor generado en el interior de la carcasa funde el caucho interno, provocando la <b>explosión térmica catastrófica del neumático</b>."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "volquete,frenos,tren motriz,diagnóstico",
+   "title": "Sistema neumático, frenos de aire y tren motriz del volquete",
+   "subtitle": "Compresor, secador de aire, frenos de resorte Maxi-Brake, freno de motor y cajas de cambio.",
+   "body": [
+    {
+     "p": "Detener con seguridad un camión volquete cargado con 35 toneladas bajando una pendiente pronunciada requiere un sistema de frenos neumático de respuesta inmediata y una gestión precisa del tren motriz."
+    },
+    {
+     "h": "El circuito de aire comprimido"
+    },
+    {
+     "list": [
+      "<b>Compresor de aire</b>: accionado por los engranajes del motor diésel, comprime el aire de la atmósfera y lo envía hacia el circuito.",
+      "<b>Válvula gobernadora</b>: regula la presión de trabajo del sistema. Corta la carga del compresor cuando los tanques alcanzan entre <b>120 y 125 psi</b> y reanuda el bombeo cuando la presión cae por debajo de <b>100 psi</b>.",
+      "<b>Secador de aire con purga automática</b>: filtra impurezas de aceite del compresor y absorbe la humedad del aire mediante un cartucho desecante. Si el secador falla, el agua acumulada en los tanques corroe las válvulas neumáticas y puede congelarse en climas fríos bloqueando los frenos.",
+      "<b>Depósitos de aire (tanques primario, secundario y húmedo)</b>: almacenan el volumen de aire presurizado. Cuentan con válvulas de purga manual que deben drenarse diariamente."
+     ]
+    },
+    {
+     "h": "Freno de resorte (Maxi-Brake): principio de falla segura"
+    },
+    {
+     "p": "El freno de estacionamiento y de emergencia de un volquete opera bajo la filosofía de <b>falla segura (Fail-Safe)</b>:"
+    },
+    {
+     "code": "CON PRESIÓN DE AIRE ( > 60 psi ) ──> El aire comprime el resorte ──> RUEDAS LIBERADAS (PUEDE RODAR)\nSIN PRESIÓN DE AIRE ( < 60 psi ) ──> El resorte se expande con fuerza ──> RUEDAS FRENADAS (BLOQUEADO)"
+    },
+    {
+     "key": "Si ocurre una rotura de manguera o se apaga el motor perdiendo presión de aire en los tanques, el potente resorte interno del actuador se dispara automáticamente clavando los frenos traseros para evitar que el camión ruede sin control."
+    },
+    {
+     "h": "Inspección y prueba de caída de presión"
+    },
+    {
+     "steps": [
+      "<b>1. Prueba de carga</b>: con el motor a ralentí rápido, la presión debe subir de 85 a 100 psi en menos de 45 segundos.",
+      "<b>2. Prueba de estanqueidad estática</b>: con el motor apagado y los frenos liberados, la presión en los manómetros no debe caer más de <b>2 psi en un minuto</b>.",
+      "<b>3. Prueba con freno de pedal aplicado</b>: pisa a fondo el pedal de freno con motor apagado; tras la caída inicial, la presión no debe descender más de <b>3 psi por minuto</b> en un camión rígido (o 4 psi en combinación articulada)."
+     ]
+    },
+    {
+     "h": "Frenos auxiliares: Freno de motor y Retardador"
+    },
+    {
+     "p": "Nunca utilices los frenos de servicio (pedal de freno) de forma continua en descensos prolongados: el rozamiento recalienta los tambores o discos provocando el fenómeno de <b>desvanecimiento por calor (Brake Fade)</b>, donde el coeficiente de fricción cae a cero y el camión queda sin frenos."
+    },
+    {
+     "list": [
+      "<b>Freno de compresión del motor (Jake Brake)</b>: modifica la apertura de las válvulas de escape en la parte superior de la carrera de compresión, convirtiendo al motor en un compresor de aire absorbedor de energía cinética sin gastar combustible ni frenos de rueda.",
+      "<b>Retardador hidráulico o electromagnético</b>: desacelera la transmisión mediante la resistencia de un fluido de aceite en una cámara toroidal o mediante campos electromagnéticos inducidos."
+     ]
+    },
+    {
+     "h": "Cajas de cambio y bloqueo de diferencial"
+    },
+    {
+     "p": "Los volquetes pesados incorporan cajas de cambio manuales de 10 a 18 velocidades con multiplicadores de rango (Range) y divisores de marcha (Splitter). Para circular en zonas de lodo o pendientes deslizantes en cantera, disponen de <b>bloqueo de diferencial interaxial y entre ruedas</b>: bloquea el giro libre de las ruedas para que giren a la misma velocidad solidariamente. Debe desconectarse inmediatamente al volver a suelo firme para no romper los semiejes en las curvas."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "hidráulica,diagnóstico,bombas,load-sensing",
+   "title": "Hidráulica avanzada: bombas de caudal variable, Load Sensing y pilotaje",
+   "subtitle": "Plato oscilante, compensadores de presión y flujo, señal LS, circuito piloto y pruebas de caudal.",
+   "body": [
+    {
+     "p": "En maquinaria moderna de alta producción, la hidráulica ha dejado de ser un sistema puramente mecánico para convertirse en un circuito electrohidráulico de precisión donde el caudal se modula en milisegundos según la carga detectada."
+    },
+    {
+     "h": "La bomba de pistones axiales y su plato oscilante"
+    },
+    {
+     "p": "Las bombas de caudal variable contienen un tambor de cilindros rotatorio con pistones axiales apoyados sobre un <b>plato oscilante (swashplate)</b> basculante:"
+    },
+    {
+     "list": [
+      "<b>Plato en ángulo máximo</b>: los pistones realizan su carrera completa $\\rightarrow$ máximo caudal entregado ($Q_{\\text{max}}$).",
+      "<b>Plato en ángulo cero (vertical)</b>: los pistones giran sin desplazarse linealmente $\\rightarrow$ caudal nulo ($Q = 0$), manteniendo la presión del circuito en reposo.",
+      "<b>Regulador de caudal (Margen de flujo)</b>: ajusta el ángulo del plato comparando la presión de descarga con la señal requerida.",
+      "<b>Compensador de corte de presión (Cut-off)</b>: cuando el sistema alcanza la presión máxima de seguridad (ej. 350 bar), vence su resorte y fuerza al plato oscilante a colocarse en ángulo casi nulo, manteniendo la presión sin quemar energía ni calentar el aceite inútilmente."
+     ]
+    },
+    {
+     "h": "El sistema Load Sensing (Detección de Carga)"
+    },
+    {
+     "p": "En un sistema convencional de centro abierto, la bomba entrega todo su caudal y el exceso se tira al tanque por la válvula de alivio generando calor masivo. En un sistema <b>Load Sensing (LS) con centro cerrado</b>:"
+    },
+    {
+     "steps": [
+      "Una red de válvulas selectoras de lanzadera (Shuttle Valves) toma la presión del actuador que soporta la carga más pesada de la máquina.",
+      "Esta presión viaja por la <b>línea piloto LS</b> hasta el regulador de la bomba principal.",
+      "La bomba ajusta automáticamente el ángulo del plato para entregar exactamente la presión de la carga más un margen constante de control (presión de margen $\\Delta P$, típicamente 15-25 bar).",
+      "Si el operador suelta los joysticks, la señal LS cae a cero y la bomba pasa inmediatamente a posición de reposo con consumo mínimo de combustible."
+     ]
+    },
+    {
+     "h": "Circuito de pilotaje y joysticks electrohidráulicos"
+    },
+    {
+     "p": "Los joysticks de la cabina no mueven físicamente los pesados carretes del distribuidor principal: modulan un circuito de baja presión (<b>presión piloto de 30 a 45 bar</b>) alimentado por una pequeña bomba de engranajes auxiliar o una válvula reductora de presión. Al inclinar el joystick, el aceite piloto empuja el extremo del carrete principal correspondiente."
+    },
+    {
+     "note": "El circuito de pilotaje cuenta con un <b>acumulador de presión piloto</b> cargado con nitrógeno: permite al operador bajar con seguridad el brazo y el cucharón apoyándolos en el suelo incluso si el motor diésel se apaga o sufre una falla eléctrica repentina."
+    },
+    {
+     "h": "Prueba de caudal y fugas internas (Case Drain Test)"
+    },
+    {
+     "p": "Una bomba desgastada puede alcanzar la presión de ajuste en un manómetro cerrado pero ser incapaz de sostener el caudal cuando el aceite trabaja caliente a 70°C. Para diagnosticarla con precisión científica:"
+    },
+    {
+     "steps": [
+      "Instala un <b>caudalímetro con válvula de carga (Flow Meter)</b> a la salida de la bomba.",
+      "Mide los litros por minuto en vacío a rpm nominales y temperatura de trabajo (60°C).",
+      "Cierra gradualmente la válvula de carga hasta la presión nominal de trabajo (ej. 300 bar) y registra el caudal.",
+      "Si la caída de caudal supera el <b>10% a 15%</b> respecto al valor del manual técnico, la bomba presenta desgaste severo en sus platos de fricción y zapatas de pistones.",
+      "<b>Prueba de drenaje de carcasa (Case Drain)</b>: mide los litros/minuto que salen por la línea de drenaje de la carcasa hacia el tanque. Un flujo excesivo delata que el aceite a alta presión se está fugando internamente hacia la carcasa de la bomba."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "motor,inyección,emisiones,diagnóstico",
+   "title": "Motores diésel pesados, inyección Common Rail y emisiones Tier 4 / Stage V",
+   "subtitle": "Inyección a 2.500 bar, circuito de baja y alta presión, sistemas DPF/SCR con urea y análisis de humos.",
+   "body": [
+    {
+     "p": "Los motores diésel de maquinaria pesada moderna combinan sistemas de inyección Common Rail de altísima presión con complejos sistemas de postratamiento de emisiones catalíticas (normativas Tier 4 Final / Stage V) para cumplir estrictos estándares medioambientales sin sacrificar par motor."
+    },
+    {
+     "h": "Inyección Common Rail de alta presión (HPCR)"
+    },
+    {
+     "p": "A diferencia de las viejas bombas rotativas mecánicas, en un sistema Common Rail la generación de presión y la inyección están totalmente desacopladas:"
+    },
+    {
+     "list": [
+      "<b>Bomba de alta presión</b>: presuriza el combustible en un riel común acumulador entre <b>1.600 y 2.500 bar</b> de presión continua.",
+      "<b>Inyectores piezoeléctricos / electrohidráulicos</b>: controlados electrónicamente por la ECU del motor. Pueden realizar hasta <b>cinco inyecciones por ciclo de combustión</b> (preinyección para suavizar el golpeteo diésel, inyección principal y postinyecciones para la regeneración del filtro de partículas)."
+     ]
+    },
+    {
+     "warn": "Los inyectores y la bomba de alta presión trabajan con holguras micrométricas y se <b>lubrican exclusivamente con el propio combustible diésel</b>. La presencia de agua en el gasóleo rompe la película lubricante, provocando el gripado y destrucción instantánea de los inyectores. Drena diariamente el vaso decantador del filtro primario separador de agua."
+    },
+    {
+     "h": "El sistema de postratamiento de emisiones"
+    },
+    {
+     "steps": [
+      "<b>1. EGR (Recirculación de gases de escape)</b>: reintroduce una fracción controlada de gases quemados y enfriados en la admisión para reducir la temperatura de combustión y minimizar la formación de óxidos de nitrógeno (NOx).",
+      "<b>2. DOC (Catalizador de oxidación diésel)</b>: oxida monóxido de carbono e hidrocarburos no quemados transformándolos en $CO_2$ y agua, elevando térmicamente los gases.",
+      "<b>3. DPF (Filtro de partículas diésel)</b>: trampa de panal cerámico que retiene el 99% del hollín sólido. Se limpia mediante <b>regeneración pasiva</b> en faenas continuas a alta temperatura o <b>regeneración activa</b> (inyección de combustible para elevar el DPF a más de 600°C y quemar el hollín).",
+      "<b>4. SCR (Reducción catalítica selectiva)</b>: inyecta solución de urea acuosa técnica (DEF / AdBlue) en el escape. Al reaccionar con el catalizador SCR, transforma los gases nocivos de NOx en nitrógeno gaseoso inofensivo ($N_2$) y vapor de agua."
+     ]
+    },
+    {
+     "note": "El exceso de ralentí (más de 10 minutos parado) es el enemigo número uno del DPF: impide alcanzar la temperatura de regeneración y termina colmatando el filtro, obligando a realizar una regeneración forzada por software con el escáner de diagnóstico."
+    },
+    {
+     "h": "Diagnóstico rápido por color de humo de escape"
+    },
+    {
+     "list": [
+      "<b>Humo NEGRO denso</b>: combustión incompleta por <b>exceso de combustible o falta de aire</b>. Causas habituales: filtro de aire saturado, manguera del intercooler rota con fuga de presión de turbo, o tobera de inyector desgastada que gotea en lugar de pulverizar.",
+      "<b>Humo AZULADO persistente</b>: el motor está <b>quemando aceite lubricante</b>. Causas: sellos del turbocompresor deteriorados (pasan aceite a la admisión), guías de válvula con holgura o anillos de pistón gastados.",
+      "<b>Humo BLANCO espeso y con olor dulce</b>: ingreso de <b>refrigerante a la cámara de combustión</b> por fisura en la culata o empaque de culata quemado.",
+      "<b>Humo BLANCO tenue en frío con olor a diésel crudo</b>: combustible inyectado que no llega a encenderse por baja compresión en los cilindros, bujías de precalentamiento inoperativas o desfase en el tiempo de inyección."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "diagnóstico,mantenimiento,tribología,gestión",
+   "title": "Mantenimiento predictivo, tribología y gestión de flotas",
+   "subtitle": "Laboratorio de análisis de aceite, telemetría, coste por hora (CPH) y diagnóstico sistemático.",
+   "body": [
+    {
+     "p": "En la gestión moderna de flotas de maquinaria amarilla y transporte de áridos, el objetivo estratégico no es reparar las fallas con rapidez (mantenimiento correctivo), sino <b>planificar la sustitución del componente semanas antes de que ocurra la falla</b> (mantenimiento predictivo)."
+    },
+    {
+     "h": "Tribología: qué revela el análisis de aceite (SOS / Laboratorio)"
+    },
+    {
+     "p": "El análisis de muestras de aceite lubricante tomadas en caliente en cada cambio programado es la herramienta predictiva más rentable del sector:"
+    },
+    {
+     "code": "ELEMENTO DETECTADO (ppm)  ──>  ORIGEN PROBABLE DE DESGASTE O CONTAMINACIÓN\nHierro (Fe)               ──>  Camisas de cilindro, anillos, vástagos y trenes de engranajes\nCobre (Cu)                ──>  Cojinetes de biela/bancada, bujes de bronce, enfriador de aceite\nCromo (Cr)                ──>  Anillos de compresión del pistón\nAluminio (Al)             ──>  Pistones del motor, cojinetes de empuje y bombas\nSilicio (Si)              ──>  TIERRA / POLVO EXTERNO (fuga en el ducto de admisión o filtros)\nSodio (Na) / Potasio (K)  ──>  Fuga interna de REFRIGERANTE (glicol del enfriador de aceite)\nDilución por Diésel (%)   ──>  Fuga en inyectores o sellos de la bomba de transferencia"
+    },
+    {
+     "key": "<b>El valor de un análisis reside en la curva de tendencia</b>: un incremento progresivo de Hierro de 15 a 55 ppm a lo largo de tres muestras es una alerta crítica de fallo inminente, aunque 55 ppm esté dentro del rango tabular genérico del laboratorio."
+    },
+    {
+     "h": "El peligro invisible del Silicio (Polvo en admisión)"
+    },
+    {
+     "p": "El silicio en el aceite de motor es polvo del ambiente que actúa como una lija abrasiva industrial. Si una muestra reporta silicio alto, <b>no desarmes el motor</b>: revisa de inmediato las abrazaderas del ducto de admisión entre el filtro de aire y el turbocompresor. Un orificio milimétrico en ese conducto destruirá un motor de 500 HP en menos de 200 horas."
+    },
+    {
+     "h": "Cálculo del Costo por Hora de Operación (CPH)"
+    },
+    {
+     "p": "La rentabilidad de un proyecto de excavación y transporte se determina calculando con precisión el coste de cada hora trabajada:"
+    },
+    {
+     "code": "CPH = ( Costos Fijos Totales + Costos Variables Totales ) / Horas Productivas Reales\n\n- COSTOS FIJOS:   Amortización/Depreciación del equipo, seguros, impuestos y financiamiento.\n- COSTOS VARIABLES: Combustible (40-50% del total), lubricantes y filtros, neumáticos/\n                    tren de rodaje (hasta el 50% de oruga), herramientas de corte (GET),\n                    mantenimientos programados y salario del operador."
+    },
+    {
+     "h": "Metodología de diagnóstico sistemático en 5 pasos"
+    },
+    {
+     "steps": [
+      "<b>1. Verificación precisa del síntoma</b>: reproduce la falla en las condiciones reales de trabajo. Interroga al operador: ¿ocurre solo en frío o cuando la máquina lleva 1 hora operando? ¿afecta a todos los movimientos o solo al levante de la pluma?",
+      "<b>2. Inspección visual y de bajo coste</b>: niveles, filtros, respiraderos, fusibles, cables de masa y lectura de códigos de falla DTC en la pantalla de la cabina.",
+      "<b>3. Aislamiento de subsistemas</b>: descarta el motor diésel comprobando si mantiene sus RPM bajo carga antes de sospechar del circuito hidráulico.",
+      "<b>4. Medición instrumental</b>: conecta manómetros en tomas de presión de prueba, caudalímetros en bombas y multímetro en sensores para contrastar con las tolerancias del manual de taller.",
+      "<b>5. Prueba de intercambio (Swap Test)</b>: si un solo cilindro o motor de traslación falla, intercambia sus mangueras de alimentación cruzadas con el lado opuesto. Si el síntoma cambia de lado, la falla viaja con el componente; si el síntoma permanece en el mismo circuito, la falla está aguas arriba en el distribuidor o línea de pilotaje."
+     ]
+    }
+   ]
+  }
  ]
 }
-]}

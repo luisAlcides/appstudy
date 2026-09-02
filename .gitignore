@@ -1,0 +1,32 @@
+# Bytecode de Python
+__pycache__/
+*.py[cod]
+
+# Modelos de IA: los pesos son de gigabytes y NUNCA deben subirse al repositorio.
+# Ollama los guarda fuera del proyecto (~/.ollama), pero por si alguien los deja
+# aquí o usa llama.cpp con archivos sueltos:
+models/
+modelos/
+*.gguf
+*.ggml
+*.safetensors
+*.bin
+*.pt
+*.onnx
+
+# Claves y ajustes locales: la configuración de la IA vive en la base de datos
+# del usuario (~/.local/share/appstudy), no en el repositorio.
+.env
+.env.*
+*.key
+secrets.json
+appstudy.db
+*.db-wal
+*.db-shm
+
+# Basura del escritorio y del editor
+.venv/
+venv/
+.idea/
+.vscode/
+*.swp

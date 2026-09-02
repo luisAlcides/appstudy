@@ -1,0 +1,469 @@
+{
+ "key": "matematicas",
+ "name": "Matemáticas y Cálculo Rápido",
+ "icon": "🧮",
+ "color": "#26a269",
+ "pos": 8,
+ "levels": [
+  "Básico",
+  "Intermedio",
+  "Avanzado"
+ ],
+ "cards": [
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "aritmética,suma",
+   "front": "¿Cómo se suma mentalmente de forma rápida?",
+   "back": "Sumando de <b>izquierda a derecha</b> (de mayor a menor valor posicional):\n$458 + 326 = (458 + 300) + 20 + 6 = 758 + 20 + 6 = 784$.\nMantiene la magnitud real y evita olvidar acarreos."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "aritmética,resta",
+   "front": "¿Cuál es el truco para restar de 1.000 o 10.000 al instante?",
+   "back": "La regla <b>«Todos a 9 y el último a 10»</b>:\nPara $1.000 - 647$:\n$9 - 6 = 3$, $9 - 4 = 5$, $10 - 7 = 3 \\rightarrow \\mathbf{353}$."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "aritmética,resta",
+   "front": "¿Cuánto es $1.000 - 384$ aplicando la regla de complementos?",
+   "choices": [
+    "616",
+    "716",
+    "626",
+    "516"
+   ],
+   "answer": 0,
+   "back": "$9 - 3 = 6$, $9 - 8 = 1$, $10 - 4 = 6 \\rightarrow \\mathbf{616}$."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "aritmética,suma",
+   "front": "¿Cómo se aplica el redondeo y compensación en sumas?",
+   "back": "Suma el número redondo y resta la diferencia:\n$647 + 298 = 647 + 300 - 2 = 947 - 2 = \\mathbf{945}$.\n$834 + 495 = 834 + 500 - 5 = 1334 - 5 = \\mathbf{1329}$."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cómo multiplicas cualquier número por 5 mentalmente?",
+   "back": "<b>Añade un cero y saca la mitad</b> (multiplica por 10 y divide entre 2):\n$48 \\times 5 = 480 / 2 = \\mathbf{240}$.\n$86 \\times 50 = 8600 / 2 = \\mathbf{4300}$."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cuánto es $74 \\times 5$?",
+   "choices": [
+    "370",
+    "360",
+    "380",
+    "350"
+   ],
+   "answer": 0,
+   "back": "La mitad de 74 es 37 $\\rightarrow \\mathbf{370}$."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "división,trucos",
+   "front": "¿Cómo divides cualquier número entre 5 mentalmente?",
+   "back": "<b>Duplica el número y corre la coma un lugar a la izquierda</b>:\n$240 / 5 = 480 / 10 = \\mathbf{48}$.\n$43 / 5 = 86 / 10 = \\mathbf{8.6}$."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "división,trucos",
+   "front": "¿Cuánto es $135 / 5$ mentalmente?",
+   "choices": [
+    "27",
+    "25",
+    "29",
+    "26"
+   ],
+   "answer": 0,
+   "back": "Duplicas 135 a 270 y corres la coma: $\\mathbf{27}$."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cómo funciona la técnica de duplicar y dividir a la mitad?",
+   "back": "Saca la mitad de un número y duplica el otro:\n$18 \\times 35 = 9 \\times 70 = \\mathbf{630}$.\n$16 \\times 25 = 8 \\times 50 = 4 \\times 100 = \\mathbf{400}$."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cuánto es $24 \\times 15$ usando duplicar y partir?",
+   "choices": [
+    "360",
+    "340",
+    "380",
+    "320"
+   ],
+   "answer": 0,
+   "back": "La mitad de 24 es 12; el doble de 15 es 30. $12 \\times 30 = \\mathbf{360}$."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cuál es el truco para multiplicar un número de 2 cifras por 11?",
+   "back": "Abre los dos dígitos y coloca en el medio la suma de ambos:\n$43 \\times 11 \\rightarrow 4\\_[4+3]\\_3 = \\mathbf{473}$.\nSi la suma supera 9 (acarreo): $78 \\times 11 \\rightarrow 7\\_[15]\\_8 = (7+1)\\_5\\_8 = \\mathbf{858}$."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cuánto es $53 \\times 11$?",
+   "choices": [
+    "583",
+    "573",
+    "593",
+    "563"
+   ],
+   "answer": 0,
+   "back": "Extremos 5 y 3. Centro $5+3 = 8 \\rightarrow \\mathbf{583}$."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cuánto es $67 \\times 11$ (con acarreo)?",
+   "choices": [
+    "737",
+    "727",
+    "637",
+    "747"
+   ],
+   "answer": 0,
+   "back": "$6+7=13$. Llevas 1 al 6 $\\rightarrow (6+1)\\_3\\_7 = \\mathbf{737}$."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cómo calculas el cuadrado de un número que termina en 5?",
+   "back": "Siempre termina en **25**. La parte delantera es la decena multiplicada por su consecutivo ($n \\times (n+1)$):\n$35^2 \\rightarrow 3 \\times 4 = 12 \\rightarrow \\mathbf{1225}$.\n$65^2 \\rightarrow 6 \\times 7 = 42 \\rightarrow \\mathbf{4225}$."
+  },
+  {
+   "level": 1,
+   "kind": "quiz",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cuánto es $75^2$?",
+   "choices": [
+    "5625",
+    "5425",
+    "5825",
+    "4925"
+   ],
+   "answer": 0,
+   "back": "$7 \\times 8 = 56$ seguido de $25 \\rightarrow \\mathbf{5625}$."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cómo multiplicas rápidamente por 9 o por 99?",
+   "back": "Multiplica por la decena/centena superior y resta el número:\n$37 \\times 9 = 370 - 37 = \\mathbf{333}$.\n$46 \\times 99 = 4600 - 46 = \\mathbf{4554}$."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cómo multiplicas rápidamente por 4 o por 8?",
+   "back": "<b>Duplica sucesivamente</b>:\nPara $\\times 4$: duplica dos veces ($35 \\rightarrow 70 \\rightarrow \\mathbf{140}$).\nPara $\\times 8$: duplica tres veces ($25 \\rightarrow 50 \\rightarrow 100 \\rightarrow \\mathbf{200}$)."
+  },
+  {
+   "level": 1,
+   "kind": "card",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cómo multiplicas rápidamente por 15?",
+   "back": "Multiplica por 10 y súmale su mitad:\n$36 \\times 15 = 360 + 180 = \\mathbf{540}$.\n$44 \\times 15 = 440 + 220 = \\mathbf{660}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "porcentajes,trucos",
+   "front": "¿Qué es la regla de reversibilidad de porcentajes?",
+   "back": "$\\mathbf{x\\% \\text{ de } y = y\\% \\text{ de } x}$.\nCalcular el 16% de 50 = 50% de 16 = la mitad de 16 = $\\mathbf{8}$.\nCalcular el 18% de 25 = 25% de 18 = $18 / 4 = \\mathbf{4.5}$."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "porcentajes,trucos",
+   "front": "¿Cuánto es el 12% de 50?",
+   "choices": [
+    "6",
+    "12",
+    "5",
+    "8"
+   ],
+   "answer": 0,
+   "back": "50% de 12 = la mitad de 12 = $\\mathbf{6}$."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "porcentajes,trucos",
+   "front": "¿Cuánto es el 84% de 50?",
+   "choices": [
+    "42",
+    "40",
+    "44",
+    "48"
+   ],
+   "answer": 0,
+   "back": "50% de 84 = la mitad de 84 = $\\mathbf{42}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "porcentajes,trucos",
+   "front": "¿Cómo calculas el 15% de cualquier cantidad mentalmente?",
+   "back": "<b>Calcula el 10% (corre la coma) y suma su mitad (5%)</b>:\nPara el 15% de 80:\n$10\\% = 8$; $5\\% = 4 \\rightarrow 8 + 4 = \\mathbf{12}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "porcentajes,trucos",
+   "front": "¿Cómo calculas el 35% de una cantidad con bloques?",
+   "back": "$30\\% + 5\\%$.\nPara el 35% de 80:\n$10\\% = 8 \\rightarrow 30\\% = 24$.\n$5\\% = 4 \\rightarrow 24 + 4 = \\mathbf{28}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "porcentajes,trucos",
+   "front": "¿Cómo aplicas un descuento del 20% o 30% directamente?",
+   "back": "Multiplicando por el factor restante:\nDescuento del 20% $\\rightarrow$ Multiplica por $\\mathbf{0.8}$.\nDescuento del 30% $\\rightarrow$ Multiplica por $\\mathbf{0.7}$.\nIVA o aumento del 16% $\\rightarrow$ Multiplica por $\\mathbf{1.16}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "multiplicación,trucos",
+   "front": "¿Cómo multiplicas rápidamente por 25?",
+   "back": "Como $25 = 100/4$, <b>divide entre 4 y añade dos ceros</b> (o multiplica por 100):\n$36 \\times 25 = (36 / 4) \\times 100 = 9 \\times 100 = \\mathbf{900}$.\n$48 \\times 25 = 12 \\times 100 = \\mathbf{1200}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "división,trucos",
+   "front": "¿Cómo divides rápidamente entre 25?",
+   "back": "<b>Multiplica por 4 y divide entre 100</b> (corre la coma 2 lugares):\n$320 / 25 = (320 \\times 4) / 100 = 1280 / 100 = \\mathbf{12.8}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "multiplicación,védica",
+   "front": "¿Cómo multiplicas dos números entre 90 y 99 con la base 100?",
+   "back": "Ejemplo $96 \\times 93$ (desviaciones -4 y -7):\n1. <b>Izquierda</b>: resta cruzada ($96 - 7 = 89$).\n2. <b>Derecha</b>: multiplica desviaciones ($(-4) \\times (-7) = 28$).\nResultado: $\\mathbf{8928}$."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "multiplicación,védica",
+   "front": "¿Cuánto es $94 \\times 97$ usando el método base 100?",
+   "choices": [
+    "9118",
+    "9018",
+    "9128",
+    "8918"
+   ],
+   "answer": 0,
+   "back": "Desviaciones: -6 y -3. Izquierda: $94 - 3 = 91$. Derecha: $(-6) \\times (-3) = 18 \\rightarrow \\mathbf{9118}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "multiplicación,védica",
+   "front": "¿Cómo funciona la multiplicación de base 100 para números > 100?",
+   "back": "Ejemplo $104 \\times 107$ (desviaciones +4 y +7):\n1. <b>Izquierda</b>: suma cruzada ($104 + 7 = 111$).\n2. <b>Derecha</b>: producto ($4 \\times 7 = 28$).\nResultado: $\\mathbf{11128}$."
+  },
+  {
+   "level": 2,
+   "kind": "quiz",
+   "tags": "multiplicación,védica",
+   "front": "¿Cuánto es $103 \\times 105$?",
+   "choices": [
+    "10815",
+    "10850",
+    "10715",
+    "10915"
+   ],
+   "answer": 0,
+   "back": "Izquierda: $103 + 5 = 108$. Derecha: $3 \\times 5 = 15 \\rightarrow \\mathbf{10815}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "fracciones,trucos",
+   "front": "¿Qué es el método mariposa para sumar fracciones?",
+   "back": "$\\frac{a}{b} + \\frac{c}{d} = \\frac{a \\cdot d + b \\cdot c}{b \\cdot d}$.\nPara $\\frac{3}{4} + \\frac{2}{5}$:\nNumerador: $(3 \\times 5) + (4 \\times 2) = 15 + 8 = 23$.\nDenominador: $4 \\times 5 = 20 \\rightarrow \\mathbf{\\frac{23}{20} = 1.15}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "multiplicación,védica",
+   "front": "¿Cómo se realiza la multiplicación cruzada 2x2 en una línea?",
+   "back": "Para $32 \\times 41$:\n1. Unidades: $2 \\times 1 = \\mathbf{2}$.\n2. Cruzado: $(3 \\times 1) + (2 \\times 4) = 3 + 8 = \\mathbf{11}$ (escribes 1, llevas 1).\n3. Decenas: $(3 \\times 4) + 1 = \\mathbf{13}$.\nResultado: $\\mathbf{1312}$."
+  },
+  {
+   "level": 2,
+   "kind": "card",
+   "tags": "fracciones,porcentajes",
+   "front": "¿Cuáles son las equivalencias de fracciones a porcentajes más útiles?",
+   "back": "$1/2 = 50\\%$ · $1/4 = 25\\%$ · $3/4 = 75\\%$\n$1/3 \\approx 33.3\\%$ · $2/3 \\approx 66.7\\%$\n$1/8 = 12.5\\%$ · $3/8 = 37.5\\%$ · $5/8 = 62.5\\%$ · $7/8 = 87.5\\%$\n$1/5 = 20\\%$ · $1/6 \\approx 16.7\\%$."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "álgebra,cuadrados",
+   "front": "¿Cómo calculas el cuadrado de cualquier número con $x^2 = (x-d)(x+d) + d^2$?",
+   "back": "Busca la decena redonda más cercana sumando/restando $d$:\nPara $42^2$ ($d=2$ hacia 40):\n$40 \\times 44 + 2^2 = 1760 + 4 = \\mathbf{1764}$.\nPara $49^2$ ($d=1$ hacia 50):\n$48 \\times 50 + 1^2 = 2400 + 1 = \\mathbf{2401}$."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "álgebra,cuadrados",
+   "front": "¿Cuánto es $51^2$ mentalmente?",
+   "choices": [
+    "2601",
+    "2501",
+    "2701",
+    "2551"
+   ],
+   "answer": 0,
+   "back": "$(51-1)(51+1) + 1^2 = 50 \\times 52 + 1 = 2600 + 1 = \\mathbf{2601}$."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "álgebra,cuadrados",
+   "front": "¿Cuánto es $78^2$ mentalmente?",
+   "choices": [
+    "6084",
+    "6184",
+    "5984",
+    "6024"
+   ],
+   "answer": 0,
+   "back": "$(78-2)(78+2) + 2^2 = 76 \\times 80 + 4 = 6080 + 4 = \\mathbf{6084}$."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "álgebra,trucos",
+   "front": "¿Cómo multiplicas números con promedio redondo como $53 \\times 47$?",
+   "back": "Usando la diferencia de cuadrados $(a+b)(a-b) = a^2 - b^2$:\nEl centro es 50 (distancia $\\pm 3$):\n$50^2 - 3^2 = 2500 - 9 = \\mathbf{2491}$."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "álgebra,trucos",
+   "front": "¿Cuánto es $64 \\times 56$?",
+   "choices": [
+    "3584",
+    "3616",
+    "3544",
+    "3684"
+   ],
+   "answer": 0,
+   "back": "Centro 60 (distancia $\\pm 4$): $60^2 - 4^2 = 3600 - 16 = \\mathbf{3584}$."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "álgebra,trucos",
+   "front": "¿Cuánto es $103 \\times 97$?",
+   "choices": [
+    "9991",
+    "9981",
+    "9891",
+    "10091"
+   ],
+   "answer": 0,
+   "back": "Centro 100 (distancia $\\pm 3$): $100^2 - 3^2 = 10000 - 9 = \\mathbf{9991}$."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "raíces,estimación",
+   "front": "¿Cómo estimas una raíz cuadrada inexacta con precisión?",
+   "back": "Con la fórmula $\\sqrt{N} \\approx \\sqrt{A} + \\frac{N - A}{2\\sqrt{A}}$ (donde $A$ es el cuadrado perfecto cercano):\nPara $\\sqrt{50}$ ($A=49$):\n$\\sqrt{50} \\approx 7 + \\frac{50-49}{2(7)} = 7 + \\frac{1}{14} \\approx \\mathbf{7.071}$."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "raíces,estimación",
+   "front": "¿Cuánto es aproximadamente $\\sqrt{85}$?",
+   "choices": [
+    "9.22",
+    "9.45",
+    "8.95",
+    "9.75"
+   ],
+   "answer": 0,
+   "back": "Cuadrado cercano 81 (raíz 9). $\\sqrt{85} \\approx 9 + \\frac{85-81}{2(9)} = 9 + \\frac{4}{18} = 9 + 0.22 = \\mathbf{9.22}$."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "verificación,trucos",
+   "front": "¿Qué es la prueba del 9 y cómo verifica un cálculo?",
+   "back": "Calcula la raíz digital sumando las cifras ignorando los 9s:\nPara $38 \\times 47 = 1786$:\n- $38 \\rightarrow 3+8=11 \\rightarrow 2$\n- $47 \\rightarrow 4+7=11 \\rightarrow 2$\n- Producto: $2 \\times 2 = 4$\n- Resultado $1786 \\rightarrow (1+8=9) \\rightarrow 7+6=13 \\rightarrow 4$.\nComo $4 = 4$, el cálculo es correcto."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "estimación,finanzas",
+   "front": "¿Qué es la Regla del 72 y cómo se usa?",
+   "back": "Estima los años necesarios para **duplicar** un valor al $R\\%$ de interés compuesto:\n$\\text{Años} \\approx \\frac{72}{R}$.\nAl 6% anual $\\rightarrow 72 / 6 = \\mathbf{12 \\text{ años}}$.\nAl 8% anual $\\rightarrow 72 / 8 = \\mathbf{9 \\text{ años}}$."
+  },
+  {
+   "level": 3,
+   "kind": "quiz",
+   "tags": "estimación,finanzas",
+   "front": "Si una inversión rinde el 12% anual compuesto, ¿en cuántos años duplica su valor?",
+   "choices": [
+    "6 años",
+    "8 años",
+    "10 años",
+    "5 años"
+   ],
+   "answer": 0,
+   "back": "Regla del 72: $72 / 12 = \\mathbf{6 \\text{ años}}$."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "divisibilidad,trucos",
+   "front": "¿Cómo sabes si un número es divisible entre 11 sin dividir?",
+   "back": "Resta la suma de las cifras en posición par de la suma de las cifras en posición impar:\nPara 7.183: $(7+8) - (1+3) = 15 - 4 = 11$.\nSi el resultado es 0 o múltiplo de 11, **el número es divisible entre 11**."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "divisibilidad,trucos",
+   "front": "¿Cuáles son los criterios rápidos de divisibilidad por 3, 4, 6 y 8?",
+   "back": "• <b>Entre 3</b>: la suma de cifras es múltiplo de 3.\n• <b>Entre 4</b>: las dos últimas cifras son múltiplo de 4 ($324 \\rightarrow 24$).\n• <b>Entre 6</b>: es par y divisible entre 3 a la vez.\n• <b>Entre 8</b>: las tres últimas cifras son múltiplo de 8 ($1.128 \\rightarrow 128 / 8 = 16$)."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "trigonometría,geometría",
+   "front": "¿Cuáles son las ternas pitagóricas clave para verificar ángulos rectos en obra?",
+   "back": "La regla <b>3 - 4 - 5</b> ($3^2 + 4^2 = 5^2 \\rightarrow 9 + 16 = 25$).\nOtras ternas clave:\n• <b>5 - 12 - 13</b> ($25 + 144 = 169$)\n• <b>8 - 15 - 17</b> ($64 + 225 = 289$)\n• <b>7 - 24 - 25</b> ($49 + 576 = 625$)."
+  },
+  {
+   "level": 3,
+   "kind": "card",
+   "tags": "álgebra,series",
+   "front": "¿Cómo se calcula la suma de los primeros $N$ números consecutivos?",
+   "back": "Fórmula de Gauss: $\\mathbf{S = \\frac{N(N+1)}{2}}$.\nPara sumar del 1 al 100: $\\frac{100 \\times 101}{2} = 50 \\times 101 = \\mathbf{5050}$.\nPara sumar del 1 al 20: $\\frac{20 \\times 21}{2} = 10 \\times 21 = \\mathbf{210}$."
+  }
+ ]
+}

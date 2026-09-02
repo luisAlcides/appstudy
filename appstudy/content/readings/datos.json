@@ -1,224 +1,1041 @@
 {
-"deck": "datos",
-"chapters": [
-{
- "level": 1, "minutes": 10, "tags": "fundamentos,estadística,pandas,visualización",
- "title": "Mirar los datos antes de tocarlos",
- "subtitle": "Tipos de variable, los tres promedios, dispersión y las primeras órdenes ante un archivo nuevo.",
- "body": [
-  {"p": "El error más común en ciencia de datos no es elegir mal el modelo: es empezar a modelar sin haber mirado los datos. Este capítulo es lo que se hace <b>antes</b> de cualquier análisis, y es donde se resuelve la mayoría de los problemas."},
-
-  {"h": "Cada columna es una variable, y su tipo manda"},
-  {"list": [
-    "<b>Numérica continua</b> — admite decimales: horas de motor, litros, temperatura.",
-    "<b>Numérica discreta</b> — se cuenta: número de fallas, unidades vendidas.",
-    "<b>Categórica nominal</b> — etiquetas sin orden: marca de máquina, ciudad.",
-    "<b>Categórica ordinal</b> — etiquetas con orden: bajo/medio/alto, primaria/secundaria/universidad.",
-    "<b>Fecha</b> — merece su propio tipo: de ella se derivan mes, día de la semana, feriados."
-  ]},
-  {"key": "El tipo de variable decide <b>todo</b> lo que viene después: qué gráfico usar, qué estadístico calcular, qué prueba aplicar y cómo codificarla para un modelo. Numerar categorías sin orden real (CAT=1, Komatsu=2) le inventa al modelo una jerarquía que no existe."},
-
-  {"h": "Los tres promedios y cuándo usar cada uno"},
-  {"code": "Salarios: 1.000  1.200  1.100  1.300  90.000\n\nMedia    = 18.920  ← nadie gana eso\nMediana  =  1.200  ← describe al grupo real\nModa     = el valor más frecuente"},
-  {"math": "\\bar{x} = \\frac{1}{n}\\sum x_i \\qquad \\sigma = \\sqrt{\\frac{\\sum (x_i-\\bar{x})^2}{n}}"},
-  {"list": [
-    "<b>Media</b> — datos simétricos y sin valores extremos.",
-    "<b>Mediana</b> — cuando hay outliers o la distribución está sesgada. Salarios, precios, tiempos de espera.",
-    "<b>Moda</b> — datos categóricos: el color más vendido, la falla más frecuente."
-  ]},
-  {"p": "Cuando la <b>media es mucho mayor que la mediana</b>, tienes una cola larga hacia la derecha: unos pocos valores muy altos. Es el patrón de casi todo lo relacionado con dinero y con tiempo."},
-
-  {"h": "La dispersión cuenta la otra mitad"},
-  {"p": "Dos talleres promedian 5 horas por reparación. En uno la desviación estándar es 0,5 h; en el otro, 4 h. El primero es predecible y se puede programar; el segundo es un caos. <b>El promedio solo no cuenta la historia.</b>"},
-  {"p": "El <b>rango intercuartílico (IQR)</b> es más robusto: es la distancia entre el percentil 25 y el 75, es decir, dónde vive la mitad central de tus datos. Y sirve para detectar atípicos:"},
-  {"math": "IQR = Q_3 - Q_1"},
-  {"p": "Y un dato es atípico cuando se sale de este intervalo:"},
-  {"math": "[\\,Q_1 - 1.5 \\times IQR,\\ \\ Q_3 + 1.5 \\times IQR\\,]"},
-  {"warn": "Detectar un outlier no autoriza a borrarlo. Primero investiga: ¿es un error de captura (un horómetro con un cero de más) o un caso real e importante (la máquina que efectivamente falló catastróficamente)? Borrar los casos raros suele eliminar justo lo que querías estudiar."},
-
-  {"h": "Los primeros cinco comandos"},
-  {"code": "df.shape          # cuántas filas y columnas\ndf.head()         # ¿cómo se ven realmente los datos?\ndf.info()         # tipos de cada columna y cuántos nulos\ndf.describe()     # resumen numérico: media, min, max, cuartiles\ndf.isna().sum()   # nulos por columna"},
-  {"p": "Estos cinco comandos toman treinta segundos y evitan semanas de trabajo perdido. En <code>info()</code> busca columnas numéricas que aparezcan como <i>object</i>: eso significa que hay texto mezclado, y es una bomba de tiempo."},
-
-  {"h": "Cargar un CSV sin sufrir"},
-  {"code": "pd.read_csv('datos.csv',\n            sep=';',              # separador real del archivo\n            decimal=',',          # decimales con coma\n            encoding='latin-1',   # si UTF-8 falla\n            parse_dates=['fecha'])"},
-  {"p": "Un CSV es texto plano, y por eso mismo es traicionero: el separador puede ser punto y coma, los decimales pueden llevar coma, la codificación puede no ser UTF-8 y las fechas llegan como texto hasta que le digas lo contrario."},
-
-  {"h": "Filtrar, agrupar y pivotar"},
-  {"code": "# filtrar (paréntesis obligatorios, & y | en vez de and/or)\ndf[(df.horas > 500) & (df.marca == 'CAT')]\ndf[df.marca.isin(['CAT', 'Komatsu'])]\n\n# agrupar y agregar\ndf.groupby('maquina')['horas'].agg(['sum', 'mean', 'count'])\n\n# tabla dinámica\ndf.pivot_table(index='maquina', columns='mes',\n               values='horas', aggfunc='sum')"},
-  {"note": "<code>.loc</code> selecciona por <b>etiqueta</b> y <code>.iloc</code> por <b>posición</b>. Regla mnemotécnica: loc = label, iloc = index."},
-
-  {"h": "Los valores faltantes"},
-  {"steps": [
-    "<b>Entender por qué faltan.</b> ¿Al azar, o sistemáticamente? Si los horómetros faltan solo en las máquinas viejas, eso <i>es</i> información.",
-    "<b>Eliminar</b> filas o columnas si son pocas o la columna es inútil.",
-    "<b>Imputar</b> con media, mediana o moda; o con un modelo si vale la pena.",
-    "<b>Marcar</b>: crear una columna «era_nulo». Muchas veces la ausencia predice mejor que el valor."
-  ]},
-
-  {"h": "Gráficos que comunican"},
-  {"list": [
-    "<b>Histograma</b> o <b>boxplot</b> para ver la distribución de una variable numérica.",
-    "<b>Barras</b> para comparar categorías, <b>ordenadas por valor</b> y no alfabéticamente.",
-    "<b>Línea</b> solo para series de tiempo.",
-    "<b>Dispersión</b> para relacionar dos variables numéricas."
-  ]},
-  {"key": "Un mensaje por gráfico, y ese mensaje escrito <b>en el título</b>. Si el título dice «Ventas por mes», el gráfico no dice nada; si dice «Las ventas caen 30% cada febrero», el gráfico ya hizo su trabajo."},
-  {"warn": "La correlación no es causalidad. Los helados y los ahogamientos correlacionan porque ambos suben en verano. Antes de concluir, pregúntate siempre qué <b>tercera variable</b> podría estar detrás de las dos."}
- ]
-},
-{
- "level": 2, "minutes": 11, "tags": "modelado,evaluación,preprocesamiento,sql",
- "title": "Entrenar un modelo sin engañarte",
- "subtitle": "División de datos, fuga de información, sesgo y varianza, y por qué el accuracy miente.",
- "body": [
-  {"p": "Un modelo siempre da un número. La habilidad no está en obtenerlo, sino en saber si ese número significa algo. Casi todos los desastres de machine learning son evaluaciones mal hechas, no algoritmos malos."},
-
-  {"h": "Dividir los datos, y en qué orden"},
-  {"code": "TRAIN       ~70%   el modelo aprende aquí\nVALIDACIÓN  ~15%   aquí se ajustan hiperparámetros\nTEST        ~15%   se toca UNA sola vez, al final"},
-  {"key": "Si ajustas mirando el test, el test ya no mide nada. Cada vez que miras ese conjunto y cambias algo, le estás filtrando información al modelo a través de tus propias decisiones."},
-  {"h": "El error de orden que arruina todo"},
-  {"code": "❌ escalar todo el dataset  →  dividir train/test\n✅ dividir train/test       →  fit en TRAIN, transform en test"},
-  {"p": "Si escalas antes de dividir, la media y la desviación se calcularon usando también los datos de prueba: el test ya influyó en el entrenamiento. Se llama <b>fuga de información (data leakage)</b> y es la causa número uno de modelos que brillan en el cuaderno y fracasan en producción."},
-  {"p": "Otras fugas frecuentes: incluir una variable que solo existe <i>después</i> del evento que quieres predecir (usar «fecha de pago» para predecir si pagará), o duplicados que aparecen en train y test a la vez."},
-  {"warn": "Si tu modelo tiene un desempeño sospechosamente perfecto, no celebres: busca la fuga. El 95% de las veces está ahí."},
-
-  {"h": "Series de tiempo: nunca dividir al azar"},
-  {"p": "Con datos temporales, una división aleatoria entrena con días posteriores a los que predice. El modelo ve el futuro y el resultado es un espejismo. Se divide siempre por <b>corte temporal</b>: entrenar con el pasado, probar con el futuro, o usar validación cruzada con ventana deslizante."},
-
-  {"h": "Sesgo y varianza"},
-  {"list": [
-    "<b>Sesgo alto</b> (underfitting) — el modelo es demasiado simple. Falla igual en entrenamiento y en prueba.",
-    "<b>Varianza alta</b> (overfitting) — el modelo memorizó el ruido. Brilla en entrenamiento y fracasa en prueba."
-  ]},
-  {"p": "Todo el ajuste de un modelo es negociar entre los dos. Contra el overfitting: más datos, modelo más simple, <b>regularización</b> (L2 encoge los coeficientes, L1 los lleva a cero y hace selección de variables), validación cruzada y <i>early stopping</i>."},
-
-  {"h": "El accuracy miente"},
-  {"p": "Si el 99% de las transacciones son legítimas, un modelo que siempre diga «no es fraude» tiene 99% de accuracy y cero utilidad. Con clases desbalanceadas necesitas otras métricas."},
-  {"code": "                 PREDICHO\n              positivo  negativo\nREAL positivo    VP        FN   ← los que se te escaparon\n     negativo    FP        VN\n         ↑\n   falsas alarmas"},
-  {"p": "De esa tabla salen las dos métricas que de verdad se miran:"},
-  {"math": "\\text{Precisión} = \\frac{VP}{VP+FP} \\qquad \\text{Recall} = \\frac{VP}{VP+FN}"},
-  {"p": "La precisión responde «de lo que marqué, ¿cuánto acerté?»; el recall, «de todo lo real, ¿cuánto atrapé?». El <b>F1</b> los junta en un solo número, castigando que una de las dos se hunda:"},
-  {"math": "F_1 = 2 \\times \\frac{\\text{precisión} \\times \\text{recall}}{\\text{precisión} + \\text{recall}}"},
-  {"list": [
-    "Prioriza <b>precisión</b> cuando una falsa alarma es cara: filtro de spam, detener una línea de producción.",
-    "Prioriza <b>recall</b> cuando dejar pasar un caso es grave: detectar cáncer, una falla crítica de maquinaria.",
-    "<b>F1</b> los combina; <b>AUC-PR</b> es mejor que AUC-ROC cuando los positivos son raros."
-  ]},
-  {"key": "La métrica se elige a partir del <b>costo real de cada tipo de error</b>, no por costumbre. Pregúntate siempre qué cuesta más: una revisión de más o una falla no detectada."},
-
-  {"h": "Validación cruzada"},
-  {"p": "Dividir en k partes, entrenar k veces usando cada parte como prueba una vez y promediar. Da una estimación mucho más estable que una sola división, sobre todo con pocos datos. Típicamente k = 5 o 10."},
-
-  {"h": "Preparar las variables"},
-  {"list": [
-    "<b>Normalización</b> — importa en modelos basados en distancia o gradiente: KNN, SVM, redes neuronales, PCA. <b>No importa</b> en árboles ni random forest.",
-    "<b>One-hot encoding</b> para categóricas sin orden: una columna 0/1 por categoría.",
-    "<b>Feature engineering</b> — casi siempre rinde más que cambiar de algoritmo: de una fecha saca día de la semana y si es feriado; de un horómetro, las horas desde el último mantenimiento; de dos columnas, un ratio."
-  ]},
-  {"note": "Un modelo simple con buenas variables casi siempre le gana a un modelo sofisticado con variables crudas. El 80% del trabajo real es entender y preparar los datos."},
-
-  {"h": "SQL: lo que hay que dominar"},
-  {"code": "SELECT maquina, AVG(horas) AS promedio, COUNT(*) AS n\nFROM registros\nWHERE fecha >= '2026-01-01'     -- filtra FILAS\nGROUP BY maquina\nHAVING COUNT(*) > 5             -- filtra GRUPOS\nORDER BY promedio DESC;"},
-  {"p": "El orden real de ejecución es <b>FROM → JOIN → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT</b>. De ahí salen dos consecuencias prácticas: no puedes usar un alias del SELECT dentro del WHERE, y WHERE filtra filas mientras HAVING filtra grupos ya formados."},
-  {"p": "Las <b>funciones de ventana</b> son el siguiente escalón: calculan sobre un grupo sin colapsar las filas. <code>LAG()</code> y <code>LEAD()</code> comparan cada fila con la anterior o la siguiente, que es exactamente lo que necesitas para horómetros, consumos y cualquier serie."},
-
-  {"h": "El árbol de decisión y sus descendientes"},
-  {"p": "Un árbol es una cadena de preguntas sí/no. Se interpreta y se explica a cualquiera, no necesita escalado y maneja mezclas de tipos. Solo, se sobreajusta; por eso se usan <b>Random Forest</b> (muchos árboles votando) o <b>gradient boosting</b> (árboles que corrigen los errores del anterior), que son el estándar para datos tabulares."}
- ]
-},
-{
- "level": 3, "minutes": 9, "tags": "producción,series,interpretabilidad,sesgos,experimentos",
- "title": "De un cuaderno a un sistema",
- "subtitle": "Drift, interpretabilidad, experimentos honestos y las trampas que sobreviven al entrenamiento.",
- "body": [
-  {"p": "Un modelo entrenado no es un sistema. Entre el cuaderno que funciona y algo en lo que una empresa apoya decisiones hay una distancia que se mide en monitoreo, versionado y honestidad estadística."},
-
-  {"h": "Lo que un modelo necesita para vivir en producción"},
-  {"steps": [
-    "<b>Pipeline reproducible</b>: exactamente el mismo preprocesamiento en entrenamiento y en predicción. Si se hace a mano en un cuaderno, tarde o temprano divergen.",
-    "<b>Versionado</b> de datos, código y modelo. Tienes que poder responder «¿con qué se entrenó exactamente el modelo que dio esta predicción?».",
-    "<b>Monitoreo de las entradas</b>, no solo de la métrica. La métrica real llega con retraso; las distribuciones de entrada cambian ya.",
-    "<b>Reentrenamiento</b> con criterio de disparo definido: por calendario, por volumen de datos nuevos o por degradación medida.",
-    "<b>Plan de reversión</b> al modelo anterior, probado antes de necesitarlo."
-  ]},
-
-  {"h": "Drift: por qué se degrada un modelo que no cambió"},
-  {"list": [
-    "<b>Data drift</b> — cambian las distribuciones de entrada: llegó una flota de máquinas nuevas, cambió el proveedor, cambió la estacionalidad.",
-    "<b>Concept drift</b> — cambia la relación entre entradas y salida: lo que antes predecía una falla ya no la predice porque cambió el plan de mantenimiento.",
-    "<b>Feedback loop</b> — el propio modelo cambia el mundo que mide. Si predices fallas y por eso intervienes antes, las fallas dejan de ocurrir y el modelo parece equivocarse."
-  ]},
-  {"key": "El feedback loop es el más traicionero, porque el modelo se «equivoca» precisamente cuando funciona. Requiere medir el efecto de la intervención, no solo la precisión de la predicción."},
-
-  {"h": "Series de tiempo"},
-  {"p": "Una serie es <b>estacionaria</b> si su media, varianza y autocorrelación no cambian con el tiempo. Casi todos los modelos clásicos lo exigen. Se consigue diferenciando (<code>y.diff()</code>), quitando tendencia o aplicando logaritmo si la varianza crece con el nivel, y se comprueba con la prueba de Dickey-Fuller aumentada."},
-  {"p": "Antes de modelar, el procedimiento es siempre: <b>graficar la serie completa</b> (tendencia, estacionalidad, huecos), revisar calidad (fechas faltantes, ceros sospechosos, duplicados), <b>descomponer</b> en tendencia + estacionalidad + residuo, y agregar por semana o mes para reducir ruido."},
-
-  {"h": "Experimentos honestos"},
-  {"p": "Una prueba A/B compara dos versiones asignando sujetos <b>al azar</b> y midiendo una métrica definida <i>antes</i> de empezar. Lo que la invalida:"},
-  {"list": [
-    "<b>Peeking</b> — mirar los resultados a diario y parar cuando salen favorables. Si miras suficientes veces, siempre encontrarás un momento significativo por azar.",
-    "<b>Múltiples métricas</b> — probar veinte y reportar la que salió bien. Con veinte métricas al 5%, se espera una «significativa» solo por casualidad.",
-    "<b>Muestra insuficiente</b> — calcula el tamaño necesario antes, no después.",
-    "<b>Grupos no comparables</b> — si la asignación no fue realmente aleatoria, no hay experimento."
-  ]},
-  {"note": "El p-valor es la probabilidad de observar estos datos (o más extremos) <b>si la hipótesis nula fuera cierta</b>. No es la probabilidad de que tu hipótesis sea verdadera, ni mide el tamaño del efecto. Un resultado significativo puede ser irrelevante en la práctica."},
-
-  {"h": "Sesgos que sobreviven a cualquier modelo"},
-  {"list": [
-    "<b>Sesgo de supervivencia</b> — analizar solo lo que quedó. Estudiar únicamente los clientes activos no dice nada de por qué se fueron los demás.",
-    "<b>Paradoja de Simpson</b> — una tendencia presente en cada grupo se invierte al juntarlos. El taller A repara más rápido en máquinas ligeras y en pesadas, pero parece más lento en total porque atiende sobre todo pesadas.",
-    "<b>Sesgo de selección</b> — la muestra no representa a la población sobre la que decidirás.",
-    "<b>Sesgo histórico</b> — si los datos reflejan una práctica discriminatoria, el modelo la aprenderá y la aplicará a escala."
-  ]},
-  {"key": "Contra Simpson, la defensa es siempre la misma: <b>segmenta antes de concluir</b>. Un promedio global casi nunca es la respuesta final."},
-
-  {"h": "Interpretabilidad"},
-  {"p": "<b>SHAP</b> reparte cada predicción entre las variables: cuánto empujó cada una, en esta predicción concreta y en qué dirección. Convierte una caja negra en algo defendible ante un jefe o un auditor: <i>«se predijo falla porque las horas desde el último servicio aportaron +0,3 y la temperatura +0,2»</i>."},
-  {"p": "La importancia global de variables dice qué usa el modelo en promedio; SHAP dice por qué tomó <i>esta</i> decisión. Para explicar un caso individual a una persona afectada, solo sirve el segundo."},
-
-  {"h": "Definir bien un problema real"},
-  {"p": "Predecir fallas de maquinaria parece un problema de modelado. Casi todo el trabajo, sin embargo, está en definirlo:"},
-  {"steps": [
-    "<b>Etiqueta clara</b>: ¿«falla en los próximos 7 días»? Define la ventana y qué cuenta exactamente como falla.",
-    "<b>Fecha de corte</b>: solo información disponible <i>antes</i> del momento a predecir. Aquí es donde se cuela la fuga.",
-    "<b>Desbalance</b>: las fallas son raras. Métricas adecuadas, pesos de clase o remuestreo.",
-    "<b>Costo asimétrico</b>: no detectar una falla cuesta mucho más que una revisión de más. El umbral de decisión se ajusta con ese costo, no en 0,5 por defecto.",
-    "<b>Línea base</b>: ¿le gana al mantenimiento por horas fijas que ya usan? Si no, el modelo no aporta nada aunque su AUC sea bonito."
-  ]},
-  {"key": "Sin línea base no sabes si tu modelo sirve. Es la primera pregunta que debería hacerse y la que más se omite."}
- ]
-},
-{
- "level": 3, "minutes": 9, "tags": "estadística,experimentos,producción,evaluación,sql",
- "title": "Decidir con números sin engañarse",
- "subtitle": "Qué dice y qué no dice un p-valor, cuánta muestra necesita un experimento, cómo se elige un umbral y por qué los modelos se pudren.",
- "body": [
-  {"p": "Un modelo con buenas métricas no es una decisión. Entre el cuaderno y la reunión donde alguien firma hay un puñado de conceptos que se malinterpretan una y otra vez, y cada malentendido cuesta dinero."},
-  {"h": "El p-valor no dice lo que crees"},
-  {"p": "Un p-valor de 0,03 significa: <i>si la hipótesis nula fuera cierta, vería un efecto así de grande o mayor el 3 % de las veces por puro azar</i>. Nada más. No es la probabilidad de que tu hipótesis sea verdad, no mide la importancia del efecto y desde luego no dice que el cambio valga la pena."},
-  {"warn": "Con muchísimos datos, un efecto minúsculo da p ridículamente pequeños. Un test puede ser «significativo» y a la vez completamente irrelevante para el negocio. Enseña siempre el <b>tamaño del efecto</b> con su intervalo."},
-  {"p": "Y ese intervalo tampoco dice lo que parece. Un intervalo de confianza del 95 % describe el <b>procedimiento</b>: si repitieras el muestreo muchas veces, el 95 % de los intervalos así construidos contendría el valor real. El parámetro es fijo; lo aleatorio es el intervalo."},
-  {"h": "Cuánta muestra hace falta"},
-  {"p": "La pregunta correcta antes de lanzar un A/B no es «cuándo lo miro» sino «cuánta gente necesito». Con 80 % de potencia y 95 % de confianza, la regla de bolsillo por grupo es:"},
-  {"math": "n \\approx \\frac{16\\,\\sigma^2}{\\delta^2}"},
-  {"p": "Con proporciones, $\\sigma^2 = p(1-p)$. Si conviertes al 10 % y quieres detectar una mejora de dos puntos: $n \\approx 16 \\times 0.09 / 0.0004 = 3600$ por grupo. Ese número decide si el experimento dura tres días o tres meses — y a veces decide que no se puede hacer."},
-  {"key": "Fija el tamaño y la duración <b>antes</b> de empezar. Ir mirando hasta que salga significativo (<i>peeking</i>) dispara los falsos positivos: si miras cada día, tarde o temprano el azar te dará la razón."},
-  {"h": "El umbral es una decisión de negocio"},
-  {"p": "Un clasificador no decide: entrega una probabilidad. El 0,5 por defecto solo es correcto si equivocarse en un sentido cuesta lo mismo que en el otro, y eso casi nunca pasa. Pon precio a cada error y minimiza:"},
-  {"math": "\\text{coste} = FP \\times c_{FP} + FN \\times c_{FN}"},
-  {"p": "Si no detectar una falla cuesta 5.000 € y una revisión de más cuesta 80, el umbral tiene que ser bajo y habrá muchas falsas alarmas: es lo correcto. Enseña la curva precisión-recall a quien paga y que elija él el punto de trabajo."},
-  {"h": "Por qué un modelo se pudre"},
-  {"p": "Dos cosas distintas se llaman «deriva». La <b>deriva de datos</b> es que cambia lo que entra: llegan máquinas nuevas, otro rango de horas, otro cliente. La <b>deriva de concepto</b> es peor: cambia la relación entre entrada y salida, y la regla que aprendió tu modelo ya no rige."},
-  {"p": "Se vigilan con PSI o el test KS por variable, pero lo único que de verdad cuenta es la métrica real cuando llega la etiqueta. Sin monitoreo, un modelo se degrada en silencio y nadie se entera hasta que alguien se queja."},
-  {"p": "Y hay un fallo más tonto y más común que la deriva: el <b>training-serving skew</b>. Las variables se calculan de una forma al entrenar y de otra al predecir — el promedio del histórico completo frente a los últimos 30 días, o un escalador que se reajusta en vez de reutilizarse. Síntoma: métricas magníficas en pruebas y mediocres el primer día. Cura: una sola función de transformación, serializada, compartida por ambos caminos."},
-  {"h": "Antes del modelo, el baseline"},
-  {"p": "Mide siempre lo tonto primero: predecir la media, predecir la clase mayoritaria, o replicar la regla que el experto ya aplica a ojo. Si tu modelo con cuarenta variables no le gana con claridad, no tienes un modelo: tienes complejidad. El baseline es también lo que te dice si el problema es difícil o si tus datos no sirven."},
-  {"h": "Y cuando la consulta tarda"},
-  {"code": "EXPLAIN ANALYZE\nSELECT maquina, AVG(horas)\nFROM registros\nWHERE fecha >= '2026-01-01'\nGROUP BY maquina;"},
-  {"p": "Si aparece un <i>Seq Scan</i> sobre una tabla grande con un filtro selectivo, falta índice. Y que el filtro pueda usarlo: <code>WHERE fecha &gt;= '2026-01-01'</code> sí, <code>WHERE YEAR(fecha) = 2026</code> no — la función tapa el índice. Antes de pedir más servidor, mira el plan."},
-  {"note": "Una última costumbre: al partir en entrenamiento y prueba, <code>stratify=y</code> si hay clases raras, y <b>corte por fecha</b> si hay tiempo de por medio. Barajar una serie temporal es entrenar con el futuro."}
+ "deck": "datos",
+ "chapters": [
+  {
+   "level": 1,
+   "minutes": 10,
+   "tags": "fundamentos,estadística,pandas,visualización",
+   "title": "Mirar los datos antes de tocarlos",
+   "subtitle": "Tipos de variable, los tres promedios, dispersión y las primeras órdenes ante un archivo nuevo.",
+   "body": [
+    {
+     "p": "El error más costoso en ciencia de datos no es equivocarse de algoritmo: es lanzarse a modelar sin haber comprendido la naturaleza, distribución y defectos de los datos. Este capítulo resume lo que todo analista o científico debe hacer <b>antes</b> de escribir una sola línea de modelado."
+    },
+    {
+     "h": "Cada columna es una variable, y su tipo manda"
+    },
+    {
+     "list": [
+      "<b>Numérica continua</b> — admite cualquier valor decimal en un intervalo: horas de operación, litros de combustible, temperatura, ingresos monetarios, distancias.",
+      "<b>Numérica discreta</b> — valores contables enteros: número de averías, unidades vendidas, visitas al sitio, recuento de piezas.",
+      "<b>Categórica nominal</b> — etiquetas cualitativas sin orden jerárquico intrínseco: marca de maquinaria, ciudad de origen, color, tipo de cliente, método de pago.",
+      "<b>Categórica ordinal</b> — categorías con orden lógico o jerarquía definida: nivel de daño (leve/medio/grave), nivel educativo, calificación de satisfacción (1 a 5 estrellas).",
+      "<b>Fecha y Hora (Datetime)</b> — dimensión temporal con estructura propia: de ella se derivan componentes como año, mes, día de la semana, hora, si es feriado o días transcurridos desde un hito."
+     ]
+    },
+    {
+     "key": "El tipo de variable determina <b>todo</b> el flujo posterior: el tipo de gráfico admisible, el estadístico adecuado, la prueba de hipótesis válida y la forma obligatoria de preprocesarla para un modelo. Asignar números arbitrarios a categorías nominales (CAT=1, Komatsu=2, Volvo=3) inventa una jerarquía matemática falsa que confunde al algoritmo."
+    },
+    {
+     "h": "Los tres promedios y cuándo usar cada uno"
+    },
+    {
+     "code": "Salarios del taller: 1.000  1.200  1.100  1.300  90.000 €\n\nMedia (promedio) = 18.920 €  ← nadie en el taller gana esa cifra\nMediana          =  1.200 €  ← representa con fidelidad al grupo real\nModa             =  el valor más repetido"
+    },
+    {
+     "math": "\\bar{x} = \\frac{1}{n}\\sum_{i=1}^n x_i \\qquad \\sigma = \\sqrt{\\frac{\\sum_{i=1}^n (x_i-\\bar{x})^2}{n}}"
+    },
+    {
+     "list": [
+      "<b>Media</b> — ideal para distribuciones simétricas sin valores extremos ni asimetrías marcadas.",
+      "<b>Mediana</b> — la medida de tendencia central por excelencia cuando existen valores atípicos (<i>outliers</i>) o distribuciones con colas largas (salarios, precios de inmuebles, tiempos de espera, transacciones bancarias).",
+      "<b>Moda</b> — indispensable para variables categóricas: el tipo de repuesto más solicitado, el motivo de queja más frecuente, el color con mayor volumen de ventas."
+     ]
+    },
+    {
+     "p": "Cuando la <b>media es sustancialmente mayor que la mediana</b>, los datos presentan asimetría positiva (cola larga hacia la derecha): unos pocos valores extraordinariamente altos arrastran el promedio. Este es el patrón omnipresente en finanzas, consumos y duraciones."
+    },
+    {
+     "h": "La dispersión cuenta la otra mitad de la historia"
+    },
+    {
+     "p": "Supón que dos talleres promedian 5 horas por reparación. En el taller A, la desviación estándar es $\\sigma = 0.5$ h; en el taller B, $\\sigma = 4.0$ h. El taller A es predecible y permite planificar turnos; el taller B es un caos operativo donde un cliente puede esperar 1 hora o 15 horas. <b>El promedio solo jamás describe el comportamiento real de un proceso.</b>"
+    },
+    {
+     "p": "El <b>rango intercuartílico (IQR)</b> es la medida de dispersión más resistente a distorsiones extremas. Mide el recorrido donde habita el 50% central de las observaciones, entre el percentil 25 ($Q_1$) y el percentil 75 ($Q_3$):"
+    },
+    {
+     "math": "IQR = Q_3 - Q_1"
+    },
+    {
+     "p": "La regla estándar de Tukey clasifica como dato atípico (<i>outlier</i>) cualquier observación que caiga fuera de los límites de control:"
+    },
+    {
+     "math": "[\\,Q_1 - 1.5 \\times IQR,\\ \\ Q_3 + 1.5 \\times IQR\\,]"
+    },
+    {
+     "warn": "Detectar un outlier no otorga permiso para borrarlo sin pensar. Primero investiga su origen: ¿es un error tipográfico de captura (un horómetro con un cero extra por error) o un caso real y crítico (la máquina que sufrió una rotura catastrófica)? Borrar los casos raros suele eliminar exactamente el fenómeno que tu modelo debe aprender a prevenir."
+    },
+    {
+     "h": "Los primeros cinco comandos al recibir un dataset en Pandas"
+    },
+    {
+     "code": "df.shape          # dimensiones: cuántas filas y columnas reales tenemos\ndf.head()         # inspección visual de las primeras observaciones\ndf.info()         # tipos de datos por columna y conteo de valores no nulos\ndf.describe()     # resumen numérico: media, desviación, mínimo, cuartiles y máximo\ndf.isna().sum()   # inventario de valores faltantes (nulos) por columna"
+    },
+    {
+     "p": "Estos cinco comandos toman treinta segundos y evitan semanas de esfuerzo desperdiciado. En <code>info()</code>, presta especial atención a columnas numéricas o de fecha que aparezcan con tipo <code>object</code>: significa que hay caracteres de texto, símbolos o espacios mezclados entre los números."
+    },
+    {
+     "h": "Cargar un CSV sin sufrir problemas de codificación"
+    },
+    {
+     "code": "import pandas as pd\n\ndf = pd.read_csv('datos.csv',\n                 sep=';',              # separador de columnas (coma, punto y coma, tabulador)\n                 decimal=',',          # separador decimal habitual en países hispanohablantes\n                 encoding='latin-1',   # alternativa obligada si UTF-8 falla por tildes o eñes\n                 parse_dates=['fecha'])# convierte columnas de fecha a datetime de inmediato"
+    },
+    {
+     "p": "El formato CSV es texto plano sin metadatos de tipos de datos. Siempre especifica el delimitador, el separador decimal y la codificación de caracteres si el archivo proviene de sistemas locales o de hojas de cálculo exportadas."
+    },
+    {
+     "h": "Filtrado booleano y selección limpia"
+    },
+    {
+     "code": "# Filtrado con condiciones múltiples (paréntesis estrictamente obligatorios)\ndf_filtrado = df[(df['horas'] > 500) & (df['marca'] == 'CAT')]\ndf_marcas   = df[df['marca'].isin(['CAT', 'Komatsu', 'Volvo'])]\n\n# Agrupación y agregación con diccionario estructurado\ndf.groupby('maquina').agg(\n    total_horas=('horas', 'sum'),\n    promedio_horas=('horas', 'mean'),\n    conteo=('horas', 'count')\n)\n\n# Selección por etiquetas (.loc) vs por posición (.iloc)\ndf.loc[df['horas'] > 500, ['maquina', 'horas']]  # .loc usa nombres de columna y máscaras\ndf.iloc[0:10, 0:3]                                # .iloc usa coordenadas enteras (filas, columnas)"
+    },
+    {
+     "note": "Regla mnemotécnica indispensable: <code>.loc</code> selecciona por <b>etiqueta (Label)</b> y <code>.iloc</code> por <b>posición numérica entera (Index)</b>."
+    },
+    {
+     "h": "Estrategia para valores faltantes (NaN)"
+    },
+    {
+     "steps": [
+      "<b>Diagnosticar el mecanismo de ausencia.</b> ¿Faltan completamente al azar (MCAR), dependen de otras variables observadas (MAR) o de la propia variable no registrada (MNAR)? Si el horómetro falta solo en maquinaria averiada o muy antigua, la ausencia <i>es</i> una señal diagnóstica de primer nivel.",
+      "<b>Eliminación controlada</b> de filas o columnas únicamente si el porcentaje es irrelevante (&lt; 1%) o si la variable carece de poder explicativo y supera el 70% de nulos.",
+      "<b>Imputación estadística</b> mediante la mediana (variables asimétricas), la media (datos normales), la moda (categóricas) o modelos basados en vecinos más cercanos (KNNImputer) o árboles.",
+      "<b>Creación de bandera de ausencia</b>: generar una columna booleana <code>era_nulo = 1</code> antes de imputar. En muchas aplicaciones comerciales o industriales, el hecho de que el dato no haya sido reportado predice mejor el desenlace que cualquier valor interpolado."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 11,
+   "tags": "pandas,sql,limpieza,preprocesamiento",
+   "title": "Limpieza, transformación y consultas: Pandas y SQL",
+   "subtitle": "Uniones de tablas, agregaciones, funciones de ventana y la anatomía de una transformación limpia.",
+   "body": [
+    {
+     "p": "En proyectos reales de analítica e ingeniería de datos, la información nunca llega en un único archivo consolidado: reside fragmentada en múltiples tablas transaccionales de bases de datos relacionales. Dominar las uniones, agrupaciones y funciones analíticas en SQL y Pandas es el fundamento del análisis."
+    },
+    {
+     "h": "Unir tablas: el mapa completo de los JOINs"
+    },
+    {
+     "code": "-- SQL\nSELECT c.id, c.nombre, v.monto\nFROM clientes c\nLEFT JOIN ventas v ON c.id = v.cliente_id;\n\n# Pandas\npd.merge(clientes, ventas, left_on='id', right_on='cliente_id', how='left')"
+    },
+    {
+     "list": [
+      "<b>INNER JOIN</b> — conserva únicamente los registros que coinciden en ambas tablas en función de la clave compartida.",
+      "<b>LEFT JOIN</b> — mantiene todas las filas de la tabla izquierda; si no existe coincidencia en la derecha, rellena los campos correspondientes con NULL (o NaN).",
+      "<b>RIGHT JOIN</b> — mantiene todas las filas de la tabla derecha (en la práctica suele invertirse el orden de las tablas y usar LEFT JOIN para preservar la legibilidad).",
+      "<b>FULL OUTER JOIN</b> — conserva todas las filas de ambas tablas, asociando las parejas coincidentes y rellenando con nulos en los extremos sin correspondencia.",
+      "<b>CROSS JOIN</b> — genera el producto cartesiano de ambas tablas (cada fila de A combinada con todas las filas de B)."
+     ]
+    },
+    {
+     "warn": "Verifica siempre el número de filas (<code>COUNT(*)</code> o <code>len(df)</code>) antes y después de cualquier operación de unión. Si en un LEFT JOIN el conteo de filas se dispara, significa que la tabla de la derecha contenía <b>claves duplicadas</b>, lo que duplica o triplica registros artificialmente y falsea todas las métricas de negocio."
+    },
+    {
+     "h": "Detección de ausencias con LEFT JOIN"
+    },
+    {
+     "p": "Un problema recurrente en el análisis de operaciones es responder: <i>«¿qué clientes registrados no han realizado compras este mes?»</i> o <i>«¿qué vehículos de la flota no han registrado mantenimiento?»</i>. Se resuelve uniendo con LEFT JOIN y filtrando por la ausencia de clave en la tabla secundaria:"
+    },
+    {
+     "code": "SELECT c.id, c.nombre, c.correo\nFROM clientes c\nLEFT JOIN pedidos p ON c.id = p.cliente_id\nWHERE p.id IS NULL;"
+    },
+    {
+     "h": "El orden de ejecución de una consulta SQL"
+    },
+    {
+     "p": "Escribimos las sentencias SQL en un orden sintáctico, pero el optimizador del motor de base de datos las procesa en una secuencia lógica estricta:"
+    },
+    {
+     "code": "1. FROM / JOIN     -- identifica las fuentes y resuelve los cruces de tablas\n2. WHERE           -- filtra FILAS individuales antes de cualquier agregación\n3. GROUP BY        -- colapsa registros en grupos homogéneos\n4. HAVING          -- filtra GRUPOS ya formados en base a condiciones agregadas\n5. SELECT          -- evalúa expresiones, columnas y funciones\n6. DISTINCT        -- elimina filas duplicadas del conjunto proyectado\n7. ORDER BY        -- ordena el resultado final (operación costosa en memoria/disco)\n8. LIMIT / OFFSET  -- pagina y restringe el número de registros devueltos"
+    },
+    {
+     "key": "Entender este orden resuelve dos errores comunes: 1) no es posible usar un alias creado en el <code>SELECT</code> dentro de la cláusula <code>WHERE</code> porque el WHERE se ejecuta con anterioridad; 2) <code>WHERE</code> descarta filas individuales antes de agrupar, mientras que <code>HAVING</code> descarta grupos tras calcular sus agregaciones."
+    },
+    {
+     "h": "Funciones de ventana: cálculos analíticos sin colapsar filas"
+    },
+    {
+     "p": "A diferencia de <code>GROUP BY</code>, que reduce múltiples observaciones a un solo resumen, las <b>funciones de ventana (Window Functions)</b> ejecutan cálculos sobre un conjunto de filas relacionadas pero <b>mantienen intacta la granularidad de cada fila individual</b>."
+    },
+    {
+     "code": "SELECT maquina, fecha, horas,\n       AVG(horas) OVER (PARTITION BY maquina) AS promedio_historico,\n       horas - LAG(horas, 1) OVER (PARTITION BY maquina ORDER BY fecha) AS delta_diario,\n       ROW_NUMBER() OVER (PARTITION BY maquina ORDER BY fecha DESC) AS orden_reciente\nFROM lecturas_diarias;"
+    },
+    {
+     "list": [
+      "<code>LAG(col, 1)</code> y <code>LEAD(col, 1)</code> — acceden al valor de la fila anterior o posterior dentro de la partición ordenada. Esencial para calcular consumos incrementales, variaciones de horómetros y tasas de cambio.",
+      "<code>ROW_NUMBER()</code> — asigna enteros secuenciales únicos (1, 2, 3...) a cada fila dentro de su partición. Filtrar con <code>WHERE orden_reciente = 1</code> es la técnica estándar para extraer el estado más reciente de cada máquina o usuario.",
+      "<code>RANK()</code> y <code>DENSE_RANK()</code> — asignan posiciones con manejo de empates (RANK deja huecos en la numeración; DENSE_RANK no).",
+      "<code>SUM() / AVG() OVER (PARTITION BY ... ORDER BY ... ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)</code> — calcula totales acumulados móviles en el tiempo."
+     ]
+    },
+    {
+     "h": "Reestructurar matrices: Pivot y Melt"
+    },
+    {
+     "code": "# Pasar de formato largo (transaccional) a formato ancho (matriz comparativa)\ntabla_pivote = df.pivot_table(index='sucursal', columns='año', values='ventas', aggfunc='sum')\n\n# Pasar de formato ancho a formato largo (Tidy Data, ideal para visualización y modelos)\ndf_largo = pd.melt(tabla_pivote.reset_index(), id_vars=['sucursal'],\n                   var_name='año', value_name='ventas')"
+    },
+    {
+     "p": "El estándar de <b>datos limpios (Tidy Data)</b> establece que: 1) cada variable forma una columna; 2) cada observación forma una fila; 3) cada tipo de unidad observacional forma una tabla."
+    },
+    {
+     "h": "Trampas frecuentes en texto y fechas"
+    },
+    {
+     "list": [
+      "<b>Espacios en blanco invisibles</b>: <code>'CAT ' != 'CAT'</code>. Limpia siempre cadenas con <code>df['marca'] = df['marca'].astype(str).str.strip().str.upper()</code>.",
+      "<b>Fechas corruptas</b>: utiliza <code>pd.to_datetime(df['fecha'], format='%Y-%m-%d', errors='coerce')</code>. El argumento <code>errors='coerce'</code> transforma registros inválidos en <code>NaT</code> en vez de abortar el procesamiento.",
+      "<b>Evaluación de cadenas booleanas</b>: en Python, <code>bool('False')</code> es <code>True</code> (cualquier cadena no vacía evalúa como verdadera). Convierte textos booleanos comparando explícitamente: <code>df['activo'] == 'True'</code>."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 10,
+   "tags": "pandas,sql,rendimiento,datos",
+   "title": "Motores analíticos modernos: DuckDB, Polars y Parquet",
+   "subtitle": "Por qué Pandas se queda sin memoria, cómo la ejecución columnar y Rust transforman el análisis y cómo procesar gigabytes en tu portátil.",
+   "body": [
+    {
+     "p": "Durante más de una década, Pandas fue la herramienta indiscutida para la ciencia de datos en Python. Sin embargo, su diseño monohilo en C, el bloqueo del GIL de Python y el almacenamiento de datos en memoria no contigua (donde un archivo de 2 GB exige hasta 10 GB de RAM) revelan sus límites ante volúmenes crecientes de datos."
+    },
+    {
+     "h": "El almacenamiento columnar: Parquet vs. CSV"
+    },
+    {
+     "p": "Un archivo CSV guarda la información fila por fila en texto plano. Un archivo <b>Apache Parquet</b> almacena la información por columnas en formato binario comprimido con metadatos estadísticos en la cabecera (min, max, nulos por bloque):"
+    },
+    {
+     "code": "CSV:     Fila 1: [ID, Nombre, Fecha, Monto] → Fila 2: [ID, Nombre, Fecha, Monto] ...\nPARQUET: Col ID: [1, 2, 3...] | Col Fecha: [...] | Col Monto: [100.5, 20.0...]\n\nBeneficios de Parquet:\n  • Compresión 5x a 10x superior a CSV (usando Snappy o Zstandard).\n  • Proyección de columnas (Column Pruning): solo lee de disco las columnas que pides.\n  • Paginado de predicados (Predicate Pushdown): salta bloques enteros sin leerlos\n    si el metadato indica que ningún valor cumple el filtro WHERE fecha >= '2026-01-01'."
+    },
+    {
+     "h": "Polars: velocidad nativa en Rust y evaluación perezosa"
+    },
+    {
+     "p": "<b>Polars</b> es una biblioteca de DataFrames escrita en Rust sobre el estándar Apache Arrow. Aprovecha todos los núcleos de la CPU en paralelo sin el GIL de Python y ofrece un modo de <b>evaluación perezosa (LazyFrame)</b> que optimiza la consulta antes de ejecutarla:"
+    },
+    {
+     "code": "import polars as pl\n\n# Modo Lazy: construye un grafo de ejecución optimizado en vez de procesar de inmediato\nresultado = (\n    pl.scan_parquet('transacciones_grandes.parquet')\n    .filter(pl.col('monto') > 1000)\n    .group_by('region')\n    .agg([\n        pl.col('monto').sum().alias('total_ventas'),\n        pl.col('cliente_id').n_unique().alias('clientes_unicos')\n    ])\n    .collect()   # Recién aquí se ejecuta en paralelo sobre todos los núcleos de la CPU\n)"
+    },
+    {
+     "p": "Al usar <code>scan_parquet()</code> en lugar de <code>read_parquet()</code>, Polars no carga el archivo entero en memoria: analiza los filtros, lee exclusivamente las columnas solicitadas y procesa por lotes."
+    },
+    {
+     "h": "DuckDB: el SQLite para analítica OLAP"
+    },
+    {
+     "p": "<b>DuckDB</b> es un motor de base de datos analítico columnar que se ejecuta dentro del propio proceso de Python (sin necesidad de configurar servidores ni puertos). Puede consultar archivos Parquet, CSV o bases SQLite directamente mediante sentencias SQL estándar a velocidades asombrosas:"
+    },
+    {
+     "code": "import duckdb\n\n# Ejecuta SQL directamente sobre archivos en disco o en la nube (S3)\nres = duckdb.sql(\"\"\"\n    SELECT region, strftime(fecha, '%Y-%m') AS mes, SUM(monto) AS total\n    FROM 'datos/*.parquet'\n    WHERE fecha >= '2026-01-01'\n    GROUP BY region, mes\n    ORDER BY total DESC;\n\"\"\").df()\n\n# DuckDB puede consultar un DataFrame de Pandas o Polars como si fuera una tabla SQL\nduckdb.sql(\"SELECT * FROM resultado WHERE total_ventas > 50000\").show()"
+    },
+    {
+     "key": "Si tus datos superan la memoria RAM de tu máquina pero no justifican la complejidad y costo de un cluster Spark, la combinación de <b>DuckDB + Parquet</b> o <b>Polars</b> te permite analizar entre 10 GB y 100 GB en segundos en una laptop convencional."
+    },
+    {
+     "h": "Cuándo usar cada herramienta"
+    },
+    {
+     "list": [
+      "<b>Pandas</b> — manipulación interactiva de conjuntos pequeños (&lt; 1 GB) y compatibilidad con bibliotecas heredadas.",
+      "<b>Polars</b> — transformaciones complejas de DataFrames con paralelismo multinúcleo masivo y pipelines de preprocesamiento rápidos.",
+      "<b>DuckDB</b> — consultas SQL analíticas directas sobre archivos Parquet/CSV, agregaciones gigantescas y uniones de múltiples fuentes sin carga previa en memoria.",
+      "<b>PySpark / Distributed SQL</b> — solo cuando los datos superan los cientos de gigabytes o terabytes y requieren cómputo distribuido en clúster."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 9,
+   "tags": "visualización,estadística,práctica,fundamentos",
+   "title": "Visualización que cuenta historias y evita engaños",
+   "subtitle": "Elegir el gráfico correcto, la relación datos-tinta y cómo evitar que una escala engañe al espectador.",
+   "body": [
+    {
+     "p": "Un gráfico excelente sintetiza miles de filas de datos en una conclusión inmediata, honesta y comprensible. Un mal gráfico distorsiona proporciones, satura al lector y conduce a decisiones ejecutivas equivocadas. Visualizar bien combina rigor estadístico con diseño funcional."
+    },
+    {
+     "h": "El catálogo esencial: qué gráfico responde a cada pregunta"
+    },
+    {
+     "list": [
+      "<b>Distribución de una variable numérica</b> — <b>Histograma</b> para evaluar forma, asimetría y multimodalidad; <b>Boxplot (diagrama de caja)</b> para comparar cuartiles, medianas y valores atípicos entre múltiples categorías simultáneamente.",
+      "<b>Relación entre dos variables numéricas</b> — <b>Diagrama de dispersión (Scatter plot)</b> para identificar correlaciones lineales, no lineales, dispersiones heterogéneas, agrupaciones y puntos anómalos multivariados.",
+      "<b>Comparación entre categorías discretas</b> — <b>Gráfico de barras</b>, preferiblemente horizontales cuando las etiquetas son extensas, y siempre <b>ordenadas por valor</b> en lugar de alfabéticamente.",
+      "<b>Evolución temporal de variables</b> — <b>Gráfico de líneas</b>, reservado con exclusividad para series cronológicas ordenadas de forma continua.",
+      "<b>Estructura de correlación múltiple</b> — <b>Mapa de calor (Heatmap)</b> con coeficientes numéricos de correlación explícitamente impresos en cada celda."
+     ]
+    },
+    {
+     "warn": "Evita los gráficos de torta (pie charts). El sistema visual humano juzga con escasa precisión las diferencias de ángulos y áreas en dos dimensiones (y con nula precisión en 3D). Si tienes más de tres categorías, un gráfico de barras horizontales comunica la jerarquía y proporción con una claridad infinitamente superior."
+    },
+    {
+     "h": "Principios de diseño: la relación datos-tinta de Tufte"
+    },
+    {
+     "quote": "«La excelencia gráfica consiste en comunicar ideas complejas con claridad, precisión y eficiencia, usando la menor cantidad de tinta posible.» — Edward Tufte"
+    },
+    {
+     "steps": [
+      "<b>Eliminar el ruido visual innecesario</b>: suprime fondos oscuros saturados, cuadrículas excesivamente gruesas, bordes tridimensionales decorativos y efectos de sombra.",
+      "<b>Escribir la conclusión en el título</b>: en lugar de un encabezado descriptivo pasivo como «Ventas trimestrales por región», redacta un titular activo: «El Norte cayó 35% por desabastecimiento logístico; el Sur compensó el crecimiento».",
+      "<b>Etiquetado directo de elementos</b>: sitúa los nombres y valores junto a cada línea o barra en lugar de obligar al ojo a viajar constantemente entre una leyenda lejana y las curvas del gráfico.",
+      "<b>Uso estratégico y sobrio del color</b>: reserva colores de alto contraste (rojo, azul eléctrico, naranja) para resaltar el elemento crítico que deseas comunicar; colorea todo el contexto comparativo restante en tonos neutros de gris."
+     ]
+    },
+    {
+     "h": "Las trampas que falsean la percepción de la información"
+    },
+    {
+     "list": [
+      "<b>Cortar el eje Y en gráficos de barras</b>: si una barra mide 100 unidades y otra 102, situar el origen del eje Y en 98 hace que una parezca el doble de alta que la otra. Las barras representan magnitudes de área y deben partir siempre desde cero.",
+      "<b>Doble eje Y con escalas independientes no vinculadas</b>: permite manipular visualmente dos series no relacionadas para que parezcan coincidir con precisión milimétrica simplemente ajustando los rangos de ambos ejes.",
+      "<b>Confundir correlación con causalidad</b>: la venta de helados y los incidentes por quemaduras solares muestran una correlación altísima; no porque comer helado produzca quemaduras, sino porque la temperatura veraniega (variable de confusión) incrementa ambas variables simultáneamente."
+     ]
+    },
+    {
+     "key": "Ante cualquier correlación llamativa, formula invariablemente la misma pregunta crítica: <i>¿qué tercera variable no considerada podría estar impulsando a ambas en paralelo?</i>"
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "modelado,evaluación,preprocesamiento",
+   "title": "Entrenar un modelo sin engañarte",
+   "subtitle": "División de datos, fuga de información, sesgo y varianza, y por qué el accuracy miente.",
+   "body": [
+    {
+     "p": "Cualquier biblioteca moderna de machine learning puede ajustar un modelo en tres líneas de código. El verdadero valor técnico y científico reside en garantizar que la evaluación sea honesta, rigurosa y fiel reflejo de las condiciones reales de producción."
+    },
+    {
+     "h": "La partición sagrada de los conjuntos de datos"
+    },
+    {
+     "code": "ENTRENAMIENTO (Train) ~70%   el algoritmo aprende patrones y pesos matemáticos\nVALIDACIÓN (Val)      ~15%   se ajustan hiperparámetros y se comparan arquitecturas\nPRUEBA (Test)         ~15%   se evalúa UNA sola vez al final para estimar rendimiento real"
+    },
+    {
+     "key": "Si ajustas hiperparámetros o seleccionas variables observando el conjunto de prueba (Test), estás filtrando información a través de tus propias decisiones de diseño. El Test queda contaminado y pierde su capacidad de medir la generalización real."
+    },
+    {
+     "h": "Fuga de información (Data Leakage): el error número uno"
+    },
+    {
+     "p": "La fuga de información ocurre cuando datos del futuro, del conjunto de prueba o del propio objetivo ($y$) se infiltran inadvertidamente durante el proceso de entrenamiento:"
+    },
+    {
+     "code": "❌ GRAVE ERROR: escalar todo el dataset y LUEGO dividir train/test\n✅ CORRECTO:    dividir train/test PRIMERO -> fit en TRAIN, transform en TEST"
+    },
+    {
+     "list": [
+      "<b>Fuga en preprocesamiento</b>: calcular medias, modas, varianzas o tablas de imputación sobre la totalidad del dataset antes de la partición.",
+      "<b>Fuga temporal</b>: emplear variables que solo se generan <i>después</i> de que el evento a predecir haya sucedido (ej. usar «fecha de emisión de factura de grúa» para predecir si un camión se averiará).",
+      "<b>Fuga por correlación grupal</b>: registros pertenecientes a un mismo paciente, cliente o máquina repartidos simultáneamente entre train y test. El modelo memoriza las características particulares del individuo en lugar de aprender el patrón patológico general (solución: <code>GroupKFold</code>)."
+     ]
+    },
+    {
+     "warn": "Si tu modelo arroja métricas sospechosamente perfectas (AUC = 0.999 o error cuadrático cero), no celebres: busca la fuga de datos. En el 99% de los casos existe una variable que revela indirectamente el resultado."
+    },
+    {
+     "h": "El compromiso entre Sesgo y Varianza"
+    },
+    {
+     "list": [
+      "<b>Sesgo alto (Underfitting / Subajuste)</b> — el modelo es demasiado rígido para capturar la estructura real de los datos. Presenta un error elevado tanto en entrenamiento como en prueba.",
+      "<b>Varianza alta (Overfitting / Sobreajuste)</b> — el modelo memorizó el ruido aleatorio y las particularidades del entrenamiento. Rinde de forma brillante en train pero su desempeño colapsa en test."
+     ]
+    },
+    {
+     "p": "Tácticas contra el sobreajuste: regularización matemática (penalizaciones L1/L2), simplificación arquitectónica, recolección de más datos, validación cruzada estratificada, poda de ramas en árboles y detención temprana (<i>early stopping</i>)."
+    },
+    {
+     "h": "Por qué el Accuracy miente: la matriz de confusión"
+    },
+    {
+     "p": "En un escenario donde el 99% de las transacciones bancarias son legítimas y el 1% son fraudulentas, un clasificador trivial que prediga «todo es legítimo» obtiene un 99% de exactitud (accuracy), pero tiene una utilidad operativa nula porque no detecta ningún fraude."
+    },
+    {
+     "code": "                    PREDICCIÓN DEL MODELO\n                    Positivo (Fraude)    Negativo (Normal)\nREALIDAD  Positivo  Verdadero Pos (VP)   Falso Negativo (FN)  ← error crítico\n          Negativo  Falso Pos (FP)       Verdadero Neg (VN)\n                     ↑\n               falsa alarma"
+    },
+    {
+     "math": "\\text{Precisión} = \\frac{VP}{VP+FP} \\qquad \\text{Recall (Sensibilidad)} = \\frac{VP}{VP+FN}"
+    },
+    {
+     "p": "La <b>Precisión</b> responde: <i>«de todos los casos que el modelo marcó como positivos, ¿cuántos eran realmente positivos?»</i>. El <b>Recall</b> responde: <i>«de todos los casos positivos reales existentes, ¿qué fracción logró capturar el modelo?»</i>."
+    },
+    {
+     "math": "F_1 = 2 \\times \\frac{\\text{precisión} \\times \\text{recall}}{\\text{precisión} + \\text{recall}}"
+    },
+    {
+     "list": [
+      "Prioriza <b>precisión</b> cuando una falsa alarma tiene un costo operativo o reputacional alto: filtros de correo spam, sistemas de bloqueo automático de cuentas bancarias.",
+      "Prioriza <b>recall</b> cuando no detectar un caso positivo conlleva consecuencias graves: diagnóstico de tumores oncológicos, detección de fallas críticas en turbinas aeronáuticas, prevención de fraudes millonarios.",
+      "Utiliza <b>AUC-PR (Área bajo la curva Precisión-Recall)</b> en lugar de AUC-ROC cuando la clase de interés sea fuertemente minoritaria."
+     ]
+    },
+    {
+     "h": "Validación cruzada estratificada (Stratified K-Fold)"
+    },
+    {
+     "p": "Divide el conjunto de datos en $k$ bloques conservando exactamente la proporción original de cada clase en cada partición. Entrena $k$ modelos independientes utilizando un bloque distinto para prueba en cada iteración y promedia las métricas resultantes para obtener una estimación estadísticamente sólida."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "preprocesamiento,modelado,pandas,práctica",
+   "title": "Ingeniería de variables (Feature Engineering) y Pipelines",
+   "subtitle": "Transformaciones numéricas, codificación de categorías, señales temporales y Scikit-Learn Pipelines.",
+   "body": [
+    {
+     "p": "La ingeniería de características es la disciplina que transforma datos crudos en variables que exponen con claridad matemática la estructura del problema a los algoritmos. Un modelo elemental con variables ingeniosas superará de forma casi invariable a un modelo sofisticado alimentado con datos crudos."
+    },
+    {
+     "h": "Codificación de variables categóricas"
+    },
+    {
+     "list": [
+      "<b>One-Hot Encoding</b> — genera una columna binaria (0/1) independiente por cada categoría. Adecuado para variables nominales sin jerarquía y con baja cardinalidad (&lt; 15 valores distintos). En Scikit-Learn: <code>OneHotEncoder(handle_unknown='ignore')</code>.",
+      "<b>Ordinal Encoding</b> — asigna números enteros respetando la escala de orden natural de la variable (ej. bajo=1, medio=2, alto=3).",
+      "<b>Target Encoding (Mean Encoding)</b> — reemplaza cada categoría por el promedio de la variable objetivo ($y$) dentro de esa categoría. Muy potente para alta cardinalidad (códigos postales, modelos de coches), pero <b>debe calcularse exclusivamente dentro de cada partición de entrenamiento con regularización o suavizado bayesiano</b> para impedir fugas catastróficas."
+     ]
+    },
+    {
+     "h": "Escalado y normalización numérica"
+    },
+    {
+     "code": "from sklearn.preprocessing import StandardScaler, RobustScaler, MinMaxScaler, QuantileTransformer\n\n# StandardScaler: media = 0, desviación estándar = 1 (vulnerable a outliers)\n# MinMaxScaler: comprime el rango linealmente a [0, 1]\n# RobustScaler: centra con la mediana y escala con el IQR (robusto a outliers)\n# QuantileTransformer: transforma a una distribución uniforme o normal no lineal"
+    },
+    {
+     "math": "z = \\frac{x - \\mu}{\\sigma} \\qquad x_{\\text{minmax}} = \\frac{x - x_{\\min}}{x_{\\max} - x_{\\min}}"
+    },
+    {
+     "list": [
+      "<b>Algoritmos que exigen escalado obligatorio</b>: modelos basados en distancias euclidianas o producto punto (KNN, SVM, K-Means, PCA) y modelos entrenados con descenso de gradiente (Regresión Lineal/Logística, Redes Neuronales).",
+      "<b>Algoritmos inmunes al escalado</b>: modelos basados en árboles de decisión (Decision Trees, Random Forest, XGBoost, LightGBM, CatBoost), ya que las divisiones por umbral solo consideran el ordenamiento relativo de los valores."
+     ]
+    },
+    {
+     "h": "Creación sistemática de variables de impacto"
+    },
+    {
+     "steps": [
+      "<b>Ratios e intensidades relativas</b>: en vez de alimentar costo total y horas trabajadas por separado, introduce <code>costo_por_hora</code> o <code>consumo_por_kilometro</code>.",
+      "<b>Descomposición de fechas y calendario</b>: extrae día de la semana, mes, trimestre, bandera de fin de semana y distancia en días respecto al festivo más cercano.",
+      "<b>Transformaciones cíclicas</b>: la hora del día o el mes son magnitudes circulares (las 23:00 está a 1 hora de las 00:00). Proyéctalas mediante seno y coseno: $\\sin(2\\pi \\cdot h / 24)$ y $\\cos(2\\pi \\cdot h / 24)$.",
+      "<b>Transformaciones de estabilización de varianza</b>: ante variables con fuerte asimetría positiva hacia la derecha (ingresos, transacciones), aplica $\\log(1 + x)$ o la transformación Box-Cox para aproximarlas a una distribución normal."
+     ]
+    },
+    {
+     "h": "Scikit-Learn Pipelines: blindaje total contra fugas de datos"
+    },
+    {
+     "p": "El objeto <code>Pipeline</code> y <code>ColumnTransformer</code> unifican las etapas de imputación, escalado, codificación y modelado en un único artefacto autocontenido:"
+    },
+    {
+     "code": "from sklearn.pipeline import Pipeline\nfrom sklearn.compose import ColumnTransformer\nfrom sklearn.impute import SimpleImputer\nfrom sklearn.preprocessing import StandardScaler, OneHotEncoder\nfrom sklearn.ensemble import RandomForestClassifier\n\npreprocesador = ColumnTransformer(transformers=[\n    ('num', Pipeline([\n        ('imputer', SimpleImputer(strategy='median')),\n        ('scaler', StandardScaler())\n    ]), ['edad', 'horas_motor', 'consumo']),\n    ('cat', Pipeline([\n        ('imputer', SimpleImputer(strategy='most_frequent')),\n        ('ohe', OneHotEncoder(handle_unknown='ignore'))\n    ]), ['marca', 'region_operativa'])\n])\n\nmodelo_completo = Pipeline([\n    ('pre', preprocesador),\n    ('clf', RandomForestClassifier(n_estimators=100, random_state=42))\n])\n\n# El ajuste calcula medias y categorías SOLO sobre el conjunto de entrenamiento\nmodelo_completo.fit(X_train, y_train)\npredicciones = modelo_completo.predict(X_test)"
+    },
+    {
+     "key": "Al utilizar <code>Pipeline</code>, cada paso de transformación aplica su método <code>fit</code> exclusivamente sobre los datos de entrenamiento del fold activo, impidiendo cualquier contaminación accidental de datos de prueba."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 12,
+   "tags": "modelado,evaluación,fundamentos",
+   "title": "Los algoritmos esenciales: de Lineales a Gradient Boosting",
+   "subtitle": "Regresión lineal y logística, árboles de decisión, Random Forest, Boosting (XGBoost/LightGBM) y modelos no supervisados.",
+   "body": [
+    {
+     "p": "Aunque existen cientos de algoritmos en la literatura académica, en el mundo profesional de datos estructurados tabulares el 95% del valor comercial se genera mediante una familia selecta de modelos. Comprender su mecánica interna permite seleccionar la herramienta óptima para cada problema."
+    },
+    {
+     "h": "Modelos Lineales: el estándar de transparencia"
+    },
+    {
+     "list": [
+      "<b>Regresión Lineal (OLS)</b> — modela relaciones continuas de la forma $y = \\beta_0 + \\sum \\beta_i x_i$. Coeficientes directamente interpretables: cada incremento unitario en $x_i$ produce un cambio de $\\beta_i$ en $y$, manteniendo las demás variables constantes.",
+      "<b>Regularización L2 (Ridge)</b> — añade a la función de pérdida una penalización sobre la suma cuadrática de los coeficientes: $\\lambda \\sum \\beta_i^2$. Encoge los pesos hacia cero sin anularlos completamente; ideal ante multicolinealidad (variables muy correlacionadas entre sí).",
+      "<b>Regularización L1 (Lasso)</b> — penaliza la suma de valores absolutos: $\\lambda \\sum |\\beta_i|$. Fuerza a los coeficientes irrelevantes a convertirse en <b>cero exacto</b>, ejecutando una selección automática de variables.",
+      "<b>ElasticNet</b> — combina ambas penalizaciones ($L_1 + L_2$) mediante un parámetro de balance, reteniendo las ventajas de ambas.",
+      "<b>Regresión Logística</b> — para clasificación binaria. Modela las probabilidades aplicando la función sigmoide sobre la combinación lineal: $P(y=1|X) = \\frac{1}{1 + e^{-(\\beta_0 + \\sum \\beta_i x_i)}}$."
+     ]
+    },
+    {
+     "h": "Árboles de Decisión y Ensambles"
+    },
+    {
+     "p": "Un <b>árbol de decisión</b> particiona iterativamente el espacio de variables mediante divisiones binarias que maximizan la homogeneidad de los nodos resultantes (minimizando la impureza de Gini o la entropía). Es explicable e inmune al escalado, pero un árbol aislado sufre de alta varianza y sobreajuste si no se restringe su crecimiento."
+    },
+    {
+     "code": "RANDOM FOREST (Técnica de Bagging / Promediado en paralelo)\n  • Entrena cientos de árboles profundos e independientes en paralelo.\n  • Cada árbol se entrena sobre una muestra aleatoria con reemplazo (Bootstrap).\n  • En cada división de nodo, solo evalúa un subconjunto aleatorio de variables (mtry).\n  • Promedia los votos de todos los árboles para reducir drásticamente la VARIANZA.\n  • Muy robusto y prácticamente imposible de sobreajustar sin esfuerzo.\n\nGRADIENT BOOSTING: XGBoost / LightGBM / CatBoost (Técnica de Boosting / Secuencial)\n  • Entrena árboles poco profundos de forma SECUENCIAL e iterativa.\n  • Cada nuevo árbol se entrena para predecir los RESIDUOS (gradiente del error) del ensamble previo.\n  • Corrige sistemáticamente los errores difíciles para reducir el SESGO y la VARIANZA.\n  • Rey indiscutido de precisión en competencias y datos tabulares del mundo real."
+    },
+    {
+     "warn": "Para evitar sobreajuste en Gradient Boosting, ajusta con rigor tres parámetros: <code>learning_rate</code> (tasa pequeña: 0.01 a 0.05), <code>n_estimators</code> (controlado con early stopping sobre validación) y <code>max_depth</code> (árboles poco profundos: 3 a 6 niveles)."
+    },
+    {
+     "h": "Modelos basados en instancias y no supervisados"
+    },
+    {
+     "list": [
+      "<b>K-Nearest Neighbors (KNN)</b> — clasifica o predice promediando los $k$ vecinos más cercanos en el espacio de distancias. Requiere escalado estricto y sufre en altas dimensiones (maldición de la dimensionalidad).",
+      "<b>K-Means Clustering</b> — agrupa observaciones no etiquetadas en $k$ grupos minimizando la varianza intra-cluster (distancia a centroides). La cantidad de grupos $k$ se evalúa mediante el método del codo (Inertia) y el coeficiente de Silhouette.",
+      "<b>DBSCAN</b> — agrupa por densidad de puntos contiguos. Descubre clusters de geometrías arbitrarias y etiqueta automáticamente puntos aislados como ruido/anomalías.",
+      "<b>PCA (Análisis de Componentes Principales)</b> — proyecta variables correlacionadas sobre ejes ortogonales de máxima varianza, reduciendo dimensiones para acelerar modelos o visualizar datos complejos en 2D/3D."
+     ]
+    },
+    {
+     "key": "Para datos tabulares estructurados (tablas SQL, hojas de cálculo de negocio), los ensambles de Gradient Boosting (LightGBM, XGBoost, CatBoost) superan a las redes neuronales profundas en velocidad, interpretabilidad y rendimiento en prácticamente todos los benchmarks mundiales."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "evaluación,modelado,estadística",
+   "title": "Evaluación rigurosa: métricas de Regresión y Curvas Avanzadas",
+   "subtitle": "MAE, RMSE, R² ajustado, calibración de probabilidades, curvas Lift y análisis de residuos.",
+   "body": [
+    {
+     "p": "Optimizar una métrica inadecuada conduce a modelos matemáticamente precisos pero comercialmente inútiles o dañinos. Comprender las propiedades matemáticas de cada función de pérdida es fundamental para alinear la estadística con el impacto en el negocio."
+    },
+    {
+     "h": "Métricas fundamentales para problemas de Regresión"
+    },
+    {
+     "math": "\\text{MAE} = \\frac{1}{n}\\sum_{i=1}^n |y_i - \\hat{y}_i| \\qquad \\text{RMSE} = \\sqrt{\\frac{1}{n}\\sum_{i=1}^n (y_i - \\hat{y}_i)^2}"
+    },
+    {
+     "list": [
+      "<b>MAE (Error Absoluto Medio)</b> — promedio de las diferencias absolutas. Expresado en las mismas unidades que la variable original. Penaliza todos los errores linealmente; ideal cuando los errores atípicos no representan una catástrofe.",
+      "<b>RMSE (Raíz del Error Cuadrático Medio)</b> — al elevar los errores al cuadrado antes de promediar, penaliza con severidad desproporcionada las equivocaciones grandes. Debe priorizarse cuando fallar por mucho resulte exponencialmente más destructivo que fallar por poco.",
+      "<b>MAPE (Error Porcentual Absoluto Medio)</b> — expresa el error en porcentaje relativo ($|y-\\hat{y}|/y$). Muy fácil de comunicar a directivos, pero se indefine si $y=0$ y penaliza asimétricamente predicciones por exceso frente a predicciones por defecto.",
+      "<b>Coeficiente de Determinación ($R^2$)</b> — proporción de la varianza del objetivo explicada por el modelo respecto a predecir simplemente la media:"
+     ]
+    },
+    {
+     "math": "R^2 = 1 - \\frac{\\sum (y_i - \\hat{y}_i)^2}{\\sum (y_i - \\bar{y})^2} \\qquad R^2_{\\text{ajustado}} = 1 - (1-R^2)\\frac{n-1}{n-p-1}"
+    },
+    {
+     "warn": "El $R^2$ ordinario siempre sube artificialmente cuando añades variables nuevas, aunque sean ruido puro. En regresiones múltiples, consulta siempre el <b>$R^2$ ajustado</b>, el cual penaliza la inclusión de variables que no aportan valor explicativo real ($p$ es el número de variables)."
+    },
+    {
+     "h": "Análisis de Residuos: la prueba de salud del modelo"
+    },
+    {
+     "p": "Los <b>residuos</b> ($e_i = y_i - \\hat{y}_i$) deben comportarse como ruido blanco aleatorio sin estructura discernible. Al graficar los residuos frente a los valores predichos:"
+    },
+    {
+     "list": [
+      "<b>Forma de embudo (Heterocedasticidad)</b> — la varianza de los errores crece al aumentar el valor de la predicción. Indica que se requiere una transformación logarítmica sobre $y$.",
+      "<b>Patrón curvo o en U</b> — el modelo lineal omitió una relación cuadrática o no lineal entre las variables de entrada.",
+      "<b>Residuos no normales</b> — sesgo en colas; revisar presencia de subpoblaciones no segmentadas."
+     ]
+    },
+    {
+     "h": "Calibración de probabilidades: Brier Score y Curvas de Confiabilidad"
+    },
+    {
+     "p": "Un clasificador como Random Forest o XGBoost entrega una puntuación continua entre 0 y 1, pero no garantiza que sea una <b>probabilidad real calibrada</b>. Si el modelo predice $0.70$ para un lote de 1.000 clientes, exactamente el 70% (700 clientes) deben pertenecer a la clase positiva."
+    },
+    {
+     "code": "from sklearn.calibration import calibration_curve, CalibratedClassifierCV\n\n# Calcula la curva de confiabilidad (diagrama de calibración)\nprob_real, prob_predicha = calibration_curve(y_test, y_prob, n_bins=10)\n\n# Calibra con regresión isotónica (no paramétrica) o Platt Scaling (sigmoide logístico)\nmodelo_calibrado = CalibratedClassifierCV(modelo_base, method='isotonic', cv=5)\nmodelo_calibrado.fit(X_train, y_train)"
+    },
+    {
+     "h": "Curvas de Ganancia Acumulada y Lift"
+    },
+    {
+     "p": "En campañas comerciales de marketing o cobranza, el presupuesto no alcanza para contactar al 100% de la base de clientes. Las curvas de <b>Ganancia Acumulada</b> y <b>Lift</b> ordenan a los clientes de mayor a menor probabilidad y responden:"
+    },
+    {
+     "key": "<i>«Si contactamos únicamente al 20% de los clientes con mayor puntuación del modelo, ¿qué porcentaje del total de compradores reales lograremos capturar?»</i> (Un Lift de $3.5$ en el decil superior significa que el modelo es 3.5 veces más eficiente que seleccionar clientes al azar)."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "modelado,clustering,dimensiones",
+   "title": "Aprendizaje no supervisado: Clustering y Detección de Anomalías",
+   "subtitle": "K-Means, DBSCAN, Isolation Forest, PCA y cómo descubrir patrones ocultos sin etiquetas.",
+   "body": [
+    {
+     "p": "En la mayoría de los entornos empresariales e industriales, los datos no vienen convenientemente etiquetados con la respuesta correcta. El aprendizaje no supervisado busca descubrir agrupaciones naturales, estructuras de baja dimensión o eventos anómalos sin intervención humana previa."
+    },
+    {
+     "h": "K-Means: partición por centroides"
+    },
+    {
+     "p": "<b>K-Means</b> agrupa $n$ observaciones en $k$ clusters distintos minimizando la suma de cuadrados intra-cluster (Inertia):"
+    },
+    {
+     "math": "J = \\sum_{j=1}^k \\sum_{x_i \\in C_j} \\lVert x_i - \\mu_j \\rVert^2"
+    },
+    {
+     "list": [
+      "<b>Inicialización K-Means++</b>: selecciona los centroides iniciales separados entre sí probabilísticamente, evitando mínimos locales deficientes.",
+      "<b>Cómo elegir $k$</b>: combina el <b>Método del Codo (Elbow Method)</b> (buscando el punto de inflexión en la curva de inercia) con el <b>Coeficiente de Silhouette</b> (mide qué tan similar es un punto a su propio cluster respecto a los vecinos, en rango [-1, 1]).",
+      "<b>Limitación</b>: asume clusters esféricos, de tamaños similares y de igual densidad."
+     ]
+    },
+    {
+     "h": "DBSCAN: agrupamiento por densidad espacial"
+    },
+    {
+     "p": "<b>DBSCAN (Density-Based Spatial Clustering of Applications with Noise)</b> define un cluster como una región densa de puntos separada por zonas de baja densidad. Utiliza dos parámetros: $\\epsilon$ (radio de vecindad) y <code>min_samples</code> (mínimo de puntos para formar un núcleo):"
+    },
+    {
+     "list": [
+      "<b>Ventajas</b>: descubre clusters de cualquier forma geométrica no lineal (formas de anillo, espirales) y <b>no requiere fijar el número $k$ de antemano</b>.",
+      "<b>Detección de ruido</b>: todos los puntos aislados que no cumplen la densidad mínima se clasifican automáticamente como ruido o anomalías (etiqueta -1)."
+     ]
+    },
+    {
+     "h": "Detección de Anomalías con Isolation Forest"
+    },
+    {
+     "p": "A diferencia de otros algoritmos que aprenden el perfil normal para luego buscar desviaciones, <b>Isolation Forest</b> aísla las anomalías directamente mediante árboles de decisión aleatorios:"
+    },
+    {
+     "key": "Las anomalías son escasas y diferentes. Por tanto, en un árbol con particiones aleatorias, una observación anómala queda aislada en <b>ramas muy cortas</b> cerca de la raíz, mientras que los datos normales requieren muchas divisiones profundas. Es rápido, escalable a millones de filas y altamente efectivo en detección de fraudes y fallas mecánicas."
+    },
+    {
+     "h": "Reducción de Dimensionalidad: PCA vs. t-SNE / UMAP"
+    },
+    {
+     "list": [
+      "<b>PCA (Análisis de Componentes Principales)</b> — transformación lineal ortogonal que maximiza la varianza. Excelente para comprimir variables antes de un modelo y retener el 95% de la información.",
+      "<b>t-SNE / UMAP</b> — técnicas no lineales diseñadas específicamente para preservar la estructura local y global en visualizaciones bidimensionales (2D) de datos hiperdimensionales (como embeddings de texto o imágenes)."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "recomendación,modelado,embeddings",
+   "title": "Sistemas de recomendación y búsqueda vectorial",
+   "subtitle": "Filtrado colaborativo, factorización de matrices, embeddings y métricas de ranking (NDCG, MAP).",
+   "body": [
+    {
+     "p": "Los sistemas de recomendación y motores de búsqueda semántica impulsan gran parte del comercio digital, plataformas de streaming y gestión de catálogos industriales. Su objetivo no es clasificar una fila aislada, sino ordenar y sugerir los elementos más relevantes para un usuario específico."
+    },
+    {
+     "h": "Los tres paradigmas de recomendación"
+    },
+    {
+     "list": [
+      "<b>Filtrado Basado en Contenido (Content-Based)</b> — recomienda elementos similares a los que el usuario consumió en el pasado, comparando los atributos y metadatos de los ítems (género, autor, especificaciones mecánicas, categoría de producto).",
+      "<b>Filtrado Colaborativo (Collaborative Filtering)</b> — ignora las propiedades del ítem y se apoya exclusivamente en el historial de comportamiento compartido: <i>«a los usuarios que compraron el producto A y B también les interesó el producto C»</i>.",
+      "<b>Sistemas Híbridos</b> — combinan representaciones vectoriales del contenido con patrones de interacción colaborativos para superar las debilidades de cada enfoque aislado."
+     ]
+    },
+    {
+     "h": "El problema del arranque en frío (Cold Start)"
+    },
+    {
+     "p": "Un sistema de filtrado colaborativo puro falla cuando ingresa un nuevo usuario o un nuevo producto al catálogo, porque no existen interacciones históricas registradas. En tales casos, los sistemas recurren a filtrado basado en contenido, reglas de popularidad global o cuestionarios iniciales de perfilado."
+    },
+    {
+     "h": "Factorización de Matrices y Embeddings"
+    },
+    {
+     "p": "En una matriz gigante y dispersa de usuarios $\\times$ ítems (donde el 99% de las celdas están vacías), técnicas como <b>SVD (Descomposición en Valores Singulares)</b> o <b>ALS (Alternating Least Squares)</b> descomponen la matriz original en dos matrices densas de menor dimensión: vectores latentes de usuarios y vectores latentes de ítems."
+    },
+    {
+     "code": "Matriz (Usuarios × Ítems) ≈ Matriz_Usuarios (U × k)  ×  Matriz_Ítems (k × I)\n\nLa afinidad predicha entre el usuario u y el ítem i es el producto punto:\n  Afinidad(u, i) = Vector_Usuario[u] · Vector_Ítem[i]"
+    },
+    {
+     "h": "Búsqueda vectorial con Similitud del Coseno"
+    },
+    {
+     "p": "La cercanía de significado entre dos vectores de características (embeddings) se calcula con el coseno del ángulo entre ellos, ignorando su magnitud:"
+    },
+    {
+     "math": "\\cos(\\theta) = \\frac{u \\cdot v}{\\lVert u \\rVert\\, \\lVert v \\rVert}"
+    },
+    {
+     "h": "Métricas de evaluación de ranking y recomendación"
+    },
+    {
+     "list": [
+      "<b>Precision@k</b> — fracción de ítems recomendados en las primeras $k$ posiciones que resultaron relevantes para el usuario.",
+      "<b>Recall@k</b> — fracción de todos los ítems relevantes del usuario que lograron ingresar en el top $k$ sugerido.",
+      "<b>MAP (Mean Average Precision)</b> — evalúa la precisión promediada premiando que los aciertos aparezcan en las posiciones más altas de la lista.",
+      "<b>NDCG (Normalized Discounted Cumulative Gain)</b> — la métrica estándar de la industria: penaliza logarítmicamente la relevancia de un elemento si aparece en posiciones retrasadas de la lista de resultados."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "series,modelado,evaluación,producción",
+   "title": "Series temporales y pronósticos en el mundo real",
+   "subtitle": "Estacionariedad, modelos ARIMA, ingeniería de retardos (lags) y validación temporal estricta.",
+   "body": [
+    {
+     "p": "Una serie temporal no es simplemente una tabla con una columna de fechas: es una estructura secuencial donde el <b>orden cronológico es inviolable</b> y los registros adyacentes guardan fuerte correlación entre sí. Modelar series de tiempo exige precauciones metodológicas específicas."
+    },
+    {
+     "h": "Descomposición fundamental de una serie"
+    },
+    {
+     "p": "Toda serie temporal se descompone en cuatro fuerzas subyacentes:"
+    },
+    {
+     "list": [
+      "<b>Tendencia ($T_t$)</b> — movimiento suave y direccional sostenido a largo plazo (crecimiento, estancamiento, caída secular).",
+      "<b>Estacionalidad ($S_t$)</b> — fluctuaciones periódicas regulares que se repiten en intervalos fijos conocidos (ciclos semanales, picos mensuales de pago, estacionalidad climática anual).",
+      "<b>Ciclo ($C_t$)</b> — oscilaciones ondulatorias de mediano y largo plazo sin periodicidad matemática fija (ciclos macroeconómicos).",
+      "<b>Residuo / Ruido Blanco ($I_t$)</b> — variación estocástica residual no predecible tras aislar los tres componentes anteriores."
+     ]
+    },
+    {
+     "h": "Estacionariedad: la piedra angular estadística"
+    },
+    {
+     "p": "Una serie es <b>estacionaria</b> cuando sus parámetros estadísticos clave (media, varianza y estructura de autocorrelación) se mantienen constantes a lo largo del tiempo. Los modelos lineales clásicos la requieren rigurosamente:"
+    },
+    {
+     "steps": [
+      "<b>Estabilizar la media</b> mediante diferenciación ordinaria: $y'_t = y_t - y_{t-1}$ (en Pandas: <code>df['y'].diff()</code>).",
+      "<b>Estabilizar la varianza</b> aplicando transformación logarítmica $\\log(y_t)$ si la amplitud de las oscilaciones se expande a medida que el nivel de la serie crece.",
+      "<b>Verificación formal</b>: ejecutar la prueba de <b>Dickey-Fuller Aumentada (ADF)</b>. Un p-valor &lt; 0.05 rechaza la hipótesis nula de raíz unitaria y confirma estacionariedad matemática."
+     ]
+    },
+    {
+     "h": "Modelos estadísticos clásicos: ARIMA y SARIMA"
+    },
+    {
+     "code": "ARIMA(p, d, q)\n  • p = orden autorregresivo (número de retardos históricos directos que influyen)\n  • d = grado de diferenciación requerido para alcanzar estacionariedad\n  • q = orden de medias móviles (número de errores de predicción pasados que corrigen el presente)\n\nSARIMA(p,d,q)(P,D,Q)[m]\n  • Incorpora términos autorregresivos y de media móvil para el ciclo estacional m (ej. m=12 meses)"
+    },
+    {
+     "p": "Los gráficos de <b>Autocorrelación (ACF)</b> y <b>Autocorrelación Parcial (PACF)</b> permiten seleccionar los órdenes $p$ y $q$ al mostrar qué retardos guardan correlación significativa tras descontar los períodos intermedios."
+    },
+    {
+     "h": "Machine Learning tabular para series temporales"
+    },
+    {
+     "p": "Para problemas complejos de pronóstico con múltiples variables exógenas (promociones, clima, festivos, precios de la competencia), estructurar el dataset como una matriz tabular y entrenar modelos de Gradient Boosting (LightGBM) supera ampliamente a los métodos clásicos:"
+    },
+    {
+     "code": "# Generación de retardos (Lags)\ndf['lag_1']  = df['demanda'].shift(1)\ndf['lag_7']  = df['demanda'].shift(7)   # mismo día de la semana anterior\n\n# Estadísticas en ventanas móviles (Rolling Features)\n# CUIDADO CRÍTICO: shift(1) impide incluir el día actual en la media\ndf['rolling_mean_7'] = df['demanda'].shift(1).rolling(window=7).mean()\ndf['rolling_std_7']  = df['demanda'].shift(1).rolling(window=7).std()"
+    },
+    {
+     "warn": "En variables de ventana móvil (rolling features), aplica <b>siempre</b> <code>shift(1)</code> antes del cálculo. Si la media móvil incluye el dato del día que pretendes predecir, crearás una fuga temporal masiva que inflará las métricas en pruebas y colapsará en producción."
+    },
+    {
+     "h": "Validación temporal estricta (Backtesting)"
+    },
+    {
+     "p": "Prohibido barajar aleatoriamente los datos (<code>shuffle=False</code> siempre). Utiliza partición cronológica por fecha de corte o <code>TimeSeriesSplit</code> (validación con ventana expansiva o deslizante) para garantizar que el modelo solo entrene con el pasado para pronosticar el futuro."
+    },
+    {
+     "h": "Métricas de pronóstico"
+    },
+    {
+     "math": "\\text{RMSE} = \\sqrt{\\frac{1}{n}\\sum_{t=1}^n (y_t - \\hat{y}_t)^2} \\qquad \\text{WAPE} = \\frac{\\sum |y_t - \\hat{y}_t|}{\\sum y_t}"
+    },
+    {
+     "p": "El <b>WAPE (Weighted Absolute Percentage Error)</b> pondera el error absoluto sobre el volumen total, resolviendo los problemas de indeterminación y divisiones por cero del MAPE cuando hay días sin ventas."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "estadística,experimentos,sesgos,evaluación",
+   "title": "Estadística inferencial y diseño de experimentos A/B",
+   "subtitle": "Qué dice y qué no dice un p-valor, tamaño de muestra previo, peeking y las trampas lógicas del análisis.",
+   "body": [
+    {
+     "p": "Que una métrica suba tras implementar un cambio no prueba que la modificación haya sido la causa: el azar produce fluctuaciones constantes. El diseño experimental riguroso y la inferencia estadística son la única defensa contra la ilusión de patrones inexistentes."
+    },
+    {
+     "h": "Qué significa exactamente un p-valor (y qué jamás dice)"
+    },
+    {
+     "p": "Un p-valor de $0.03$ significa con exactitud matemática: <i>«si la hipótesis nula fuera estrictamente verdadera (es decir, si el cambio no tuviera efecto real alguno), la probabilidad de observar una diferencia tan grande o mayor que la registrada por puro azar es del 3%»</i>."
+    },
+    {
+     "list": [
+      "❌ <b>NO es</b> la probabilidad de que tu hipótesis de negocio sea cierta.",
+      "❌ <b>NO mide</b> la magnitud, impacto comercial ni relevancia económica del efecto.",
+      "❌ <b>NO garantiza</b> que el experimento sea replicable bajo otras circunstancias de mercado."
+     ]
+    },
+    {
+     "warn": "Con volúmenes masivos de datos (millones de visitas), diferencias insignificantes del 0.001% arrojan p-valores astronómicamente bajos ($p < 0.00001$). Significancia estadística no implica relevancia práctica de negocio. Reporta siempre el <b>tamaño del efecto</b> acompañado de su <b>intervalo de confianza</b>."
+    },
+    {
+     "h": "Intervalos de confianza (95% CI)"
+    },
+    {
+     "p": "Un intervalo de confianza del 95% describe la fiabilidad del <b>procedimiento de muestreo</b>: si repitiéramos el experimento 100 veces, 95 de los intervalos construidos contendrán el verdadero parámetro poblacional fijo desconocido."
+    },
+    {
+     "h": "Diseño riguroso de Tests A/B"
+    },
+    {
+     "p": "Un test A/B divide a los sujetos de forma estrictamente aleatoria entre una versión de control (A) y una variante (B). Para que sus conclusiones sean inatacables, calcula el tamaño de muestra antes de encender el experimento:"
+    },
+    {
+     "math": "n \\approx \\frac{16\\,\\sigma^2}{\\delta^2}"
+    },
+    {
+     "p": "Donde $\\sigma^2$ es la varianza y $\\delta$ es el efecto mínimo detectable (MDE). Para tasas de conversión con proporciones binarias, $\\sigma^2 = p(1-p)$. Si la tasa base es $p=0.10$ y pretendes detectar un incremento de 1 punto porcentual ($\\delta=0.01$): $n \\approx 16 \\times 0.09 / 0.0001 = 14.400$ usuarios por variante."
+    },
+    {
+     "steps": [
+      "<b>Fijar el tamaño muestral y la duración ANTES de iniciar</b>: mantén el test activo durante ciclos semanales completos para absorber variaciones entre días hábiles y fines de semana.",
+      "<b>Prohibido el Peeking Problem</b>: revisar las métricas a diario y detener el experimento en el momento exacto en que el p-valor cruza el 0.05 infla la tasa de falsos positivos hasta un 30% o más por mero ruido temporal.",
+      "<b>Comprobar Sample Ratio Mismatch (SRM)</b>: verifica mediante una prueba Chi-cuadrado que la proporción de usuarios asignados a A y B coincide con el diseño (ej. 50/50). Un desbalance estadístico revela fallas técnicas graves en la infraestructura de balanceo.",
+      "<b>Corregir comparaciones múltiples</b>: si evalúas 20 métricas secundarias al nivel $\\alpha=0.05$, la probabilidad de encontrar al menos un falso positivo por azar es del 64%. Aplica corrección de Bonferroni ($\\alpha / m$) o control de la Tasa de Falso Descubrimiento (FDR)."
+     ]
+    },
+    {
+     "h": "Trampas lógicas y paradojas estadísticas"
+    },
+    {
+     "list": [
+      "<b>Sesgo de Supervivencia</b> — analizar solo a las entidades que superaron un filtro histórico. Estudiar únicamente los clientes activos no revela las causas por las que los clientes perdidos cancelaron su cuenta.",
+      "<b>Paradoja de Simpson</b> — una tendencia clara observada en cada subgrupo homogéneo se invierte de forma desconcertante al agregar los datos debido a una variable de confusión no controlada. Remedio: <b>segmenta siempre por cohortes antes de extraer conclusiones globales</b>.",
+      "<b>Regresión a la Media</b> — valores extraordinariamente atípicos (muy altos o muy bajos) tienden de forma natural a aproximarse al promedio en la siguiente medición, sin que medie causalidad de la intervención."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "causalidad,estadística,experimentos,sesgos",
+   "title": "Inferencia causal: Más allá de la correlación",
+   "subtitle": "Grafos acíclicos dirigidos (DAGs), confusores, diferencias en diferencias y cuándo un modelo predictivo falla al intervenir.",
+   "body": [
+    {
+     "p": "Predecir y decidir son tareas fundamentalmente distintas. Un modelo de machine learning puede predecir con exactitud milimétrica que las personas que llevan paraguas sufren más accidentes de tráfico; pero prohibir los paraguas no salvará ninguna vida porque la lluvia es la causa común de ambos fenómenos. La inferencia causal responde a la pregunta decisiva: <i>«¿qué pasará si intervenimos activamente sobre el sistema?»</i>."
+    },
+    {
+     "h": "El marco de resultados potenciales (Rubin Causal Model)"
+    },
+    {
+     "p": "Para cada individuo $i$ existen dos estados teóricos: $Y_i(1)$ (el resultado si recibe el tratamiento) y $Y_i(0)$ (el resultado si no lo recibe). El <b>Efecto Causal Individual</b> es la diferencia $Y_i(1) - Y_i(0)$. Como es imposible observar simultáneamente a la misma persona bajo tratamiento y bajo control en el mismo instante (el problema fundamental de la inferencia causal), estimamos el <b>Efecto Promedio del Tratamiento (ATE)</b> sobre grupos:"
+    },
+    {
+     "math": "\\text{ATE} = \\mathbb{E}[Y(1) - Y(0)]"
+    },
+    {
+     "h": "Diagramas Causales (DAGs) y variables de confusión"
+    },
+    {
+     "p": "Un Grafo Acíclico Dirigido (DAG) traza las relaciones de causalidad mediante flechas direccionales:"
+    },
+    {
+     "code": "Confusor (Lluvia)\n      │            \\\n      ▼             ▼\nTratamiento       Resultado\n (Paraguas) ──❌──> (Accidentes)"
+    },
+    {
+     "list": [
+      "<b>Variable de Confusión (Confounder)</b> — afecta simultáneamente al tratamiento y al resultado, creando una correlación espuria. Se debe <b>controlar o bloquear</b> en el análisis estadístico.",
+      "<b>Mediador (Mediator)</b> — se encuentra en la ruta causal directa ($Tratamiento \\rightarrow Mediador \\rightarrow Resultado$). Controlarlo bloquea el efecto que se pretende medir.",
+      "<b>Colisionador (Collider)</b> — variable afectada conjuntamente por dos causas independientes ($A \\rightarrow Colisionador \\leftarrow B$). <b>Controlar por un colisionador induce una correlación falsa entre A y B</b> que antes no existía (Paradoja de Berkson)."
+     ]
+    },
+    {
+     "h": "Métodos cuasi-experimentales cuando no puedes hacer un A/B test"
+    },
+    {
+     "steps": [
+      "<b>Diferencias en Diferencias (DiD)</b>: compara la evolución temporal de un grupo tratado frente a un grupo de control antes y después de una reforma o intervención, asumiendo tendencias paralelas.",
+      "<b>Variables Instrumentales (IV)</b>: utiliza una variable $Z$ que afecta al tratamiento $X$ pero no tiene impacto directo sobre el resultado $Y$ excepto a través de $X$ (ej. asignación de lotería o distancia geográfica).",
+      "<b>Regresión Discontinua (RDD)</b>: aprovecha un corte numérico arbitrario e inflexible (ej. otorgar una beca a quienes obtengan $\\ge 80$ puntos) para comparar a quienes quedaron justo por encima (80.1) y justo por debajo (79.9), quienes son prácticamente idénticos en todo lo demás.",
+      "<b>Propensity Score Matching (PSM)</b>: empareja a cada individuo tratado con un individuo de control que presentaba exactamente la misma probabilidad estimada de recibir el tratamiento."
+     ]
+    },
+    {
+     "key": "Un modelo predictivo optimiza correlaciones observacionales para pronosticar $P(Y|X)$. Para tomar decisiones de inversión o cambios de política comercial necesitas estimar $P(Y|\\text{do}(X))$, lo que requiere modelado causal explícito."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "producción,modelado,sql,evaluación",
+   "title": "MLOps: De cuadernos a sistemas en producción",
+   "subtitle": "Training-serving skew, deriva de datos y concepto, monitoreo de distribuciones y arquitectura de inferencia.",
+   "body": [
+    {
+     "p": "Un cuaderno Jupyter no es un sistema de ingeniería. Entre un modelo que arroja buenas métricas en una computadora personal y un servicio que opera de forma ininterrumpida tomando decisiones corporativas existe una brecha de reproducibilidad, observabilidad y arquitectura de software."
+    },
+    {
+     "h": "Training-Serving Skew: la causa oculta del fracaso"
+    },
+    {
+     "p": "Ocurre cuando la transformación de variables se calcula de una forma durante el entrenamiento histórico y de otra distinta durante la inferencia en tiempo real en producción:"
+    },
+    {
+     "list": [
+      "En el entrenamiento se calculó el promedio histórico de 1 año de ventas; en la API en tiempo real solo se dispone de los últimos 7 días de datos.",
+      "El <code>StandardScaler</code> se reajusta con cada solicitud HTTP entrante en lugar de reutilizar las medias y desviaciones fijas aprendidas en el entrenamiento.",
+      "Discrepancias sutiles en tipos de datos: la base de datos devuelve enteros mientras el servicio web procesa cadenas de texto."
+     ]
+    },
+    {
+     "key": "Solución arquitectónica: <b>un solo artefacto inmutable</b>. Empaqueta el preprocesamiento y el algoritmo en un único objeto <code>Pipeline</code> serializado con joblib u ONNX, o centraliza la definición de transformaciones en un <i>Feature Store</i> compartido."
+    },
+    {
+     "h": "Los tres tipos de degradación (Drift)"
+    },
+    {
+     "list": [
+      "<b>Data Drift (Covariate Shift)</b> — cambia la distribución de las variables de entrada $P(X)$, aunque la relación con la salida se conserve. Ejemplo: ingresa una nueva flota de maquinaria pesada o cambia el perfil demográfico de los usuarios.",
+      "<b>Concept Drift</b> — cambia la relación fundamental entre entradas y salida $P(y|X)$. Lo que antes predecía una compra o una avería ya no lo hace porque cambiaron las condiciones macroeconómicas o el plan de mantenimiento.",
+      "<b>Feedback Loop</b> — el propio modelo altera el entorno que mide. Si un sistema predictivo bloquea transacciones sospechosas, esas transacciones nunca se concretan como fraude confirmado, falseando los datos futuros."
+     ]
+    },
+    {
+     "p": "El Data Drift se monitoriza comparando las distribuciones entrantes contra la línea base de entrenamiento mediante el <b>Population Stability Index (PSI)</b> ($PSI > 0.2$ indica deriva severa) o el test Kolmogorov-Smirnov (KS) para variables continuas."
+    },
+    {
+     "h": "Patrones de Inferencia y Despliegue"
+    },
+    {
+     "code": "INFERENCIA POR LOTES (Batch)           INFERENCIA EN TIEMPO REAL (Online API)\n• Predicciones periódicas (ej. nocturnas) • Respuesta inmediata vía API REST/gRPC\n• Alto rendimiento de procesamiento       • Exige latencias ultrabajas (< 50 ms)\n• Costo operativo contenido               • Requiere alta disponibilidad y caché"
+    },
+    {
+     "steps": [
+      "<b>Despliegue en Sombra (Shadow Deployment)</b>: el nuevo modelo recibe tráfico real en paralelo al modelo productivo actual y genera predicciones en silencio para auditar latencia y estabilidad sin impactar a los usuarios.",
+      "<b>Canary Release</b>: redirige un 5% del tráfico productivo al nuevo modelo; si las métricas técnicas y de negocio se mantienen estables, incrementa gradualmente el flujo hasta el 100%.",
+      "<b>Plan de Reversión (Rollback)</b>: capacidad automatizada de conmutar al modelo anterior verificado en segundos ante cualquier anomalía imprevista."
+     ]
+    },
+    {
+     "h": "Optimización SQL para consultas de datos masivos"
+    },
+    {
+     "code": "EXPLAIN ANALYZE\nSELECT maquina, AVG(horas) AS prom\nFROM registros_sensores\nWHERE fecha >= '2026-01-01'\nGROUP BY maquina;"
+    },
+    {
+     "p": "Si en el plan de ejecución aparece un <i>Seq Scan</i> recorriendo millones de filas con un filtro selectivo, falta un índice sobre <code>fecha</code>. Asegúrate de que el filtro no envuelva la columna indexada en funciones: <code>WHERE fecha &gt;= '2026-01-01'</code> utiliza el índice; <code>WHERE YEAR(fecha) = 2026</code> lo anula por completo."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "interpretabilidad,evaluación,sesgos,aplicación",
+   "title": "Interpretabilidad, calibración y decisiones de negocio",
+   "subtitle": "SHAP y explicaciones locales, calibración de probabilidades, optimización de umbrales por costos y ética de datos.",
+   "body": [
+    {
+     "p": "Un modelo de machine learning no toma decisiones: genera estimaciones probabilísticas. La decisión real requiere interpretar el razonamiento del modelo, calibrar sus probabilidades y alinear los umbrales operativos con la matriz de costos y beneficios del negocio."
+    },
+    {
+     "h": "Interpretabilidad: de la caja negra a la confianza"
+    },
+    {
+     "list": [
+      "<b>Importancia Global de Variables (Permutation Importance)</b> — mide qué columnas contribuyen más al rendimiento promedio en todo el conjunto de datos.",
+      "<b>Explicabilidad Local con SHAP (Shapley Additive Explanations)</b> — basada en la teoría de juegos cooperativos de Lloyd Shapley (Premio Nobel), descompone <b>cada predicción individual</b> asignando a cada variable su contribución matemática exacta (positiva o negativa) respecto al valor base promedio."
+     ]
+    },
+    {
+     "p": "SHAP permite justificar decisiones ante clientes, auditores y directivos con transparencia total: <i>«Se denegó la solicitud de crédito porque la relación deuda/ingreso aportó +0.35 al riesgo predicho y la antigüedad laboral menor a 6 meses sumó +0.20»</i>."
+    },
+    {
+     "h": "El umbral de corte es una decisión financiera"
+    },
+    {
+     "p": "El umbral estándar de $0.5$ solo es óptimo si cometer un Falso Positivo cuesta exactamente lo mismo que un Falso Negativo, situación que prácticamente jamás se cumple en la realidad operativa:"
+    },
+    {
+     "math": "\\text{Costo Total} = (FP \\times \\text{Costo}_{FP}) + (FN \\times \\text{Costo}_{FN})"
+    },
+    {
+     "p": "Ejemplo: si no detectar una avería crítica en un motor (FN) cuesta 10.000 € y enviar a un técnico a una revisión preventiva innecesaria (FP) cuesta 100 €, la penalización por FN es 100 veces superior. El umbral óptimo debe situarse muy por debajo de 0.5 (quizás en 0.12), aceptando múltiples falsas alarmas para garantizar que ninguna falla crítica pase inadvertida."
+    },
+    {
+     "h": "Los cinco pilares de un proyecto de datos exitoso"
+    },
+    {
+     "steps": [
+      "<b>Definir la etiqueta objetivo con precisión quirúrgica</b>: especificar la ventana temporal exacta y qué constituye formalmente un evento positivo.",
+      "<b>Fijar una línea base (Baseline) simple</b>: comparar siempre contra la regla heurística actual del negocio o el promedio simple. Si el modelo complejo no supera con claridad al baseline, no se justifica su costo de mantenimiento.",
+      "<b>Garantizar la fecha de corte</b>: aislar estrictamente los datos disponibles al momento exacto de la toma de decisión para prevenir fugas temporales.",
+      "<b>Alinear la métrica técnica con el P&L del negocio</b>: traducir puntos de AUC o F1 en euros ahorrados, horas de inactividad evitadas o incremento en la retención.",
+      "<b>Diseñar el mecanismo de intervención humana</b>: un modelo predictivo sin un protocolo operativo claro sobre quién actúa ante la alerta y cómo se mide su impacto es esfuerzo desperdiciado."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 9,
+   "tags": "ética,sesgos,producción,gobernanza",
+   "title": "Ética, equidad algorítmica y gobernanza de datos",
+   "subtitle": "Cómo los modelos reproducen discriminación histórica, métricas de equidad matemática y auditoría responsable.",
+   "body": [
+    {
+     "p": "Un modelo no es neutro: es un espejo matemático de los datos con los que fue alimentado. Si la sociedad o los procesos históricos de una organización registraron prácticas discriminatorias o sesgos de captura, el algoritmo los aprenderá, los optimizará y los aplicará a escala masiva con una apariencia engañosa de objetividad técnica."
+    },
+    {
+     "h": "Cómo se infiltran los sesgos en los datos"
+    },
+    {
+     "list": [
+      "<b>Sesgo Histórico</b> — los datos reflejan desigualdades preexistentes en el mundo real (ej. un algoritmo de contratación entrenado con promociones pasadas donde predominaban hombres predecirá que el género masculino tiene mayor idoneidad).",
+      "<b>Sesgo de Representación</b> — ciertos subgrupos poblacionales están escasamente representados en el conjunto de entrenamiento, por lo que el modelo presenta tasas de error sustancialmente mayores al evaluar a dichas minorías.",
+      "<b>Variables proxy encubiertas</b> — eliminar el atributo protegido (como raza, género o religión) no elimina el sesgo si se conservan variables sustitutas fuertemente correlacionadas (como código postal, escuela de procedencia o historial de compras)."
+     ]
+    },
+    {
+     "h": "Métricas matemáticas de Equidad (Fairness)"
+    },
+    {
+     "p": "No existe una única definición matemática de justicia algorítmica, y de hecho varias de ellas son mutuamente incompatibles:"
+    },
+    {
+     "list": [
+      "<b>Paridad Demográfica (Demographic Parity)</b> — la tasa de predicción positiva debe ser idéntica para todos los grupos protegidos: $P(\\hat{Y}=1 | A=0) = P(\\hat{Y}=1 | A=1)$.",
+      "<b>Igualdad de Oportunidades (Equal Opportunity)</b> — la tasa de verdaderos positivos (Recall) debe ser igual entre grupos: $P(\\hat{Y}=1 | Y=1, A=0) = P(\\hat{Y}=1 | Y=1, A=1)$.",
+      "<b>Paridad Predictiva (Predictive Parity)</b> — la precisión (VPP) debe ser equivalente entre grupos protegidos: $P(Y=1 | \\hat{Y}=1, A=0) = P(Y=1 | \\hat{Y}=1, A=1)$."
+     ]
+    },
+    {
+     "h": "Tácticas de mitigación de sesgos"
+    },
+    {
+     "steps": [
+      "<b>Pre-procesamiento</b>: balancear y reponderar muestras (reweighing) o transformar el espacio de variables para eliminar la correlación entre las características y el atributo sensible.",
+      "<b>In-procesamiento</b>: incorporar restricciones de equidad directamente en la función de pérdida del optimizador durante el entrenamiento.",
+      "<b>Post-procesamiento</b>: ajustar umbrales de decisión específicos por subgrupo para igualar tasas de falsos positivos o falsos negativos."
+     ]
+    },
+    {
+     "h": "Documentación y Fichas de Modelo (Model Cards)"
+    },
+    {
+     "p": "Todo modelo destinado a producción en áreas sensibles (finanzas, salud, recursos humanos, justicia) debe contar con una ficha técnica que documente:"
+    },
+    {
+     "list": [
+      "Uso previsto y limitaciones explícitas de aplicación fuera de dominio.",
+      "Composición, procedencia y fechas de recolección de los datos de entrenamiento.",
+      "Desglose de métricas de rendimiento por subgrupos demográficos.",
+      "Evaluación de impacto ético y protocolos de intervención humana ante reclamaciones de usuarios."
+     ]
+    },
+    {
+     "key": "La responsabilidad legal y ética de una decisión automatizada jamás recae sobre el algoritmo: recae siempre sobre el equipo y la organización que diseñaron, desplegaron y supervisaron el sistema."
+    }
+   ]
+  }
  ]
 }
-]}

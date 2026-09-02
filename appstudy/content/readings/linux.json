@@ -1,245 +1,1035 @@
 {
-"deck": "linux",
-"chapters": [
-{
- "level": 1, "minutes": 9, "tags": "básico,shell",
- "title": "La terminal, sin misterio",
- "subtitle": "Qué es realmente el shell, cómo moverte y por qué todo en Linux es un archivo.",
- "body": [
-  {"p": "Cuando abres una terminal no estás abriendo «Linux»: estás abriendo un programa llamado <b>shell</b> (bash o zsh) cuyo único trabajo es leer una línea de texto, interpretarla y ejecutar el programa que le pediste. Nada más. Esa simplicidad es la razón de que la terminal siga siendo la herramienta más poderosa del sistema treinta años después."},
-  {"p": "Un comando tiene siempre la misma forma: <b>programa · opciones · argumentos</b>."},
-  {"code": "ls    -la    /var/log\n│      │       └── argumento: sobre qué actúa\n│      └────────── opciones: cómo actúa\n└───────────────── programa: qué se ejecuta"},
-  {"p": "Las opciones cortas van con un guion y se pueden juntar (<code>-la</code> es lo mismo que <code>-l -a</code>). Las largas van con dos guiones y son más legibles: <code>--all</code>, <code>--human-readable</code>. En un script, prefiere siempre las largas: dentro de seis meses las vas a entender."},
-
-  {"h": "Todo cuelga de una sola raíz"},
-  {"p": "Windows tiene C:, D:, E:. Linux tiene <b>una sola raíz</b>, <code>/</code>, y todo lo demás cuelga de ahí, incluidos los discos externos y las memorias USB, que se «montan» dentro de una carpeta."},
-  {"list": [
-    "<code>/home/tu-usuario</code> — tus archivos. Se abrevia <code>~</code>",
-    "<code>/etc</code> — configuración del sistema, en texto plano",
-    "<code>/var</code> — datos que cambian: logs, bases de datos, colas",
-    "<code>/usr/bin</code> — los programas instalados",
-    "<code>/tmp</code> — temporal, se borra al reiniciar",
-    "<code>/mnt</code> y <code>/media</code> — discos y memorias montados"
-  ]},
-  {"key": "«Todo es un archivo». Un documento es un archivo, pero también lo son tu teclado, tu disco y un proceso en ejecución. Por eso las mismas herramientas de texto sirven para todo el sistema: es el concepto que explica el diseño entero de Unix."},
-
-  {"h": "Moverse: las cuatro órdenes que usarás siempre"},
-  {"steps": [
-    "<code>pwd</code> — «¿dónde estoy?». Te dice la ruta actual completa.",
-    "<code>ls -la</code> — «¿qué hay aquí?». Con <b>-l</b> ves permisos, dueño, tamaño y fecha; con <b>-a</b> ves también los archivos ocultos, los que empiezan con punto.",
-    "<code>cd carpeta</code> — entrar. <code>cd ..</code> sube un nivel, <code>cd</code> solo te lleva a tu home y <code>cd -</code> te devuelve al directorio anterior.",
-    "<code>tree -L 2</code> — ver la estructura en forma de árbol, dos niveles de profundidad."
-  ]},
-  {"p": "Una <b>ruta absoluta</b> empieza en <code>/</code> y significa lo mismo desde cualquier lugar: <code>/home/luis/informe.txt</code>. Una <b>ruta relativa</b> parte de donde estás parado: <code>informe.txt</code>, <code>../fotos/</code>. En scripts usa siempre absolutas; en la terminal, relativas, que se escriben más rápido."},
-
-  {"h": "Crear, copiar, mover y borrar"},
-  {"code": "mkdir proyecto          # crear carpeta\nmkdir -p a/b/c          # crear toda la ruta de una vez\ntouch notas.txt         # crear archivo vacío\ncp origen destino       # copiar (-r para carpetas)\nmv origen destino       # mover... y también RENOMBRAR\nrm archivo              # borrar (-r para carpetas)"},
-  {"p": "Fíjate en <code>mv</code>: mover y renombrar son la misma operación, porque el nombre de un archivo no es más que una entrada dentro de una carpeta. <code>mv viejo.txt nuevo.txt</code> lo renombra; <code>mv viejo.txt /otra/carpeta/</code> lo mueve."},
-  {"warn": "En Linux <b>no hay papelera</b> en la terminal. <code>rm</code> borra de verdad y de inmediato. Antes de escribir <code>rm -rf</code> lee la ruta dos veces, sobre todo si empieza con <code>/</code>. Si quieres red de seguridad, usa <code>rm -i</code>, que pregunta por cada archivo."},
-
-  {"h": "Ver el contenido sin abrir un editor"},
-  {"list": [
-    "<code>cat archivo</code> — lo escupe todo de golpe. Bien para archivos cortos.",
-    "<code>less archivo</code> — paginado: <b>flechas</b> para moverte, <b>/texto</b> para buscar, <b>q</b> para salir.",
-    "<code>head -20</code> / <code>tail -20</code> — las primeras o últimas 20 líneas.",
-    "<code>tail -f archivo.log</code> — se queda mirando el archivo y muestra lo nuevo en vivo. Es lo que usarás para ver un log mientras pasa algo."
-  ]},
-
-  {"h": "Los comodines"},
-  {"p": "El shell expande ciertos símbolos <b>antes</b> de ejecutar el comando. Cuando escribes <code>ls *.log</code>, el programa <code>ls</code> nunca ve el asterisco: recibe ya la lista de archivos."},
-  {"list": [
-    "<code>*</code> — cualquier cantidad de caracteres: <code>*.jpg</code>",
-    "<code>?</code> — exactamente un carácter: <code>foto?.jpg</code>",
-    "<code>[0-9]</code> — un carácter dentro de un rango: <code>informe[0-9].pdf</code>",
-    "<code>{a,b}</code> — alternativas: <code>cp notas.{txt,bak}</code>"
-  ]},
-  {"note": "Antes de un borrado masivo, cambia <code>rm</code> por <code>ls</code> y ejecuta el mismo patrón. Si la lista que aparece es exactamente lo que querías borrar, recién ahí cambias el comando. Este hábito evita el 90% de los desastres."},
-
-  {"h": "Tres teclas que valen por un curso"},
-  {"list": [
-    "<b>Tab</b> — autocompleta rutas y comandos. Pulsada dos veces, muestra las opciones posibles. Además de rapidez, te protege de errores de tipeo en rutas.",
-    "<b>Ctrl+R</b> — busca hacia atrás en tu historial: escribes un pedazo del comando y aparece. Sigue pulsando para ver coincidencias anteriores.",
-    "<b>Ctrl+C</b> — cancela el comando que está corriendo. Y <b>Ctrl+L</b> limpia la pantalla."
-  ]},
-
-  {"h": "Cuando no sabes qué hace algo"},
-  {"code": "comando --help      # resumen rápido de opciones\nman comando         # manual completo (q para salir)\ntype comando        # ¿es un programa, un alias o una función?\nwhich comando       # ¿dónde está el ejecutable?"},
-  {"p": "El manual (<code>man</code>) parece árido, pero tiene siempre la misma estructura: NAME, SYNOPSIS, DESCRIPTION, OPTIONS, EXAMPLES. Muchas veces basta con saltar al final: <code>man tar</code> y buscar los ejemplos con <b>/EXAMPLES</b>."},
-  {"key": "No memorices comandos: memoriza <b>dónde se buscan</b>. Un buen usuario de Linux no es el que se sabe todas las opciones de <code>find</code>, es el que sabe llegar a ellas en veinte segundos."}
- ]
-},
-{
- "level": 2, "minutes": 11, "tags": "shell,texto,procesos",
- "title": "Tuberías: la idea que hace poderosa a la terminal",
- "subtitle": "Programas pequeños que se conectan entre sí, redirección y el arte de construir una línea que responde una pregunta.",
- "body": [
-  {"p": "La filosofía de Unix cabe en una frase: <b>haz un programa que haga una sola cosa y la haga bien, y que su salida pueda ser la entrada de otro</b>. No hay un comando gigante que haga todo; hay decenas de comandos diminutos que se encadenan. Aprender a encadenarlos es el salto real de principiante a intermedio."},
-
-  {"h": "Los tres canales"},
-  {"p": "Todo programa tiene tres canales abiertos, identificados por un número:"},
-  {"list": [
-    "<b>0 — entrada estándar (stdin)</b>: por donde recibe datos, normalmente tu teclado.",
-    "<b>1 — salida estándar (stdout)</b>: por donde escribe el resultado, normalmente la pantalla.",
-    "<b>2 — error estándar (stderr)</b>: por donde escribe los errores, también a la pantalla, pero por un canal aparte."
-  ]},
-  {"p": "Que los errores viajen por un canal distinto es deliberado: te permite guardar el resultado limpio en un archivo mientras sigues viendo los errores en pantalla."},
-
-  {"h": "Redirección: cambiar el destino"},
-  {"code": "comando > salida.txt      # escribe (SOBRESCRIBE el archivo)\ncomando >> salida.txt     # añade al final\ncomando 2> errores.txt    # solo los errores\ncomando > todo.txt 2>&1   # salida y errores al mismo archivo\ncomando < entrada.txt     # lee del archivo en vez del teclado\ncomando 2>/dev/null       # descarta los errores"},
-  {"p": "La expresión <code>2>&1</code> se lee «manda el canal 2 al mismo sitio al que va el canal 1». El orden importa: <code>> f 2>&1</code> funciona, pero <code>2>&1 > f</code> no hace lo que esperas, porque cuando se copia el destino del canal 1 este todavía apuntaba a la pantalla."},
-  {"note": "<code>/dev/null</code> es un archivo especial que descarta todo lo que recibe. Se le llama «el agujero negro» del sistema. Úsalo cuando un comando produce ruido que no te interesa."},
-
-  {"h": "La tubería"},
-  {"p": "El carácter <code>|</code> conecta la salida de un programa con la entrada del siguiente, sin pasar por el disco. Esa es la pieza clave. Mira cómo se construye una respuesta paso a paso:"},
-  {"code": "cat acceso.log                      # 1. todo el archivo\ncat acceso.log | awk '{print $1}'   # 2. solo la primera columna (la IP)\n... | sort                          # 3. ordenadas, para agrupar iguales\n... | uniq -c                       # 4. cuenta repeticiones\n... | sort -rn                      # 5. de mayor a menor\n... | head                          # 6. las 10 primeras"},
-  {"p": "El resultado responde una pregunta concreta —«¿qué direcciones visitaron más el servidor?»— y no hizo falta ningún programa especializado: seis herramientas genéricas, encadenadas. Esta es la técnica que vas a repetir para logs, CSV, listados de archivos y cualquier texto."},
-  {"key": "Construye las tuberías <b>de a un tramo</b>, mirando la salida en cada paso. Escribir la línea completa de una vez y depurarla después es mucho más lento."},
-
-  {"h": "Las herramientas del kit"},
-  {"list": [
-    "<code>grep patrón</code> — filtra las líneas que coinciden. <b>-i</b> ignora mayúsculas, <b>-v</b> invierte (las que NO coinciden), <b>-r</b> busca recursivamente en carpetas, <b>-n</b> muestra el número de línea.",
-    "<code>awk '{print $2}'</code> — extrae columnas separadas por espacios. Con <code>-F','</code> cambias el separador para un CSV.",
-    "<code>cut -d':' -f1</code> — corta columnas por un delimitador fijo. Más simple que awk cuando basta.",
-    "<code>sort</code> — ordena. <b>-n</b> numérico, <b>-r</b> inverso, <b>-u</b> quita duplicados, <b>-h</b> entiende 1K/2M/3G.",
-    "<code>uniq -c</code> — cuenta repeticiones consecutivas; por eso casi siempre va después de <code>sort</code>.",
-    "<code>wc -l</code> — cuenta líneas. Perfecto como último eslabón: «¿cuántos?».",
-    "<code>tr</code>, <code>sed</code> — sustituyen caracteres o texto al vuelo."
-  ]},
-
-  {"h": "sed: reemplazar sin abrir el archivo"},
-  {"code": "sed 's/viejo/nuevo/g' archivo        # muestra el resultado\nsed -i 's/viejo/nuevo/g' archivo     # MODIFICA el archivo\nsed -i.bak 's/viejo/nuevo/g' archivo # modifica y deja copia .bak\nsed -n '10,20p' archivo              # imprime solo las líneas 10 a 20"},
-  {"warn": "<code>sed -i</code> reescribe el archivo en el sitio. Ejecuta siempre primero <b>sin</b> <code>-i</code> para ver qué va a cambiar, o usa <code>-i.bak</code> para conservar el original."},
-
-  {"h": "xargs: convertir una lista en argumentos"},
-  {"p": "Algunos programas no leen de la entrada estándar; esperan sus argumentos en la línea de comandos. <code>xargs</code> hace de puente."},
-  {"code": "find . -name '*.log' | xargs rm                 # frágil con espacios\nfind . -name '*.log' -print0 | xargs -0 rm      # correcto\nls *.jpg | xargs -I{} cp {} /respaldo/{}        # {} es cada elemento"},
-  {"p": "La versión con <code>-print0</code> y <code>-0</code> separa los nombres con un carácter nulo en vez de un espacio, de modo que un archivo llamado «mi foto.jpg» no se parta en dos. Acostúmbrate a esa forma."},
-
-  {"h": "Encadenar comandos con lógica"},
-  {"list": [
-    "<code>a ; b</code> — ejecuta b <b>siempre</b>, haya fallado a o no.",
-    "<code>a && b</code> — ejecuta b <b>solo si a tuvo éxito</b>.",
-    "<code>a || b</code> — ejecuta b <b>solo si a falló</b>."
-  ]},
-  {"p": "La diferencia no es cosmética. <code>cd /respaldo && rm *</code> es seguro: si la carpeta no existe, el <code>cd</code> falla y el borrado no ocurre. Con punto y coma, ese mismo error te borra los archivos del directorio donde estabas parado."},
-  {"key": "Cada programa devuelve un <b>código de salida</b>: 0 significa éxito y cualquier otro número, error. Puedes verlo con <code>echo $?</code> justo después de ejecutar algo. Sobre esa convención se apoyan <code>&&</code>, <code>||</code> y todos los scripts."}
- ]
-},
-{
- "level": 2, "minutes": 10, "tags": "permisos,procesos,servicios,usuarios",
- "title": "Permisos, procesos y servicios",
- "subtitle": "Quién puede hacer qué, qué está corriendo ahora mismo y cómo se administra lo que arranca solo.",
- "body": [
-  {"p": "Un sistema multiusuario necesita responder tres preguntas todo el tiempo: quién eres, qué puedes tocar y qué está ejecutándose. Este capítulo cubre las tres."},
-
-  {"h": "Leer una línea de permisos"},
-  {"code": "-rwxr-xr--  1  luis  mecanica  4096  Ago 29 10:15  script.sh\n│└┬┘└┬┘└┬┘     │     │\n│ │  │  │      │     └── grupo dueño\n│ │  │  │      └──────── usuario dueño\n│ │  │  └─────────────── otros:   r--  (solo leer)\n│ │  └────────────────── grupo:   r-x  (leer y ejecutar)\n│ └───────────────────── dueño:   rwx  (leer, escribir, ejecutar)\n└─────────────────────── tipo: - archivo, d carpeta, l enlace"},
-  {"p": "Los permisos se agrupan de tres en tres: <b>dueño</b>, <b>grupo</b> y <b>otros</b>. Cada bloque puede tener lectura (r=4), escritura (w=2) y ejecución (x=1). Sumando cada bloque sale la notación octal: <code>rwxr-xr--</code> es <b>754</b>."},
-  {"note": "En una <b>carpeta</b> los permisos significan otra cosa: <b>r</b> permite listar su contenido, <b>w</b> permite crear y borrar archivos dentro, y <b>x</b> permite <i>entrar</i> en ella. Una carpeta sin <b>x</b> es inaccesible aunque tenga <b>r</b>."},
-  {"code": "chmod +x script.sh          # dar permiso de ejecución\nchmod 640 secreto.txt       # dueño rw, grupo r, otros nada\nchmod -R 755 sitio/         # recursivo\nchown luis:mecanica archivo # cambiar dueño y grupo"},
-  {"p": "Si tras copiar archivos con <code>sudo</code> te aparece «Permission denied» al usarlos, la causa casi siempre es que quedaron a nombre de <b>root</b>. Se arregla con <code>sudo chown -R tu-usuario:tu-usuario carpeta/</code>."},
-
-  {"h": "sudo y el usuario root"},
-  {"p": "<b>root</b> es el administrador: no tiene restricciones. Por eso nadie trabaja como root. En su lugar, <code>sudo</code> te presta ese poder para un solo comando y deja registro en el log del sistema."},
-  {"code": "sudo comando                    # ejecutar como root\nsudo !!                         # repetir el último comando con sudo\nsudo usermod -aG sudo usuario   # dar permisos de administrador\ngroups                          # ver a qué grupos perteneces"},
-  {"warn": "La bandera <b>-a</b> en <code>usermod -aG</code> significa «añadir». Sin ella, <code>-G</code> <b>reemplaza</b> todos los grupos del usuario y puedes dejarlo sin acceso a impresoras, audio o docker de un solo golpe."},
-
-  {"h": "Procesos: qué está corriendo"},
-  {"p": "Cada programa en ejecución es un <b>proceso</b> con un número identificador, el PID. Los procesos forman un árbol: cada uno fue lanzado por otro, y todos descienden de systemd (PID 1)."},
-  {"code": "ps aux                       # todos los procesos\nps aux --sort=-%mem | head   # los que más memoria usan\nhtop                         # vista interactiva (F6 ordena, F9 mata)\npgrep -af nginx              # buscar por nombre\nkill PID                     # pedir que termine (SIGTERM)\nkill -9 PID                  # forzar (SIGKILL) — último recurso"},
-  {"p": "La diferencia entre <code>kill</code> y <code>kill -9</code> importa. <b>SIGTERM</b> es un aviso: el programa puede guardar su trabajo, cerrar archivos y salir ordenado. <b>SIGKILL</b> lo fulmina sin darle oportunidad, y puede dejar archivos a medio escribir o bases de datos corruptas."},
-  {"key": "Prueba siempre <code>kill</code> primero y da unos segundos. Solo si el proceso no responde, escala a <code>kill -9</code>."},
-  {"p": "En <code>htop</code>, la columna <b>estado</b> merece atención: <b>R</b> corriendo, <b>S</b> durmiendo (lo normal), <b>Z</b> zombi (terminó pero su padre no lo recogió) y <b>D</b> bloqueado esperando disco. Muchos procesos en <b>D</b> significan que el cuello de botella es el almacenamiento, no la CPU."},
-
-  {"h": "Trabajos de tu terminal"},
-  {"code": "comando &        # lanzar en segundo plano\nCtrl+Z           # pausar el comando actual\nbg               # continuarlo en segundo plano\nfg               # traerlo al frente\njobs             # listar los trabajos de esta terminal\nnohup comando &  # sigue vivo aunque cierres la sesión"},
-  {"p": "Para procesos largos en un servidor remoto, <code>nohup</code> se queda corto. Usa <b>tmux</b>: <code>tmux new -s trabajo</code> crea una sesión, <b>Ctrl+B</b> y luego <b>D</b> te desconecta dejándola viva, y <code>tmux attach -t trabajo</code> te devuelve exactamente donde estabas, incluso desde otra computadora."},
-
-  {"h": "Servicios: lo que arranca solo"},
-  {"p": "Un servicio es un programa que gestiona <b>systemd</b>: lo arranca al iniciar el sistema, lo reinicia si se cae y centraliza sus logs."},
-  {"code": "systemctl status nginx       # ¿está corriendo? últimas líneas de log\nsystemctl start|stop|restart nginx\nsystemctl enable nginx       # que arranque al encender el equipo\nsystemctl disable nginx\nsystemctl list-units --failed  # qué falló en este arranque\njournalctl -u nginx -f       # ver sus logs en vivo"},
-  {"p": "Nota la diferencia entre <b>start</b> y <b>enable</b>: <code>start</code> lo enciende ahora, <code>enable</code> lo deja programado para los próximos arranques. Un servicio puede estar corriendo y no estar habilitado, y viceversa. Cuando algo «funciona hasta que reinicio», casi siempre falta el <code>enable</code>."},
-
-  {"h": "Los logs"},
-  {"code": "journalctl -f                # todo el sistema, en vivo\njournalctl -u servicio -f    # un servicio concreto\njournalctl -p err -b         # solo errores del arranque actual\njournalctl --since '1 hour ago'\njournalctl --vacuum-time=7d  # recortar a los últimos 7 días"},
-  {"key": "Cuando algo falla, el orden es siempre el mismo: <b>estado</b> del servicio, <b>logs</b> del servicio, y solo entonces hipótesis. Casi todos los errores están escritos con letras claras en el log; el problema es que nadie lo lee antes de empezar a cambiar cosas."}
- ]
-},
-{
- "level": 3, "minutes": 10, "tags": "scripting,seguridad,diagnóstico,red",
- "title": "Scripts que no te traicionan",
- "subtitle": "Automatizar con seguridad, depurar cuando falla y diagnosticar lo que no se ve.",
- "body": [
-  {"p": "Un script es la forma de convertir algo que hiciste bien una vez en algo que se hace bien siempre. Pero un script mal escrito hace el daño más rápido que tú a mano, así que el orden importa: primero las defensas, después la funcionalidad."},
-
-  {"h": "El encabezado obligatorio"},
-  {"code": "#!/usr/bin/env bash\nset -euo pipefail"},
-  {"list": [
-    "<code>#!/usr/bin/env bash</code> — el <i>shebang</i>: dice con qué intérprete ejecutarlo. Usar <code>env</code> lo hace portable entre sistemas.",
-    "<code>-e</code> — aborta en cuanto un comando falla, en vez de seguir con datos incompletos.",
-    "<code>-u</code> — falla si usas una variable que no existe. Atrapa el clásico error de tipeo en el nombre de una variable.",
-    "<code>-o pipefail</code> — hace que una tubería falle si falla cualquier tramo, no solo el último."
-  ]},
-  {"p": "Sin <code>-e</code>, un script que no pudo hacer <code>cd</code> a la carpeta correcta sigue ejecutando las líneas siguientes en el directorio equivocado. Estas dos líneas son la diferencia entre un error controlado y un desastre silencioso."},
-
-  {"h": "Variables y comillas"},
-  {"code": "nombre=\"informe final\"\nruta=\"/home/luis\"\nhoy=$(date +%F)              # sustitución: guarda la salida del comando\n\nrm \"$ruta/$nombre.txt\"       # correcto\nrm $ruta/$nombre.txt         # ERROR: lo parte en dos argumentos"},
-  {"warn": "Pon <b>siempre</b> las variables entre comillas dobles. Sin ellas, un nombre con espacios se convierte en varios argumentos y un comando de borrado puede afectar a algo que no querías. Es la causa número uno de scripts que funcionan en pruebas y destrozan en producción."},
-
-  {"h": "Condicionales y bucles"},
-  {"code": "if [[ -f \"$archivo\" ]]; then\n    echo \"existe\"\nelif [[ -d \"$archivo\" ]]; then\n    echo \"es una carpeta\"\nelse\n    echo \"no existe\" >&2      # los errores van a stderr\n    exit 1\nfi\n\nfor f in *.log; do\n    gzip \"$f\"\ndone\n\nwhile read -r linea; do\n    echo \"→ $linea\"\ndone < entrada.txt"},
-  {"p": "Las pruebas más usadas: <code>-f</code> es un archivo, <code>-d</code> es una carpeta, <code>-z</code> la cadena está vacía, <code>-n</code> no está vacía, <code>-eq -lt -gt</code> comparaciones numéricas. Usa siempre los corchetes dobles <code>[[ ]]</code> en bash: manejan mejor las variables vacías y los espacios."},
-
-  {"h": "Depurar cuando algo falla"},
-  {"code": "bash -x script.sh          # traza todo lo que ejecuta\nset -x                     # activar la traza a mitad del script\nset +x                     # desactivarla\n\ntrap 'echo \"Error en la línea $LINENO\" >&2' ERR"},
-  {"p": "<code>set -x</code> imprime cada línea con las variables <b>ya sustituidas</b>, que es justo lo que necesitas ver: no lo que escribiste, sino lo que realmente se ejecutó. Combinado con <code>trap ... ERR</code>, sabes en segundos qué línea reventó y con qué valores."},
-  {"key": "Antes de que un script haga algo destructivo, dale un <b>modo simulación</b>: una variable <code>DRY_RUN</code> que, si está activa, imprima el comando en vez de ejecutarlo. Te va a salvar más de una vez."},
-
-  {"h": "Automatizar en el tiempo"},
-  {"code": "crontab -e\n\n# minuto hora día-mes mes día-semana  comando\n  0     3    *       *    1         /home/luis/respaldo.sh\n#       └── todos los lunes a las 3:00 AM"},
-  {"warn": "cron ejecuta con un entorno <b>mínimo</b>: no tiene tu PATH ni tus variables. Usa <b>rutas absolutas</b> para todo y redirige la salida a un log (<code>>> /var/log/mi-script.log 2>&1</code>). El error clásico es «funciona cuando lo ejecuto yo, pero no en cron»."},
-  {"p": "Para tareas críticas, un <b>temporizador de systemd</b> es mejor: admite <code>Persistent=true</code> (recupera ejecuciones perdidas si el equipo estaba apagado), integra sus logs en journalctl y permite declarar dependencias con otros servicios."},
-
-  {"h": "Diagnóstico: ver lo invisible"},
-  {"code": "ss -tulpn                    # qué procesos escuchan en qué puertos\nlsof -p PID                  # archivos y sockets abiertos por un proceso\nlsof +D /carpeta             # quién impide desmontar esa carpeta\nstrace -p PID                # llamadas al sistema: dónde se cuelga\ndf -h  /  df -i              # espacio y también INODOS libres"},
-  {"p": "Un caso que confunde a todo el mundo: <code>df</code> dice que el disco está lleno pero <code>du</code> no encuentra los archivos. Casi siempre es un <b>archivo borrado que un proceso sigue teniendo abierto</b> —el espacio no se libera hasta que ese proceso termina— o los <b>inodos agotados</b> por millones de archivos diminutos. Se comprueba con <code>lsof | grep deleted</code> y <code>df -i</code>."},
-
-  {"h": "Endurecer lo básico"},
-  {"code": "sudo ufw default deny incoming\nsudo ufw allow 22/tcp        # ¡ANTES de activar el firewall!\nsudo ufw enable\nsudo ufw status verbose\n\nfind / -perm -4000 -type f 2>/dev/null   # auditar binarios SUID"},
-  {"p": "Un binario <b>SUID</b> se ejecuta con los permisos de su dueño, no de quien lo lanza. Es lo que permite que <code>passwd</code> modifique <code>/etc/shadow</code> siendo tú un usuario normal. También es el vector clásico de escalada de privilegios, y por eso la lista de binarios SUID es lo primero que se audita en una revisión de seguridad."},
-  {"key": "El orden en un servidor remoto es sagrado: <b>abre SSH antes de activar el firewall</b>. La cantidad de administradores que se han dejado fuera de su propio servidor por invertir esos dos pasos es enorme."}
- ]
-},
-{
- "level": 3, "minutes": 9, "tags": "red,ssh,servicios,almacenamiento,diagnóstico",
- "title": "El servidor por dentro: red, servicios y recursos",
- "subtitle": "Túneles SSH, journalctl, límites de systemd, LVM y las herramientas para saber qué está pasando ahora mismo.",
- "body": [
-  {"p": "Administrar una máquina remota es, casi siempre, responder tres preguntas: qué está escuchando, qué se está comiendo los recursos y qué dijo el sistema cuando aquello falló. Hay una herramienta buena para cada una."},
-  {"h": "Qué está escuchando"},
-  {"code": "ss -tulpn                    # todo lo que escucha, con su proceso\nss -tnp state established    # conexiones vivas hacia fuera\nss -s                        # resumen por protocolo"},
-  {"p": "<code>ss</code> sustituyó a <code>netstat</code>: lee del kernel por netlink en vez de recorrer <code>/proc</code>, y por eso es instantáneo incluso con miles de conexiones. Las banderas se leen solas: <b>t</b>cp, <b>u</b>dp, <b>l</b>istening, <b>p</b>rocess, <b>n</b>umeric."},
-  {"p": "Y cuando el puerto que necesitas solo es visible desde el servidor, no hace falta abrirlo al mundo: se trae por el túnel de SSH."},
-  {"code": "ssh -N -L 8080:localhost:80 servidor    # su puerto 80, en tu localhost:8080\nssh -N -R 9000:localhost:3000 servidor  # tu 3000, publicado en el servidor\nssh -N -D 1080 servidor                 # proxy SOCKS para el navegador"},
-  {"key": "El <b>-L</b> es la herramienta más infravalorada de la administración remota: te deja abrir el panel de una base de datos o de un servicio interno en tu navegador sin exponer nada en internet."},
-  {"h": "Qué dijo el sistema"},
-  {"code": "journalctl -u nginx -f              # en vivo, solo ese servicio\njournalctl -b -p err               # errores del arranque actual\njournalctl -b -1                   # el arranque ANTERIOR (tras un cuelgue)\njournalctl --since '1 hour ago' -o cat\njournalctl --disk-usage && journalctl --vacuum-time=7d"},
-  {"p": "El truco que más veces salva es <code>-b -1</code>: cuando una máquina se cuelga y reinicia, lo que quieres leer es lo que pasó <b>antes</b> del reinicio, y ahí está guardado."},
-  {"h": "Quién se come los recursos"},
-  {"p": "Si un servicio se descontrola, no hace falta parchear su código: systemd puede encerrarlo. Por debajo son cgroups v2, y funciona con cualquier programa."},
-  {"code": "[Service]\nMemoryMax=512M\nCPUQuota=50%\nTasksMax=100"},
-  {"p": "Tras <code>systemctl daemon-reload &amp;&amp; systemctl restart app</code>, mira el reparto con <code>systemd-cgtop</code>. Si el servicio pasa de <b>MemoryMax</b>, el kernel lo mata a él y el resto del sistema sigue en pie — que es justo la diferencia entre un servicio caído y un servidor caído."},
-  {"p": "Para el arranque lento hay dos comandos, y solo uno sirve:"},
-  {"code": "systemd-analyze                 # firmware / kernel / userspace\nsystemd-analyze blame           # ranking por tiempo\nsystemd-analyze critical-chain  # lo que DE VERDAD retrasa el arranque"},
-  {"note": "En <i>blame</i> sale muy arriba lo que tarda aunque nadie lo esté esperando. Solo la <b>cadena crítica</b> dice qué merece la pena arreglar."},
-  {"h": "El disco: LVM y el espacio que no aparece"},
-  {"p": "LVM son tres capas: el disco físico (<b>PV</b>) entra en una bolsa de espacio (<b>VG</b>), y de ahí se cortan los volúmenes que montas (<b>LV</b>). Ampliar es una línea, y en caliente:"},
-  {"code": "lvextend -L +20G -r /dev/vg0/datos"},
-  {"p": "El <b>-r</b> redimensiona también el sistema de archivos; sin él, el volumen crece y el sistema sigue viendo el tamaño viejo — el error clásico de la primera vez. Y antes de una actualización arriesgada, un <b>snapshot</b> cuesta un segundo."},
-  {"warn": "Si <code>df</code> dice que el disco está lleno pero <code>du</code> no encuentra los archivos, casi siempre hay un proceso con un fichero borrado pero aún abierto. <code>lsof +L1</code> lo señala; reiniciar ese servicio libera el espacio de golpe."},
-  {"h": "Y no perder el trabajo por una desconexión"},
-  {"code": "tmux new -s obra     # crear con nombre\n# Ctrl+b d            soltar (sigue viva en el servidor)\ntmux ls              # ver qué hay abierto\ntmux a -t obra       # volver a entrar"},
-  {"p": "Un proceso largo dentro de tmux sobrevive a que se caiga tu conexión, a que cierres el portátil y a que te vayas a comer. Es la diferencia entre retomar una migración donde estaba y empezarla de cero."}
+ "deck": "linux",
+ "chapters": [
+  {
+   "level": 1,
+   "minutes": 10,
+   "tags": "básico,shell,navegación",
+   "title": "La terminal, sin misterio",
+   "subtitle": "Qué es realmente el shell, cómo moverte y por qué todo en Linux es un archivo.",
+   "body": [
+    {
+     "p": "Cuando abres una terminal no estás abriendo «Linux»: estás abriendo un programa llamado <b>shell</b> (bash o zsh) cuyo único trabajo es leer una línea de texto, interpretarla y ejecutar el programa que le pediste. Nada más. Esa simplicidad es la razón de que la terminal siga siendo la herramienta más poderosa del sistema treinta años después."
+    },
+    {
+     "p": "Un comando tiene siempre la misma estructura básica: <b>programa · opciones · argumentos</b>."
+    },
+    {
+     "code": "ls    -la    /var/log\n│      │       └── argumento: sobre qué actúa\n│      └────────── opciones: cómo actúa\n└───────────────── programa: qué se ejecuta"
+    },
+    {
+     "p": "Las opciones cortas van con un guion y se pueden agrupar (<code>-la</code> es lo mismo que <code>-l -a</code>). Las largas van con dos guiones y son más legibles: <code>--all</code>, <code>--human-readable</code>. En un script, prefiere siempre las opciones largas: dentro de seis meses las vas a entender sin consultar el manual."
+    },
+    {
+     "h": "Todo cuelga de una sola raíz"
+    },
+    {
+     "p": "Windows tiene unidades separadas (C:, D:, E:). Linux tiene <b>una sola raíz</b>, <code>/</code>, y todo lo demás cuelga de ahí en un único árbol jerárquico, incluidos los discos externos y memorias USB, que se «montan» dentro de una carpeta."
+    },
+    {
+     "list": [
+      "<code>/home/tu-usuario</code> — tus documentos y archivos personales. Se abrevia <code>~</code>",
+      "<code>/etc</code> — configuración de todo el sistema, en texto plano",
+      "<code>/var</code> — datos que cambian constantemente: logs, colas de impresión, bases de datos",
+      "<code>/usr/bin</code> — los programas y ejecutables instalados",
+      "<code>/tmp</code> — archivos temporales (se borra automáticamente al reiniciar)",
+      "<code>/mnt</code> y <code>/media</code> — discos secundarios, particiones y memorias USB montadas",
+      "<code>/opt</code> — software de terceros empaquetado en suites completas",
+      "<code>/dev</code> — los dispositivos de hardware representados como archivos especiales"
+     ]
+    },
+    {
+     "key": "«Todo es un archivo». Un documento de texto es un archivo, pero también lo son tu teclado, tu disco duro y un proceso en ejecución. Por eso las mismas herramientas de texto sirven para inspeccionar y controlar todo el sistema: es el concepto central que explica el diseño entero de Unix."
+    },
+    {
+     "h": "Moverse: las cuatro órdenes que usarás siempre"
+    },
+    {
+     "steps": [
+      "<code>pwd</code> — «¿dónde estoy?». Imprime la ruta actual completa (<i>print working directory</i>).",
+      "<code>ls -la</code> — «¿qué hay aquí?». Con <b>-l</b> ves permisos, dueño, tamaño y fecha; con <b>-a</b> ves también los archivos ocultos (los que empiezan con punto, como <code>.bashrc</code>).",
+      "<code>cd carpeta</code> — entrar. <code>cd ..</code> sube un nivel, <code>cd</code> a secas te lleva a tu home y <code>cd -</code> te devuelve al directorio anterior.",
+      "<code>tree -L 2</code> — muestra la estructura de carpetas en forma de árbol visual, limitado a dos niveles."
+     ]
+    },
+    {
+     "p": "Una <b>ruta absoluta</b> empieza en <code>/</code> y significa lo mismo desde cualquier lugar: <code>/home/luis/informe.txt</code>. Una <b>ruta relativa</b> parte de donde estás parado: <code>informe.txt</code>, <code>../fotos/</code>. En scripts usa siempre rutas absolutas; en la terminal interactiva, relativas para escribir más rápido."
+    },
+    {
+     "h": "Crear, copiar, mover y borrar"
+    },
+    {
+     "code": "mkdir proyecto          # crear carpeta\nmkdir -p a/b/c          # crear toda la ruta anidada de una vez\ntouch notas.txt         # crear archivo vacío o actualizar fecha\ncp origen destino       # copiar archivo (-r para carpetas enteras)\nmv origen destino       # mover... y también RENOMBRAR\nrm archivo              # borrar (-r para carpetas)"
+    },
+    {
+     "p": "Fíjate en <code>mv</code>: mover y renombrar son la misma operación en Linux, porque el nombre de un archivo no es más que una entrada dentro de una carpeta. <code>mv viejo.txt nuevo.txt</code> lo renombra; <code>mv viejo.txt /otra/carpeta/</code> lo mueve."
+    },
+    {
+     "warn": "En Linux <b>no hay papelera</b> en la terminal. <code>rm</code> borra de inmediato y de forma definitiva. Antes de escribir <code>rm -rf</code> lee la ruta dos veces, sobre todo si empieza con <code>/</code>. Si quieres red de seguridad, usa <code>rm -i</code>, que te pedirá confirmación por cada archivo."
+    },
+    {
+     "h": "Ver el contenido sin abrir un editor"
+    },
+    {
+     "list": [
+      "<code>cat archivo</code> — lo muestra todo de golpe en la pantalla. Ideal para archivos cortos.",
+      "<code>less archivo</code> — paginador interactivo: <b>flechas o espacio</b> para avanzar, <b>/texto</b> para buscar, <b>n</b> siguiente coincidencia, <b>q</b> para salir.",
+      "<code>head -n 20</code> / <code>tail -n 20</code> — muestra las primeras o últimas 20 líneas de un archivo.",
+      "<code>tail -f /var/log/syslog</code> — se queda a la escucha y muestra las líneas nuevas en vivo conforme se van escribiendo. Es la orden clásica para monitorizar actividad."
+     ]
+    },
+    {
+     "h": "Los comodines (globbing)"
+    },
+    {
+     "p": "El shell expande ciertos símbolos especiales <b>antes</b> de ejecutar el comando. Cuando escribes <code>ls *.log</code>, el programa <code>ls</code> nunca ve el asterisco: recibe directamente la lista de archivos que coincidieron."
+    },
+    {
+     "list": [
+      "<code>*</code> — cualquier cantidad de caracteres: <code>*.jpg</code>",
+      "<code>?</code> — exactamente un carácter: <code>foto?.jpg</code>",
+      "<code>[0-9]</code> — un carácter dentro del rango: <code>informe[0-9].pdf</code>",
+      "<code>{a,b}</code> — expansión de llaves / alternativas: <code>cp notas.{txt,bak}</code>"
+     ]
+    },
+    {
+     "note": "Antes de ejecutar un borrado masivo con comodines, cambia <code>rm</code> por <code>ls</code> y ejecuta el mismo patrón. Si la lista que aparece en pantalla es exactamente lo que querías borrar, recién ahí cambias a <code>rm</code>. Este hábito evita el 90% de los desastres."
+    },
+    {
+     "h": "Atajos de teclado que te ahorran horas"
+    },
+    {
+     "list": [
+      "<b>Tab</b> — autocompleta rutas y nombres de comandos. Pulsada dos veces muestra todas las opciones disponibles. Previene errores tipográficos.",
+      "<b>Ctrl+R</b> — busca hacia atrás en tu historial de comandos conforme vas escribiendo palabras clave.",
+      "<b>Ctrl+C</b> — cancela y mata el comando que está ejecutándose en primer plano.",
+      "<b>Ctrl+L</b> — limpia la pantalla (equivalente a <code>clear</code>).",
+      "<b>Ctrl+A</b> y <b>Ctrl+E</b> — saltan al inicio y al final de la línea actual respectivamente."
+     ]
+    },
+    {
+     "h": "Cuando no sabes qué hace algo"
+    },
+    {
+     "code": "comando --help      # resumen rápido de opciones en pantalla\nman comando         # manual completo del sistema (q para salir)\ntype comando        # ¿es un binario, un alias o una función interna?\nwhich comando       # ¿en qué ruta exacta está el ejecutable?\napropos palabra     # busca comandos relacionados por temática"
+    },
+    {
+     "p": "El manual (<code>man</code>) sigue siempre una estructura estándar: NAME, SYNOPSIS, DESCRIPTION, OPTIONS, EXAMPLES. Si buscas cómo se usa rápido, salta directamente al final buscando ejemplos con <b>/EXAMPLES</b>."
+    },
+    {
+     "key": "No memorices comandos raros: memoriza <b>dónde y cómo se buscan</b>. Un buen usuario de Linux no es el que se sabe todas las opciones de <code>find</code> de memoria, es el que sabe llegar a ellas en veinte segundos."
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 10,
+   "tags": "básico,editor,vim,nano,paquetes",
+   "title": "Edición de texto, configuración y paquetes",
+   "subtitle": "Nano y Vim sin pánico, repositorios APT, dependencias y paquetería moderna.",
+   "body": [
+    {
+     "p": "En Linux, casi todo el sistema se configura mediante <b>archivos de texto plano</b> ubicados en <code>/etc</code>. En servidores remotos o en contenedores no dispondrás de interfaz gráfica ni de VS Code, por lo que saber editar texto en la terminal y gestionar paquetes es fundamental."
+    },
+    {
+     "h": "Nano: el editor rápido para salir del paso"
+    },
+    {
+     "p": "Nano es el editor más amigable para principiantes porque muestra sus atajos principales en la parte inferior de la pantalla. El símbolo <code>^</code> representa la tecla <b>Ctrl</b>."
+    },
+    {
+     "code": "nano /etc/hosts        # abrir o crear archivo"
+    },
+    {
+     "list": [
+      "<b>Ctrl+O</b> (WriteOut) — guarda los cambios realizados en el archivo.",
+      "<b>Ctrl+X</b> (Exit) — sale del editor (pregunta si deseas guardar si hay cambios).",
+      "<b>Ctrl+W</b> (Where Is) — busca una palabra dentro del archivo.",
+      "<b>Ctrl+K</b> — corta la línea actual completa.",
+      "<b>Ctrl+U</b> — pega la línea que acabas de cortar.",
+      "<b>Alt+6</b> — copia el texto seleccionado."
+     ]
+    },
+    {
+     "h": "Vim sin misterio: entender los tres modos"
+    },
+    {
+     "p": "Vim está instalado de forma universal en prácticamente cualquier servidor, contenedor o sistema embebido. La razón por la que confunde al principio es que es un editor <b>modal</b>: las teclas hacen cosas distintas según el modo en el que estés."
+    },
+    {
+     "steps": [
+      "<b>Modo Normal</b> (por defecto): cada tecla es un comando para moverte, borrar o copiar. No escribe texto en el documento.",
+      "<b>Modo Inserción</b> (pulsando <code>i</code>): funciona como un editor tradicional. Lo que escribes se introduce en el archivo. Se vuelve al modo normal pulsando <b>Esc</b>.",
+      "<b>Modo Comando</b> (pulsando <code>:</code> desde modo normal): para guardar, salir, buscar o configurar opciones."
+     ]
+    },
+    {
+     "h": "Navegar y editar en Vim"
+    },
+    {
+     "list": [
+      "<b>Moverse</b>: <code>h</code> (izquierda), <code>j</code> (abajo), <code>k</code> (arriba), <code>l</code> (derecha). También <code>w</code> (avanzar palabra), <code>b</code> (retroceder palabra), <code>0</code> (inicio de línea) y <code>$</code> (fin de línea).",
+      "<b>Saltar</b>: <code>gg</code> va al inicio del archivo, <code>G</code> va al final, y <code>:42</code> salta directamente a la línea 42.",
+      "<b>Borrar y cortar</b>: <code>x</code> borra el carácter bajo el cursor, <code>dd</code> borra la línea completa (y la guarda en el portapapeles), <code>dw</code> borra la palabra.",
+      "<b>Copiar y pegar</b>: <code>yy</code> copia la línea actual (yank), <code>p</code> pega lo copiado debajo del cursor.",
+      "<b>Deshacer y rehacer</b>: <code>u</code> deshace el último cambio (undo), <b>Ctrl+R</b> rehace.",
+      "<b>Buscar</b>: <code>/palabra</code> busca hacia adelante (<b>n</b> para ir a la siguiente coincidencia, <b>N</b> a la anterior).",
+      "<b>Reemplazar</b>: <code>:%s/viejo/nuevo/g</code> sustituye todas las apariciones de «viejo» por «nuevo» en todo el archivo."
+     ]
+    },
+    {
+     "key": "Para salir de Vim sin perder la calma: pulsa <b>Esc</b> dos veces para asegurar modo normal y escribe <code>:wq</code> (guardar y salir) o <code>:q!</code> (salir descartando todos los cambios)."
+    },
+    {
+     "h": "Gestión de paquetes con APT (Debian, Ubuntu, Mint)"
+    },
+    {
+     "p": "En Linux no descargas instaladores <code>.exe</code> de páginas web desconocidas; el software se obtiene de <b>repositorios oficiales</b> verificados criptográficamente mediante firmas digitales."
+    },
+    {
+     "code": "sudo apt update              # 1. actualiza la lista de paquetes disponibles\nsudo apt upgrade             # 2. instala las nuevas versiones existentes\nsudo apt install nginx       # 3. instala un programa con sus dependencias\nsudo apt remove nginx        # 4. desinstala el programa (mantiene configs)\nsudo apt purge nginx         # 5. desinstala borrando también su configuración\nsudo apt autoremove          # 6. elimina paquetes huérfanos que ya no se usan"
+    },
+    {
+     "warn": "<code>apt update</code> no instala nada: solo refresca la lista local de versiones disponibles. <code>apt upgrade</code> es el que descarga e instala las actualizaciones. Por eso siempre se ejecutan en ese orden: <code>sudo apt update && sudo apt upgrade</code>."
+    },
+    {
+     "list": [
+      "<code>apt search término</code> — busca paquetes por nombre o descripción.",
+      "<code>apt show paquete</code> — muestra información detallada, tamaño y dependencias.",
+      "<code>dpkg -i archivo.deb</code> — instala un paquete local descargado a mano."
+     ]
+    },
+    {
+     "h": "Repositorios y otros ecosistemas"
+    },
+    {
+     "p": "Los repositorios configurados viven en <code>/etc/apt/sources.list</code> y en el directorio <code>/etc/apt/sources.list.d/</code>. Cuando agregas un repositorio externo (PPA o proveedor oficial), se importa su <b>clave pública GPG</b> para garantizar que los paquetes no hayan sido alterados."
+    },
+    {
+     "p": "Otras familias de distribuciones usan sus propios gestores de paquetes nativos:"
+    },
+    {
+     "list": [
+      "<b>Fedora / RHEL / Rocky</b>: usan <code>dnf</code> (ej: <code>sudo dnf install paquete</code>).",
+      "<b>Arch / Manjaro</b>: usan <code>pacman</code> (ej: <code>sudo pacman -Syu</code> para actualizar todo)."
+     ]
+    },
+    {
+     "h": "Paquetes universales modernos"
+    },
+    {
+     "list": [
+      "<b>Flatpak</b>: paquetes aislados en un entorno protegido (sandbox). Muy popular para aplicaciones de escritorio (Flathub), ya que no interfiere con las librerías del sistema base.",
+      "<b>Snap</b>: tecnología de Canonical donde cada aplicación incluye todas sus dependencias y se actualiza de forma automática en segundo plano.",
+      "<b>AppImage</b>: un único archivo ejecutable autónomo. No requiere instalación: le das permiso con <code>chmod +x app.AppImage</code> y lo ejecutas directamente."
+     ]
+    },
+    {
+     "h": "¿Dónde se instalan los programas y qué es el PATH?"
+    },
+    {
+     "p": "La variable de entorno <b>PATH</b> es una lista de directorios separados por dos puntos (<code>:</code>) donde el shell busca ejecutables cuando escribes su nombre en la terminal."
+    },
+    {
+     "code": "echo $PATH\n/usr/local/bin:/usr/bin:/bin:/home/usuario/.local/bin"
+    },
+    {
+     "list": [
+      "<code>/usr/bin</code> — programas administrados por el gestor de paquetes del sistema.",
+      "<code>/usr/local/bin</code> — programas instalados manualmente por el administrador para todos los usuarios.",
+      "<code>~/.local/bin</code> — ejecutables y scripts propios del usuario actual.",
+      "<code>/opt</code> — aplicaciones complejas que empaquetan todos sus archivos juntos (ej: Chrome, bases de datos)."
+     ]
+    },
+    {
+     "note": "Para añadir una carpeta propia al PATH, agrega <code>export PATH=\"$HOME/mi-carpeta/bin:$PATH\"</code> al final de tu <code>~/.bashrc</code> y recarga con <code>source ~/.bashrc</code>."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "shell,texto,tuberías",
+   "title": "Tuberías: la idea que hace poderosa a la terminal",
+   "subtitle": "Programas pequeños que se conectan entre sí, redirección y el arte de construir una línea que responde una pregunta.",
+   "body": [
+    {
+     "p": "La filosofía de Unix cabe en una frase: <b>haz un programa que haga una sola cosa y la haga bien, y que su salida pueda ser la entrada de otro</b>. No hay un comando gigante que haga todo; hay decenas de comandos diminutos que se encadenan. Aprender a encadenarlos es el salto real de principiante a intermedio."
+    },
+    {
+     "h": "Los tres canales"
+    },
+    {
+     "p": "Todo programa en ejecución tiene tres canales abiertos por defecto, identificados por un número (descriptor de archivo):"
+    },
+    {
+     "list": [
+      "<b>0 — entrada estándar (stdin)</b>: por donde recibe datos, normalmente tu teclado.",
+      "<b>1 — salida estándar (stdout)</b>: por donde escribe el resultado normal, normalmente la pantalla.",
+      "<b>2 — error estándar (stderr)</b>: por donde escribe los mensajes de error y avisos, también a la pantalla, pero por un canal separado."
+     ]
+    },
+    {
+     "p": "Que los errores viajen por un canal distinto es deliberado: te permite guardar el resultado limpio en un archivo mientras sigues viendo los errores en pantalla."
+    },
+    {
+     "h": "Redirección: cambiar el destino"
+    },
+    {
+     "code": "comando > salida.txt      # escribe (SOBRESCRIBE el archivo)\ncomando >> salida.txt     # añade al final sin borrar lo anterior\ncomando 2> errores.txt    # redirige solo los errores\ncomando > todo.txt 2>&1   # salida y errores juntos al mismo archivo\ncomando < entrada.txt     # lee del archivo en vez del teclado\ncomando 2>/dev/null       # descarta los errores silenciosamente"
+    },
+    {
+     "p": "La expresión <code>2>&1</code> se lee «manda el canal 2 al mismo sitio al que va el canal 1». El orden importa: <code>> f 2>&1</code> funciona, pero <code>2>&1 > f</code> no hace lo que esperas, porque cuando se copia el destino del canal 1 este todavía apuntaba a la pantalla."
+    },
+    {
+     "note": "<code>/dev/null</code> es un dispositivo especial que descarta todo lo que recibe. Se le llama «el agujero negro» de Linux. Úsalo cuando un comando produzca avisos que no te interesan."
+    },
+    {
+     "h": "La tubería (pipe)"
+    },
+    {
+     "p": "El carácter <code>|</code> conecta la salida estándar del programa de la izquierda con la entrada estándar del siguiente, directamente en memoria RAM sin necesidad de escribir archivos temporales en disco. Mira cómo se construye una respuesta paso a paso:"
+    },
+    {
+     "code": "cat acceso.log                      # 1. todo el archivo\ncat acceso.log | awk '{print $1}'   # 2. solo la primera columna (la IP)\n... | sort                          # 3. ordenadas, para agrupar iguales\n... | uniq -c                       # 4. cuenta cuántas veces aparece cada una\n... | sort -rn                      # 5. de mayor a menor número de visitas\n... | head -n 10                    # 6. las 10 IPs más activas"
+    },
+    {
+     "p": "El resultado responde una pregunta concreta —«¿qué direcciones visitaron más el servidor?»— y no hizo falta ningún programa especializado: seis herramientas genéricas, encadenadas. Esta es la técnica que vas a repetir para logs, CSVs, listados de archivos y cualquier texto estructurado."
+    },
+    {
+     "key": "Construye las tuberías <b>de a un tramo</b>, mirando la salida en cada paso. Escribir la línea completa de una vez y depurarla después es mucho más lento."
+    },
+    {
+     "h": "Las herramientas del kit de texto"
+    },
+    {
+     "list": [
+      "<code>grep patrón</code> — filtra líneas que coinciden con una búsqueda. Con <b>-i</b> ignora mayúsculas, <b>-v</b> invierte (las que NO coinciden), <b>-r</b> busca recursivamente en carpetas, <b>-n</b> muestra número de línea y <b>-E</b> habilita expresiones regulares extendidas.",
+      "<code>awk '{print $2}'</code> — procesa por columnas separadas por espacios. Con <code>-F','</code> cambias el separador para procesar archivos CSV.",
+      "<code>cut -d':' -f1</code> — corta columnas por un delimitador fijo. Más rápido y simple que awk para casos sencillos como <code>/etc/passwd</code>.",
+      "<code>sort</code> — ordena líneas. Con <b>-n</b> orden numérico, <b>-r</b> orden inverso, <b>-u</b> quita duplicados y <b>-h</b> entiende sufijos legibles como 1K, 2M, 3G.",
+      "<code>uniq -c</code> — cuenta repeticiones consecutivas (por eso casi siempre requiere que la entrada esté previamente ordenada con <code>sort</code>).",
+      "<code>wc -l</code> — cuenta líneas de texto. Perfecto como último eslabón de una tubería para responder «¿cuántos hay?».",
+      "<code>tr 'A-Z' 'a-z'</code> — sustituye o elimina caracteres (ej: convertir a minúsculas o limpiar retornos de carro con <code>tr -d '\\r'</code>)."
+     ]
+    },
+    {
+     "h": "sed: buscar y reemplazar en flujo"
+    },
+    {
+     "code": "sed 's/viejo/nuevo/g' archivo        # muestra el resultado en pantalla\nsed -i 's/viejo/nuevo/g' archivo     # MODIFICA el archivo en el sitio\nsed -i.bak 's/viejo/nuevo/g' archivo # modifica y deja copia de respaldo .bak\nsed -n '10,20p' archivo              # imprime solo las líneas 10 a 20"
+    },
+    {
+     "warn": "<code>sed -i</code> reescribe el archivo en el disco sin confirmación. Ejecuta siempre primero <b>sin</b> <code>-i</code> para verificar qué va a cambiar, o usa <code>-i.bak</code> para conservar el archivo original intacto."
+    },
+    {
+     "h": "xargs: convertir listas en argumentos"
+    },
+    {
+     "p": "Muchos programas (como <code>rm</code>, <code>cp</code> o <code>tar</code>) no leen nombres de archivos desde la entrada estándar, sino que esperan sus argumentos en la línea de comandos. <code>xargs</code> hace de puente entre ambos mundos."
+    },
+    {
+     "code": "find . -name '*.log' | xargs rm                 # frágil si hay espacios\nfind . -name '*.log' -print0 | xargs -0 rm      # 100% seguro con espacios\nls *.jpg | xargs -I{} cp {} /respaldo/{}        # {} representa cada elemento"
+    },
+    {
+     "p": "La combinación <code>find -print0</code> y <code>xargs -0</code> separa los nombres con un byte nulo en lugar de espacios, evitando que un archivo llamado «informe final.log» sea interpretado erróneamente como dos archivos distintos."
+    },
+    {
+     "h": "Lógica en una línea"
+    },
+    {
+     "list": [
+      "<code>a ; b</code> — ejecuta b <b>siempre</b>, haya fallado a o no.",
+      "<code>a && b</code> — ejecuta b <b>solo si a tuvo éxito</b> (código de salida 0).",
+      "<code>a || b</code> — ejecuta b <b>solo si a falló</b> (código de salida distinto de 0)."
+     ]
+    },
+    {
+     "p": "La diferencia no es menor: <code>cd /respaldo && rm *</code> es seguro: si la carpeta no existe, el <code>cd</code> falla y el borrado se cancela. Con punto y coma (<code>;</code>), ese mismo error borraría todos los archivos del directorio donde estabas parado."
+    },
+    {
+     "key": "Todo programa devuelve un <b>código de salida</b> (exit status): 0 significa éxito y cualquier otro número (1 a 255), error. Puedes consultarlo inmediatamente con <code>echo $?</code>. Sobre esta convención se apoyan <code>&&</code>, <code>||</code> y todos los scripts de automatización."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "permisos,usuarios,procesos,seguridad",
+   "title": "Permisos, usuarios y control de procesos",
+   "subtitle": "Quién puede hacer qué, administración de cuentas, señales del sistema y control de ejecución.",
+   "body": [
+    {
+     "p": "Un sistema operativo multiusuario necesita responder tres preguntas en todo momento: quién eres, a qué recursos tienes acceso y qué procesos están ejecutándose ahora mismo. Este capítulo cubre las tres."
+    },
+    {
+     "h": "Leer una línea de permisos"
+    },
+    {
+     "code": "-rwxr-xr--  1  luis  mecanica  4096  Ago 29 10:15  script.sh\n│└┬┘└┬┘└┬┘     │     │\n│ │  │  │      │     └── grupo dueño\n│ │  │  │      └──────── usuario dueño\n│ │  │  └─────────────── otros (world): r--  (solo lectura)\n│ │  └────────────────── grupo:         r-x  (lectura y ejecución)\n│ └───────────────────── dueño (user):   rwx  (lectura, escritura, ejecución)\n└─────────────────────── tipo: - archivo, d directorio, l enlace simbólico"
+    },
+    {
+     "p": "Los permisos se dividen en tres bloques de tres letras: <b>dueño</b>, <b>grupo</b> y <b>otros</b>. Cada posición representa lectura (r=4), escritura (w=2) y ejecución (x=1). Sumando los valores de cada bloque se obtiene la notación octal: <code>rwxr-xr--</code> equivale a <b>754</b>."
+    },
+    {
+     "note": "En un <b>directorio</b> los permisos tienen un significado crucial: <b>r</b> permite listar su contenido con <code>ls</code>, <b>w</b> permite crear y borrar archivos dentro, y <b>x</b> permite <i>entrar</i> en él con <code>cd</code> o acceder a sus archivos. Una carpeta sin permiso <b>x</b> es inaccesible aunque tenga permiso <b>r</b>."
+    },
+    {
+     "code": "chmod +x script.sh          # dar permiso de ejecución a todos\nchmod 640 secreto.txt       # dueño rw (6), grupo r (4), otros nada (0)\nchmod -R 755 sitio/         # aplicar recursivamente a toda la carpeta\nchown luis:mecanica archivo # cambiar usuario y grupo dueño"
+    },
+    {
+     "p": "Si tras copiar archivos con <code>sudo</code> recibes «Permission denied» al utilizarlos, la causa habitual es que quedaron a nombre de <b>root</b>. Se corrige con <code>sudo chown -R tu-usuario:tu-usuario carpeta/</code>."
+    },
+    {
+     "h": "Permisos especiales: SUID, SGID y Sticky Bit"
+    },
+    {
+     "list": [
+      "<b>SUID (Set User ID - bit 4000)</b>: el archivo se ejecuta con los privilegios del <b>dueño del archivo</b>, no de quien lo lanza. Es lo que permite que <code>/usr/bin/passwd</code> modifique <code>/etc/shadow</code> siendo tú un usuario normal.",
+      "<b>SGID (Set Group ID - bit 2000)</b>: en un directorio compartido, todos los archivos que se creen dentro heredan automáticamente el <b>grupo</b> del directorio, facilitando el trabajo en equipo.",
+      "<b>Sticky Bit (bit 1000)</b>: se aplica en carpetas públicas como <code>/tmp</code> (permisos <code>1777</code>). Permite que todos escriban, pero <b>solo el dueño de un archivo puede borrarlo o renombrarlo</b>."
+     ]
+    },
+    {
+     "p": "Los binarios con SUID representan un vector clásico de escalada de privilegios si contienen vulnerabilidades. Puedes auditarlos con: <code>find / -perm -4000 -type f 2>/dev/null</code>."
+    },
+    {
+     "h": "Usuarios, grupos y sudo"
+    },
+    {
+     "p": "La información de usuarios se almacena en tres archivos fundamentales de <code>/etc</code>:"
+    },
+    {
+     "list": [
+      "<code>/etc/passwd</code> — lista de usuarios, UID, GID, directorio home y shell por defecto.",
+      "<code>/etc/shadow</code> — contraseñas cifradas (hashes) y políticas de caducidad. Solo accesible por root.",
+      "<code>/etc/group</code> — definición de grupos y sus miembros."
+     ]
+    },
+    {
+     "code": "sudo useradd -m -s /bin/bash nuevo      # crear usuario con home y shell\nsudo passwd nuevo                       # asignar contraseña\nsudo usermod -aG sudo nuevo             # conceder privilegios de administrador\ngroups                                  # ver grupos del usuario actual"
+    },
+    {
+     "warn": "La bandera <b>-a</b> en <code>usermod -aG</code> significa «añadir» (append). Si la olvidas y usas solo <code>-G</code>, <b>reemplazarás</b> todos los grupos secundarios del usuario, dejándolo sin acceso a docker, audio o administración."
+    },
+    {
+     "h": "Procesos: qué está corriendo"
+    },
+    {
+     "p": "Cada programa en ejecución es un <b>proceso</b> identificado por un número único llamado <b>PID</b>. Los procesos forman una jerarquía de árbol: cada proceso fue lanzado por un proceso padre (PPID) y todos descienden finalmente de systemd (PID 1)."
+    },
+    {
+     "code": "ps aux                       # lista detallada de todos los procesos\nps aux --sort=-%mem | head   # los 10 procesos que más memoria RAM consumen\nhtop                         # monitor interactivo (F6 ordena, F9 mata)\npgrep -af nginx              # buscar PIDs por nombre de programa\nkill PID                     # solicitar terminación limpia (señal SIGTERM 15)\nkill -9 PID                  # forzar muerte inmediata (señal SIGKILL 9)"
+    },
+    {
+     "p": "La diferencia entre <code>kill</code> y <code>kill -9</code> es crítica. <b>SIGTERM</b> avisa al proceso para que guarde su estado, cierre conexiones de red y termine de forma ordenada. <b>SIGKILL</b> lo fulmina instantáneamente a nivel de kernel, impidiendo que limpie sus archivos y arriesgando corrupción de bases de datos."
+    },
+    {
+     "key": "Prueba siempre <code>kill PID</code> primero y espera unos segundos. Recurre a <code>kill -9 PID</code> únicamente si el proceso está colgado y no responde."
+    },
+    {
+     "p": "En <code>htop</code>, la columna <b>STAT</b> (estado) es muy informativa: <b>R</b> corriendo (running), <b>S</b> durmiendo (sleeping), <b>Z</b> zombi (terminado pero su padre no lo recogió) y <b>D</b> espera ininterrumpible de disco (Disk sleep). Muchos procesos en estado <b>D</b> indican que el cuello de botella es el almacenamiento y no la CPU."
+    },
+    {
+     "h": "Trabajos en segundo plano y tmux"
+    },
+    {
+     "code": "comando &        # lanza el comando en segundo plano (background)\nCtrl+Z           # pausa la ejecución del comando actual\nbg               # reanuda el comando pausado en segundo plano\nfg               # trae el trabajo de vuelta al primer plano (foreground)\njobs             # lista los trabajos activos en esta sesión de terminal\nnohup comando &  # continúa ejecutándose aunque se cierre la sesión"
+    },
+    {
+     "p": "Para tareas largas en servidores remotos, <code>nohup</code> se queda corto. Usa <b>tmux</b>: <code>tmux new -s trabajo</code> crea una sesión persistente; pulsando <b>Ctrl+B</b> y luego <b>D</b> te desconectas dejándola viva; y <code>tmux attach -t trabajo</code> te devuelve al mismo punto desde cualquier lugar."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "almacenamiento,disco,filesystem,fstab,swap",
+   "title": "Almacenamiento: discos, sistemas de archivos y fstab",
+   "subtitle": "Dispositivos en /dev, particiones, sistemas de archivos, montaje permanente en /etc/fstab y SWAP.",
+   "body": [
+    {
+     "p": "Administrar el almacenamiento en Linux requiere entender cómo se representan los discos físicos, cómo se organizan sus particiones y cómo se asegura que los volúmenes queden montados automáticamente tras cada reinicio."
+    },
+    {
+     "h": "Los nombres de los dispositivos en /dev"
+    },
+    {
+     "p": "El kernel expone las unidades de almacenamiento como archivos de bloque dentro de <code>/dev</code> siguiendo convenciones fijas según el tipo de hardware:"
+    },
+    {
+     "list": [
+      "<code>/dev/sda</code>, <code>/dev/sdb</code> — discos duros SATA, SSD tradicionales o memorias USB. Las particiones se numeran al final: <code>/dev/sda1</code>, <code>/dev/sda2</code>.",
+      "<code>/dev/nvme0n1</code> — unidades SSD NVMe de alta velocidad conectadas por PCIe. Sus particiones llevan 'p': <code>/dev/nvme0n1p1</code>, <code>/dev/nvme0n1p2</code>.",
+      "<code>/dev/vda</code> — discos virtuales en máquinas virtuales (KVM, QEMU, nube).",
+      "<code>/dev/loop0</code> — dispositivos virtuales de bucle utilizados para montar imágenes ISO o paquetes Snap."
+     ]
+    },
+    {
+     "h": "Explorar discos y particiones"
+    },
+    {
+     "code": "lsblk -f                  # el mapa más claro: discos, particiones, FS y UUIDs\nsudo blkid                # identificador único UUID de cada partición\nsudo fdisk -l /dev/sda    # tabla de particiones detallada"
+    },
+    {
+     "p": "Existen dos estándares de tablas de particiones: <b>MBR</b> (antiguo, limitado a discos de máximo 2 TB y 4 particiones primarias) y <b>GPT</b> (moderno, compatible con UEFI, discos de cualquier tamaño y hasta 128 particiones). En sistemas modernos usa siempre GPT."
+    },
+    {
+     "h": "Los sistemas de archivos más comunes"
+    },
+    {
+     "list": [
+      "<b>ext4</b>: el estándar maduro y universal en Linux. Extremadamente confiable, rápido y con journaling para evitar pérdidas de datos ante cortes eléctricos.",
+      "<b>XFS</b>: sistema de archivos empresarial de alto rendimiento, optimizado para grandes volúmenes y procesamiento concurrente de archivos pesados (usado por defecto en RHEL/CentOS).",
+      "<b>Btrfs / ZFS</b>: sistemas avanzados con <i>Copy-on-Write</i> (CoW), compresión transparente de datos, autorreparación mediante checksums y <b>snapshots instantáneos</b>."
+     ]
+    },
+    {
+     "h": "Montar y desmontar discos"
+    },
+    {
+     "code": "sudo mkdir -p /mnt/datos\nsudo mount /dev/sdb1 /mnt/datos    # montar partición en el directorio\nsudo umount /mnt/datos             # desmontar"
+    },
+    {
+     "p": "Si al desmontar recibes el error <i>«target is busy»</i>, significa que algún proceso o terminal tiene un archivo abierto dentro de esa carpeta. Averigua quién lo bloquea con:"
+    },
+    {
+     "code": "lsof +D /mnt/datos        # lista procesos con archivos abiertos en la ruta\nfuser -vm /mnt/datos      # muestra PIDs y permite matarlos"
+    },
+    {
+     "h": "Montaje permanente con /etc/fstab"
+    },
+    {
+     "p": "Para que un disco se monte automáticamente al encender el equipo, debe declararse en <code>/etc/fstab</code>. Cada línea contiene exactamente seis columnas:"
+    },
+    {
+     "code": "# <dispositivo>                  <punto_montaje>  <tipo>  <opciones>              <dump> <pass>\nUUID=4a2b3c4d-5e6f-7a8b-9c0d   /mnt/datos       ext4    defaults,noatime,nofail  0      2"
+    },
+    {
+     "steps": [
+      "<b>Dispositivo</b>: usa siempre el <code>UUID=...</code> obtenido con <code>lsblk -f</code> en vez de <code>/dev/sdb1</code>, ya que las letras pueden cambiar si conectas otro disco.",
+      "<b>Punto de montaje</b>: carpeta donde se montará (debe existir previamente).",
+      "<b>Tipo de sistema</b>: <code>ext4</code>, <code>xfs</code>, <code>btrfs</code>, etc.",
+      "<b>Opciones</b>: <code>defaults</code> (rw, suid, dev, exec, auto, nouser, async), <code>noatime</code> (acelera lecturas al no actualizar la fecha de acceso) y <code>nofail</code> (evita que el arranque se detenga en modo de emergencia si el disco no está conectado).",
+      "<b>Dump</b>: casi siempre <code>0</code> (desactiva copias con la vieja utilidad dump).",
+      "<b>Pass</b>: orden de verificación con <code>fsck</code> en el boot. <code>1</code> para la raíz <code>/</code>, <code>2</code> para otros discos y <code>0</code> para no verificar."
+     ]
+    },
+    {
+     "warn": "<b>Regla de oro de fstab</b>: tras modificar <code>/etc/fstab</code> ejecuta <b>SIEMPRE</b> <code>sudo mount -a</code> antes de reiniciar. Si hay un error de sintaxis, <code>mount -a</code> te avisará de inmediato; si reinicias con un fstab roto, el sistema puede quedar atrapado en modo de emergencia sin arrancar."
+    },
+    {
+     "h": "Memoria SWAP (Espacio de intercambio)"
+    },
+    {
+     "p": "La SWAP es espacio en disco que el kernel usa para mover páginas de memoria RAM inactivas cuando la memoria física escasea o para hibernación. Tener swap previene que el <i>OOM Killer</i> (Out Of Memory) empiece a matar procesos críticos."
+    },
+    {
+     "code": "sudo fallocate -l 4G /swapfile   # crear archivo de 4 GB\nsudo chmod 600 /swapfile         # permisos estrictos solo para root\nsudo mkswap /swapfile            # formatear como swap\nsudo swapon /swapfile            # activar de inmediato\nfree -h                          # verificar RAM y Swap activas"
+    },
+    {
+     "p": "Para que la swap persista tras reiniciar, añade a <code>/etc/fstab</code>: <code>/swapfile none swap sw 0 0</code>."
+    },
+    {
+     "note": "El parámetro <b>swappiness</b> (0 a 100) controla la agresividad con la que el kernel usa la swap. En servidores web suele bajarse a <code>10</code> para priorizar la RAM física mediante <code>sysctl vm.swappiness=10</code>."
+    },
+    {
+     "h": "Diagnóstico de almacenamiento y salud de disco"
+    },
+    {
+     "list": [
+      "<code>df -h</code> — muestra el espacio libre y usado en cada sistema de archivos montado.",
+      "<code>du -sh * | sort -h</code> — calcula el tamaño real de cada carpeta en el directorio actual y lo ordena.",
+      "<code>df -i</code> — muestra los <b>inodos</b> libres. Si los inodos llegan al 100%, el disco no admitirá más archivos nuevos aunque le sobren gigabytes de espacio.",
+      "<code>sudo smartctl -H /dev/sda</code> — comprueba la salud del disco mediante telemetría SMART (debe decir <i>PASSED</i>)."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "red,ssh,diagnóstico,seguridad",
+   "title": "Redes, diagnóstico profundo y túneles SSH",
+   "subtitle": "El stack iproute2, resolución DNS, depuración de puertos con ss y túneles SSH.",
+   "body": [
+    {
+     "p": "Administrar sistemas y servidores remotos exige dominar la configuración de interfaces de red, la resolución de nombres, el diagnóstico de puertos y la creación de túneles seguros con SSH."
+    },
+    {
+     "h": "El stack de red moderno: iproute2"
+    },
+    {
+     "p": "Los comandos clásicos <code>ifconfig</code>, <code>route</code> y <code>netstat</code> pertenecen al paquete obsoleto <i>net-tools</i>. En sistemas actuales se utiliza <b>iproute2</b>:"
+    },
+    {
+     "code": "ip addr show (o 'ip a')   # ver interfaces, direcciones IP y estados\nip link set eth0 up/down   # activar o desactivar una interfaz de red\nip route show (o 'ip r')   # ver la tabla de rutas y la puerta de enlace (gateway)"
+    },
+    {
+     "p": "En distribuciones modernas la configuración de red persistente se gestiona mediante <b>Netplan</b> (en <code>/etc/netplan/*.yaml</code>, aplicando con <code>sudo netplan apply</code>) o con <b>NetworkManager</b> (mediante la utilidad <code>nmcli</code>)."
+    },
+    {
+     "h": "Resolución DNS y nombres de host"
+    },
+    {
+     "list": [
+      "<code>/etc/hosts</code> — tabla local estática que asocia IPs con nombres de host antes de consultar DNS.",
+      "<code>/etc/resolv.conf</code> — servidores DNS que consulta el sistema.",
+      "<code>resolvectl status</code> — estado de DNS administrado por <code>systemd-resolved</code>.",
+      "<code>dig +short google.com</code> — consulta registros DNS directamente a los servidores configurados.",
+      "<code>nslookup dominio</code> / <code>host dominio</code> — resoluciones rápidas de nombres e IPs."
+     ]
+    },
+    {
+     "h": "Inspección de puertos y sockets con ss"
+    },
+    {
+     "p": "<code>ss</code> (Socket Statistics) lee directamente del kernel mediante netlink, siendo instantáneo incluso con miles de conexiones abiertas simultáneas."
+    },
+    {
+     "code": "ss -tulpn                    # todo lo que ESCUCHA en la máquina, con su proceso\nss -tnp state established    # conexiones vivas activas hacia fuera\nss -s                        # resumen cuantitativo por protocolo"
+    },
+    {
+     "p": "Las banderas de <code>-tulpn</code> se leen solas: <b>t</b>cp, <b>u</b>dp, <b>l</b>istening (solo puertos en escucha), <b>p</b>rocess (PID y nombre del programa) y <b>n</b>umeric (números de puerto sin resolver nombres para máxima velocidad)."
+    },
+    {
+     "h": "Diagnóstico de conectividad en vivo"
+    },
+    {
+     "list": [
+      "<code>ping -c 4 host</code> — comprueba conectividad básica, tiempo de respuesta (RTT) y pérdida de paquetes.",
+      "<code>mtr host</code> — combina <i>traceroute</i> y <i>ping</i> en tiempo real para localizar el salto exacto donde se degrada o corta la conexión.",
+      "<code>curl -Iv https://sitio.com</code> — inspecciona las cabeceras HTTP, tiempos de respuesta y validez de certificados SSL/TLS.",
+      "<code>nc -zv host 8080</code> — netcat: verifica en un segundo si un puerto TCP remoto está abierto y accesible.",
+      "<code>sudo tcpdump -i eth0 port 80 -n</code> — captura y muestra paquetes de red crudos en tiempo real para análisis profundo."
+     ]
+    },
+    {
+     "h": "Transferencia y sincronización con rsync"
+    },
+    {
+     "p": "<code>rsync</code> es la herramienta definitiva para copiar y sincronizar archivos localmente o a través de la red, ya que transfiere únicamente los bloques de datos que han cambiado."
+    },
+    {
+     "code": "rsync -avzP origen/ usuario@servidor:/destino/   # sincronización básica\nrsync -avzP --dry-run origen/ destino/           # simular sin tocar nada\nrsync -avzP --delete origen/ destino/            # borra en destino lo que ya no existe en origen"
+    },
+    {
+     "p": "El paquete de opciones <code>-avzP</code> incluye: <b>-a</b> (archive: preserva permisos, fechas, propietarios y enlaces simbólicos), <b>-v</b> (verbose), <b>-z</b> (comprime los datos durante el viaje) y <b>-P</b> (muestra progreso y permite reanudar transferencias interrumpidas)."
+    },
+    {
+     "warn": "⚠️ <b>La barra inclinada final en el origen cambia todo</b>: <code>rsync origen/ destino/</code> copia el <i>contenido</i> de la carpeta origen; <code>rsync origen destino/</code> copia la <i>carpeta entera</i> dentro del destino creando <code>destino/origen/</code>."
+    },
+    {
+     "h": "SSH profesional: llaves Ed25519 y config"
+    },
+    {
+     "p": "El acceso mediante contraseña es vulnerable a ataques de fuerza bruta. El estándar seguro es la autenticación por par de llaves criptográficas:"
+    },
+    {
+     "code": "ssh-keygen -t ed25519                  # 1. generar par de llaves moderno\nssh-copy-id -i ~/.ssh/id_ed25519.pub user@server # 2. enviar llave pública al servidor\nssh user@server                                  # 3. conectar sin contraseña"
+    },
+    {
+     "p": "Tu llave privada (<code>~/.ssh/id_ed25519</code>) jamás debe salir de tu computadora ni compartirse con nadie. Puedes simplificar tus conexiones configurando alias en <code>~/.ssh/config</code>:"
+    },
+    {
+     "code": "Host prod\n    HostName 198.51.100.24\n    User admin\n    Port 2222\n    IdentityFile ~/.ssh/id_ed25519"
+    },
+    {
+     "p": "Con esto, basta con escribir <code>ssh prod</code> para conectar con todos los parámetros configurados."
+    },
+    {
+     "h": "Túneles SSH (Port Forwarding)"
+    },
+    {
+     "p": "Los túneles SSH permiten acceder a servicios internos remotos o exponer puertos locales de forma cifrada sin abrir puertos en el firewall:"
+    },
+    {
+     "list": [
+      "<b>Túnel Local (-L)</b>: <code>ssh -N -L 8080:localhost:80 servidor</code>. Trae el puerto 80 interno del servidor a tu máquina local en <code>http://localhost:8080</code>. Imprescindible para abrir paneles de bases de datos o servicios internos en tu navegador.",
+      "<b>Túnel Remoto (-R)</b>: <code>ssh -N -R 9000:localhost:3000 servidor</code>. Publica un puerto de tu máquina local de desarrollo en el puerto 9000 del servidor remoto.",
+      "<b>Proxy SOCKS Dinámico (-D)</b>: <code>ssh -N -D 1080 servidor</code>. Convierte la conexión SSH en un proxy SOCKS5 completo para navegar por internet como si estuvieras físicamente en la red del servidor."
+     ]
+    },
+    {
+     "note": "La opción <code>-N</code> indica a SSH que no ejecute una shell interactiva, manteniéndose activo únicamente para mantener el túnel."
+    },
+    {
+     "h": "Endurecimiento de SSH y Firewall con UFW"
+    },
+    {
+     "p": "En un servidor expuesto a internet se deben deshabilitar las contraseñas en <code>/etc/ssh/sshd_config</code> configurando: <code>PasswordAuthentication no</code>, <code>PermitRootLogin no</code> y reiniciar con <code>sudo systemctl restart sshd</code>."
+    },
+    {
+     "code": "sudo ufw default deny incoming       # bloquear todo el tráfico entrante por defecto\nsudo ufw default allow outgoing      # permitir tráfico saliente\nsudo ufw allow 22/tcp                # ¡PERMITIR SSH ANTES DE ACTIVAR!\nsudo ufw allow 80,443/tcp            # permitir HTTP y HTTPS\nsudo ufw enable                      # activar el firewall\nsudo ufw status verbose              # ver reglas activas"
+    },
+    {
+     "key": "El orden en un servidor remoto es sagrado: <b>permite tu puerto SSH antes de activar el firewall</b> con <code>ufw enable</code>. Mantén siempre una segunda sesión SSH abierta de respaldo mientras realizas cambios en el firewall o en la configuración de sshd."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "servicios,systemd,journalctl,timers",
+   "title": "Servicios systemd, temporizadores y journalctl",
+   "subtitle": "Creación de unidades, control de recursos con cgroups, temporizadores y análisis de arranque.",
+   "body": [
+    {
+     "p": "<b>systemd</b> es el sistema de inicio y administrador de servicios estándar en Linux (PID 1). Gestiona el arranque de la máquina, supervisa programas en ejecución, aplica límites de recursos y centraliza todos los registros del sistema."
+    },
+    {
+     "h": "Control del ciclo de vida de un servicio"
+    },
+    {
+     "code": "sudo systemctl status nginx         # consultar estado actual y últimas líneas de log\nsudo systemctl start nginx          # iniciar el servicio\nsudo systemctl stop nginx           # detener el servicio\nsudo systemctl restart nginx        # reiniciar completamente\nsudo systemctl reload nginx         # recargar configuración sin interrumpir conexiones\nsudo systemctl enable --now nginx   # arrancar al inicio del equipo E iniciar de inmediato\nsudo systemctl disable nginx        # no arrancar automáticamente al inicio\nsudo systemctl list-units --failed  # listar qué unidades fallaron en este arranque"
+    },
+    {
+     "p": "Nota la diferencia entre <b>start</b> y <b>enable</b>: <code>start</code> lo enciende ahora mismo en memoria; <code>enable</code> crea los enlaces simbólicos para que se inicie en futuros arranques. Con <code>--now</code> realizas ambas operaciones en un solo comando."
+    },
+    {
+     "h": "Crear un servicio propio en producción"
+    },
+    {
+     "p": "Para convertir cualquier script o aplicación en un servicio administrado con reinicio automático y logs centralizados, crea un archivo <code>.service</code> en <code>/etc/systemd/system/mi-app.service</code>:"
+    },
+    {
+     "code": "[Unit]\nDescription=Servicio API de Mi Aplicación\nAfter=network.target postgresql.service\nWants=network.target\n\n[Service]\nType=simple\nUser=appuser\nGroup=appuser\nWorkingDirectory=/opt/mi-app\nExecStart=/usr/bin/python3 /opt/mi-app/main.py\nRestart=always\nRestartSec=5s\nEnvironmentFile=/etc/mi-app.env\nStandardOutput=journal\nStandardError=journal\n\n# Límites de recursos (cgroups v2)\nMemoryMax=512M\nCPUQuota=50%\nTasksMax=100\n\n[Install]\nWantedBy=multi-user.target"
+    },
+    {
+     "p": "Tras crear o editar el archivo, recarga el demonio de systemd y arranca tu servicio:"
+    },
+    {
+     "code": "sudo systemctl daemon-reload\nsudo systemctl enable --now mi-app\nsudo systemctl status mi-app"
+    },
+    {
+     "h": "Aislamiento de recursos con Cgroups v2"
+    },
+    {
+     "p": "En la sección <code>[Service]</code> puedes fijar límites duros a cualquier proceso sin modificar su código fuente:"
+    },
+    {
+     "list": [
+      "<code>MemoryMax=512M</code> — si el servicio excede 512 MB de RAM, el kernel elimina el proceso causante evitando que todo el servidor se quede sin memoria.",
+      "<code>CPUQuota=50%</code> — limita el consumo de CPU al equivalente de medio núcleo.",
+      "<code>TasksMax=100</code> — previene ataques de <i>fork bomb</i> limitando el número máximo de hilos o procesos que puede crear."
+     ]
+    },
+    {
+     "note": "Puedes inspeccionar el consumo en vivo de todos los servicios mediante <code>systemd-cgtop</code>."
+    },
+    {
+     "h": "Temporizadores (systemd timers) vs Cron"
+    },
+    {
+     "p": "Los temporizadores de systemd son el reemplazo moderno de <code>cron</code> para tareas periódicas. Ofrecen ventajas decisivas: se integran en journalctl, admiten dependencias y recuperan ejecuciones perdidas."
+    },
+    {
+     "p": "Se componen de dos archivos: <code>respaldo.service</code> (qué hacer) y <code>respaldo.timer</code> (cuándo hacerlo):"
+    },
+    {
+     "code": "# /etc/systemd/system/respaldo.timer\n[Unit]\nDescription=Ejecutar respaldo todos los días a las 3 AM\n\n[Timer]\nOnCalendar=*-*-* 03:00:00\nPersistent=true\n\n[Install]\nWantedBy=timers.target"
+    },
+    {
+     "p": "La directiva <code>Persistent=true</code> es clave: si el servidor estaba apagado a las 3:00 AM, ejecutará el respaldo inmediatamente al volver a encenderse. Puedes listar todos los temporizadores activos con <code>systemctl list-timers</code>."
+    },
+    {
+     "h": "Dominar los logs con journalctl"
+    },
+    {
+     "p": "<code>journalctl</code> consulta los registros del sistema binarios indexados, permitiendo filtros rápidos sin necesidad de lidiar con múltiples archivos de texto en <code>/var/log</code>:"
+    },
+    {
+     "code": "journalctl -u mi-app -f              # ver logs de un servicio en tiempo real\njournalctl -p err -b                # ver solo errores del arranque actual\njournalctl -b -1                    # logs del arranque ANTERIOR (vital tras un cuelgue)\njournalctl --since '2 hours ago'    # ventana temporal relativa\njournalctl -u mi-app --since today -o cat  # solo el mensaje limpio, sin metadatos\njournalctl --disk-usage             # ver cuánto espacio ocupan los logs\nsudo journalctl --vacuum-time=7d    # borrar logs con más de 7 días de antigüedad"
+    },
+    {
+     "key": "Cuando un servidor se reinicia inesperadamente por un fallo, lo que necesitas leer es lo que ocurrió <b>antes del reinicio</b>. El comando <code>journalctl -b -1 -p err</code> te muestra exactamente los errores del arranque previo."
+    },
+    {
+     "h": "Diagnóstico del tiempo de arranque"
+    },
+    {
+     "code": "systemd-analyze                 # desglose total: firmware, kernel y espacio de usuario\nsystemd-analyze blame           # ranking de servicios ordenados por tiempo de carga\nsystemd-analyze critical-chain  # la cadena crítica real que retrasa el arranque"
+    },
+    {
+     "note": "En <code>systemd-analyze blame</code> aparecen servicios que tardan mucho pero corren en paralelo sin bloquear nada. Solo <code>systemd-analyze critical-chain</code> señala qué servicios están retrasando el arranque del sistema."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "scripting,automatización,bash",
+   "title": "Scripts defensivos que no te traicionan",
+   "subtitle": "Automatizar con seguridad, buenas prácticas en Bash, manejo estricto de errores y depuración.",
+   "body": [
+    {
+     "p": "Un script en Bash es la herramienta definitiva para convertir una tarea manual repetitiva en un proceso automatizado infalible. Sin embargo, un script sin defensas falla en silencio y puede causar daños masivos en segundos. La programación en shell exige rigor y seguridad por diseño."
+    },
+    {
+     "h": "El encabezado estricto obligatorio"
+    },
+    {
+     "code": "#!/usr/bin/env bash\nset -euo pipefail"
+    },
+    {
+     "list": [
+      "<code>#!/usr/bin/env bash</code> — el <i>shebang</i> portable: localiza el ejecutable de bash en cualquier distribución sin asumir rutas fijas.",
+      "<code>-e</code> (errexit) — aborta la ejecución inmediatamente si cualquier comando devuelve un código de error, en lugar de continuar a ciegas con datos corruptos.",
+      "<code>-u</code> (nounset) — aborta el script si se intenta utilizar una variable no definida, atrapando erratas en nombres de variables.",
+      "<code>-o pipefail</code> — hace que una tubería falle si <b>cualquiera</b> de sus comandos falla, no solo el último eslabón."
+     ]
+    },
+    {
+     "p": "Sin <code>set -e</code>, un script que no logre entrar en un directorio mediante <code>cd /carpeta/temporal</code> continuará ejecutando la línea siguiente <code>rm -rf *</code> sobre el directorio donde estaba parado. Esas dos líneas son la diferencia entre un script seguro y una catástrofe."
+    },
+    {
+     "h": "Variables, comillas y expansiones seguras"
+    },
+    {
+     "code": "dir=\"mis documentos\"\narchivo=\"reporte.pdf\"\n\n# CORRECTO: las comillas protegen contra espacios\ncp \"$dir/$archivo\" /respaldo/\n\n# ERROR GRAVE: sin comillas, se expande en 3 argumentos distintos\ncp $dir/$archivo /respaldo/"
+    },
+    {
+     "warn": "Envuelve <b>siempre</b> tus variables entre comillas dobles <code>\"$variable\"</code>. Evita el <i>word splitting</i> y el <i>globbing</i> accidental, la causa número uno de fallos en scripts de producción."
+    },
+    {
+     "p": "Bash incluye expansiones de parámetros muy potentes para evitar invocar comandos externos innecesarios:"
+    },
+    {
+     "list": [
+      "<code>${VAR:-\"valor_defecto\"}</code> — usa un valor por defecto si la variable está vacía o no existe.",
+      "<code>${VAR:?\"Falta la variable obligatoria\"}</code> — detiene el script con un mensaje si la variable no está definida.",
+      "<code>${ARCHIVO%.*}</code> — extrae el nombre del archivo sin su extensión final.",
+      "<code>${ARCHIVO##*.}</code> — extrae únicamente la extensión del archivo.",
+      "<code>${#CADENA}</code> — devuelve la longitud en caracteres de la cadena."
+     ]
+    },
+    {
+     "h": "Condicionales modernos con [[ ]]"
+    },
+    {
+     "p": "Utiliza siempre los corchetes dobles <code>[[ ... ]]</code> en lugar del clásico <code>[ ... ]</code>: manejan correctamente variables vacías con espacios y admiten expresiones regulares."
+    },
+    {
+     "code": "if [[ -f \"$archivo\" ]]; then\n    echo \"Es un archivo regular existente\"\nelif [[ -d \"$archivo\" ]]; then\n    echo \"Es un directorio\"\nelif [[ -z \"${variable:-}\" ]]; then\n    echo \"La variable está vacía\"\nfi\n\n# Comparación con expresiones regulares\nif [[ \"$email\" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$ ]]; then\n    echo \"Email con formato válido\"\nfi"
+    },
+    {
+     "list": [
+      "<code>-f</code> (archivo regular), <code>-d</code> (directorio), <code>-e</code> (existe), <code>-s</code> (existe y su tamaño es mayor a cero).",
+      "<code>-r</code>, <code>-w</code>, <code>-x</code> (comprueba permisos de lectura, escritura o ejecución respectivamente).",
+      "<code>-z</code> (cadena vacía), <code>-n</code> (cadena con contenido), <code>==</code> y <code>!=</code> (comparación de texto).",
+      "Para números enteros usa la sintaxis aritmética <code>(( a > b ))</code> o los operadores <code>-eq</code>, <code>-ne</code>, <code>-lt</code>, <code>-gt</code>."
+     ]
+    },
+    {
+     "h": "Bucles y lectura segura de archivos"
+    },
+    {
+     "code": "# Iterar sobre archivos de forma segura\nfor f in *.log; do\n    [[ -e \"$f\" ]] || continue   # evita error si no coincide ningún archivo\n    gzip -9 \"$f\"\ndone\n\n# Lectura de un archivo línea por línea respetando espacios y barras\nwhile IFS= read -r linea || [[ -n \"$linea\" ]]; do\n    echo \"Procesando: $linea\"\ndone < \"datos.txt\""
+    },
+    {
+     "p": "El uso de <code>IFS=</code> (desactiva el recorte de espacios en blanco) y <code>-r</code> (evita que las barras invertidas <code>\\</code> se interpreten como escapes) garantiza que cada línea se lea con total fidelidad."
+    },
+    {
+     "h": "Limpieza garantizada con trap"
+    },
+    {
+     "p": "Cuando un script crea archivos temporales o bloqueos (locks), debe garantizarse su eliminación incluso si el usuario pulsa <b>Ctrl+C</b> o si el script aborta por un error de <code>set -e</code>."
+    },
+    {
+     "code": "tmp_dir=$(mktemp -d)\n# Registrar la trampa: se ejecuta al salir (EXIT) o ante señales INT y TERM\ntrap 'rm -rf \"$tmp_dir\"; echo \"Limpieza completada.\"' EXIT INT TERM\n\necho \"Trabajando en: $tmp_dir\"\n# Si algo falla aquí, el trap borrará $tmp_dir automáticamente"
+    },
+    {
+     "key": "Crea siempre los temporales con <code>mktemp</code> o <code>mktemp -d</code>, que generan nombres únicos aleatorios con permisos restringidos <code>700</code>, evitando colisiones entre procesos y ataques de enlace simbólico."
+    },
+    {
+     "h": "Depuración y trazado de fallos"
+    },
+    {
+     "code": "# Activar traza detallada\nbash -x mi-script.sh\n\n# O dentro del propio script, capturar la línea exacta del fallo:\ntrap 'echo \"❌ Error en la línea $LINENO (código de salida: $?)\" >&2' ERR\n\n# Modo simulación (Dry-Run)\nDRY_RUN=${DRY_RUN:-0}\nejecutar() {\n    if [[ \"$DRY_RUN\" == \"1\" ]]; then\n        echo \"[SIMULACIÓN] $*\"\n    else\n        \"$@\"\n    fi\n}\n\nejecutar rm -rf \"$directorio_obsoleto\""
+    },
+    {
+     "p": "Con la técnica de <code>DRY_RUN=1 ./script.sh</code> puedes probar scripts de mantenimiento en servidores de producción imprimiendo qué comandos se ejecutarían sin realizar ningún cambio real."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "kernel,hardware,contenedores",
+   "title": "El kernel por dentro, hardware y contenedores",
+   "subtitle": "Syscalls, pseudo-sistemas /proc y /sys, módulos del kernel y la anatomía de los contenedores.",
+   "body": [
+    {
+     "p": "El <b>Kernel de Linux</b> es el núcleo del sistema operativo: gestiona el acceso a la memoria, programa el tiempo de CPU para cada hilo, interactúa con el hardware mediante controladores y aplica las reglas de seguridad. Comprender cómo se comunica con el espacio de usuario es la clave para entender la infraestructura moderna."
+    },
+    {
+     "h": "Espacio de usuario, espacio de kernel y syscalls"
+    },
+    {
+     "p": "La memoria se divide estrictamente en dos niveles de privilegio:"
+    },
+    {
+     "list": [
+      "<b>User Space (Espacio de usuario)</b>: donde corren tus programas ordinarios (bash, python, nginx, navegadores). Tienen acceso restringido y no pueden tocar el hardware directamente.",
+      "<b>Kernel Space (Espacio de núcleo)</b>: donde corre el kernel y los drivers con privilegios absolutos sobre el procesador y los dispositivos."
+     ]
+    },
+    {
+     "p": "Cada vez que un programa necesita abrir un archivo, enviar un paquete de red o reservar memoria, realiza una <b>llamada al sistema (syscall)</b> solicitando la acción al kernel. Puedes observar estas llamadas en tiempo real con <code>strace</code>:"
+    },
+    {
+     "code": "strace -c ls                # resumen estadístico de syscalls realizadas\nstrace -p PID -e trace=file # ver qué archivos abre o lee un proceso en vivo\nstrace -p PID -e trace=network # ver qué conexiones de red realiza un proceso"
+    },
+    {
+     "h": "Los sistemas de archivos virtuales: /proc y /sys"
+    },
+    {
+     "p": "Linux no guarda en disco el contenido de <code>/proc</code> ni de <code>/sys</code>: son interfaces generadas dinámicamente por el kernel en memoria para inspeccionar y alterar su estado en caliente."
+    },
+    {
+     "list": [
+      "<code>/proc/cpuinfo</code> y <code>/proc/meminfo</code> — información física de procesador y memoria RAM.",
+      "<code>/proc/loadavg</code> — promedio de carga del sistema en 1, 5 y 15 minutos.",
+      "<code>/proc/PID/cmdline</code> — comando exacto y argumentos con los que arrancó un proceso.",
+      "<code>/proc/PID/environ</code> — variables de entorno del proceso (leíbles con <code>tr '\\0' '\\n' < /proc/PID/environ</code>).",
+      "<code>/proc/sys/</code> — parámetros ajustables del kernel (red, memoria, seguridad)."
+     ]
+    },
+    {
+     "code": "sudo sysctl -a                       # ver todos los parámetros del kernel\nsudo sysctl -w net.ipv4.ip_forward=1 # activar reenvío de paquetes al vuelo"
+    },
+    {
+     "p": "Para que los ajustes de <code>sysctl</code> sean permanentes tras reiniciar, se declaran en archivos dentro de <code>/etc/sysctl.d/99-personalizado.conf</code>."
+    },
+    {
+     "h": "Módulos del kernel (Drivers en Linux)"
+    },
+    {
+     "p": "Los controladores de hardware en Linux no suelen ser programas externos: son <b>módulos del kernel</b> (archivos <code>.ko</code>) que se cargan y descargan dinámicamente en la memoria del kernel según el hardware conectado."
+    },
+    {
+     "code": "lsmod                  # listar módulos actualmente cargados en memoria\nmodinfo e1000e         # ver detalles, autor y parámetros de un módulo\nsudo modprobe e1000e   # cargar un módulo y resolver sus dependencias\nsudo modprobe -r e1000e # descargar un módulo si ya no se utiliza"
+    },
+    {
+     "note": "Si un módulo causa problemas o conflictos, puede bloquearse añadiéndolo a la lista negra en <code>/etc/modprobe.d/blacklist.conf</code> mediante la línea <code>blacklist nombre_modulo</code>."
+    },
+    {
+     "h": "Detección e inventario de hardware"
+    },
+    {
+     "list": [
+      "<code>dmesg -T</code> — muestra el búfer de mensajes del kernel con marcas de tiempo legibles. Es el primer sitio donde mirar si falla un disco, se desconecta un dispositivo USB o la CPU sufre sobrecalentamiento.",
+      "<code>lspci -nnk</code> — lista todas las tarjetas conectadas a los buses PCI/PCIe (gráfica, red, controladoras) e indica qué módulo del kernel las está controlando.",
+      "<code>lsusb</code> — muestra dispositivos conectados por USB.",
+      "<code>lscpu</code> — arquitectura detallada de la CPU, núcleos, hilos y caches L1/L2/L3.",
+      "<code>vmstat 1 5</code> — estadísticas de memoria, swap, I/O y CPU cada segundo."
+     ]
+    },
+    {
+     "h": "La base real de los contenedores (Docker / Podman)"
+    },
+    {
+     "p": "Un contenedor <b>NO es una máquina virtual</b>: no incluye un kernel propio, no emula una BIOS ni virtualiza hardware. Un contenedor es simplemente un <b>proceso estándar de Linux</b> aislado mediante dos características nativas del kernel:"
+    },
+    {
+     "steps": [
+      "<b>Namespaces (lo que el proceso puede VER)</b>: aíslan la vista del sistema. <code>pid</code> (su propio árbol de procesos donde es PID 1), <code>net</code> (sus propias IPs y puertos), <code>mnt</code> (su propio sistema de archivos raíz), <code>uts</code> (su propio hostname), <code>ipc</code> y <code>user</code> (aislamiento de UID/GID).",
+      "<b>Cgroups (lo que el proceso puede USAR)</b>: imponen límites cuantitativos de consumo a nivel de kernel sobre memoria RAM, CPU, I/O de disco y cantidad de hilos."
+     ]
+    },
+    {
+     "p": "Al compartir el mismo kernel del sistema anfitrión, los contenedores arrancan en milisegundos y tienen un rendimiento de CPU y memoria prácticamente nativo."
+    },
+    {
+     "key": "<b>Podman</b> implementa contenedores sin necesidad de un demonio central corriendo como root (daemonless y rootless), mientras que <b>Docker</b> utiliza tradicionalmente el servicio <code>dockerd</code>. Ambos utilizan los mismos estándares de imagen OCI."
+    },
+    {
+     "h": "Mantenimiento y limpieza de contenedores"
+    },
+    {
+     "code": "docker system df                     # ver cuánto espacio ocupan imágenes, contenedores y volúmenes\ndocker system prune -a --volumes     # eliminar contenedores parados, imágenes huérfanas y volúmenes no usados"
+    },
+    {
+     "warn": "Los contenedores guardan sus modificaciones en capas efímeras (OverlayFS). Todo dato que deba persistir tras reiniciar el contenedor debe montarse obligatoriamente en un <b>volumen</b> o <i>bind mount</i> hacia el disco del host."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "almacenamiento,lvm,raid,recuperación",
+   "title": "Almacenamiento avanzado: LVM, RAID y recuperación",
+   "subtitle": "Gestión de volúmenes lógicos, snapshots en caliente, RAID y técnicas de rescate del sistema.",
+   "body": [
+    {
+     "p": "En entornos de producción, las particiones estáticas tradicionales resultan inflexibles: si una partición se llena, ampliarla suele obligar a apagar el servidor. <b>LVM</b> (Logical Volume Manager) y <b>RAID</b> proporcionan la flexibilidad, redundancia y capacidad de recuperación que exigen los servidores modernos."
+    },
+    {
+     "h": "Las tres capas de LVM"
+    },
+    {
+     "p": "LVM desacopla el almacenamiento del hardware físico creando una capa de abstracción dividida en tres niveles:"
+    },
+    {
+     "code": "1. PV (Physical Volume)   ->  Los discos o particiones reales (/dev/sdb, /dev/sdc)\n2. VG (Volume Group)      ->  La «bolsa» o grupo común que suma el espacio de los PVs\n3. LV (Logical Volume)     ->  Las particiones virtuales que se formatean y se montan"
+    },
+    {
+     "code": "# 1. Inicializar discos físicos como PVs\nsudo pvcreate /dev/sdb /dev/sdc\n\n# 2. Crear un grupo de volúmenes llamado 'vg_datos' sumando ambos discos\nsudo vgcreate vg_datos /dev/sdb /dev/sdc\n\n# 3. Cortar un volumen lógico de 50 GB dentro del grupo\nsudo lvcreate -n lv_app -L 50G vg_datos\n\n# 4. Formatear y montar\nsudo mkfs.ext4 /dev/vg_datos/lv_app\nsudo mount /dev/vg_datos/lv_app /mnt/app"
+    },
+    {
+     "h": "Ampliar almacenamiento en caliente"
+    },
+    {
+     "p": "Si el volumen <code>lv_app</code> se queda sin espacio, puedes ampliarlo de inmediato sin desmontarlo ni interrumpir las aplicaciones en ejecución:"
+    },
+    {
+     "code": "sudo lvextend -L +20G -r /dev/vg_datos/lv_app"
+    },
+    {
+     "warn": "La bandera <b>-r</b> (resizefs) es crucial: redimensiona automáticamente el sistema de archivos (ext4/xfs) al mismo tiempo que amplía el volumen lógico. Sin <code>-r</code>, el volumen crece pero el sistema de archivos sigue viendo el tamaño antiguo."
+    },
+    {
+     "h": "Snapshots con LVM para actualizaciones seguras"
+    },
+    {
+     "p": "Un <i>snapshot</i> de LVM es una copia instantánea del estado de un volumen que utiliza <i>Copy-on-Write</i>. Es la herramienta ideal antes de realizar una migración de base de datos o actualización crítica:"
+    },
+    {
+     "code": "# Crear un snapshot de 5 GB del volumen original\nsudo lvcreate -s -n snap_app -L 5G /dev/vg_datos/lv_app\n\n# Si todo sale bien tras la actualización, se elimina el snapshot:\nsudo lvremove /dev/vg_datos/snap_app\n\n# Si algo sale mal, se revierte al estado exacto previo:\nsudo lvconvert --merge /dev/vg_datos/snap_app"
+    },
+    {
+     "h": "RAID por software con mdadm"
+    },
+    {
+     "p": "Un array RAID combina múltiples discos para obtener redundancia contra fallos físicos de hardware o mayor velocidad de lectura/escritura:"
+    },
+    {
+     "list": [
+      "<b>RAID 0 (Striping)</b>: distribuye los datos entre varios discos. Máxima velocidad, pero sin tolerancia a fallos: si un disco muere, se pierde toda la información.",
+      "<b>RAID 1 (Mirroring)</b>: copia espejo exacta entre dos o más discos. Si un disco falla, el sistema sigue funcionando sin interrupción.",
+      "<b>RAID 5 (Paridad distribuida)</b>: requiere al menos 3 discos. Tolera la pérdida de un disco cualquiera reconstruyendo los datos mediante bloques de paridad.",
+      "<b>RAID 10 (1+0)</b>: combina la velocidad de RAID 0 con el espejo redundante de RAID 1. Requiere al menos 4 discos."
+     ]
+    },
+    {
+     "p": "Puedes consultar en todo momento el estado y sincronización de los arrays RAID del sistema con: <code>cat /proc/mdstat</code>."
+    },
+    {
+     "h": "Técnicas de rescate: chroot desde Live USB"
+    },
+    {
+     "steps": [
+      "Arrancar con un Live USB y abrir una terminal.",
+      "Montar la partición raíz del sistema dañado: <code>sudo mount /dev/sda2 /mnt</code>",
+      "Montar los pseudo-sistemas de archivos del sistema anfitrión: <code>sudo mount --bind /dev /mnt/dev && sudo mount --bind /proc /mnt/proc && sudo mount --bind /sys /mnt/sys</code>",
+      "Entrar en el sistema dañado: <code>sudo chroot /mnt</code>",
+      "Ahora estás dentro del sistema averiado como root: puedes corregir <code>/etc/fstab</code>, restablecer contraseñas con <code>passwd</code> o reinstalar el cargador de arranque con <code>update-grub</code>."
+     ]
+    },
+    {
+     "key": "Para salir del entorno chroot simplemente escribe <code>exit</code>, desmonta las particiones con <code>sudo umount -R /mnt</code> y reinicia normalmente el equipo."
+    }
+   ]
+  }
  ]
 }
-]}

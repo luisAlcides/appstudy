@@ -1,236 +1,491 @@
 {
-"deck": "automotriz",
-"chapters": [
-{
- "level": 1, "minutes": 10, "tags": "motor,mantenimiento,eléctrico,llantas",
- "title": "Cómo funciona un motor y qué necesita",
- "subtitle": "Los cuatro tiempos, los fluidos, el tablero y el mantenimiento que evita el 80% de las averías.",
- "body": [
-  {"p": "Un motor de combustión convierte una explosión controlada en giro. Todo lo que le hacemos —aceite, filtros, bujías, refrigerante— existe para que esa explosión ocurra miles de veces por minuto sin destruir la máquina que la contiene."},
-
-  {"h": "Los cuatro tiempos"},
-  {"steps": [
-    "<b>Admisión</b>: el pistón baja y entra aire (o mezcla de aire y gasolina).",
-    "<b>Compresión</b>: el pistón sube y comprime. Comprimir calienta: es física, y es la clave del diésel.",
-    "<b>Explosión</b>: salta la chispa en gasolina, o se inyecta el diésel sobre aire ya muy caliente. El pistón es empujado hacia abajo. <b>Este es el único tiempo que genera potencia.</b>",
-    "<b>Escape</b>: el pistón sube y expulsa los gases quemados."
-  ]},
-  {"p": "El ciclo completo toma <b>dos vueltas del cigüeñal</b>. En un motor de cuatro cilindros, los tiempos están desfasados para que siempre haya uno empujando: por eso el giro es continuo y no a golpes."},
-  {"h": "Gasolina y diésel: la diferencia esencial"},
-  {"code": "GASOLINA   comprime mezcla aire+combustible (~10:1)\n           y la enciende con CHISPA (bujía)\n\nDIÉSEL     comprime SOLO AIRE, mucho más (~18:1)\n           el aire llega a 700-900 °C y enciende el\n           combustible al inyectarlo. Sin bujía de encendido."},
-  {"p": "De ahí salen las diferencias prácticas: el diésel tiene más torque y mejor rendimiento, la gasolina más revoluciones y funcionamiento más suave. Y el diésel necesita <b>bujías de precalentamiento</b> —que no dan chispa, solo calientan— para arrancar en frío."},
-
-  {"h": "El aceite: qué significan los números"},
-  {"code": "5W-30\n│  │\n│  └── viscosidad a temperatura de trabajo (100 °C)\n└───── viscosidad en frío (W = Winter)\n\nMenor número antes de la W = más fluido al arrancar en frío"},
-  {"p": "La mayor parte del desgaste de un motor ocurre en los primeros segundos tras el arranque, cuando el aceite aún no ha llegado a todas partes. Usar un aceite más grueso del especificado retrasa esa llegada; usar uno más delgado no sostiene la película en caliente. El manual no es una sugerencia."},
-  {"h": "Cómo se mide bien"},
-  {"steps": [
-    "Motor <b>apagado</b>, vehículo en plano.",
-    "Espera <b>5 a 10 minutos</b> después de apagarlo, para que el aceite escurra al cárter.",
-    "Saca la varilla, límpiala, métela hasta el fondo y vuelve a sacarla. La primera lectura nunca es fiable.",
-    "El nivel debe estar entre las marcas. Ni al mínimo ni por encima del máximo."
-  ]},
-  {"warn": "<b>Sobrellenar es tan malo como faltar.</b> Con exceso, el cigüeñal bate el aceite, lo llena de aire y la bomba empieza a mandar espuma en vez de aceite: pierdes presión justo cuando crees que estás sobrado."},
-
-  {"h": "Los otros fluidos"},
-  {"list": [
-    "<b>Refrigerante</b> — no es agua: lleva anticongelante y anticorrosivos. Se revisa en el depósito de expansión y se cambia cada 2-5 años porque sus aditivos se agotan.",
-    "<b>Líquido de frenos</b> — <b>higroscópico</b>: absorbe humedad del aire. Con agua disuelta hierve antes, y el vapor sí se comprime: en una bajada larga el pedal se va al fondo. Por eso se cambia <b>cada 2 años</b> aunque se vea limpio.",
-    "<b>ATF (caja automática)</b> — transmite fuerza y refrigera. Si huele a tostado y se ve marrón oscuro, está quemado.",
-    "<b>Dirección hidráulica</b> — nivel bajo produce ruido de bomba al girar a tope."
-  ]},
-  {"warn": "Nunca abras el radiador en caliente. El sistema está presurizado, lo que eleva el punto de ebullición por encima de 100 °C. Al abrir, la presión cae de golpe, el refrigerante hierve instantáneamente y sale disparado."},
-
-  {"h": "El tablero: los colores importan"},
-  {"list": [
-    "<b>Roja</b> — detente ahora. Presión de aceite, temperatura, freno, batería.",
-    "<b>Ámbar</b> — revisa pronto, puedes circular con cuidado. Check engine, ABS, control de tracción.",
-    "<b>Verde o azul</b> — solo informa."
-  ]},
-  {"key": "Dos casos que hay que saber: la luz de <b>presión de aceite</b> encendida significa <b>detente de inmediato</b>, no «llega al taller» — sin presión, el motor se destruye en minutos. Y el <b>Check Engine parpadeando</b> (no fijo) indica fallo de combustión en curso: el combustible sin quemar está pasando al catalizador y puede destruirlo en pocos kilómetros."},
-
-  {"h": "La distribución"},
-  {"p": "La correa o cadena de distribución sincroniza el cigüeñal con el árbol de levas, es decir, los pistones con las válvulas. Se cambia típicamente entre <b>60.000 y 150.000 km</b> según el fabricante."},
-  {"p": "En un motor <b>de interferencia</b> —la mayoría hoy— si la correa se rompe, las válvulas abiertas chocan contra los pistones que suben. El resultado es culata, válvulas y pistones destruidos: una reparación que multiplica por diez el costo del mantenimiento que no se hizo."},
-
-  {"h": "Batería y carga"},
-  {"code": "Motor apagado, en reposo:   12.6 V  = 100%\n                            12.2 V  ≈ 50%\n                            <12.0 V = descargada\n\nMotor encendido:            13.8 - 14.4 V  = alternador cargando bien\n                            >15 V = regulador dañado (hervirá la batería)"},
-  {"p": "Si al girar la llave solo escuchas <b>clic-clic rápido</b>, es batería sin fuerza o mala conexión: revisa bornes (corrosión y apriete) y la masa al chasis antes de cambiar nada. Un solo clic fuerte apunta más al solenoide del motor de arranque."},
-
-  {"h": "Llantas: el desgaste te habla"},
-  {"list": [
-    "<b>Ambos bordes gastados</b> — presión baja.",
-    "<b>Centro gastado</b> — presión alta.",
-    "<b>Un solo borde</b> — alineación (camber o toe).",
-    "<b>Parches o dientes de sierra</b> — amortiguadores vencidos o desbalanceo."
-  ]},
-  {"p": "La presión se mide <b>en frío</b> y según la etiqueta del marco de la puerta, no según el número grabado en el flanco de la llanta —ese es el máximo que soporta, no el recomendado. Profundidad mínima legal: <b>1,6 mm</b>."}
- ]
-},
-{
- "level": 2, "minutes": 11, "tags": "diagnóstico,electrónica,frenos,suspensión",
- "title": "Diagnóstico: leer los síntomas",
- "subtitle": "Los tres elementos del arranque, qué dicen los códigos OBD2, los fuel trims y cómo interpretar ruidos y vibraciones.",
- "body": [
-  {"p": "Diagnosticar es reducir posibilidades con pruebas, no probar piezas hasta acertar. Cada síntoma tiene una lógica que acota el problema a un sistema antes de tocar una sola herramienta."},
-
-  {"h": "Gira pero no arranca: los tres elementos"},
-  {"p": "Si el motor <b>gira</b>, ya sabes algo importante: la batería y el motor de arranque funcionan. Un motor necesita exactamente tres cosas, y falta una de ellas:"},
-  {"steps": [
-    "<b>Chispa</b> (o calor, en diésel): bujías, bobinas, sensor de posición de cigüeñal, inmovilizador. Se comprueba con una bujía a masa o con un probador.",
-    "<b>Combustible</b>: bomba, filtro, presión en el riel, inyectores. Escucha el zumbido de la bomba al dar contacto; mide la presión.",
-    "<b>Compresión</b>: si la correa de distribución se rompió, el motor gira sospechosamente suave y rápido. Se confirma con prueba de compresión."
-  ]},
-  {"key": "Ese orden ahorra horas. Determinar cuál de los tres falta toma quince minutos y descarta el 90% de las causas posibles."},
-
-  {"h": "Códigos OBD2: qué son y qué no son"},
-  {"code": "P 0 3 0 1\n│ │ │ └┴── falla específica (01 = cilindro 1)\n│ │ └───── subsistema (3 = encendido)\n│ └─────── 0 genérico, 1 específico del fabricante\n└───────── P powertrain, B carrocería, C chasis, U red"},
-  {"warn": "Un código <b>no es un diagnóstico</b>: es el síntoma que detectó la computadora. P0171 «mezcla pobre» no significa cambiar el sensor de oxígeno; significa que la ECU está agregando combustible porque algo hace entrar aire de más o combustible de menos."},
-  {"p": "Códigos frecuentes y su lectura correcta: <b>P0300</b> fallo de encendido aleatorio (bujías, bobinas, fuga de vacío, presión de combustible, compresión); <b>P0301-P0304</b> el mismo fallo pero localizado en un cilindro, lo que permite intercambiar bobina y bujía con otro cilindro para ver si el código se mueve; <b>P0420</b> eficiencia del catalizador baja."},
-
-  {"h": "Los fuel trims: el dato que casi nadie mira"},
-  {"p": "Son la corrección de combustible que aplica la ECU respecto a lo que calculó. Están en el escáner, en datos en vivo, y son la mejor pista de todo el sistema:"},
-  {"list": [
-    "<b>STFT</b> (corto plazo) — corrección instantánea, oscila constantemente.",
-    "<b>LTFT</b> (largo plazo) — el aprendizaje acumulado. Este es el que importa.",
-    "<b>LTFT positivo</b> (+10% o más) — está <b>agregando</b> combustible: mezcla pobre. Fuga de vacío, MAF sucio, presión de combustible baja, inyectores obstruidos.",
-    "<b>LTFT negativo</b> — está <b>quitando</b>: mezcla rica. Inyector goteando, presión alta, filtro de aire tapado, sensor de temperatura engañando a la ECU."
-  ]},
-  {"note": "Truco de diagnóstico: si el LTFT es muy positivo en ralentí pero se normaliza a alta velocidad, sospecha <b>fuga de vacío</b> —a ralentí el vacío es alto y la fuga pesa más. Si es positivo solo a alta carga, sospecha <b>suministro de combustible</b>."},
-
-  {"h": "Fugas de vacío"},
-  {"p": "Aire que entra al motor sin pasar por el medidor de flujo. La ECU no lo cuenta, así que la mezcla queda pobre: ralentí inestable, tirones, P0171."},
-  {"steps": [
-    "Escucha el silbido característico con el motor en ralentí.",
-    "Rocía limpiador de carburador o propano cerca de las uniones y mangueras: si las rpm <b>cambian</b>, encontraste la fuga.",
-    "La forma profesional: máquina de humo, que presuriza la admisión y muestra por dónde sale.",
-    "Puntos habituales: manguera del servofreno, PCV, empaque del múltiple, mangueritas resecas, sellos del cuerpo de aceleración."
-  ]},
-
-  {"h": "Los sensores que más fallan"},
-  {"list": [
-    "<b>MAF</b> (caudal de aire) — se ensucia y reporta menos aire del real: mezcla pobre, pérdida de potencia. Se limpia <b>solo con limpiador específico de MAF</b>, sin tocar el hilo caliente.",
-    "<b>Sonda lambda / O2</b> — mide oxígeno en el escape para ajustar la mezcla en tiempo real. Una vaga dispara el consumo y daña el catalizador.",
-    "<b>Sensor de posición de cigüeñal (CKP)</b> — si falla, el motor simplemente no arranca o se apaga en caliente.",
-    "<b>Sensor de temperatura de refrigerante</b> — engaña a la ECU: si reporta frío permanente, enriquece la mezcla y sube el consumo."
-  ]},
-
-  {"h": "Ruidos: cada uno tiene su firma"},
-  {"list": [
-    "<b>Chirrido agudo al frenar</b> — testigo metálico de las pastillas: quedan pocos milímetros.",
-    "<b>Chirrido al arrancar en frío que desaparece</b> — correa de accesorios floja o vidriada.",
-    "<b>Golpeteo metálico que sube con las rpm</b> — detonación (mala gasolina, avance excesivo, carbón) o, más grave, cojinetes de biela.",
-    "<b>Tictac rítmico arriba del motor</b> — juego de válvulas o taqués hidráulicos con aceite sucio.",
-    "<b>Zumbido que cambia al girar</b> — rodamiento de rueda del lado que se descarga.",
-    "<b>Clac-clac repetitivo al girar a tope</b> — juntas homocinéticas.",
-    "<b>Traqueteo seco al pasar baches</b> — bujes de barra estabilizadora, terminales o rótulas."
-  ]},
-
-  {"h": "Vibraciones: el momento define la causa"},
-  {"code": "Vibra SOLO al frenar          → discos alabeados o espesor desigual\nVibra a cierta VELOCIDAD      → balanceo de llantas\nVibra al ACELERAR             → soportes de motor, homocinéticas\nVibra en RALENTÍ y se va      → soportes de motor, fallo de encendido"},
-  {"p": "Y si el vehículo <b>tira hacia un lado al frenar</b>, no es alineación: es desequilibrio entre lados —caliper trabado, pistón sucio o manguera flexible colapsada que actúa como válvula de retención. Tirar <b>siempre</b>, en cambio, sí apunta a alineación o presiones desiguales."},
-
-  {"h": "Frenos: pedal esponjoso o que se hunde"},
-  {"list": [
-    "<b>Esponjoso</b> — aire en el circuito. Purgar del cilindro maestro hacia la rueda más lejana, sin dejar que el depósito se vacíe.",
-    "<b>Se hunde lentamente con presión constante</b> — el cilindro maestro tiene fuga interna, aunque no se vea líquido por fuera.",
-    "<b>Baja pero se siente firme al bombear</b> — aire o líquido con humedad.",
-    "<b>Duro y sin asistencia</b> — servofreno o su manguera de vacío."
-  ]},
-  {"key": "En vehículos con ABS, purgar puede requerir activar el módulo con escáner para mover las válvulas internas. Purgar «a la antigua» deja aire atrapado en el bloque hidráulico."}
- ]
-},
-{
- "level": 3, "minutes": 9, "tags": "diagnóstico,electrónica,motor,seguridad",
- "title": "Electrónica, common rail e híbridos",
- "subtitle": "Caída de tensión, CAN bus, osciloscopio y la seguridad no negociable de la alta tensión.",
- "body": [
-  {"p": "El diagnóstico moderno se juega en tres frentes que no existían hace treinta años: redes de comunicación, inyección a altísima presión y sistemas de alta tensión. Las herramientas cambian, pero la lógica —medir en vez de suponer— es la misma."},
-
-  {"h": "La prueba que revela lo que la continuidad esconde"},
-  {"p": "Un cable puede dar continuidad perfecta con el multímetro y aun así ser incapaz de alimentar un consumidor. La corrosión y los contactos flojos solo se manifiestan <b>bajo carga</b>."},
-  {"code": "PRUEBA DE CAÍDA DE TENSIÓN (circuito TRABAJANDO)\n\nMide entre los dos extremos del mismo cable:\n  cable de alimentación  →  máximo 0.5 V\n  masa / tierra          →  máximo 0.2 V\n\nMás que eso = resistencia excesiva en ese tramo"},
-  {"key": "Esta prueba encuentra en minutos lo que una revisión visual no ve nunca: masas corroídas bajo el chasis, conectores con pines flojos, empalmes viejos. Es la prueba eléctrica más subutilizada del taller."},
-
-  {"h": "CAN bus"},
-  {"p": "Los módulos del vehículo se comunican por dos cables trenzados —CAN-H y CAN-L— con resistencias terminadoras de 120 Ω en cada extremo de la red."},
-  {"code": "Con todo apagado, mide resistencia entre CAN-H y CAN-L:\n\n  ~60 Ω    → correcto (dos de 120 Ω en paralelo)\n  ~120 Ω   → falta una terminación o hay un tramo cortado\n  infinito → bus abierto\n  ~0 Ω     → cortocircuito entre líneas"},
-  {"p": "Síntoma típico de bus caído: <b>muchos códigos de comunicación a la vez</b> y varios testigos encendidos simultáneamente. Cuando el escáner arroja ocho códigos en módulos distintos, casi nunca son ocho fallas: es una causa común —masa corroída, batería débil, alimentación compartida o el propio bus."},
-  {"warn": "Antes de cualquier diagnóstico electrónico, verifica el estado de la batería y del sistema de carga. Una batería débil genera códigos fantasma en media docena de módulos y hace perder días de trabajo."},
-
-  {"h": "El osciloscopio"},
-  {"p": "El multímetro te da un promedio; el osciloscopio te muestra la <b>forma de la señal en el tiempo</b>. Esa diferencia es decisiva en componentes que trabajan en milisegundos."},
-  {"list": [
-    "<b>Inyector</b>: se ve el pico de apertura, la meseta de sostenimiento y un pequeño «hombro» que confirma que la aguja realmente se movió. Un inyector puede recibir la señal correcta y no abrir.",
-    "<b>Bobina</b>: la <i>línea de quemado</i> —su altura y duración— revela bujía gastada, mezcla pobre o compresión baja en ese cilindro concreto.",
-    "<b>Sensores de cigüeñal y árbol de levas</b>: permite ver la sincronización real entre ambos, y detectar una cadena de distribución saltada un diente.",
-    "<b>Prueba de compresión relativa</b>: midiendo la corriente del motor de arranque se compara la compresión de todos los cilindros sin desarmar nada."
-  ]},
-
-  {"h": "Prueba de fugas: mejor que la de compresión"},
-  {"p": "La prueba de compresión dice <b>que</b> hay pérdida. La de fugas (leak-down) dice <b>por dónde</b>. Se presuriza el cilindro con las válvulas cerradas y se escucha:"},
-  {"code": "Aire por el ESCAPE          → válvula de escape\nAire por la ADMISIÓN        → válvula de admisión\nAire por el LLENADO ACEITE  → anillos / cilindro rayado\nBURBUJAS en el radiador     → empaque de culata o culata fisurada"},
-  {"p": "Y para confirmar un empaque de culata sin desarmar: prueba de <b>gases de combustión en el refrigerante</b>, con el reactivo químico que cambia de color. Combinada con aceite «achocolatado» y humo blanco dulce persistente, el diagnóstico queda cerrado."},
-
-  {"h": "Common rail: por qué es tan sensible"},
-  {"p": "Trabaja entre <b>1.500 y 2.500 bar</b> con tolerancias de micras en los inyectores. Y el propio diésel es el <b>lubricante</b> de la bomba de alta presión."},
-  {"list": [
-    "Agua en el combustible destruye la bomba por falta de lubricación. El <b>separador de agua se drena religiosamente</b>.",
-    "Las partículas metálicas que genera una bomba dañada viajan por el riel y arruinan todos los inyectores: una falla se convierte en una reparación completa.",
-    "Nunca se arranca con el filtro sin cebar; nunca se afloja nada aguas abajo de la bomba de alta.",
-    "Los inyectores tienen <b>códigos de calibración</b> que deben programarse en la ECU al reemplazarlos. Sin eso, el motor funciona mal aunque las piezas sean nuevas."
-  ]},
-
-  {"h": "Postratamiento: DPF, EGR y SCR"},
-  {"p": "<b>EGR</b> recircula gases de escape para bajar la temperatura de combustión y con ella los NOx. <b>DPF</b> atrapa el hollín y lo quema periódicamente en una <i>regeneración</i> a alta temperatura. <b>SCR</b> inyecta urea (AdBlue/DEF) que convierte los NOx en nitrógeno y agua."},
-  {"warn": "Muchos trayectos cortos y mucho ralentí impiden que el DPF alcance la temperatura de regeneración: se satura y termina en modo de potencia reducida. No es una falla del filtro, es un patrón de uso incompatible con el diseño."},
-
-  {"h": "Distribución variable (VVT)"},
-  {"p": "Varía el momento de apertura de las válvulas según el régimen: más torque abajo, más potencia arriba. El actuador se mueve con <b>presión de aceite</b> gobernada por una solenoide."},
-  {"p": "Por eso los códigos P0011/P0014 con ralentí áspero y tictac al arrancar suelen resolverse con un cambio de aceite del grado correcto y la limpieza de la solenoide y su filtro-malla, no cambiando el actuador. El VVT es el componente que más castiga el mantenimiento negligente del aceite."},
-
-  {"h": "Alta tensión: la regla que no se negocia"},
-  {"p": "Los sistemas híbridos y eléctricos trabajan entre <b>200 y 800 V de corriente continua</b>. La corriente continua es especialmente peligrosa porque, a diferencia de la alterna, <b>no cruza por cero</b>: no suelta."},
-  {"steps": [
-    "Los cables de alta tensión son <b>naranjas</b>. Nunca se cortan, se pinchan ni se manipulan sin desenergizar.",
-    "Desconectar el <b>service plug</b> o interruptor de servicio, y guardarlo contigo para que nadie lo reconecte.",
-    "<b>Esperar el tiempo que indique el fabricante</b> —típicamente 5 a 10 minutos— a que se descarguen los condensadores del inversor.",
-    "Verificar ausencia de tensión con guantes dieléctricos vigentes y multímetro categoría III o superior.",
-    "Trabajar con la herramienta aislada correspondiente y nunca en solitario."
-  ]},
-  {"key": "Ninguna reparación, por urgente que sea, justifica saltarse estos pasos. Es el único procedimiento de este curso donde el error no se paga con dinero."}
- ]
-},
-{
- "level": 3, "minutes": 10, "tags": "diagnóstico,motor,electrónica,eléctrico",
- "title": "Gestión del motor: mezcla, aire y adaptaciones",
- "subtitle": "Fuel trims, MAF y MAP, sondas de banda ancha, detonación, turbo VGT y por qué cambiar la pieza no siempre termina el trabajo.",
- "body": [
-  {"p": "El escáner no diagnostica: describe. Los códigos dicen qué se salió de rango, no por qué. Lo que de verdad diagnostica son los <b>datos en vivo</b> comparados con lo que deberían valer — y para eso hay que saberse cuatro números."},
-  {"h": "Los ajustes de combustible cuentan la historia"},
-  {"p": "Los <i>fuel trims</i> son la corrección que la ECU aplica sobre su cálculo base. <b>STFT</b> es la corrección inmediata; <b>LTFT</b>, lo que ha ido aprendiendo. Positivos = está <b>añadiendo</b> gasolina porque la mezcla le sale pobre; negativos = está quitando porque sale rica."},
-  {"key": "Sumados por encima del ±10 % ya es falla. Y el patrón importa: si empeora <b>en ralentí</b> y se corrige a alta carga, es entrada de aire sin medir (fuga de vacío). Si empeora <b>a alta carga</b>, es falta de caudal: filtro, bomba o inyectores."},
-  {"p": "Negativos grandes (mezcla rica) apuntan a un inyector que gotea, presión de combustible alta o un MAF sucio que lee de menos."},
-  {"h": "MAF y MAP: los números que debes reconocer"},
-  {"p": "El <b>MAF</b> mide la masa de aire que entra: en ralentí, un motor de 2.0 sano ronda 3–5 g/s; a plena carga, aproximadamente la cilindrada en litros por 55. El <b>MAP</b> mide presión en el múltiple: 20–35 kPa en ralentí (vacío alto) y la presión atmosférica, unos 100 kPa, con el motor parado y contacto puesto."},
-  {"p": "Si el MAP en ralentí marca casi atmosférica, hay fuga de vacío o la mariposa no cierra. Comparar el valor real con el esperado vale más que cualquier código guardado."},
-  {"h": "La sonda lambda, según cuál sea"},
-  {"p": "La <b>de conmutación</b> (1–4 hilos) solo dice rica o pobre: su señal oscila entre 0,1 y 0,9 V varias veces por segundo, y si se queda plana está muerta. La <b>de banda ancha</b> (5–6 hilos) mide el valor real y no se lee en voltios sino como corriente de bombeo; el escáner la muestra como λ o AFR."},
-  {"math": "\\lambda = \\frac{\\text{AFR real}}{14{,}7}"},
-  {"warn": "Juzgar una sonda de banda ancha con el multímetro como si fuera de conmutación es el error que hace cambiar sondas buenas. λ 1,00 es la mezcla justa; 0,90 rica; 1,10 pobre."},
-  {"h": "Cuando el problema es la combustión"},
-  {"p": "La <b>detonación</b> es autoencendido <b>después</b> de la chispa: un segundo frente de llama que choca con el de la bujía. Suena a canicas, el sensor de picado la detecta y la ECU retrasa el avance. La <b>preignición</b> es lo contrario y mucho peor: algo caliente enciende la mezcla <b>antes</b> de la chispa. No hay sensor que la salve y perfora un pistón en minutos."},
-  {"p": "Causas de detonación, por orden de frecuencia: octanaje bajo, avance excesivo, temperatura alta, mezcla pobre y carbonilla acumulada."},
-  {"h": "Turbo y filtro de partículas"},
-  {"p": "Un turbo de <b>geometría variable</b> mueve unos álabes para cambiar el ángulo de entrada a la turbina. Cuando se pegan con carbonilla, la falta de fuerza aparece arriba (quedan cerrados) o abajo (quedan abiertos), casi siempre con código de sobrepresión o de presión insuficiente. Y el consejo de siempre sigue siendo cierto: un minuto al ralentí tras un tramo exigente, o el aceite se carboniza en el eje."},
-  {"p": "El <b>DPF</b> se limpia quemando el hollín a más de 550 °C, y para eso necesita conducción sostenida. En ciudad no regenera: se satura y entra en modo taller."},
-  {"steps": ["No apagues el motor en mitad de una regeneración: el aceite se diluye con gasóleo sin quemar.", "Usa aceite <i>low SAPS</i>: las cenizas de otro aceite no se queman y tapan el filtro para siempre.", "No lo vacíes. Además de ilegal, el motor sigue con la falla que llenó el filtro antes de tiempo.", "Sí: veinte minutos a régimen medio cuando avise, y buscar el porqué — EGR, inyectores o muchos arranques cortos."]},
-  {"h": "Eléctrica fina"},
-  {"p": "Para un consumo parásito, multímetro en amperios en serie con el negativo (o pinza de mA) y, sobre todo, <b>paciencia</b>: los módulos tardan entre 20 y 45 minutos en dormirse. Dormido, lo normal son 20–50 mA. Abrir una puerta despierta todo y hay que volver a empezar."},
-  {"p": "Y al cambiar la batería en un vehículo con gestión de energía hay que <b>registrarla</b> en el módulo: el sistema lleva la cuenta del envejecimiento para decidir la tensión de carga, y si cree que sigue montada la vieja, sobrecarga la nueva."},
-  {"h": "Cambiar la pieza no siempre termina el trabajo"},
-  {"p": "Muchas piezas necesitan que la ECU aprenda o reciba su calibración: el <b>cuerpo de aceleración</b> (tope y ralentí), los <b>inyectores diésel</b> (grabar el código IMA/IQA de cada uno), el <b>volante bimasa o el cigüeñal</b> (aprendizaje de irregularidad para el diagnóstico de fallo de encendido), el <b>turbo VGT y la EGR</b> (puesta a cero de posición)."},
-  {"note": "Borrar códigos no es adaptar: son menús distintos del escáner. Un motor que va peor después de la reparación suele ser una adaptación pendiente, no una pieza mala."}
+ "deck": "automotriz",
+ "chapters": [
+  {
+   "level": 1,
+   "minutes": 10,
+   "tags": "motor,mantenimiento,lubricación,seguridad",
+   "title": "El motor de combustión y el mantenimiento preventivo",
+   "subtitle": "Ciclo de cuatro tiempos, aceites multígrado, fluidos, tablero, distribución y neumáticos.",
+   "body": [
+    {
+     "p": "Un motor de combustión interna transforma la energía química liberada por explosiones microscópicas controladas en movimiento rotativo continuo. Los mantenimientos preventivos —aceite, filtros, refrigerante, bujías— existen para garantizar que este ciclo térmico se repita miles de veces por minuto sin desgastar prematuramente los componentes metálicos."
+    },
+    {
+     "h": "El ciclo de cuatro tiempos en 720° de cigüeñal"
+    },
+    {
+     "steps": [
+      "<b>1. Admisión ($0^\\circ - 180^\\circ$)</b>: la válvula de admisión se abre, el pistón desciende desde el Punto Muerto Superior (PMS) al Punto Muerto Inferior (PMI) y la succión aspira la mezcla de aire y combustible (en inyección indirecta) o aire puro (en inyección directa).",
+      "<b>2. Compresión ($180^\\circ - 360^\\circ$)</b>: ambas válvulas permanecen herméticamente cerradas, el pistón asciende comprimiendo la mezcla en la cámara de combustión. Al comprimirse, la temperatura y la presión aumentan drásticamente.",
+      "<b>3. Expansión / Explosión ($360^\\circ - 540^\\circ$)</b>: salta la chispa en la bujía (gasolina) o se inyecta el diésel en el aire caliente. La violenta expansión de los gases empuja el pistón hacia abajo con fuerza. <b>Es el único tiempo del ciclo que genera trabajo y potencia mecánica.</b>",
+      "<b>4. Escape ($540^\\circ - 720^\\circ$)</b>: la válvula de escape se abre, el pistón asciende nuevamente y expulsa los gases quemados hacia el múltiple de escape."
+     ]
+    },
+    {
+     "p": "El ciclo completo requiere <b>dos vueltas completas de cigüeñal ($720^\\circ$) por cada vuelta del árbol de levas ($360^\\circ$)</b>. En un motor de 4 cilindros, los tiempos de trabajo están desfasados $180^\\circ$ entre sí para garantizar un par de giro suave y continuo."
+    },
+    {
+     "h": "Gasolina vs. Diésel: diferencias de funcionamiento"
+    },
+    {
+     "code": "MOTOR GASOLINA (Ciclo Otto)     ──>  Comprime mezcla aire+gasolina (~10:1 a 12:1)\n                                     Encendido provocado por CHISPA de bujía.\n\nMOTOR DIÉSEL (Ciclo Diésel)     ──>  Comprime AIRE PURO a alta relación (~16:1 a 22:1)\n                                     El aire alcanza 700-900 °C y autoenciende el gasóleo inyectado.\n                                     Bujías de precalentamiento (calentadores) solo para arranque en frío."
+    },
+    {
+     "h": "El aceite de motor: viscosidad SAE y normas"
+    },
+    {
+     "code": "5W - 30\n│    │\n│    └── Viscosidad cinemática a temperatura de operación (100 °C)\n└─────── Viscosidad en frío (W = Winter / Invierno)\n\nMenor número antes de la W = lubricación más rápida al arrancar en frío."
+    },
+    {
+     "p": "El 75% del desgaste del motor ocurre durante los primeros 30 segundos tras el arranque en frío, antes de que la bomba logre presurizar el circuito. Utilizar un aceite más viscoso del indicado en el manual retarda la llegada de aceite a los cojinetes de biela y al árbol de levas."
+    },
+    {
+     "h": "Procedimiento de medición de aceite"
+    },
+    {
+     "steps": [
+      "Estaciona en terreno horizontal y apaga el motor.",
+      "Espera de <b>5 a 10 minutos</b> con motor apagado para que todo el aceite de la culata escurra al cárter.",
+      "Extrae la varilla, límpiala con un paño limpio, insértala hasta el tope y retírala nuevamente.",
+      "El nivel debe situarse estrictamente entre las marcas MIN y MAX."
+     ]
+    },
+    {
+     "warn": "<b>El sobrellenado es tan dañino como la falta de aceite</b>. Si el nivel supera el máximo, los contrapesos del cigüeñal golpean el aceite en el cárter batiéndolo, lo que produce espuma. La bomba aspira burbujas de aire y la presión de lubricación se desploma, causando fundición de cojinetes."
+    },
+    {
+     "h": "Los fluidos críticos del vehículo"
+    },
+    {
+     "list": [
+      "<b>Líquido de frenos (DOT 3, DOT 4, DOT 5.1)</b>: es un fluido sintético altamente <b>higroscópico</b> (absorbe humedad del ambiente). Con el paso del tiempo, el agua absorbida rebaja su punto de ebullición: en frenadas prolongadas, el agua hierve formando burbujas de vapor compresibles y el pedal se va al fondo sin frenar. <b>Debe reemplazarse cada 2 años</b>.",
+      "<b>Refrigerante / Anticongelante</b>: mezcla de agua destilada y etilenglicol (30% a 50%) con aditivos anticorrosivos (OAT/HOAT). Nunca utilices agua de grifo: los minerales calcifican el radiador y oxidan la bomba de agua.",
+      "<b>Líquido de transmisión (ATF / CVT / Valvulina)</b>: refrigera y transmite presión hidráulica en cajas automáticas o lubrica engranajes en cajas manuales."
+     ]
+    },
+    {
+     "warn": "<b>Nunca abras la tapa del radiador con el motor caliente</b>. El circuito trabaja presurizado a ~1 bar para elevar el punto de ebullición por encima de 115 °C. Al abrir la tapa, la presión cae instantáneamente, el líquido hierve de golpe y sale disparado como géiser provocando quemaduras gravísimas."
+    },
+    {
+     "h": "El tablero y los colores de advertencia"
+    },
+    {
+     "list": [
+      "<b>Testigos ROJOS (Peligro crítico)</b>: parada inmediata obligatoria. Presión de aceite (aceitera roja), temperatura de refrigerante, sistema de frenos y fallo de carga de alternador.",
+      "<b>Testigos ÁMBAR / AMARILLO (Advertencia)</b>: revisión pronta en taller. Check Engine, ABS, control de estabilidad (ESP), presión de neumáticos.",
+      "<b>Check Engine parpadeando</b>: fallo grave de encendido (*misfire*) en curso. El combustible crudo pasa al escape y quemará el catalizador en pocos kilómetros. Reduce velocidad y detente de inmediato."
+     ]
+    },
+    {
+     "h": "Distribución: correa vs. cadena y motores de interferencia"
+    },
+    {
+     "p": "La distribución sincroniza el giro del cigüeñal con los árboles de levas para que las válvulas abran y cierren en el instante exacto. En un <b>motor de interferencia</b> (la gran mayoría), el espacio que ocupan las válvulas abiertas coincide con la carrera del pistón en su PMS:"
+    },
+    {
+     "key": "Si la correa de distribución se rompe en marcha, los pistones chocan a miles de RPM contra las válvulas abiertas: válvulas dobladas, árbol de levas partido y culata destruida. Respeta el intervalo de cambio del fabricante (cada 60.000 a 120.000 km o 5 años)."
+    },
+    {
+     "h": "Lectura del desgaste de neumáticos"
+    },
+    {
+     "list": [
+      "<b>Desgaste en ambos bordes exteriores</b>: presión de inflado baja.",
+      "<b>Desgaste en el centro de la banda</b>: presión de inflado excesiva.",
+      "<b>Desgaste en un solo hombro interior o exterior</b>: desalineación de geometría (caída / cámber o convergencia / toe errónea).",
+      "<b>Desgaste en parches o dientes de sierra</b>: amortiguadores fatigados o ruedas desbalanceadas. Límite legal mínimo de labrado: <b>1.6 mm</b>."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 11,
+   "tags": "frenos,suspensión,dirección,transmisión",
+   "title": "Frenos, suspensión, dirección y transmisión",
+   "subtitle": "Cilindro maestro, servofreno, ABS, amortiguadores, geometría de dirección y cajas de cambio.",
+   "body": [
+    {
+     "p": "La dinámica vehicular integra cuatro sistemas que garantizan la maniobrabilidad, el confort y la desaceleración segura del vehículo sobre cualquier tipo de calzada."
+    },
+    {
+     "h": "El sistema de frenos hidráulico y el servofreno"
+    },
+    {
+     "p": "Al pisar el pedal de freno, la fuerza del pie se multiplica neumáticamente mediante el <b>servofreno de vacío (Booster)</b>, que utiliza el vacío del múltiple de admisión (o de una bomba de vacío mecánica en motores diésel) para empujar el pistón del <b>cilindro maestro tándem</b>."
+    },
+    {
+     "list": [
+      "<b>Frenos de disco</b>: el líquido a presión empuja los pistones de la pinza (caliper), comprimiendo las pastillas de freno contra las caras del disco ventilado.",
+      "<b>Frenos de tambor</b>: dos zapatas curvadas con forro de fricción se expanden desde el interior contra la pista del tambor mediante un bombín hidráulico.",
+      "<b>Sistema antibloqueo ABS / ESP</b>: sensores magnéticos de velocidad leen el giro de cada rueda. Si una rueda amenaza con bloquearse (patinar) durante una frenada de pánico, el módulo electrohidráulico modula la presión abriendo y cerrando microválvulas hasta 20 veces por segundo, permitiendo al conductor mantener el control de la dirección mientras frena a fondo."
+     ]
+    },
+    {
+     "h": "Diagnóstico del pedal de freno"
+    },
+    {
+     "list": [
+      "<b>Pedal esponjoso y elástico</b>: presencia de burbujas de <b>aire en el circuito hidráulico</b>. Requiere purgado completo desde la rueda más lejana al cilindro maestro.",
+      "<b>Pedal que se hunde lentamente al mantener presión constante</b>: fuga interna en las juntas de goma del <b>cilindro maestro</b> (el líquido recircula internamente entre cámaras).",
+      "<b>Pedal excesivamente duro sin asistencia</b>: diafragma del servofreno roto, válvula antirretorno dañada o fuga en la manguera de vacío."
+     ]
+    },
+    {
+     "h": "Suspensión: amortiguadores, muelles y estabilidad"
+    },
+    {
+     "p": "El muelle helicoidal soporta el peso y absorbe los desniveles; el <b>amortiguador hidráulico</b> disipa la energía cinética transformándola en calor mediante el paso de aceite por válvulas calibradas, evitando que la carrocería quede rebotando sin control."
+    },
+    {
+     "list": [
+      "<b>Suspensión McPherson</b>: conjunto compacto que integra amortiguador, muelle y pivote de dirección en un solo puntal estructural delantero.",
+      "<b>Suspensión multibrazo (Multi-Link)</b>: brazos independientes articulados que optimizan la huella de contacto del neumático en curvas exigentes.",
+      "<b>Barra estabilizadora</b>: barra de acero elástico conectada a ambos lados por bieletas que transfiere carga para minimizar el balanceo lateral en curvas."
+     ]
+    },
+    {
+     "h": "Geometría de dirección y alineación"
+    },
+    {
+     "steps": [
+      "<b>Cámber (Ángulo de caída)</b>: inclinación de la rueda respecto a la vertical vista de frente. Negativo (ruedas abiertas de abajo) mejora el agarre en curvas; excesivo desgasta el hombro interior.",
+      "<b>Cáster (Ángulo de avance)</b>: inclinación hacia atrás del eje de giro visto de perfil. Proporciona estabilidad direccional en línea recta y autocentrado del volante al salir de una curva.",
+      "<b>Toe (Convergencia / Divergencia)</b>: diferencia de distancia entre la parte delantera y trasera de los neumáticos vista desde arriba. Una convergencia incorrecta desgasta el neumático rápidamente en forma de pluma o lija."
+     ]
+    },
+    {
+     "h": "El tren de transmisión: embrague, cajas y diferencial"
+    },
+    {
+     "list": [
+      "<b>Embrague y volante bimasa (DMF)</b>: desacopla el motor de la caja para cambiar de marcha. El volante bimasa incorpora resortes de arco internos que absorben las vibraciones torsionales de los motores diésel y gasolina de alta compresión.",
+      "<b>Cajas de cambio manuales</b>: sincronizadores cónicos de bronce igualan la velocidad de los piñones antes del engrane para evitar rascados.",
+      "<b>Cajas automáticas de convertidor de par</b>: acoplamiento hidrodinámico que transmite potencia mediante turbinas sumergidas en fluido ATF y trenes epicicloidales.",
+      "<b>Cajas de doble embrague (DCT / DSG)</b>: dos cajas manuales robotizadas en paralelo (un embrague para marchas pares y otro para impares) que preseleccionan la siguiente marcha con cambios casi instantáneos.",
+      "<b>Diferencial</b>: permite que la rueda exterior gire más rápido que la interior en una curva mientras transmite par a ambas mediante satélites y planetarios."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "diagnóstico,motor,sensores,ignición",
+   "title": "Diagnóstico ordenado: del síntoma a la causa raíz",
+   "subtitle": "Los tres pilares del arranque, prueba de compresión, fugas en cilindros y ruidos mecánicos.",
+   "body": [
+    {
+     "p": "Diagnosticar profesionalmente consiste en aplicar un método deductivo estructurado para acotar las causas posibles mediante pruebas físicas e instrumentales, eliminando la mala práctica de sustituir piezas por sospecha."
+    },
+    {
+     "h": "Motor gira pero no arranca: los tres pilares"
+    },
+    {
+     "p": "Si el motor de arranque gira a buen régimen pero el motor térmico no enciende, el problema se reduce siempre a la ausencia de uno de los <b>tres requisitos fundamentales</b>:"
+    },
+    {
+     "steps": [
+      "<b>1. Chispa de encendido (o calor en diésel)</b>: comprueba si llega alta tensión a las bujías con un probador inductivo. Si no hay chispa en ningún cilindro, sospecha del sensor de posición de cigüeñal (CKP), relé principal de la ECU o inmovilizador.",
+      "<b>2. Suministro de combustible</b>: escucha el zumbido de la bomba de gasolina al dar contacto durante 2 segundos. Mide la presión en el riel con manómetro (debe rondar 3.0 a 4.5 bar en inyección indirecta MPI o 40 a 200 bar en inyección directa GDI).",
+      "<b>3. Compresión mecánica y sincronización</b>: si el motor gira sospechosamente liviano y rápido (sin el ritmo intermitente característico de resistencia de compresión), la correa o cadena de distribución se ha roto o saltado dientes."
+     ]
+    },
+    {
+     "h": "Prueba de compresión: seca vs. húmeda"
+    },
+    {
+     "p": "Se desenroscan todas las bujías, se desconecta el fusible de la bomba de combustible, se pisa el acelerador a fondo (mariposa 100% abierta) y se gira el motor 4-5 compresiones por cilindro anotando la presión alcanzada (típicamente 140 a 190 psi en gasolina):"
+    },
+    {
+     "list": [
+      "Si un cilindro marca compresión baja, se vierten <b>5 a 10 ml de aceite de motor limpio</b> por el orificio de la bujía y se repite la prueba (prueba húmeda).",
+      "<b>Si la compresión SUBE notablemente</b>: el aceite selló temporalmente los <b>anillos de pistón gastados</b> o el cilindro rayado.",
+      "<b>Si la compresión NO sube</b>: la fuga está en la parte superior: <b>válvulas quemadas/dobladas</b> que no asientan o empaque de culata quemado."
+     ]
+    },
+    {
+     "h": "Prueba de fugas de cilindro (Leak-Down Test)"
+    },
+    {
+     "p": "La prueba de compresión revela *cuánta* presión se pierde; el test de fugas revela **por dónde se escapa**. Con el pistón posicionado exactamente en el PMS de compresión (ambas válvulas cerradas), se inyectan 100 psi de aire comprimido y se escucha:"
+    },
+    {
+     "code": "Aire escapando por el TUBO DE ESCAPE         ──> Válvula de escape quemada o sin asiento\nAire escapando por el CUERPO DE ADMISIÓN     ──> Válvula de admisión quemada o desajustada\nAire saliendo por la TAPA DE LLENADO ACEITE  ──> Anillos de pistón desgastados o pistón fisurado\nBURBUJAS en el depósito de refrigerante      ──> Empaque de culata quemado o culata rajada"
+    },
+    {
+     "h": "Firma acústica: descifrando ruidos del motor"
+    },
+    {
+     "list": [
+      "<b>Chirrido agudo al arrancar en frío que cesa tras segundos</b>: correa de accesorios auxiliar destensada o polea de alternador gripada.",
+      "<b>Tictac rítmico en la parte superior de la culata</b>: taqués hidráulicos descargados por falta de presión de aceite o suciedad en su válvula de retención.",
+      "<b>Golpeteo sordo y pesado que se agrava al acelerar bajo carga</b>: cojinetes de biela con holgura excesiva (*rod knock*). Requiere apagado inmediato para evitar que la biela perfore el bloque.",
+      "<b>Clac-clac repetitivo al girar la dirección en curva cerrada</b>: fuelle roto y junta homocinética exterior sin grasa con pistas picadas."
+     ]
+    },
+    {
+     "h": "Diagnóstico de vibraciones según el momento de aparición"
+    },
+    {
+     "code": "Vibración SOLO al pisar el pedal de freno  ──> Discos de freno delanteros alabeados (desviación lateral > 0.05 mm)\nVibración constante entre 90 y 120 km/h    ──> Desbalanceo de ruedas (plomos desprendidos)\nVibración fuerte al acelerar en subidas    ──> Trípode / copa homocinética interior de semieje picada\nVibración áspera en ralentí que desaparece ──> Soportes de motor (tacos de goma/hidráulicos) vencidos"
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "electrónica,obd2,sensores,inyección",
+   "title": "Inyección electrónica, sensores y escáner OBD2",
+   "subtitle": "Estructura de códigos DTC, sensores MAF/MAP/CKP, sondas lambda y fugas de vacío.",
+   "body": [
+    {
+     "p": "La gestión electrónica de motor calcula en milisegundos la masa exacta de combustible que debe inyectarse para mantener la relación estequiométrica ideal en función del aire aspirado, la carga y las emisiones de escape."
+    },
+    {
+     "h": "Estructura de códigos de falla OBD2 (DTC)"
+    },
+    {
+     "code": "P 0 3 0 1\n│ │ │ └┴── Código específico (01 = Falla en Cilindro 1)\n│ │ └───── Subsistema: 1=Combustible/Aire, 2=Inyector, 3=Encendido, 4=Emisiones...\n│ └─────── 0 = Código genérico estandarizado SAE / 1 = Código específico del fabricante\n└───────── P = Powertrain (Motor/Caja), B = Body, C = Chassis, U = Red de comunicación"
+    },
+    {
+     "warn": "<b>Un código de falla no es una orden de compra de repuestos</b>. El código P0171 (*System Too Lean - Banco 1*) no significa que la sonda lambda esté rota: significa que la sonda lambda está funcionando perfectamente y reporta que hay exceso de oxígeno no quemado en el escape."
+    },
+    {
+     "h": "Los sensores fundamentales del motor"
+    },
+    {
+     "list": [
+      "<b>MAF (Caudalímetro / Sensor de masa de aire)</b>: mide el flujo de aire en gramos/segundo ($g/s$) mediante un hilo caliente de platino. Un motor 2.0L a ralentí debe marcar entre 2.0 y 4.0 g/s. Si se ensucia con vapores de aceite, subestima el aire aspirado empobreciendo la mezcla. Se limpia exclusivamente con spray limpiador específico para MAF (cero residuos).",
+      "<b>MAP (Presión absoluta en el múltiple)</b>: mide el vacío en $kPa$. En ralentí sano debe situarse entre 25 y 35 kPa; a motor parado con contacto debe marcar la presión atmosférica local (~100 kPa).",
+      "<b>CKP (Sensor de posición de cigüeñal) y CMP (Árbol de levas)</b>: generan pulsos para que la ECU determine la velocidad del motor y el cilindro que se encuentra en fase de compresión. Si el CKP falla, la ECU corta la inyección y el encendido por seguridad.",
+      "<b>ECT (Temperatura de refrigerante)</b>: termistor NTC. Si se descalibra y marca $-40^\\circ\\text{C}$ de forma permanente, la ECU ahoga el motor inyectando gasolina en exceso.",
+      "<b>Sondas Lambda de escape</b>: la sonda previa al catalizador regula la mezcla; la sonda posterior verifica la eficiencia del catalizador (código P0420 si ambas sondas oscilan idénticamente)."
+     ]
+    },
+    {
+     "h": "Fugas de vacío en el múltiple de admisión"
+    },
+    {
+     "p": "Una fuga de vacío es cualquier entrada de aire no medido por el MAF que ingresa al motor aguas abajo de la mariposa de aceleración. Genera ralentí inestable, tirones en baja y mezclas excesivamente pobres."
+    },
+    {
+     "steps": [
+      "Puntos comunes de fuga: manguera del servofreno resecada, válvula de ventilación positiva del cárter (PCV) trabada abierta, juntas del múltiple de admisión cuarteadas o sellos de inyectores.",
+      "<b>Diagnóstico profesional con máquina de humo</b>: se introduce humo mineral presurizado a 0.5 bar en la admisión con el motor apagado; el humo delata inmediatamente el punto exacto de la fisura sin desmontar componentes."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "diagnóstico,combustible,fuel-trims,inyección",
+   "title": "Gestión de combustible: Fuel Trims y calibración estequiométrica",
+   "subtitle": "STFT, LTFT, lazo cerrado, diagnóstico por cuadrantes y detonación vs. preignición.",
+   "body": [
+    {
+     "p": "Los ajustes de combustible (*Fuel Trims*) constituyen la herramienta de diagnóstico en datos en vivo más potente del escáner automotriz. Revelan con exactitud matemática cómo está compensando la ECU la mezcla antes de que se encienda la luz de Check Engine."
+    },
+    {
+     "h": "Lazo abierto (Open Loop) vs. Lazo cerrado (Closed Loop)"
+    },
+    {
+     "list": [
+      "<b>Open Loop (Lazo abierto)</b>: durante el arranque en frío o en aceleraciones a fondo (WOT), la ECU ignora la sonda lambda e inyecta según mapas preprogramados fijos.",
+      "<b>Closed Loop (Lazo cerrado)</b>: cuando el motor y la sonda alcanzan temperatura operativa ($>300^\\circ\\text{C}$), la ECU monitorea continuamente el oxígeno en escape y ajusta la duración del pulso de inyección en tiempo real para mantener la relación estequiométrica ($\\lambda = 1.00$)."
+     ]
+    },
+    {
+     "h": "Interpretación de Fuel Trims: STFT y LTFT"
+    },
+    {
+     "code": "STFT (Short Term Fuel Trim) ──> Corrección rápida instantánea (oscila continuamente entre -5% y +5%)\nLTFT (Long Term Fuel Trim)  ──> Corrección acumulada aprendida en memoria a largo plazo\n\n- VALOR POSITIVO (+15%) ──> La ECU detecta mezcla POBRE y está AÑADIENDO gasolina extra.\n- VALOR NEGATIVO (-15%) ──> La ECU detecta mezcla RICA y está RECORTANDO gasolina."
+    },
+    {
+     "h": "Matriz de diagnóstico por régimen de motor"
+    },
+    {
+     "steps": [
+      "<b>Caso 1: LTFT muy positivo (+20%) en RALENTÍ que se NORMALIZA a 2.500 RPM</b> $\\rightarrow$ <b>FUGA DE VACÍO EN ADMISIÓN</b>. En ralentí la mariposa está cerrada, el vacío es máximo y el aire parásito que se cuela representa un gran porcentaje del total. Al acelerar, la mariposa abre y el aire de la fuga se vuelve insignificante.",
+      "<b>Caso 2: LTFT normal en ralentí que se vuelve muy POSITIVO (+20%) a ALTA CARGA / RPM</b> $\\rightarrow$ <b>PROBLEMA DE SUMINISTRO DE COMBUSTIBLE</b>. Bomba de gasolina con caudal insuficiente, filtro de combustible obstruido o inyectores sucios incapaces de entregar el volumen demandado.",
+      "<b>Caso 3: LTFT muy NEGATIVO (-18%) en todos los regímenes</b> $\\rightarrow$ <b>MEZCLA RICA</b>. Inyector que no cierra herméticamente y gotea, presión de combustible excesiva por regulador trabado o evaporación descontrolada del cánister de gases (válvula purga EVAP abierta)."
+     ]
+    },
+    {
+     "h": "Detonación (Knock) vs. Preignición"
+    },
+    {
+     "p": "Ambos fenómenos son destructivos para la cámara de combustión pero obedecen a mecanismos físicos totalmente distintos:"
+    },
+    {
+     "list": [
+      "<b>Detonación (Knock / Autoencendido)</b>: la bujía enciende la mezcla normalmente, pero la presión eleva tanto la temperatura que una bolsa de gas remota autoenciende espontáneamente, creando un segundo frente de llama supersónico que choca violentamente con el primero (ruido metálico de «canicas»). La ECU lo detecta mediante el <b>sensor de picado piezoeléctrico</b> y retrasa el avance de encendido.",
+      "<b>Preignición (Pre-Ignition)</b>: un punto incandescente en la cámara (carbonilla al rojo vivo o bujía de grado térmico incorrecto) inflama la mezcla <b>antes de que salte la chispa</b> mientras el pistón todavía está subiendo. Genera presiones extremas capaces de perforar un pistón de aluminio en pocos segundos."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "motor,turbo,emisiones,vvt",
+   "title": "Sobrealimentación, distribución variable y emisiones anticontaminación",
+   "subtitle": "Turbocompresores VGT, Intercooler, variadores de fase VVT, sistemas DPF, SCR y catalizadores.",
+   "body": [
+    {
+     "p": "El *Downsizing* en motores modernos combina turbocompresores de geometría variable con sistemas de distribución variable continua para extraer más de 150 CV por litro de cilindrada, exigiendo sistemas catalíticos de postratamiento de alta eficiencia."
+    },
+    {
+     "h": "El sistema de sobrealimentación por turbocompresor"
+    },
+    {
+     "p": "Los gases de escape calientes hacen girar la rueda de la turbina hasta 200.000 RPM, la cual impulsa a través de un eje coaxial la rueda compresora que presuriza el aire de admisión:"
+    },
+    {
+     "list": [
+      "<b>Intercooler (Enfriador de aire)</b>: al comprimir el aire, su temperatura se eleva sobre los 120 °C disminuyendo su densidad. El intercooler enfría el aire a ~40 °C, aumentando su densidad de oxígeno para admitir más combustible.",
+      "<b>Válvula Wastegate (Válvula de alivio de escape)</b>: desvía los gases de escape alrededor de la turbina para limitar la presión máxima de soplado del turbo.",
+      "<b>Válvula Blow-Off / Diverter</b>: al soltar repentinamente el acelerador, la mariposa se cierra; la válvula libera la sobrepresión acumulada entre el turbo y la mariposa para evitar que el aire frene la turbina (*turbo flutter*).",
+      "<b>Turbos de Geometría Variable (VGT / VNT)</b>: incorporan álabes móviles en la caracola de escape. A bajas RPM se cierran para acelerar los gases como una tobera estrecha eliminando el retraso (*turbo lag*); a altas RPM se abren para no estrangular el escape."
+     ]
+    },
+    {
+     "h": "Distribución variable continua (VVT / VTEC / Vanos)"
+    },
+    {
+     "p": "Los variadores de fase hidráulicos instalados en los piñones de los árboles de levas desfasan el momento angular de apertura y cierre de las válvulas comandados por solenoides PWM gobernadas por la ECU:"
+    },
+    {
+     "note": "Los solenoides y variadores VVT son hipersensibles a la limpieza y viscosidad del aceite. Aceites degradados o con lodos colmatan los microfiltros de malla del VVT provocando códigos de desfasaje (P0011 / P0014) y ralentí áspero."
+    },
+    {
+     "h": "Sistemas anticontaminación de escape"
+    },
+    {
+     "steps": [
+      "<b>1. Catalizador de 3 vías (TWC)</b>: convierte monóxido de carbono (CO), hidrocarburos no quemados (HC) y óxidos de nitrógeno (NOx) en dióxido de carbono ($CO_2$), vapor de agua y nitrógeno ($N_2$) mediante metales preciosos (platino, paladio y rodio).",
+      "<b>2. Válvula EGR (Exhaust Gas Recirculation)</b>: recircula hasta un 15% de gases quemados enfriados hacia la admisión, reduciendo la temperatura pico de combustión por debajo de los 1.600 °C donde se generan los NOx.",
+      "<b>3. DPF / FAP (Filtro de partículas diésel)</b>: matriz porosa de carburo de silicio que atrapa las micropartículas sólidas de hollín. Cuando el sensor de presión diferencial detecta saturación, la ECU activa postinyecciones térmicas para elevar el escape a $>580^\\circ\\text{C}$ y calcinar el hollín en ceniza.",
+      "<b>4. SCR (Reducción catalítica selectiva)</b>: inyecta solución de urea acuosa al 32.5% (AdBlue / DEF) que se transforma en amoníaco ($NH_3$), neutralizando selectivamente el 95% de los NOx en el catalizador SCR."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "motor,diésel,common-rail,inyección",
+   "title": "Inyección Diésel Common Rail de alta presión",
+   "subtitle": "Bombas de alta presión a 2.500 bar, inyectores piezoeléctricos, códigos IMA y prueba de retorno.",
+   "body": [
+    {
+     "p": "La inyección Common Rail (conducto común de alta presión) supuso el mayor salto tecnológico en motores diésel al desacoplar la generación de presión de la sincronización de inyección, permitiendo pulverizaciones microscópicas a presiones superiores a 2.000 bar."
+    },
+    {
+     "h": "Arquitectura del sistema Common Rail"
+    },
+    {
+     "list": [
+      "<b>Circuito de baja presión</b>: bomba previa en el depósito (3 a 6 bar), filtro de combustible con calentador eléctrico y sensor decantador de presencia de agua.",
+      "<b>Bomba de alta presión (HPCR / CP4)</b>: accionada por la distribución, eleva la presión de 200 bar en ralentí hasta más de <b>2.500 bar en aceleración plena</b>.",
+      "<b>Riel acumulador (Rail)</b>: tubo de acero forjado de paredes gruesas que almacena el combustible a presión constante con un <b>sensor de presión piezo-resistivo (RPS)</b> y una <b>válvula reguladora de presión (DRV)</b>.",
+      "<b>Inyectores piezoeléctricos</b>: cristales que se expanden en microsegundos al recibir ~150V de la ECU, controlando una servoválvula hidráulica que permite hasta 7 inyecciones por ciclo."
+     ]
+    },
+    {
+     "h": "Prueba de retorno de inyectores (Back-Leakage Test)"
+    },
+    {
+     "p": "Cuando la servoválvula interna o la tobera de un inyector Common Rail sufren desgaste microscópico, el combustible a alta presión se fuga internamente hacia la línea de retorno de baja presión, impidiendo que el riel alcance los 250 bar mínimos requeridos para arrancar el motor."
+    },
+    {
+     "steps": [
+      "Desconecta las mangueras de retorno de todos los inyectores y conecta probetas transparentes graduadas individuales.",
+      "Arranca el motor (o dale arranque continuo durante 15 segundos si no arranca).",
+      "Mide el volumen de diésel retornado por cada cilindro en mililitros.",
+      "Un inyector que retorne más de <b>tres veces el volumen promedio de los demás</b> tiene desgaste interno severo en su servoválvula y debe sustituirse."
+     ]
+    },
+    {
+     "h": "Codificación de inyectores: Códigos IMA / IQA"
+    },
+    {
+     "p": "Debido a que las tolerancias de fabricación son inferiores a una micra, cada inyector es calibrado individualmente en fábrica en un banco de ensayo que genera un código alfanumérico único grabado en su cuerpo (código IMA / QR):"
+    },
+    {
+     "key": "Al instalar un inyector nuevo o intercambiarlo de cilindro, <b>es obligatorio programar su código IMA en la ECU con el escáner</b>. Si no se programa, la ECU aplicará tiempos de inyección incorrectos provocando picado diésel, humo negro o ralentí inestable."
+    },
+    {
+     "h": "Contaminación por limalla metálica (Fallo de bomba CP4)"
+    },
+    {
+     "warn": "Si una bomba de alta presión gira con agua en el combustible o trabaja en seco, los rodillos y pistones se rayan desprendiendo millones de micropartículas metálicas (limalla). Esta limalla viaja por el riel y gripa los 4 o 6 inyectores simultáneamente. En este caso, no basta con cambiar la bomba: debe sustituirse el riel, los inyectores, el depósito y purgar todas las tuberías."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "electrónica,eléctrico,osciloscopio,híbridos",
+   "title": "Redes CAN Bus, osciloscopio y seguridad en alta tensión (EV / HEV)",
+   "subtitle": "Bus CAN diferencial, caída de tensión, osciloscopio automotriz y protocolo de seguridad en alta tensión.",
+   "body": [
+    {
+     "p": "La electrónica automotriz actual integra decenas de unidades de control electrónico (ECUs) comunicadas por redes digitales de alta velocidad, conviviendo con sistemas de propulsión eléctrica de alta tensión que requieren protocolos de seguridad no negociables."
+    },
+    {
+     "h": "Redes multiplexadas CAN Bus"
+    },
+    {
+     "p": "El protocolo CAN (Controller Area Network) utiliza un par de cables trenzados (**CAN-High y CAN-Low**) que transmiten señales de voltaje diferenciales inmunes al ruido electromagnético:"
+    },
+    {
+     "code": "CAN-High en reposo: 2.5 V  ──>  En transmisión sube a  3.5 V\nCAN-Low  en reposo: 2.5 V  ──>  En transmisión baja a  1.5 V\n\nResistencias terminadoras: Dos resistencias de 120 Ω en paralelo en los extremos de la red.\nMedición con batería desconectada entre pines 6 (CAN-H) y 14 (CAN-L) del puerto OBD2:\n  - 60 Ω   ──> Bus íntegro y correcto (dos resistencias de 120 Ω en paralelo)\n  - 120 Ω  ──> Línea cortada o un módulo terminador desconectado\n  - 0 Ω    ──> Cortocircuito entre líneas CAN-H y CAN-L"
+    },
+    {
+     "h": "Prueba de caída de tensión (Voltage Drop)"
+    },
+    {
+     "p": "Una prueba de continuidad con multímetro utiliza solo unos miliamperios y puede marcar 0 ohmios en un cable sulfatado que tiene solo un hilo de cobre sano. La <b>prueba de caída de tensión se realiza siempre con el circuito encendido y consumiendo corriente real</b>:"
+    },
+    {
+     "list": [
+      "Coloca las puntas del multímetro en voltios DC entre ambos extremos del cable que sospechas.",
+      "Caída máxima admisible en cable de alimentación positivo: <b>0.5 V</b>.",
+      "Caída máxima admisible en circuito de masa / negativo al chasis: <b>0.2 V</b>.",
+      "Cualquier valor superior revela corrosión, terminales flojos o cables dañados."
+     ]
+    },
+    {
+     "h": "El osciloscopio en el diagnóstico moderno"
+    },
+    {
+     "list": [
+      "<b>Primario y secundario de encendido</b>: visualiza el tiempo de carga de la bobina (*dwell*), el pico de tensión de encendido y la <b>duración de la línea de quemado</b> (típicamente 1.2 a 2.0 ms). Una línea de quemado corta revela bujía abierta o mezcla extremadamente pobre.",
+      "<b>Sincronismo CKP vs. CMP</b>: captura simultánea de la señal del cigüeñal y del árbol de levas en dos canales para verificar si una cadena de distribución estirada tiene un desfasaje de medio diente antes de desarmar.",
+      "<b>Compresión relativa</b>: conecta una pinza amperimétrica en el cable positivo de la batería mientras das arranque sin encendido. Los picos de corriente del motor de arranque reflejan la compresión de cada cilindro."
+     ]
+    },
+    {
+     "h": "Seguridad en vehículos híbridos y eléctricos (Alta Tensión 200V - 800V DC)"
+    },
+    {
+     "p": "Los cables naranjas en un vehículo híbrido o 100% eléctrico conducen corriente continua de alta tensión. La corriente continua no cruza por cero a diferencia de la alterna: genera un arco voltaico continuo y contrae los músculos impidiendo soltarse."
+    },
+    {
+     "steps": [
+      "<b>1. Equipos de Protección Individual (EPP)</b>: guantes dieléctricos Clase 0 certificados para 1.000 V (inspeccionados neumáticamente antes de cada uso), pantalla facial contra arco eléctrico y calzado de seguridad dieléctrico.",
+      "<b>2. Desconexión del Service Plug (MSD)</b>: retira el interruptor o enchufe de servicio de alta tensión y bloquéalo en una caja de seguridad personal contigo.",
+      "<b>3. Tiempo de descarga de condensadores</b>: espera obligatoriamente de <b>5 a 10 minutos</b> para que los condensadores de gran capacidad del inversor descarguen su energía a masa a través de sus resistencias internas.",
+      "<b>4. Verificación de ausencia de tensión</b>: con multímetro categoría CAT III a 1.000 V o CAT IV a 600 V, mide voltaje entre polos positivo y negativo de alta tensión y respecto al chasis asegurando que la lectura sea <b>0.0 V</b> antes de tocar cualquier componente."
+     ]
+    },
+    {
+     "key": "En alta tensión automotriz la seguridad no es un procedimiento administrativo: es la diferencia entre una reparación segura y un accidente fatal."
+    }
+   ]
+  }
  ]
 }
-]}

@@ -5,9 +5,9 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, GLib, Gdk, Gtk  # noqa: E402
+from gi.repository import Adw, GLib, Gdk, Gio, Gtk  # noqa: E402
 
-from . import db, scheduler, util  # noqa: E402
+from . import db, scheduler, sonido, util  # noqa: E402
 
 RATINGS = [
     (scheduler.AGAIN, "Otra vez", "1", "as-rate-again"),
@@ -18,7 +18,7 @@ RATINGS = [
 
 
 class PopupWindow(Adw.Window):
-    """Ventana flotante con una sola tarjeta. Todo se maneja con el teclado."""
+    """Ventana flotante con una sola tarjeta. Todo se maneja con el teclado o ratón."""
 
     def __init__(self, app, con, deck_key=None, level=None, tags=None):
         super().__init__(application=app, title="AppStudy")
@@ -31,9 +31,19 @@ class PopupWindow(Adw.Window):
         self.answered = None          # índice elegido en un quiz
         self.shown_at = 0.0
 
-        self.set_default_size(620, 500)
+        self.card_scale = self.card_escala_guardada()
+        w = max(560, int(660 * self.card_scale))
+        h = max(450, int(530 * self.card_scale))
+        self.set_default_size(w, h)
         self.set_resizable(True)
         self.add_css_class("as-popup")
+
+        self.card_css_provider = Gtk.CssProvider()
+        disp = Gdk.Display.get_default()
+        if disp:
+            Gtk.StyleContext.add_provider_for_display(
+                disp, self.card_css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 5)
+        self.aplicar_escala_tarjeta()
 
         self.toast = Adw.ToastOverlay()
         self.set_content(self.toast)
@@ -49,6 +59,20 @@ class PopupWindow(Adw.Window):
                           tooltip_text="Otra tarjeta (N)")
         skip.connect("clicked", lambda *_: self.load_card())
         header.pack_start(skip)
+
+        # Botones para cambiar tamaño de la tarjeta
+        zoom_box = Gtk.Box(spacing=2)
+        btn_out = Gtk.Button(icon_name="zoom-out-symbolic",
+                             tooltip_text="Tarjeta más pequeña (Ctrl -)",
+                             css_classes=["flat"])
+        btn_out.connect("clicked", lambda *_: self.cambiar_tamano_tarjeta(-0.10))
+        btn_in = Gtk.Button(icon_name="zoom-in-symbolic",
+                            tooltip_text="Tarjeta más grande (Ctrl +)",
+                            css_classes=["flat"])
+        btn_in.connect("clicked", lambda *_: self.cambiar_tamano_tarjeta(0.10))
+        zoom_box.append(btn_out)
+        zoom_box.append(btn_in)
+        header.pack_end(zoom_box)
 
         opener = Gtk.Button(icon_name="view-grid-symbolic",
                             tooltip_text="Abrir AppStudy completo (A)")
@@ -72,11 +96,94 @@ class PopupWindow(Adw.Window):
         self.footer.set_margin_top(4)
         root.append(self.footer)
 
+        # Menú contextual de clic derecho
+        self.menu_popover = Gtk.PopoverMenu.new_from_model(self.build_context_menu())
+        self.menu_popover.set_parent(root)
+        self.menu_popover.set_has_arrow(False)
+
+        clic_derecho = Gtk.GestureClick(button=3)
+        clic_derecho.connect("pressed", self.on_right_click)
+        root.add_controller(clic_derecho)
+
         keys = Gtk.EventControllerKey()
         keys.connect("key-pressed", self.on_key)
         self.add_controller(keys)
 
         self.load_card()
+
+    # ---------------------------------------------------------------- tamaño y escala
+
+    def card_escala_guardada(self) -> float:
+        try:
+            return float(db.get_meta(self.con, "card_scale", 1.15))
+        except (TypeError, ValueError):
+            return 1.15
+
+    def fijar_tamano_tarjeta(self, valor: float):
+        nueva = round(max(0.70, min(2.50, valor)), 2)
+        db.set_meta(self.con, "card_scale", nueva)
+        self.card_scale = nueva
+        self.aplicar_escala_tarjeta()
+        self.render()
+
+    def cambiar_tamano_tarjeta(self, paso: float):
+        nueva = round(self.card_scale + paso, 2)
+        self.fijar_tamano_tarjeta(nueva)
+
+    def aplicar_escala_tarjeta(self):
+        scale = getattr(self, "card_scale", 1.15)
+        font_front = f"{1.50 * scale:.2f}rem"
+        font_back = f"{1.08 * scale:.2f}rem"
+        font_choice = f"{1.02 * scale:.2f}rem"
+        font_chip = f"{0.84 * scale:.2f}rem"
+        css_data = f"""
+        .as-popup .as-front {{
+            font-size: {font_front};
+        }}
+        .as-popup .as-back {{
+            font-size: {font_back};
+        }}
+        .as-popup .as-choice {{
+            font-size: {font_choice};
+            padding: {int(12 * scale)}px {int(16 * scale)}px;
+        }}
+        .as-popup .as-chip {{
+            font-size: {font_chip};
+        }}
+        """
+        self.card_css_provider.load_from_data(css_data.encode())
+
+    def build_context_menu(self):
+        m = Gio.Menu()
+        tamano = Gio.Menu()
+        tamano.append("Tarjeta más grande (Ctrl +)", "win.card_bigger")
+        tamano.append("Tarjeta más pequeña (Ctrl -)", "win.card_smaller")
+        tamano.append("Tamaño: Normal (100%)", "win.card_size_100")
+        tamano.append("Tamaño: Grande (125%)", "win.card_size_125")
+        tamano.append("Tamaño: Muy grande (150%)", "win.card_size_150")
+        m.append_section("Tamaño de visualización", tamano)
+        acciones = Gio.Menu()
+        acciones.append("Otra tarjeta (N)", "win.skip")
+        acciones.append("Abrir AppStudy completo (A)", "win.open")
+        m.append_section(None, acciones)
+
+        for nombre, cb in (("card_bigger", lambda *_: self.cambiar_tamano_tarjeta(0.15)),
+                           ("card_smaller", lambda *_: self.cambiar_tamano_tarjeta(-0.15)),
+                           ("card_size_100", lambda *_: self.fijar_tamano_tarjeta(1.0)),
+                           ("card_size_125", lambda *_: self.fijar_tamano_tarjeta(1.25)),
+                           ("card_size_150", lambda *_: self.fijar_tamano_tarjeta(1.50)),
+                           ("skip", lambda *_: self.load_card()),
+                           ("open", lambda *_: self.open_main())):
+            a = Gio.SimpleAction.new(nombre, None)
+            a.connect("activate", cb)
+            self.add_action(a)
+        return m
+
+    def on_right_click(self, _gesture, _n_press, x, y):
+        rect = Gdk.Rectangle()
+        rect.x, rect.y, rect.width, rect.height = int(x), int(y), 1, 1
+        self.menu_popover.set_pointing_to(rect)
+        self.menu_popover.popup()
 
     # ---------------------------------------------------------------- contenido
 
@@ -210,7 +317,6 @@ class PopupWindow(Adw.Window):
         self.body.append(veredicto)
         if c["back"]:
             self.body.append(self.back_card(c["back"], titulo="Por qué"))
-        # Tras responder, la calificación ya está implícita: confirmarla es un clic
         self.rating_row(prefill=scheduler.GOOD if ok else scheduler.AGAIN)
 
     # ------------------------------------------------------------------ piezas
@@ -296,6 +402,8 @@ class PopupWindow(Adw.Window):
     def rate(self, rating):
         if not self.card:
             return
+        sonido.reproducir(sonido.config(self.con),
+                          "acierto" if rating >= scheduler.GOOD else "fallo")
         ms = int((time.time() - self.shown_at) * 1000)
         st = scheduler.apply_review(self.con, self.card["id"], rating, ms)
         self.toast.add_toast(Adw.Toast(
@@ -311,10 +419,19 @@ class PopupWindow(Adw.Window):
         self.get_application().show_main_window()
         self.close()
 
-    def on_key(self, _c, keyval, _code, _state):
+    def on_key(self, _c, keyval, _code, state):
         k = Gdk.keyval_name(keyval)
         if k == "Escape":
             self.close()
+            return True
+        if (state & Gdk.ModifierType.CONTROL_MASK) and k in ("plus", "equal", "KP_Add"):
+            self.cambiar_tamano_tarjeta(0.10)
+            return True
+        if (state & Gdk.ModifierType.CONTROL_MASK) and k in ("minus", "underscore", "KP_Subtract"):
+            self.cambiar_tamano_tarjeta(-0.10)
+            return True
+        if (state & Gdk.ModifierType.CONTROL_MASK) and k in ("0", "KP_0"):
+            self.fijar_tamano_tarjeta(1.15)
             return True
         if k in ("n", "N"):
             self.load_card()

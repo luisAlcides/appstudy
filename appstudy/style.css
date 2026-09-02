@@ -225,18 +225,17 @@ window.as-pet revealer {
   border: none;
 }
 
-/* Más específico que la regla que quita el fondo a la ventana */
 window.as-pet box.as-bubble {
   background-color: @card_bg_color;
-  border: 1px solid alpha(currentColor, 0.10);
-  border-radius: 16px;
-  padding: 12px 14px 12px 14px;
+  border: 1px solid alpha(currentColor, 0.12);
+  border-radius: 18px;
+  padding: 14px 16px;
   margin: 0 4px 6px 4px;
-  box-shadow: 0 6px 20px alpha(black, 0.35);
+  box-shadow: 0 8px 24px alpha(black, 0.38);
 }
 
 .as-bubble-title {
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -244,18 +243,18 @@ window.as-pet box.as-bubble {
 }
 
 .as-bubble-front {
-  font-size: 1.0rem;
+  font-size: 1.08rem;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.38;
 }
 
 .as-bubble-text {
-  font-size: 0.92rem;
-  line-height: 1.45;
-  opacity: 0.9;
+  font-size: 0.96rem;
+  line-height: 1.50;
+  opacity: 0.92;
 }
 
-.as-bubble-sep { margin: 2px 0; opacity: 0.35; }
+.as-bubble-sep { margin: 3px 0; opacity: 0.35; }
 
 /* El pie de una frase de libro: autor y obra */
 .as-bubble-cita {
@@ -319,3 +318,36 @@ window.as-pet box.as-bubble {
 
 .as-reto-ok  { color: #2ec27e; opacity: 1; }
 .as-reto-mal { color: #e01b24; opacity: 1; }
+
+/* ------------------------------------------------- modo chatbot de Bit */
+
+/* El globo cambia de color mientras charlas: azul frío frente al crema de
+   siempre, para que se vea de un vistazo en qué modo está. */
+window.as-pet box.as-bubble.as-bubble-chat {
+  background-color: mix(@card_bg_color, #5B86D6, 0.10);
+  border: 1px solid alpha(#5B86D6, 0.55);
+  box-shadow: 0 6px 22px alpha(#5B86D6, 0.28);
+}
+
+.as-chat-bit {
+  font-size: 0.92rem;
+  line-height: 1.4;
+  background: alpha(currentColor, 0.07);
+  border-radius: 12px 12px 12px 3px;
+  padding: 7px 10px;
+}
+
+.as-chat-tu {
+  font-size: 0.92rem;
+  line-height: 1.4;
+  background: alpha(#5B86D6, 0.22);
+  border-radius: 12px 12px 3px 12px;
+  padding: 7px 10px;
+}
+
+.as-bubble button.as-chat-enviar {
+  background: alpha(#5B86D6, 0.85);
+  color: #ffffff;
+}
+
+.as-bubble button.as-chat-enviar:hover { background: #5B86D6; }

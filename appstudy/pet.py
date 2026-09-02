@@ -22,7 +22,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
-from . import citas, db, reto, scheduler, util  # noqa: E402
+from . import citas, db, ia, reto, scheduler, sonido, util  # noqa: E402
 
 PET_APP_ID = "io.github.appstudy.AppStudy.Pet"
 NOMBRE = "Bit"
@@ -71,6 +71,10 @@ MOODS = {
     "triste":   "#B24A3E",
     "dormido":  "#9A938C",
 }
+
+# En modo chatbot se sale de la paleta cálida a propósito: un azul frío avisa de
+# un vistazo de que Bit está conversando y no repasando.
+CHAT = "#5B86D6"
 
 TINTA = (0.16, 0.14, 0.12)      # ojos, cejas y boca, en marrón cálido
 
@@ -159,6 +163,7 @@ class Creature(Gtk.DrawingArea):
         self.mood = "normal"
         self.energy = 1.0
         self.teaching = False
+        self.charlando = False      # modo chatbot: se pinta de azul
         self.hover = False
         # Cuánto llevas sin estudiar, de 0 (acabas de repasar) a 1 (varios días).
         # Le cambia el ánimo, pero también cómo se mueve: se le nota en el cuerpo.
@@ -278,7 +283,7 @@ class Creature(Gtk.DrawingArea):
         if self.ocupada():
             return ("activo", self.t)       # con algo en marcha, siempre se pinta
         dy, sx, sy, rot = self._pose()
-        return (self.mood, self.teaching, round(self.energy, 2),
+        return (self.mood, self.teaching, self.charlando, round(self.energy, 2),
                 round(self.abandono, 2),
                 round(dy * 2), round(sx * 100), round(rot * 125))
 
@@ -394,7 +399,7 @@ class Creature(Gtk.DrawingArea):
         k = min(w / DISENO[0], h / DISENO[1])
         cr.scale(k, k)
         w, h = DISENO
-        color = MOODS.get(self.mood, MOODS["normal"])
+        color = CHAT if self.charlando else MOODS.get(self.mood, MOODS["normal"])
         dormido = self.mood == "dormido"
         cx = w / 2
         suelo = h - 34
@@ -881,6 +886,11 @@ class PetWindow(Gtk.ApplicationWindow):
         self.shown_at = 0.0
         self.last_nag = time.time()
         self.ultimo_reproche = 0.0    # para no repetir la queja cada rato
+        self.ia_texto = ""            # lo que el modelo lleva escrito
+        self.ia_cuerpo = None
+        self.contexto_ia = ""         # la tarjeta desde la que preguntaste
+        self.sonido = sonido.config(self.con)     # se relee al refrescar el estado
+        self.chat = None              # {"historial": [...], "contexto": str} en modo chatbot
         self.stats = {}
         self.ultimas_citas = []     # para no repetir la misma frase seguida
 
@@ -903,6 +913,14 @@ class PetWindow(Gtk.ApplicationWindow):
         self.set_child(root)
 
         self.creature = Creature(self.escala_guardada())
+        self.card_scale = self.card_escala_guardada()
+        self.card_css_provider = Gtk.CssProvider()
+        disp = Gdk.Display.get_default()
+        if disp:
+            Gtk.StyleContext.add_provider_for_display(
+                disp, self.card_css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 5)
+        self.aplicar_escala_tarjeta()
+
         handle = Gtk.WindowHandle()   # arrastrar la mascota mueve la ventana
         handle.set_child(self.creature)
         # Pegada a la izquierda: así la criatura no se desplaza cuando el globo
@@ -919,6 +937,10 @@ class PetWindow(Gtk.ApplicationWindow):
                                   css_classes=["as-bubble"])
         self.bubble.set_child(self.bubble_box)
         root.append(self.bubble)
+
+        clic_bubble = Gtk.GestureClick(button=0)
+        clic_bubble.connect("pressed", self.on_bubble_click)
+        self.bubble_box.add_controller(clic_bubble)
 
         self.menu = Gtk.PopoverMenu.new_from_model(self.build_menu())
         self.menu.set_parent(self.creature)
@@ -1030,6 +1052,9 @@ class PetWindow(Gtk.ApplicationWindow):
 
     # ------------------------------------------------------------------ estado
 
+    def sonar(self, nombre):
+        sonido.reproducir(self.sonido, nombre)
+
     def refresh_stats(self):
         """Lee la base y traduce el progreso a ánimo y energía de la mascota.
 
@@ -1038,6 +1063,7 @@ class PetWindow(Gtk.ApplicationWindow):
         con ojeras y el asterisco casi parado. Vuelve a la normalidad en cuanto
         califiques una tarjeta.
         """
+        self.sonido = sonido.config(self.con)
         t = db.totals(self.con)
         fila = self.con.execute("SELECT MAX(ts) AS ts FROM log").fetchone()
         ultimo = fila["ts"] or 0
@@ -1068,6 +1094,11 @@ class PetWindow(Gtk.ApplicationWindow):
         self.stats = {**t, "energia": energia, "horas": horas, "abandono": abandono}
         if abs(self.escala_guardada() - self.creature.escala) > 0.01:
             self.creature.set_escala(self.escala_guardada())   # cambiado desde Ajustes
+        nueva_card_escala = self.card_escala_guardada()
+        if abs(nueva_card_escala - getattr(self, "card_scale", 1.15)) > 0.01:
+            self.card_scale = nueva_card_escala
+            self.aplicar_escala_tarjeta()
+            self.refrescar_globo_activo()
         self.creature.mood = mood
         self.creature.energy = energia
         self.creature.abandono = 0.0 if mood == "dormido" else abandono
@@ -1076,11 +1107,93 @@ class PetWindow(Gtk.ApplicationWindow):
             f"{NOMBRE} · {t['pendientes']} pendientes · {t['hoy']} hoy · "
             f"racha {t['racha']} d · {sin_estudiar(horas)}")
 
+    def card_escala_guardada(self) -> float:
+        try:
+            return float(db.get_meta(self.con, "card_scale", 1.15))
+        except (TypeError, ValueError):
+            return 1.15
+
+    def char_width(self, base: int = 32) -> int:
+        return max(24, int(base * max(0.8, getattr(self, "card_scale", 1.15))))
+
+    def fijar_tamano_tarjeta(self, valor: float):
+        nueva = round(max(0.70, min(2.50, valor)), 2)
+        db.set_meta(self.con, "card_scale", nueva)
+        self.card_scale = nueva
+        self.aplicar_escala_tarjeta()
+        self.sonar("clic")
+        self.refrescar_globo_activo()
+
+    def cambiar_tamano_tarjeta(self, paso: float):
+        nueva = round(self.card_scale + paso, 2)
+        self.fijar_tamano_tarjeta(nueva)
+
+    def refrescar_globo_activo(self):
+        # Redibuja el globo si está abierto para aplicar el nuevo tamaño
+        if not self.bubble.get_reveal_child():
+            return
+        if self.card and self.reto:
+            self.render_reto()
+        elif self.card:
+            self.render_card()
+        elif hasattr(self, "chat") and self.chat is not None:
+            self.abrir_chat()
+
+    def aplicar_escala_tarjeta(self):
+        scale = getattr(self, "card_scale", 1.15)
+        min_w = int(280 * scale)
+        max_w = int(460 * scale)
+        pad_h = int(14 * scale)
+        pad_v = int(12 * scale)
+        font_front = f"{1.06 * scale:.2f}rem"
+        font_text = f"{0.96 * scale:.2f}rem"
+        font_title = f"{0.80 * scale:.2f}rem"
+        font_cita = f"{0.85 * scale:.2f}rem"
+        font_btn = f"{0.90 * scale:.2f}rem"
+        btn_pad_v = int(5 * scale)
+        btn_pad_h = int(12 * scale)
+        css_data = f"""
+        window.as-pet box.as-bubble {{
+            min-width: {min_w}px;
+            max-width: {max_w}px;
+            padding: {pad_v}px {pad_h}px;
+        }}
+        window.as-pet .as-bubble-title {{
+            font-size: {font_title};
+        }}
+        window.as-pet .as-bubble-front {{
+            font-size: {font_front};
+            line-height: 1.38;
+        }}
+        window.as-pet .as-bubble-text {{
+            font-size: {font_text};
+            line-height: 1.48;
+        }}
+        window.as-pet .as-bubble-cita {{
+            font-size: {font_cita};
+        }}
+        window.as-pet .as-reto-afirma {{
+            font-size: {font_text};
+            padding: {int(8 * scale)}px {int(10 * scale)}px;
+        }}
+        window.as-pet .as-bubble button.pill, window.as-pet .as-bubble button.as-reto-opcion {{
+            font-size: {font_btn};
+            padding: {btn_pad_v}px {btn_pad_h}px;
+        }}
+        """
+        self.card_css_provider.load_from_data(css_data.encode())
+
     def escala_guardada(self) -> float:
         try:
             return float(db.get_meta(self.con, "pet_scale", 1.0))
         except (TypeError, ValueError):
             return 1.0
+
+    def alternar_sonido(self):
+        sonido.guardar(self.con, activo=not self.sonido["activo"])
+        self.sonido = sonido.config(self.con)
+        self.sonar("clic")
+        self.menu.set_menu_model(self.build_menu())     # cambia la etiqueta
 
     def cambiar_tamano(self, paso):
         nueva = round(self.creature.escala + paso, 2)
@@ -1120,11 +1233,13 @@ class PetWindow(Gtk.ApplicationWindow):
         if time.time() - self.last_nag < self.intervalo_min() * 60:
             return True
         t = self.stats
+        self.sonar("aviso")
         self.creature.saludar()
         if (t["horas"] >= HORAS_HAMBRE
                 and time.time() - self.ultimo_reproche > HORAS_REPROCHE * 3600):
             # Llevas días sin aparecer: antes que una tarjeta, te lo dice
             self.ultimo_reproche = time.time()
+            self.sonar("aviso")
             self.creature.desanimar()
             self.say(reproche(t["horas"]), titulo=f"{NOMBRE} te echa de menos",
                      boton=("Va, enséñame algo", self.teach))
@@ -1154,6 +1269,10 @@ class PetWindow(Gtk.ApplicationWindow):
 
     def close_bubble(self, *_):
         self.parar_cuenta()
+        self.chat = None                     # se acaba la charla
+        self.creature.charlando = False
+        self.creature.hablando_hasta = 0     # por si cerraste a media respuesta
+        self.ia_cuerpo = None
         self.card = None
         self.reto = None
         self.bubble.set_reveal_child(False)
@@ -1163,6 +1282,7 @@ class PetWindow(Gtk.ApplicationWindow):
         GLib.timeout_add(260, lambda: (self.clear_bubble(), False)[1])
 
     def open_bubble(self):
+        self.sonar("globo")
         self.bubble.set_reveal_child(True)
         self.creature.teaching = True
         self.creature.hablar(1.3)
@@ -1208,7 +1328,7 @@ class PetWindow(Gtk.ApplicationWindow):
         self.clear_bubble()
         self.bubble_box.append(self.bubble_header(titulo))
         self.bubble_box.append(Gtk.Label(label=util.to_markup(texto), use_markup=True,
-                                         wrap=True, xalign=0, max_width_chars=30,
+                                         wrap=True, xalign=0, max_width_chars=self.char_width(30),
                                          css_classes=["as-bubble-text"]))
         if boton:
             etiqueta, cb = boton
@@ -1226,11 +1346,11 @@ class PetWindow(Gtk.ApplicationWindow):
         self.bubble_box.append(self.bubble_header("📖 De un libro"))
         self.bubble_box.append(Gtk.Label(
             label=f"<i>«{GLib.markup_escape_text(frase)}»</i>", use_markup=True,
-            wrap=True, xalign=0, max_width_chars=32, css_classes=["as-bubble-front"]))
+            wrap=True, xalign=0, max_width_chars=self.char_width(32), css_classes=["as-bubble-front"]))
         self.bubble_box.append(Gtk.Label(
             label=f"— {GLib.markup_escape_text(autor)}, "
                   f"<i>{GLib.markup_escape_text(obra)}</i>",
-            use_markup=True, wrap=True, xalign=1, max_width_chars=34,
+            use_markup=True, wrap=True, xalign=1, max_width_chars=self.char_width(34),
             css_classes=["as-bubble-cita"]))
         fila = Gtk.Box(spacing=6, homogeneous=True)
         otra = Gtk.Button(label="Otra frase", css_classes=["pill"])
@@ -1266,17 +1386,17 @@ class PetWindow(Gtk.ApplicationWindow):
 
         self.bubble_box.append(Gtk.Label(
             label=util.to_markup(c["front"]), use_markup=True, wrap=True, xalign=0,
-            max_width_chars=30, css_classes=["as-bubble-front"]))
+            max_width_chars=self.char_width(30), css_classes=["as-bubble-front"]))
 
         if c["back"]:
             self.bubble_box.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
             self.bubble_box.append(Gtk.Label(
                 label=util.to_markup(c["back"]), use_markup=True, wrap=True, xalign=0,
-                max_width_chars=32, css_classes=["as-bubble-text"]))
+                max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
         elif c["hint"]:
             self.bubble_box.append(Gtk.Label(
                 label=util.to_markup(c["hint"]), use_markup=True, wrap=True, xalign=0,
-                max_width_chars=32, css_classes=["as-bubble-text"]))
+                max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
 
         fila = Gtk.Box(spacing=6, homogeneous=True)
         for rating, etiqueta, clase in (
@@ -1286,6 +1406,12 @@ class PetWindow(Gtk.ApplicationWindow):
             b.connect("clicked", lambda _b, r=rating: self.rate(r))
             fila.append(b)
         self.bubble_box.append(fila)
+
+        if ia.config(self.con)["activa"]:
+            fila_ia = Gtk.Box(spacing=10, homogeneous=True)
+            fila_ia.append(self.boton_explicar())
+            fila_ia.append(self.boton_chat())
+            self.bubble_box.append(fila_ia)
 
         otra = Gtk.Box(spacing=10, homogeneous=True)
         for etiqueta, cb in (("Otra tarjeta", self.teach), ("⚡ Ponme a prueba", self.quiz)):
@@ -1303,6 +1429,7 @@ class PetWindow(Gtk.ApplicationWindow):
             return False
         self.creature.play("salto", 0.62)
         self.creature.emitir("corazon", 5)
+        self.sonar("celebra")
         return True
 
     def rate(self, rating):
@@ -1315,8 +1442,10 @@ class PetWindow(Gtk.ApplicationWindow):
         self.refresh_stats()
         if rating >= scheduler.GOOD:
             self.creature.celebrar()
+            self.sonar("acierto")
         else:
             self.creature.desanimar()
+            self.sonar("fallo")
         cuando = scheduler.due_label(st["due"])
         if self.celebrar_vuelta(ausencia):
             dias = int(ausencia // 24)
@@ -1378,16 +1507,16 @@ class PetWindow(Gtk.ApplicationWindow):
         if r["formato"] == "invertido":
             # Aquí se enseña la respuesta y hay que reconocer la pregunta
             caja.append(Gtk.Label(label=r["pregunta"], wrap=True, xalign=0,
-                                  max_width_chars=32, css_classes=["as-reto-afirma"]))
+                                  max_width_chars=self.char_width(32), css_classes=["as-reto-afirma"]))
             caja.append(Gtk.Label(label="¿De qué tarjeta es?", xalign=0, wrap=True,
-                                  max_width_chars=30, css_classes=["as-bubble-front"]))
+                                  max_width_chars=self.char_width(30), css_classes=["as-bubble-front"]))
             return caja
         caja.append(Gtk.Label(
             label=util.to_markup(r["pregunta"]), use_markup=True, wrap=True, xalign=0,
-            max_width_chars=30, css_classes=["as-bubble-front"]))
+            max_width_chars=self.char_width(30), css_classes=["as-bubble-front"]))
         if r["formato"] == "hueco":
             caja.append(Gtk.Label(label=r["frase"], wrap=True, xalign=0,
-                                  max_width_chars=32, css_classes=["as-reto-afirma"]))
+                                  max_width_chars=self.char_width(32), css_classes=["as-reto-afirma"]))
         return caja
 
     # --- los seis formatos
@@ -1396,7 +1525,7 @@ class PetWindow(Gtk.ApplicationWindow):
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         for i, texto in enumerate(self.reto["opciones"]):
             b = Gtk.Button(css_classes=["pill", "as-reto-opcion"])
-            b.set_child(Gtk.Label(label=texto, wrap=True, xalign=0, max_width_chars=28))
+            b.set_child(Gtk.Label(label=texto, wrap=True, xalign=0, max_width_chars=self.char_width(28)))
             b.connect("clicked", lambda _b, i=i: self.resolver(
                 i == self.reto["correcta"], elegida=self.reto["opciones"][i]))
             caja.append(b)
@@ -1405,7 +1534,7 @@ class PetWindow(Gtk.ApplicationWindow):
     def reto_vf(self):
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         caja.append(Gtk.Label(label=self.reto["afirmacion"], wrap=True, xalign=0,
-                              max_width_chars=30, css_classes=["as-reto-afirma"]))
+                              max_width_chars=self.char_width(30), css_classes=["as-reto-afirma"]))
         fila = Gtk.Box(spacing=6, homogeneous=True)
         for etiqueta, valor, clase in (("Verdadero", True, "as-rate-good"),
                                        ("Falso", False, "as-rate-again")):
@@ -1446,7 +1575,7 @@ class PetWindow(Gtk.ApplicationWindow):
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         caja.append(Gtk.Label(
             label="Piénsalo antes de que se acabe el tiempo.", wrap=True, xalign=0,
-            max_width_chars=32, css_classes=["as-bubble-text"]))
+            max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
         b = Gtk.Button(label="Ya lo tengo", css_classes=["pill", "as-rate-good"])
         b.connect("clicked", lambda *_: self.revelar_relampago())
         caja.append(b)
@@ -1462,11 +1591,11 @@ class PetWindow(Gtk.ApplicationWindow):
             c["deck_color"]))
         self.bubble_box.append(Gtk.Label(
             label=util.to_markup(c["front"]), use_markup=True, wrap=True, xalign=0,
-            max_width_chars=30, css_classes=["as-bubble-front"]))
+            max_width_chars=self.char_width(30), css_classes=["as-bubble-front"]))
         self.bubble_box.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
         self.bubble_box.append(Gtk.Label(
             label=util.to_markup(c["back"]), use_markup=True, wrap=True, xalign=0,
-            max_width_chars=32, css_classes=["as-bubble-text"]))
+            max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
         fila = Gtk.Box(spacing=6, homogeneous=True)
         for etiqueta, ok, clase in (("No la tenía", False, "as-rate-again"),
                                     ("La tenía", True, "as-rate-good")):
@@ -1536,8 +1665,10 @@ class PetWindow(Gtk.ApplicationWindow):
         self.refresh_stats()
         if acierto:
             self.creature.celebrar()
+            self.sonar("acierto")
         else:
             self.creature.desanimar()
+            self.sonar("fallo")
 
         self.clear_bubble()
         if agotado:
@@ -1549,17 +1680,17 @@ class PetWindow(Gtk.ApplicationWindow):
         self.bubble_box.append(self.bubble_header(titulo))
         self.bubble_box.append(Gtk.Label(
             label=util.to_markup(card["front"]), use_markup=True, wrap=True, xalign=0,
-            max_width_chars=30, css_classes=["as-bubble-front"]))
+            max_width_chars=self.char_width(30), css_classes=["as-bubble-front"]))
         if not acierto and elegida:
             self.bubble_box.append(Gtk.Label(
                 label=f"Dijiste <s>{GLib.markup_escape_text(elegida)}</s>",
-                use_markup=True, wrap=True, xalign=0, max_width_chars=32,
+                use_markup=True, wrap=True, xalign=0, max_width_chars=self.char_width(32),
                 css_classes=["as-bubble-cita", clase]))
         self.bubble_box.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
         # La respuesta se enseña siempre, se acierte o no: para eso está aquí
         self.bubble_box.append(Gtk.Label(
             label=util.to_markup(card["back"]), use_markup=True, wrap=True, xalign=0,
-            max_width_chars=32, css_classes=["as-bubble-text"]))
+            max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
         self.bubble_box.append(Gtk.Label(
             label=f"{segundos:.1f} s · vuelve en {scheduler.due_label(st['due'])}",
             xalign=0, css_classes=["as-bubble-cita"]))
@@ -1567,7 +1698,7 @@ class PetWindow(Gtk.ApplicationWindow):
             dias = int(ausencia // 24)
             self.bubble_box.append(Gtk.Label(
                 label=f"🎉 Y rompes {dias} día{'s' if dias > 1 else ''} sin estudiar",
-                xalign=0, wrap=True, max_width_chars=32,
+                xalign=0, wrap=True, max_width_chars=self.char_width(32),
                 css_classes=["as-bubble-cita", "as-reto-ok"]))
 
         fila = Gtk.Box(spacing=6, homogeneous=True)
@@ -1578,11 +1709,236 @@ class PetWindow(Gtk.ApplicationWindow):
         ensenar.connect("clicked", lambda *_: self.teach())
         fila.append(ensenar)
         self.bubble_box.append(fila)
+        if ia.config(self.con)["activa"]:
+            fila_ia = Gtk.Box(spacing=10, homogeneous=True)
+            fila_ia.append(self.boton_explicar())
+            fila_ia.append(self.boton_chat())
+            self.bubble_box.append(fila_ia)
 
         self.card = card       # el pie necesita saber de qué tarjeta se habla
         self.reto = None
         self.bubble_box.append(self.pie_leer())
         self.open_bubble()
+
+    # -------------------------------------------------------------------- IA
+
+    def boton_explicar(self):
+        b = Gtk.Button(label="🧠 Explícamelo mejor", css_classes=["flat", "as-bubble-link"])
+        b.connect("clicked", lambda *_: self.explicar())
+        return b
+
+    def explicar(self):
+        """Le pide al modelo local otra explicación de la tarjeta que estás viendo."""
+        card = self.card
+        if not card:
+            return
+        cuerpo = self.globo_ia(f"{card['deck_icon']} Otra manera de verlo",
+                              util.plain(card["front"]))
+        self.creature.pensar()
+        cfg = ia.config(self.con)          # SQLite no se puede tocar desde otro hilo
+        ia.hilo(lambda: ia.explicar(cfg, card, trozo=self.escribir_ia),
+                lambda texto: self.fin_ia(cuerpo, texto, card),
+                lambda e: self.fin_ia(cuerpo, f"<i>{GLib.markup_escape_text(str(e))}</i>", card))
+
+    def boton_chat(self):
+        b = Gtk.Button(label="💬 Modo chatbot", css_classes=["flat", "as-bubble-link"])
+        b.connect("clicked", lambda *_: self.abrir_chat())
+        return b
+
+    def abrir_chat(self):
+        """Empieza una conversación nueva, con la tarjeta actual como contexto."""
+        if not ia.config(self.con)["activa"]:
+            self.say("Actívame la IA en Ajustes y charlamos.", titulo="🧠 Sin IA",
+                     boton=("Abrir AppStudy", self.open_main))
+            return
+        contexto = ""
+        if self.card:
+            contexto = (f"{util.plain(self.card['front'])} → "
+                        f"{util.plain(self.card['back'])}")
+        self.chat = {"historial": [], "contexto": contexto}
+        self.creature.charlando = True
+        self.creature.play("salto", 0.5)
+        self.sonar("listo")
+        self.render_chat()
+
+    def salir_chat(self, *_):
+        """Se acabó la charla: Bit vuelve a su color y a lo suyo."""
+        self.chat = None
+        self.creature.charlando = False
+        self.bubble_box.remove_css_class("as-bubble-chat")
+        self.close_bubble()
+
+    def render_chat(self, escribiendo=None):
+        """El globo del chat: lo hablado, una caja de texto y la salida.
+
+        `escribiendo` es la etiqueta donde el modelo va escribiendo su respuesta;
+        se pasa cuando se está en mitad de un turno.
+        """
+        self.clear_bubble()
+        self.bubble_box.add_css_class("as-bubble-chat")
+        self.card = None
+        self.reto = None
+
+        cabecera = self.bubble_header("💬 Chat con Bit", CHAT)
+        self.bubble_box.append(cabecera)
+        if self.chat["contexto"]:
+            self.bubble_box.append(Gtk.Label(
+                label=self.chat["contexto"][:110], wrap=True, xalign=0,
+                max_width_chars=self.char_width(34), css_classes=["as-bubble-cita"]))
+
+        charla = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        for turno in self.chat["historial"][-8:]:
+            mio = turno["role"] == "user"
+            charla.append(Gtk.Label(
+                label=util.to_markup(turno["content"]), use_markup=True, wrap=True,
+                xalign=1 if mio else 0, max_width_chars=self.char_width(32),
+                css_classes=["as-chat-tu" if mio else "as-chat-bit"]))
+        if escribiendo is not None:
+            charla.append(escribiendo)
+        scroll = Gtk.ScrolledWindow(propagate_natural_height=True,
+                                    max_content_height=230,
+                                    hscrollbar_policy=Gtk.PolicyType.NEVER)
+        scroll.set_child(charla)
+        self.bubble_box.append(scroll)
+        GLib.timeout_add(60, lambda: (self._chat_al_final(scroll), False)[1])
+
+        entrada = Gtk.Entry(placeholder_text="Escríbeme…", css_classes=["as-reto-entrada"])
+        self.bubble_box.append(entrada)
+        fila = Gtk.Box(spacing=6, homogeneous=True)
+        salir = Gtk.Button(label="Salir del chat", css_classes=["pill"])
+        salir.connect("clicked", self.salir_chat)
+        fila.append(salir)
+        enviar = Gtk.Button(label="Enviar", css_classes=["pill", "as-chat-enviar"])
+        fila.append(enviar)
+        self.bubble_box.append(fila)
+        for w, senal in ((entrada, "activate"), (enviar, "clicked")):
+            w.connect(senal, lambda *_: self.enviar_chat(entrada.get_text().strip()))
+        if escribiendo is None:
+            GLib.timeout_add(320, lambda: (entrada.grab_focus(), False)[1])
+        else:
+            entrada.set_sensitive(False)
+            enviar.set_sensitive(False)
+        self.open_bubble()
+
+    @staticmethod
+    def _chat_al_final(scroll):
+        ajuste = scroll.get_vadjustment()
+        ajuste.set_value(max(0, ajuste.get_upper() - ajuste.get_page_size()))
+
+    def enviar_chat(self, texto):
+        if not texto or self.chat is None:
+            return
+        self.chat["historial"].append({"role": "user", "content": texto})
+        cuerpo = Gtk.Label(label="…", wrap=True, xalign=0, max_width_chars=self.char_width(32),
+                           css_classes=["as-chat-bit"])
+        self.ia_texto = ""
+        self.ia_cuerpo = cuerpo
+        self.render_chat(escribiendo=cuerpo)
+        self.creature.hablar(60)
+        self.creature.pensar()
+
+        cfg = ia.config(self.con)
+        historial = list(self.chat["historial"][:-1])
+        contexto = self.chat["contexto"]
+        ia.hilo(lambda: ia.conversar(cfg, historial, texto, contexto,
+                                     trozo=self.escribir_ia),
+                self.fin_chat,
+                lambda e: self.fin_chat(f"<i>{GLib.markup_escape_text(str(e))}</i>"))
+
+    def fin_chat(self, respuesta):
+        self.creature.hablando_hasta = 0
+        if self.chat is None:
+            return                       # saliste del chat mientras pensaba
+        self.chat["historial"].append({"role": "assistant",
+                                       "content": respuesta or "(sin respuesta)"})
+        self.sonar("listo")
+        self.render_chat()
+
+    def preguntar(self):
+        """Un globo con una caja de texto: pregúntale lo que quieras."""
+        if not ia.config(self.con)["activa"]:
+            self.say("Actívame la IA en Ajustes y te respondo lo que quieras.",
+                     titulo="🧠 Sin IA", boton=("Abrir AppStudy", self.open_main))
+            return
+        # Si venías de una tarjeta, se guarda para dársela como contexto
+        self.contexto_ia = (f"{util.plain(self.card['front'])} → "
+                            f"{util.plain(self.card['back'])}") if self.card else ""
+        self.card = None
+        self.reto = None
+        self.clear_bubble()
+        self.bubble_box.append(self.bubble_header("🧠 Pregúntame algo"))
+        entrada = Gtk.Entry(placeholder_text="¿Qué quieres saber?",
+                            css_classes=["as-reto-entrada"])
+        self.bubble_box.append(entrada)
+        fila = Gtk.Box(spacing=6, homogeneous=True)
+        cerrar = Gtk.Button(label="Ahora no", css_classes=["pill"])
+        cerrar.connect("clicked", self.close_bubble)
+        fila.append(cerrar)
+        mandar = Gtk.Button(label="Preguntar", css_classes=["pill", "as-rate-good"])
+        fila.append(mandar)
+        self.bubble_box.append(fila)
+        for w, señal in ((entrada, "activate"), (mandar, "clicked")):
+            w.connect(señal, lambda *_: self.lanzar_pregunta(entrada.get_text().strip()))
+        GLib.timeout_add(350, lambda: (entrada.grab_focus(), False)[1])
+        self.open_bubble()
+
+    def lanzar_pregunta(self, pregunta):
+        if not pregunta:
+            return
+        # Si no venías de una tarjeta, se buscan las tuyas que hablen del tema
+        contexto = self.contexto_ia or ia.buscar_contexto(self.con, pregunta)
+        cuerpo = self.globo_ia("🧠 A ver…", pregunta)
+        self.creature.pensar()
+        cfg = ia.config(self.con)
+        ia.hilo(lambda: ia.preguntar(cfg, pregunta, contexto, trozo=self.escribir_ia),
+                lambda texto: self.fin_ia(cuerpo, texto, None),
+                lambda e: self.fin_ia(cuerpo, f"<i>{GLib.markup_escape_text(str(e))}</i>", None))
+
+    def globo_ia(self, titulo, pregunta):
+        """Prepara el globo donde el modelo va escribiendo su respuesta."""
+        self.clear_bubble()
+        self.bubble_box.append(self.bubble_header(titulo))
+        self.bubble_box.append(Gtk.Label(
+            label=util.to_markup(pregunta), use_markup=True, wrap=True, xalign=0,
+            max_width_chars=self.char_width(30), css_classes=["as-bubble-front"]))
+        self.bubble_box.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
+        cuerpo = Gtk.Label(label="…", wrap=True, xalign=0, max_width_chars=self.char_width(32),
+                           css_classes=["as-bubble-text"])
+        self.bubble_box.append(cuerpo)
+        self.ia_texto = ""
+        self.ia_cuerpo = cuerpo
+        self.creature.hablar(60)          # la boca se mueve mientras escribe
+        self.open_bubble()
+        return cuerpo
+
+    def escribir_ia(self, pedazo):
+        """Llega desde el hilo del modelo: se pinta en el de la interfaz."""
+        def pintar():
+            self.ia_texto += pedazo
+            if self.ia_cuerpo is not None:
+                self.ia_cuerpo.set_text(self.ia_texto)     # crudo mientras escribe
+            return False
+        GLib.idle_add(pintar)
+
+    def fin_ia(self, cuerpo, texto, card):
+        """Respuesta completa: se pasa a markup y se dejan los botones."""
+        self.creature.hablando_hasta = 0
+        if cuerpo is not self.ia_cuerpo:
+            return                        # el globo ya se cerró o cambió
+        cuerpo.set_markup(util.to_markup(texto or "(sin respuesta)"))
+        self.sonar("listo")
+        fila = Gtk.Box(spacing=6, homogeneous=True)
+        otra = Gtk.Button(label="Otra pregunta", css_classes=["pill"])
+        otra.connect("clicked", lambda *_: self.preguntar())
+        fila.append(otra)
+        seguir = Gtk.Button(label="Enséñame", css_classes=["pill", "suggested-action"])
+        seguir.connect("clicked", lambda *_: self.teach())
+        fila.append(seguir)
+        self.bubble_box.append(fila)
+        self.card = card                  # para el pie, si venía de una tarjeta
+        if card:
+            self.bubble_box.append(self.pie_leer())
+        self.creature.play("salto", 0.5)
 
     # --------------------------------------------------------- leer sobre esto
 
@@ -1621,12 +1977,10 @@ class PetWindow(Gtk.ApplicationWindow):
     def on_click(self, gesture, n_press, x, y):
         boton = gesture.get_current_button()
         if boton == 3:
-            rect = Gdk.Rectangle()
-            rect.x, rect.y, rect.width, rect.height = int(x), int(y), 1, 1
-            self.menu.set_pointing_to(rect)
-            self.menu.popup()
+            self.abrir_menu_en(self.creature, x, y)
             return
         if boton == 1 and n_press == 1:
+            self.sonar("clic")
             self.creature.play("salto", 0.6)
             if self.bubble.get_reveal_child():
                 self.close_bubble()
@@ -1634,18 +1988,52 @@ class PetWindow(Gtk.ApplicationWindow):
                 self.wake()
                 self.teach()
 
+    def on_bubble_click(self, gesture, n_press, x, y):
+        boton = gesture.get_current_button()
+        if boton == 3:
+            self.abrir_menu_en(self.bubble_box, x, y)
+            return
+
+    def abrir_menu_en(self, widget, x, y):
+        rect = Gdk.Rectangle()
+        rect.x, rect.y, rect.width, rect.height = int(x), int(y), 1, 1
+        if self.menu.get_parent() != widget:
+            if self.menu.get_parent() is not None:
+                self.menu.unparent()
+            self.menu.set_parent(widget)
+        self.menu.set_pointing_to(rect)
+        self.menu.popup()
+
     def build_menu(self):
         m = Gio.Menu()
         seccion = Gio.Menu()
         seccion.append("Enséñame algo", "win.teach")
         seccion.append("Ponme a prueba", "win.quiz")
+        seccion.append("Pregúntame algo", "win.ask")
+        seccion.append("Modo chatbot", "win.chat")
         seccion.append("Una frase de libro", "win.quote")
         seccion.append("Sesión de estudio", "win.study")
         seccion.append("Abrir AppStudy", "win.open")
         m.append_section(None, seccion)
+
         tamano = Gio.Menu()
-        tamano.append("Más grande", "win.bigger")
-        tamano.append("Más pequeño", "win.smaller")
+        tamano.append("Silencio" if self.sonido["activo"] else "Con sonido", "win.mute")
+
+        # Submenú tamaño de tarjeta
+        tarjeta_submenu = Gio.Menu()
+        tarjeta_submenu.append("Tarjeta más grande (+)", "win.card_bigger")
+        tarjeta_submenu.append("Tarjeta más pequeña (-)", "win.card_smaller")
+        tarjeta_submenu.append("Tamaño: Normal (100%)", "win.card_size_100")
+        tarjeta_submenu.append("Tamaño: Grande (125%)", "win.card_size_125")
+        tarjeta_submenu.append("Tamaño: Muy grande (150%)", "win.card_size_150")
+        tamano.append_submenu("Tamaño de tarjeta", tarjeta_submenu)
+
+        # Submenú tamaño de la criatura
+        mascota_submenu = Gio.Menu()
+        mascota_submenu.append(f"{NOMBRE} más grande", "win.bigger")
+        mascota_submenu.append(f"{NOMBRE} más pequeño", "win.smaller")
+        tamano.append_submenu(f"Tamaño de {NOMBRE}", mascota_submenu)
+
         m.append_section(None, tamano)
         dormir = Gio.Menu()
         dormir.append(f"Duérmete {SNOOZE_MIN} min", "win.snooze")
@@ -1654,9 +2042,17 @@ class PetWindow(Gtk.ApplicationWindow):
         m.append("Salir", "win.quit")
         for nombre, cb in (("teach", lambda *_: (self.wake(), self.teach())),
                            ("quiz", lambda *_: (self.wake(), self.quiz())),
+                           ("ask", lambda *_: (self.wake(), self.preguntar())),
+                           ("chat", lambda *_: (self.wake(), self.abrir_chat())),
                            ("quote", lambda *_: (self.wake(), self.quote())),
                            ("study", lambda *_: self.study()),
                            ("open", lambda *_: self.open_main()),
+                           ("mute", lambda *_: self.alternar_sonido()),
+                           ("card_bigger", lambda *_: self.cambiar_tamano_tarjeta(0.15)),
+                           ("card_smaller", lambda *_: self.cambiar_tamano_tarjeta(-0.15)),
+                           ("card_size_100", lambda *_: self.fijar_tamano_tarjeta(1.0)),
+                           ("card_size_125", lambda *_: self.fijar_tamano_tarjeta(1.25)),
+                           ("card_size_150", lambda *_: self.fijar_tamano_tarjeta(1.50)),
                            ("bigger", lambda *_: self.cambiar_tamano(ESCALA_PASO)),
                            ("smaller", lambda *_: self.cambiar_tamano(-ESCALA_PASO)),
                            ("snooze", lambda *_: self.snooze()),
@@ -1668,6 +2064,7 @@ class PetWindow(Gtk.ApplicationWindow):
         return m
 
     def snooze(self):
+        self.sonar("dormir")
         db.set_meta(self.con, "pet_snooze_until", time.time() + SNOOZE_MIN * 60)
         self.close_bubble()
         self.refresh_stats()

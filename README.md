@@ -60,12 +60,37 @@ nada.
 
 Requiere Python 3 con GTK4 y libadwaita, que ya vienen en Ubuntu/Mint con GNOME
 (`sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1` si faltaran), y
-`python3-pygments` para los colores del código.
+`python3-pygments` para los colores del código. La IA local es opcional y va
+aparte (ver [Preguntarle a Bit](#preguntarle-a-bit-ia-local)).
 
 El lanzador se llama `io.github.appstudy.AppStudy.desktop`, igual que el id de la
 aplicación: es lo que mira GNOME para emparejar la ventana abierta con su icono
 del dock. El icono está en `appstudy/data/` — una tarjeta de estudio con el
 asterisco de Bit, dibujado con la misma geometría de once rayos que la mascota.
+
+## Actualizar
+
+```bash
+./actualizar.sh
+```
+
+Hace todo de una vez y se puede repetir sin miedo: trae los cambios del remoto
+(si tienes el árbol limpio), reinstala lo que son **copias** —icono, lanzador,
+dock, autoarranque y extensión—, recarga el contenido incluido y reinicia a Bit
+dejándola con la versión nueva. Al terminar te avisa solo si hace falta algo más:
+cerrar y abrir la ventana principal, o cerrar sesión si cambió la extensión de
+GNOME.
+
+Lo que **no** hace falta reinstalar: el comando `appstudy` y el lanzador apuntan
+directamente a esta carpeta, así que el código Python y los estilos entran con
+solo volver a abrir lo que estuviera corriendo.
+
+| Qué tocas | Qué basta |
+|---|---|
+| Código Python o `style.css` | cerrar y abrir la app |
+| La mascota (`pet.py`, `ia.py`, `sonido.py`…) | `appstudy --pet-off && appstudy --pet` |
+| Contenido de `content/*.json` | **Ctrl+R** o `appstudy --reload` |
+| Icono, lanzador, dock, atajo, extensión | `./install.sh` (o `./actualizar.sh`) |
 
 ## Uso
 
@@ -140,6 +165,24 @@ Cuando **enseña**, enseña de verdad: la pregunta y la respuesta salen juntas d
 el primer momento, sin botón de por medio. Tú solo dices si la tenías —**No lo
 sabía** / **Lo sabía**— y cuenta como un repaso normal, con el mismo intervalo que
 el popup.
+
+### Sonido
+
+Bit hace ruiditos: un aviso de dos notas cuando viene a buscarte, un arpegio al
+acertar, dos notas descendentes al fallar, un blip al abrirse el globo, otro al
+hacerle clic y una escala grave al dormirse. También suenan los aciertos y
+fallos del popup de estudio.
+
+Los sonidos **no son archivos**: se sintetizan con la biblioteca estándar
+(`appstudy/sonido.py`) la primera vez que hacen falta y se guardan en
+`~/.local/share/appstudy/sonidos` — unos 220 KB, nada en el repositorio. Se
+reproducen con GSound, sin abrir procesos ni bloquear la interfaz; si no
+estuviera, se recurre a `paplay`, `pw-play` o `aplay`, y si no hay ninguno la
+aplicación funciona igual, en silencio.
+
+Para cambiarlos, las notas están en un diccionario al principio del módulo:
+cada sonido es una lista de `(frecuencia, duración, volumen)`. Se apagan desde
+el menú de Bit (**Silencio**) o en Ajustes, donde también está el volumen.
 
 ### Se le nota si no estudias
 
@@ -360,6 +403,83 @@ y cada tarjeta su `level` (1 = el más básico).
 
 ⚠️ Al recargar, una tarjeta de fábrica que ya **no** esté en el JSON se retira junto con
 su historial. Tus tarjetas propias nunca se tocan.
+
+## Tu biblioteca
+
+La pestaña **Biblioteca** abre la carpeta donde tengas tus libros y los convierte
+en material de estudio. Los libros **no se copian ni se tocan**: se leen donde
+están, y a la base de datos solo pasa lo que tú apruebes.
+
+- **PDF** con `pdftotext` (paquete `poppler-utils`, casi siempre ya instalado) y
+  **EPUB** descomprimiendo su HTML; también TXT y MD. Si un PDF es un escaneo sin
+  texto, te lo dice en vez de fallar en silencio (para eso haría falta OCR).
+- El libro se parte en **secciones**: por sus capítulos si los declara
+  (`Capítulo 3`, `Chapter 7`, `4. Título`…) y, si no, en tramos de doce páginas.
+  Se saltan portada, créditos e índice — sin eso, las primeras tarjetas salen del
+  sumario y preguntan en qué página empieza cada capítulo.
+- De cada sección: **✦ Tarjetas** (el modelo las saca *solo de ese texto*, y tú
+  marcas cuáles se guardan) o **📖 Leer** (la guarda como capítulo de lectura).
+- Todo va a un mazo propio por carpeta —`📚 Mecanica`, `📚 Python`…— y las
+  tarjetas quedan etiquetadas `libro,ia` para poder encontrarlas o borrarlas.
+
+La carpeta se elige con el botón de la carpeta, arriba a la derecha, o en
+Ajustes → Biblioteca. El listado es instantáneo aunque tengas miles de libros
+(se rellena por tandas), y abrir un PDF de 200 páginas tarda menos de un segundo.
+
+⚠️ Un modelo local se inventa cosas: revisa siempre lo que propone antes de
+guardarlo. Un par de apriete mal copiado se estudia igual de bien que uno bueno.
+
+## Preguntarle a Bit (IA local)
+
+Bit puede conectarse a un **modelo de lenguaje que corre en tu propia máquina**.
+Ni tus tarjetas ni tus preguntas salen del equipo, no hay clave de API que
+guardar y no cuesta nada por pregunta.
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh   # el servidor
+ollama pull gemma3:4b                           # el modelo (o gemma4 cuando lo tengas)
+```
+
+Después, en **Ajustes → Inteligencia artificial**: activa el interruptor y pulsa
+**Probar conexión**. Si el modelo que pusiste no está descargado, AppStudy usa el
+gemma que encuentre y te lo dice.
+
+| Dónde | Qué hace |
+|---|---|
+| Menú de Bit → **Pregúntame algo** | una pregunta suelta; si venías de una tarjeta, la usa como contexto |
+| En una tarjeta → **🧠 Explícamelo mejor** | te la explica con otras palabras y un ejemplo |
+| En una tarjeta → **💬 Modo chatbot** | abre una conversación nueva y sigue el hilo |
+| Tarjetas → botón ✦ | genera tarjetas sobre un tema, **tú marcas cuáles se guardan** |
+
+### Modo chatbot
+
+Desde cualquier tarjeta, **💬 Modo chatbot** abre una conversación nueva con esa
+tarjeta como contexto: Bit recuerda lo que lleváis hablado (los últimos seis idas
+y vueltas, que a un modelo pequeño más historial le sienta mal) y puedes tirar
+del hilo — «¿y si es más rica?», «ponme un ejemplo».
+
+Mientras charláis se nota a la legua: **Bit se pone azul** —el estallido, los
+cachetes y la barra abandonan la paleta cálida— y el globo cambia de fondo,
+borde y sombra al mismo azul, con tus mensajes a la derecha y los suyos a la
+izquierda. **Salir del chat** lo devuelve todo a su color y a lo suyo.
+
+La respuesta se escribe **en directo** en el globo (Bit mueve la boca mientras
+tanto) y todo el trabajo va en un hilo aparte, así que la ventana nunca se
+congela. Está en `appstudy/ia.py`, sin dependencias nuevas: habla HTTP con la
+biblioteca estándar.
+
+⚠️ Un modelo local se equivoca, y una tarjeta mala se estudia igual que una
+buena: por eso lo generado se revisa antes de guardarse, y las tarjetas quedan
+etiquetadas con `ia` para que puedas encontrarlas después.
+
+**Nada de esto entra en el repositorio.** Los pesos del modelo viven en
+`~/.ollama` (fuera del proyecto) y la configuración —servidor y modelo— en tu
+base de datos. El `.gitignore` bloquea además `*.gguf`, `*.safetensors`,
+`models/`, `.env` y las claves, por si algún día pruebas con archivos sueltos.
+
+Con qué modelo: en un equipo con 4 GB de VRAM va bien un **4B** cuantizado
+(rápido, cabe en la gráfica); un 12B funciona tirando de los 30 GB de RAM, pero
+responde bastante más despacio.
 
 ## Empezar de cero
 
