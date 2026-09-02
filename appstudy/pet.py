@@ -1285,7 +1285,15 @@ class PetWindow(Gtk.ApplicationWindow):
         while (hijo := self.bubble_box.get_first_child()) is not None:
             self.bubble_box.remove(hijo)
 
+    def liberar_ia(self):
+        """Pone la IA en reposo descargando el modelo de la memoria (keep_alive=0)."""
+        cfg = ia.config(self.con)
+        if cfg.get("activa"):
+            ia.hilo(lambda: ia.descargar(cfg))
+
     def close_bubble(self, *_):
+        if self.chat is not None or self.ia_cuerpo is not None:
+            self.liberar_ia()
         self.parar_cuenta()
         self.chat = None                     # se acaba la charla
         self.creature.charlando = False
@@ -1837,10 +1845,11 @@ class PetWindow(Gtk.ApplicationWindow):
         self.render_chat()
 
     def salir_chat(self, *_):
-        """Se acabó la charla: Bit vuelve a su color y a lo suyo."""
+        """Se acabó la charla: Bit vuelve a su color y a lo suyo, y libera la IA."""
         self.chat = None
         self.creature.charlando = False
         self.bubble_box.remove_css_class("as-bubble-chat")
+        self.liberar_ia()
         self.close_bubble()
 
     def render_chat(self, escribiendo=None):
@@ -2141,6 +2150,7 @@ class PetWindow(Gtk.ApplicationWindow):
     def snooze(self):
         self.sonar("dormir")
         db.set_meta(self.con, "pet_snooze_until", time.time() + SNOOZE_MIN * 60)
+        self.liberar_ia()
         self.close_bubble()
         self.refresh_stats()
 
@@ -2228,7 +2238,7 @@ def run_pet(argv) -> int:
         con = db.connect()
         # Que se sepa desde fuera (la extensión del top bar) que anda suelta
         db.set_meta(con, "pet_pid", os.getpid())
-        a.connect("shutdown", lambda *_: db.set_meta(con, "pet_pid", 0))
+        a.connect("shutdown", lambda *_: (db.set_meta(con, "pet_pid", 0), ia.descargar(ia.config(con))))
         css = Gtk.CssProvider()
         css.load_from_path(str(Path(__file__).parent / "style.css"))
         display = Gdk.Display.get_default()

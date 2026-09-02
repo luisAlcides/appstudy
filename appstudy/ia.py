@@ -26,6 +26,13 @@ URL_DEFECTO = "http://localhost:11434"
 MODELO_DEFECTO = "gemma4"
 ESPERA = 120            # segundos; un modelo local puede tardar en arrancar
 
+# Tiempos de permanencia del modelo en memoria (keep_alive):
+# Durante una charla activa, se mantiene unos minutos para que las respuestas seguidas
+# salgan fluidas. Al salir del chat, cerrar el globo o la ventana, se descarga (keep_alive=0)
+# para que no consuma memoria ni GPU en reposo y solo se reactive al usarlo.
+KEEP_ALIVE_CHAT = "5m"
+KEEP_ALIVE_ONESHOT = "1m"
+
 # Cómo se comporta Bit cuando le preguntas. Corto y al grano: la respuesta se
 # lee en un globo de 30 caracteres de ancho, no en una pantalla completa.
 SISTEMA = """Eres Bit, la mascota de AppStudy, una aplicación de estudio con \
@@ -79,7 +86,7 @@ def _pedir(url: str, ruta: str, cuerpo=None, espera=ESPERA):
     except urllib.error.URLError as e:
         raise IAError(f"No pude conectar con {url}. ¿Está Ollama en marcha?") from e
     except (TimeoutError, json.JSONDecodeError) as e:
-        raise IAError(f"El modelo no respondió a tiempo ({ESPERA} s).") from e
+        raise IAError(f"El modelo no respondió a tiempo ({espera} s).") from e
 
 
 class IAError(RuntimeError):
@@ -90,6 +97,40 @@ def modelos(url: str = URL_DEFECTO) -> list:
     """Los modelos instalados en el servidor, del más reciente al más viejo."""
     datos = _pedir(url, "/api/tags", espera=8)
     return [m["name"] for m in datos.get("models", [])]
+
+
+def en_memoria(url: str = URL_DEFECTO) -> list:
+    """Modelos que están actualmente cargados en RAM/VRAM en Ollama."""
+    try:
+        datos = _pedir(url, "/api/ps", espera=4)
+        return [m.get("name", "") for m in datos.get("models", []) if m.get("name")]
+    except Exception:
+        return []
+
+
+def descargar(cfg: dict | None = None) -> bool:
+    """Descarga de la memoria / VRAM los modelos activos en Ollama (keep_alive = 0).
+
+    Pone la IA en reposo para liberar toda la RAM y GPU cuando no se usa el
+    chatbot o las funciones de IA. Solo se vuelve a activar cuando vuelvas a usarla.
+    """
+    if not cfg:
+        return False
+    url = cfg.get("url", URL_DEFECTO)
+    try:
+        cargados = en_memoria(url)
+        if cargados:
+            for m in cargados:
+                _pedir(url, "/api/generate", {"model": m, "keep_alive": 0}, espera=5)
+            return True
+        instalados = modelos(url)
+        modelo = elegir_modelo(instalados, cfg.get("modelo", MODELO_DEFECTO))
+        if modelo:
+            _pedir(url, "/api/generate", {"model": modelo, "keep_alive": 0}, espera=5)
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def elegir_modelo(instalados: list, preferido: str) -> str | None:
@@ -113,10 +154,12 @@ def probar(cfg: dict) -> tuple:
     if not instalados:
         return False, "Ollama responde, pero no hay ningún modelo descargado."
     elegido = elegir_modelo(instalados, c["modelo"])
+    cargados = en_memoria(c["url"])
+    estado_mem = " (en reposo · sin consumo de RAM/GPU)" if not cargados else f" (activo en memoria: {', '.join(cargados)})"
     if elegido != c["modelo"]:
         return True, (f"Conectado. No encontré «{c['modelo']}», así que usaré "
-                      f"«{elegido}» (hay {len(instalados)} modelos).")
-    return True, f"Conectado con «{elegido}»."
+                      f"«{elegido}» (hay {len(instalados)} modelos){estado_mem}.")
+    return True, f"Conectado con «{elegido}»{estado_mem}."
 
 
 # --------------------------------------------------------------- contexto
@@ -155,7 +198,8 @@ def buscar_contexto(con, pregunta: str, cuantas: int = 3) -> str:
 
 # ------------------------------------------------------------------ hablar
 
-def _mensaje(cfg, mensajes, formato=None, temperatura=0.4, trozo=None) -> str:
+def _mensaje(cfg, mensajes, formato=None, temperatura=0.4, trozo=None,
+             keep_alive=KEEP_ALIVE_CHAT) -> str:
     """Manda la conversación al modelo y devuelve el texto completo.
 
     Si se pasa `trozo`, se llama con cada pedazo según llega: así la respuesta
@@ -169,9 +213,7 @@ def _mensaje(cfg, mensajes, formato=None, temperatura=0.4, trozo=None) -> str:
         raise IAError("No hay ningún modelo descargado. Prueba: ollama pull gemma3")
 
     cuerpo = {"model": modelo, "messages": mensajes, "stream": trozo is not None,
-              # keep_alive: cargar el modelo en la gráfica cuesta casi un minuto;
-              # así se queda listo media hora y las siguientes salen al instante.
-              "keep_alive": "30m",
+              "keep_alive": keep_alive,
               "options": {"temperature": temperatura, "num_predict": 700}}
     if formato:
         cuerpo["format"] = formato
@@ -217,7 +259,8 @@ def preguntar(cfg, pregunta: str, contexto: str = "", trozo=None) -> str:
     if contexto:
         usuario = f"Contexto de lo que estoy estudiando:\n{contexto}\n\nPregunta: {usuario}"
     return _limpiar(_mensaje(cfg, [{"role": "system", "content": SISTEMA},
-                                   {"role": "user", "content": usuario}], trozo=trozo))
+                                   {"role": "user", "content": usuario}],
+                             trozo=trozo, keep_alive=KEEP_ALIVE_ONESHOT))
 
 
 # Cuántos mensajes del historial se le mandan. Un modelo pequeño se atasca (y se
@@ -239,7 +282,8 @@ def conversar(cfg, historial: list, pregunta: str, contexto: str = "", trozo=Non
     mensajes = [{"role": "system", "content": sistema},
                 *historial[-MEMORIA_CHAT:],
                 {"role": "user", "content": pregunta.strip()}]
-    return _limpiar(_mensaje(cfg, mensajes, trozo=trozo, temperatura=0.5))
+    return _limpiar(_mensaje(cfg, mensajes, trozo=trozo, temperatura=0.5,
+                             keep_alive=KEEP_ALIVE_CHAT))
 
 
 def explicar(cfg, card, trozo=None) -> str:
@@ -249,7 +293,8 @@ def explicar(cfg, card, trozo=None) -> str:
                f"Respuesta: {dorso}\n\nExplícamelo con otras palabras, más simple, "
                f"y añade un ejemplo concreto. Máximo cuatro frases.")
     return _limpiar(_mensaje(cfg, [{"role": "system", "content": SISTEMA},
-                                   {"role": "user", "content": usuario}], trozo=trozo))
+                                   {"role": "user", "content": usuario}],
+                             trozo=trozo, keep_alive=KEEP_ALIVE_ONESHOT))
 
 
 ESQUEMA_TARJETAS = {
@@ -279,7 +324,8 @@ def generar_tarjetas(cfg, tema: str, cuantas: int = 5, nivel: str = "intermedio"
         "Responde solo con el JSON.")
     crudo = _mensaje(cfg, [{"role": "system", "content": SISTEMA},
                            {"role": "user", "content": usuario}],
-                     formato=ESQUEMA_TARJETAS, temperatura=0.7)
+                     formato=ESQUEMA_TARJETAS, temperatura=0.7,
+                     keep_alive=KEEP_ALIVE_ONESHOT)
     try:
         datos = json.loads(crudo)
     except json.JSONDecodeError:
@@ -313,7 +359,8 @@ def generar_desde_texto(cfg, fragmento: str, titulo: str, cuantas: int = 5) -> l
         "Responde solo con el JSON.")
     crudo = _mensaje(cfg, [{"role": "system", "content": SISTEMA},
                            {"role": "user", "content": usuario}],
-                     formato=ESQUEMA_TARJETAS, temperatura=0.4)
+                     formato=ESQUEMA_TARJETAS, temperatura=0.4,
+                     keep_alive=KEEP_ALIVE_ONESHOT)
     try:
         datos = json.loads(crudo)
     except json.JSONDecodeError:

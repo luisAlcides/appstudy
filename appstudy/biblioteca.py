@@ -802,8 +802,10 @@ class Lector:
                 cfg, fragmento, f"{libro['nombre']} (págs. {desde}–{hasta})", 5)
 
         util.hilo(trabajo,
-                  lambda tarjetas: self.bib.ventana.revisar_generadas(
+                  lambda tarjetas: (self.bib.ventana.revisar_generadas(
                       tarjetas, libros.mazo_para(self.con, libro),
                       f"{libro['nombre']} · págs. {desde}–{hasta}", etiquetas="libro,ia"),
-                  lambda e: self.bib.ventana.notify_user(f"No pude: {e}"),
+                      ia.hilo(lambda: ia.descargar(cfg))),
+                  lambda e: (self.bib.ventana.notify_user(f"No pude: {e}"),
+                             ia.hilo(lambda: ia.descargar(cfg))),
                   largo=True)          # la IA tarda: hilo propio, no la cola

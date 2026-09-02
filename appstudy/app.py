@@ -9,7 +9,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
-from . import db, hotkey, pet, seed  # noqa: E402
+from . import db, hotkey, ia, pet, seed  # noqa: E402
 from .main_window import MainWindow  # noqa: E402
 from .popup import PopupWindow  # noqa: E402
 
@@ -64,6 +64,13 @@ class AppStudy(Adw.Application):
         self.set_accels_for_action("app.quit", ["<Control>q"])
         # Recargar: sirve en cualquier ventana de la aplicación, popup incluido
         self.set_accels_for_action("app.reload", ["<Control>r", "F5"])
+
+    def do_shutdown(self):
+        if self.con:
+            cfg = ia.config(self.con)
+            if cfg.get("activa"):
+                ia.descargar(cfg)
+        Adw.Application.do_shutdown(self)
 
     def load_css(self):
         css = Gtk.CssProvider()

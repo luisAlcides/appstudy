@@ -735,6 +735,14 @@ class MainWindow(Adw.ApplicationWindow):
         probar.connect("clicked", lambda *_: self.probar_ia())
         self.ia_estado.add_suffix(probar)
         gia.add(self.ia_estado)
+
+        self.ia_liberar_row = Adw.ActionRow(
+            title="Pausar IA y liberar memoria",
+            subtitle="Descarga el modelo de la RAM/GPU cuando no lo uses. Se vuelve a activar solo al usarlo.")
+        liberar_btn = Gtk.Button(label="Pausar ahora", valign=Gtk.Align.CENTER)
+        liberar_btn.connect("clicked", lambda *_: self.pausar_ia_manual())
+        self.ia_liberar_row.add_suffix(liberar_btn)
+        gia.add(self.ia_liberar_row)
         page.add(gia)
 
         glib_ = Adw.PreferencesGroup(
@@ -830,9 +838,14 @@ class MainWindow(Adw.ApplicationWindow):
         db.set_meta(self.con, "pet_scale", round(fila.get_value() / 100, 2))
 
     def on_ia_toggle(self, fila, _p):
-        ia.guardar(self.con, activa=fila.get_active())
-        if fila.get_active():
+        activa = fila.get_active()
+        ia.guardar(self.con, activa=activa)
+        self.btn_ia.set_visible(activa)
+        if activa:
             self.probar_ia()
+        else:
+            cfg = ia.config(self.con)
+            ia.hilo(lambda: ia.descargar(cfg))
 
     def on_ia_url(self, fila):
         ia.guardar(self.con, url=fila.get_text().strip() or ia.URL_DEFECTO)
@@ -841,6 +854,14 @@ class MainWindow(Adw.ApplicationWindow):
     def on_ia_modelo(self, fila):
         ia.guardar(self.con, modelo=fila.get_text().strip() or ia.MODELO_DEFECTO)
         self.probar_ia()
+
+    def pausar_ia_manual(self):
+        """Descarga el modelo de la memoria para que quede en reposo."""
+        cfg = ia.config(self.con)
+        def al_terminar(ok):
+            self.notify_user("IA pausada y memoria liberada" if ok else "La IA ya estaba en reposo")
+            self.probar_ia()
+        ia.hilo(lambda: ia.descargar(cfg), al_terminar)
 
     def probar_ia(self):
         """Pregunta al servidor sin congelar la ventana."""
@@ -886,8 +907,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.notify_user(f"Pensando {n} tarjetas sobre «{texto}»…")
         cfg = ia.config(self.con)
         ia.hilo(lambda: ia.generar_tarjetas(cfg, texto, n),
-                lambda tarjetas: self.revisar_generadas(tarjetas, mazo, texto),
-                lambda e: self.notify_user(f"No pude generar: {e}"))
+                lambda tarjetas: (self.revisar_generadas(tarjetas, mazo, texto),
+                                  ia.hilo(lambda: ia.descargar(cfg))),
+                lambda e: (self.notify_user(f"No pude generar: {e}"),
+                           ia.hilo(lambda: ia.descargar(cfg))))
 
     def revisar_generadas(self, tarjetas, mazo, tema, etiquetas="ia"):
         """Enseña lo que propuso el modelo con una casilla por tarjeta."""
@@ -918,6 +941,8 @@ class MainWindow(Adw.ApplicationWindow):
         dlg.present(self)
 
     def on_guardar_generadas(self, _d, respuesta, casillas, mazo, etiquetas="ia"):
+        cfg = ia.config(self.con)
+        ia.hilo(lambda: ia.descargar(cfg))
         if respuesta != "save":
             return
         n = 0
