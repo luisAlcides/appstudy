@@ -339,10 +339,21 @@ def totals(con):
     return d
 
 
+def reset_streak(con):
+    """Pone la racha a cero: los repasos anteriores a este momento dejan de contar."""
+    set_meta(con, "racha_desde", time.time())
+
+
 def streak(con):
-    """Días consecutivos (hasta hoy) con al menos un repaso."""
+    """Días consecutivos (hasta hoy) con al menos un repaso.
+
+    Solo cuentan los repasos posteriores a `racha_desde`, que es lo que fija
+    «Reiniciar la racha»; sin él, todo el historial.
+    """
+    desde = float(get_meta(con, "racha_desde", 0) or 0)
     days = {int((ts - time.timezone) // 86400)
-            for (ts,) in con.execute("SELECT ts FROM log ORDER BY ts DESC LIMIT 5000")}
+            for (ts,) in con.execute("SELECT ts FROM log WHERE ts>=? ORDER BY ts DESC LIMIT 5000",
+                                     (desde,))}
     if not days:
         return 0
     today = int((time.time() - time.timezone) // 86400)

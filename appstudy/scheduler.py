@@ -78,6 +78,30 @@ def apply_review(con, card_id: int, rating: int, elapsed_ms: int = 0):
     return st
 
 
+def undo_recent(con, segundos: float = 86400) -> int:
+    """Borra los repasos de las últimas `segundos` y deja cada tarjeta como estaba.
+
+    El estado no se puede «restar», así que se rehace desde cero con los repasos
+    que quedan de esa tarjeta, en orden. Devuelve cuántos repasos se quitaron.
+    """
+    desde = time.time() - segundos
+    tocadas = [r[0] for r in con.execute("SELECT DISTINCT card_id FROM log WHERE ts>=?", (desde,))]
+    n = con.execute("SELECT COUNT(*) FROM log WHERE ts>=?", (desde,)).fetchone()[0]
+    con.execute("DELETE FROM log WHERE ts>=?", (desde,))
+    for cid in tocadas:
+        estado = {}
+        for r in con.execute("SELECT rating FROM log WHERE card_id=? ORDER BY ts", (cid,)):
+            estado = review(estado, r["rating"])
+        if not estado:
+            estado = {"due": 0.0, "interval": 0.0, "ease": 2.5, "reps": 0, "lapses": 0, "last": 0.0}
+        con.execute(
+            """UPDATE state SET due=:due, interval=:interval, ease=:ease, reps=:reps,
+                                lapses=:lapses, last=:last WHERE card_id=:cid""",
+            {"cid": cid, **estado})
+    con.commit()
+    return n
+
+
 def next_card(con, deck_key: str | None = None, new_ratio: float = 0.25,
               level: int | None = None, tags: str | None = None):
     """Elige la próxima tarjeta: primero lo vencido, si no algo nuevo, si no un repaso adelantado.

@@ -106,28 +106,35 @@ Un capítulo se marca como leído solo cuando llegas al final, o a mano con el b
 ## Bit, la mascota
 
 Vive en una ventanita sin bordes, **siempre encima del resto** y en todos los
-espacios de trabajo. Está dibujado a la manera de la mascota de Claude: cuerpo
-crema, tinta cálida y un asterisco de once rayos girando sobre la cabeza, que se
-acelera cuando tiene algo que enseñarte. Es un homenaje hecho a mano con Cairo,
-no el logotipo de nadie.
+espacios de trabajo. Es el asterisco de Claude cobrando vida: un **estallido de
+once rayos** en el color de su ánimo y, delante, un mochi crema con la cara —
+ojos grandes y brillantes, cejas que dicen cosas, dos manoplas y dos pies que
+asoman por debajo. Un homenaje hecho a mano con Cairo, no el logotipo de nadie.
 
-Como se pasa el día sobre fondos que no controla, lleva contorno cálido y una
-sombra suave alrededor (tres trazos, porque Cairo no tiene desenfoque): se ve
+El estallido gira despacio todo el rato, se acelera y se enciende cuando tiene
+algo que enseñarte, y casi se para y se encoge cuando llevas días sin aparecer.
+Como se pasa el día sobre fondos que no controla, todo lleva contorno cálido y
+una sombra suave (tres trazos concéntricos, que Cairo no tiene desenfoque): se ve
 igual sobre un escritorio negro, uno crema o una foto. Está dibujado en un lienzo
-fijo de 152×176 que luego se escala, así que para hacerlo más grande o más
+fijo de 152×184 que luego se escala, así que para hacerlo más grande o más
 pequeño basta con cambiar `ANCHO` y `ALTO_PET` en `appstudy/pet.py`.
 
-El asterisco, los cachetes y la barra de energía llevan el color de su ánimo:
-terracota cuando todo va normal, verde si estás al día, ámbar si se te acumulan
-repasos, teja si llevas mucho sin aparecer. La barra bajo sus pies es su energía,
-que baja con las horas sin repasar y con lo que tienes pendiente.
+El color del estallido, los cachetes y la barra de energía es el de su ánimo:
+terracota cuando todo va normal, verde si estás al día, morado si se aburre,
+ámbar si tiene hambre de repasos, teja si llevas días sin aparecer. La barra
+bajo sus pies es su energía, que baja con las horas sin repasar y con lo que
+tienes pendiente.
 
 | Acción | Qué hace |
 |---|---|
 | Clic | salta y te enseña una tarjeta en el globo |
 | Pasar el ratón | te sigue con la mirada |
 | Arrastrar | la mueve; recuerda dónde la dejaste |
-| Clic derecho | menú: enséñame algo, ponme a prueba, una frase de libro, sesión completa, abrir AppStudy, dormir, salir |
+| Clic derecho | menú: enséñame algo, ponme a prueba, una frase de libro, sesión completa, abrir AppStudy, **más grande / más pequeño**, dormir, salir |
+
+**Tamaño**: del 50 % al 250 %, desde su menú (pasos del 15 %) o con el número exacto en
+Ajustes → Progreso. Se guarda, y la mascota lo recoge sola aunque lo cambies desde la
+ventana principal.
 
 Cuando **enseña**, enseña de verdad: la pregunta y la respuesta salen juntas desde
 el primer momento, sin botón de por medio. Tú solo dices si la tenías —**No lo
@@ -353,6 +360,17 @@ y cada tarjeta su `level` (1 = el más básico).
 
 ⚠️ Al recargar, una tarjeta de fábrica que ya **no** esté en el JSON se retira junto con
 su historial. Tus tarjetas propias nunca se tocan.
+
+## Empezar de cero
+
+En Ajustes → **Progreso** hay dos botones que piden confirmación:
+
+- **Borrar lo estudiado hoy** — quita los repasos de las últimas 24 h (lo que cuenta
+  como «hoy») y deja cada tarjeta como estaba antes: el estado no se puede restar, así
+  que se rehace desde cero con los repasos anteriores de esa tarjeta, en orden. La
+  racha se recalcula sola.
+- **Reiniciar la racha** — vuelve a cero sin tocar ninguna tarjeta: a partir de ese
+  momento solo cuentan los repasos nuevos (`racha_desde` en la tabla `meta`).
 
 ## Dónde se guardan tus datos
 

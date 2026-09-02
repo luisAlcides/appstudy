@@ -48,9 +48,10 @@ HORAS_REPROCHE = 3
 # Bit está dibujado en un lienzo fijo de 152x176 y luego se escala al tamaño
 # real del widget: para hacerlo más grande o más pequeño basta con tocar ANCHO y
 # ALTO_PET, que las proporciones se mantienen solas.
-DISENO = (152, 176)
-ANCHO = 168          # el ancho de la mascota; el globo manda cuando está abierto
-ALTO_PET = 194
+DISENO = (152, 184)
+ANCHO = 168          # el ancho de la mascota al 100 %; el globo manda cuando está abierto
+ALTO_PET = 203
+ESCALA_MIN, ESCALA_MAX, ESCALA_PASO = 0.5, 2.5, 0.15   # «Más grande» / «Más pequeño»
 
 # Bit está dibujado a la manera de la mascota de Claude: cuerpo crema, tinta
 # cálida y el asterisco de rayos girando sobre la cabeza. Es un homenaje hecho a
@@ -151,10 +152,10 @@ class Creature(Gtk.DrawingArea):
     IDLES = ("parpadeo", "parpadeo", "parpadeo", "parpadeo2", "mirar", "mirar",
              "antena", "salto", "estirar", "ladear")
 
-    def __init__(self):
+    def __init__(self, escala=1.0):
         super().__init__()
-        self.set_content_width(ANCHO)
-        self.set_content_height(ALTO_PET)
+        self.escala = 1.0
+        self.set_escala(escala)
         self.mood = "normal"
         self.energy = 1.0
         self.teaching = False
@@ -179,6 +180,13 @@ class Creature(Gtk.DrawingArea):
         raton.connect("enter", self.on_enter)
         raton.connect("leave", self.on_leave)
         self.add_controller(raton)
+
+    def set_escala(self, escala):
+        """Tamaño de la mascota respecto al de diseño; la ventana la sigue."""
+        self.escala = max(ESCALA_MIN, min(ESCALA_MAX, float(escala)))
+        self.set_content_width(round(ANCHO * self.escala))
+        self.set_content_height(round(ALTO_PET * self.escala))
+        self.queue_draw()
 
     # ------------------------------------------------------------------ gestos
 
@@ -235,8 +243,8 @@ class Creature(Gtk.DrawingArea):
 
     def on_motion(self, _c, x, y):
         self.hover = True
-        self.puntero = ((x - ANCHO / 2) / (ANCHO / 2),
-                        (y - ALTO_PET / 2) / (ALTO_PET / 2))
+        w, h = max(1, self.get_width()), max(1, self.get_height())
+        self.puntero = ((x - w / 2) / (w / 2), (y - h / 2) / (h / 2))
 
     def on_enter(self, _c, x, y):
         self.hover = True
@@ -383,24 +391,24 @@ class Creature(Gtk.DrawingArea):
         # Todo lo que sigue habla en unidades de diseño; el escalado es lo último
         # que se toca si algún día se quiere una mascota más grande.
         cr.save()
-        cr.scale(min(w / DISENO[0], h / DISENO[1]),
-                 min(w / DISENO[0], h / DISENO[1]))
+        k = min(w / DISENO[0], h / DISENO[1])
+        cr.scale(k, k)
         w, h = DISENO
         color = MOODS.get(self.mood, MOODS["normal"])
         dormido = self.mood == "dormido"
         cx = w / 2
-        suelo = h - 30
-        base = suelo - 46                 # centro del cuerpo en reposo
+        suelo = h - 34
+        base = suelo - 40                 # centro del cuerpo en reposo
 
         dy, sx, sy, rot = self._pose()
 
-        # sombra: se encoge y se aclara cuando la mascota sube
-        alto_rel = max(0.0, (base - dy) - (base - 30)) / 30
+        # sombra en el suelo: se encoge y se aclara cuando salta
+        salto = max(0.0, -dy - 3) / 24
         cr.save()
-        cr.translate(cx, suelo + 6)
-        cr.scale(1.0, 0.24)
-        cr.arc(0, 0, 32 - alto_rel * 9, 0, math.tau)
-        cr.set_source_rgba(0, 0, 0, 0.22 - alto_rel * 0.10)
+        cr.translate(cx, suelo + 5)
+        cr.scale(1.0, 0.26)
+        cr.arc(0, 0, 34 - salto * 10, 0, math.tau)
+        cr.set_source_rgba(0, 0, 0, 0.22 - salto * 0.11)
         cr.fill()
         cr.restore()
 
@@ -408,56 +416,123 @@ class Creature(Gtk.DrawingArea):
         cr.translate(cx, base + dy)
         cr.rotate(rot)
         cr.scale(sx, sy)
+        self._estrella(cr, color)         # el estallido, detrás de todo
+        self._pies(cr)
         self._brazos(cr, color)
-        self._pies(cr, color)
-        self._asterisco(cr, color)
         self._cuerpo(cr, color)
         self._cara(cr, color, dormido)
         cr.restore()
 
         self._particulas(cr, cx, base + dy)
-        self._barra(cr, cx, h - 15, color)
+        self._barra(cr, cx, h - 14, color)
         cr.restore()
 
     # -- piezas ---------------------------------------------------------------
 
+    RX, RY = 37, 34                       # el mochi: medio ancho y medio alto
+
     def _forma(self, cr, rx, ry):
-        """La silueta: un haba de pie, más estrecha en la coronilla que en la base."""
-        arriba = rx * 0.94
+        """La silueta del cuerpo: un mochi, redondo arriba y ancho y plano abajo."""
         k = 0.5523
         cr.move_to(0, -ry)
-        cr.curve_to(arriba * k * 1.18, -ry, arriba, -ry * k * 1.02, arriba, -ry * 0.10)
-        cr.curve_to(rx, ry * 0.34, rx * k * 1.22, ry, 0, ry)
-        cr.curve_to(-rx * k * 1.22, ry, -rx, ry * 0.34, -arriba, -ry * 0.10)
-        cr.curve_to(-arriba, -ry * k * 1.02, -arriba * k * 1.18, -ry, 0, -ry)
+        cr.curve_to(rx * 0.88 * k * 1.25, -ry, rx * 0.93, -ry * k * 1.08, rx * 0.95, -ry * 0.08)
+        cr.curve_to(rx * 0.99, ry * 0.50, rx * 0.66, ry, 0, ry)
+        cr.curve_to(-rx * 0.66, ry, -rx * 0.99, ry * 0.50, -rx * 0.95, -ry * 0.08)
+        cr.curve_to(-rx * 0.93, -ry * k * 1.08, -rx * 0.88 * k * 1.25, -ry, 0, -ry)
         cr.close_path()
 
     def _halo(self, cr, dibujar, ancho=1.0):
         """Sombra suave alrededor de una pieza.
 
-        Cairo no tiene desenfoque, así que se imita con tres trazos concéntricos
-        cada vez más tenues. Sin esto la mascota, que es casi blanca, se perdería
-        sobre un fondo claro.
+        Cairo no tiene desenfoque, así que se imita con trazos concéntricos cada
+        vez más tenues. Sin esto la mascota se perdería sobre un fondo claro.
         """
-        for grosor, alpha in ((6.5, 0.038), (3.2, 0.055)):
+        for grosor, alpha in ((7.0, 0.035), (3.4, 0.055)):
             dibujar()
             cr.set_source_rgba(0.10, 0.07, 0.05, alpha)
             cr.set_line_width(grosor * ancho)
             cr.stroke()
 
-    def _perfil(self, cr, alpha=0.28):
+    def _perfil(self, cr, alpha=0.30, grosor=1.9):
         """El contorno cálido que separa a Bit de cualquier escritorio."""
         cr.set_source_rgba(0.29, 0.23, 0.19, alpha)
-        cr.set_line_width(1.9)
+        cr.set_line_width(grosor)
         cr.stroke()
 
-    def _cuerpo(self, cr, color):
-        rx, ry = 39, 38
-        self._halo(cr, lambda: self._forma(cr, rx, ry))
+    def _estrella(self, cr, color):
+        """El estallido de once rayos: es el cuerpo de Bit y su estado de ánimo.
 
-        g = cairo.RadialGradient(-13, -20, 4, 0, 8, rx + 22)
+        Va detrás del mochi, en el color del humor, y gira despacio todo el rato:
+        se acelera cuando tiene algo que enseñarte, el gesto «antena» le da un
+        tirón, y cuando llevas días sin aparecer casi se para y se encoge. Es el
+        guiño a la mascota de Claude, dibujado rayo a rayo.
+        """
+        cx, cy = 0, -19
+        r = 57 * (1 - 0.10 * self.abandono)
+        vuelta = self.t * (0.85 if self.teaching else 0.22 * (1 - 0.75 * self.abandono))
+        p = self.phase("antena")
+        if p is not None:
+            vuelta += math.sin(p * math.pi * 4) * 0.35 * (1 - p)
+        latido = 1 + math.sin(self.t * (5 if self.teaching else 1.6)) * (0.035 if self.teaching else 0.015)
+        rb, wb = 21, 11.2                 # base de cada rayo: radio y medio ancho
+
+        if self.teaching:                 # un halo cálido cuando está enseñando
+            g = cairo.RadialGradient(cx, cy, r * 0.6, cx, cy, r * 1.45)
+            g.add_color_stop_rgba(0, *_hex(color, 0.30))
+            g.add_color_stop_rgba(1, *_hex(color, 0.0))
+            cr.arc(cx, cy, r * 1.45, 0, math.tau)
+            cr.set_source(g)
+            cr.fill()
+
+        cr.save()
+        cr.translate(cx, cy)
+        cr.rotate(vuelta)
+        cr.scale(latido, latido)
+
+        def silueta():
+            # Los rayos se solapan en la base, así que su unión ya es la estrella
+            for i in range(11):
+                cr.save()
+                cr.rotate(i * math.tau / 11)
+                # El segundo control va a la altura de la punta: así el rayo
+                # acaba romo y redondeado, como en el logo, no en pincho.
+                cr.move_to(rb, -wb)
+                cr.curve_to(r * 0.68, -wb * 0.90, r * 1.04, -wb * 0.56, r, 0)
+                cr.curve_to(r * 1.04, wb * 0.56, r * 0.68, wb * 0.90, rb, wb)
+                cr.close_path()
+                cr.restore()
+
+        # Sombra suave y contorno van DEBAJO del relleno: así el borde queda
+        # limpio aunque los rayos se pisen entre sí.
+        self._halo(cr, silueta, 1.4)
+        silueta()
+        self._perfil(cr, 0.34, 3.2)
+
+        silueta()
+        g = cairo.RadialGradient(-r * 0.25, -r * 0.30, 4, 0, 0, r)
+        g.add_color_stop_rgba(0, *_claro(color, 0.30))
+        g.add_color_stop_rgba(0.45, *_hex(color))
+        g.add_color_stop_rgba(1, *_oscuro(color, 0.80))
+        cr.set_source(g)
+        cr.fill()
+        cr.restore()
+
+    def _cuerpo(self, cr, color):
+        rx, ry = self.RX, self.RY
+
+        # sombra de contacto del mochi sobre el estallido
+        oc = cairo.RadialGradient(0, 4, rx * 0.7, 0, 4, rx + 13)
+        oc.add_color_stop_rgba(0, 0.16, 0.10, 0.07, 0.34)
+        oc.add_color_stop_rgba(1, 0.16, 0.10, 0.07, 0.0)
+        cr.arc(0, 4, rx + 13, 0, math.tau)
+        cr.set_source(oc)
+        cr.fill()
+
+        self._halo(cr, lambda: self._forma(cr, rx, ry), 0.8)
+
+        g = cairo.RadialGradient(-12, -16, 4, 0, 6, rx + 24)
         g.add_color_stop_rgba(0, *_hex(CREMA_CLARO))
-        g.add_color_stop_rgba(0.52, *_hex(CREMA))
+        g.add_color_stop_rgba(0.55, *_hex(CREMA))
         g.add_color_stop_rgba(1, *_hex(CREMA_SOMBRA))
         self._forma(cr, rx, ry)
         cr.set_source(g)
@@ -467,35 +542,26 @@ class Creature(Gtk.DrawingArea):
         cr.clip()                       # todo lo que sigue, dentro del cuerpo
 
         # luz cenital
-        lz = cairo.LinearGradient(0, -ry, 0, -ry * 0.05)
-        lz.add_color_stop_rgba(0, 1, 1, 1, 0.38)
+        lz = cairo.LinearGradient(0, -ry, 0, -ry * 0.1)
+        lz.add_color_stop_rgba(0, 1, 1, 1, 0.42)
         lz.add_color_stop_rgba(1, 1, 1, 1, 0)
         cr.rectangle(-rx, -ry, rx * 2, ry)
         cr.set_source(lz)
         cr.fill()
 
-        # sombra que proyecta el asterisco sobre la coronilla
-        co = cairo.RadialGradient(0, -ry, 2, 0, -ry, 26)
-        co.add_color_stop_rgba(0, 0.35, 0.26, 0.20, 0.22)
-        co.add_color_stop_rgba(1, 0.35, 0.26, 0.20, 0)
-        cr.rectangle(-rx, -ry, rx * 2, 30)
-        cr.set_source(co)
+        # rebote del color del estallido en el borde
+        rb = cairo.RadialGradient(0, 2, rx * 0.72, 0, 2, rx + 2)
+        rb.add_color_stop_rgba(0, *_hex(color, 0.0))
+        rb.add_color_stop_rgba(1, *_hex(color, 0.20))
+        cr.rectangle(-rx - 2, -ry - 2, rx * 2 + 4, ry * 2 + 4)
+        cr.set_source(rb)
         cr.fill()
 
-        # rebote cálido del suelo en el borde de abajo
-        cr.save()
-        cr.scale(1.0, 0.97)
-        cr.arc(0, 1, rx - 1.0, 0.22 * math.pi, 0.82 * math.pi)
-        cr.restore()
-        cr.set_source_rgba(*_hex(color, 0.13))
-        cr.set_line_width(5)
-        cr.stroke()
-
-        # y una ocupación suave donde se apoyan los pies
-        oc = cairo.RadialGradient(0, ry, 3, 0, ry, 24)
-        oc.add_color_stop_rgba(0, 0.30, 0.22, 0.17, 0.14)
+        # y una ocupación suave abajo, donde se apoyan los pies
+        oc = cairo.RadialGradient(0, ry, 4, 0, ry, 26)
+        oc.add_color_stop_rgba(0, 0.30, 0.22, 0.17, 0.16)
         oc.add_color_stop_rgba(1, 0.30, 0.22, 0.17, 0)
-        cr.rectangle(-rx, ry - 26, rx * 2, 26)
+        cr.rectangle(-rx, ry - 28, rx * 2, 28)
         cr.set_source(oc)
         cr.fill()
         cr.restore()
@@ -505,116 +571,67 @@ class Creature(Gtk.DrawingArea):
 
         p = self.phase("brillo")         # aro que se expande al celebrar
         if p is not None:
-            cr.save()
-            cr.scale(1.0, 0.96)
-            cr.arc(0, 0, rx + 6 + out_cubic(p) * 24, 0, math.tau)
-            cr.restore()
+            cr.arc(0, -10, 62 + out_cubic(p) * 26, 0, math.tau)
             cr.set_source_rgba(*_hex(color, (1 - p) * 0.55))
             cr.set_line_width(3.5 * (1 - p))
             cr.stroke()
 
-    def _pies(self, cr, color):
-        """Dos zapatitos ovalados que se alternan con el balanceo."""
-        paso = math.sin(self.t * 1.9) * 1.8
+    def _pies(self, cr):
+        """Dos pies rechonchos que asoman bajo el mochi y alternan con el balanceo."""
+        paso = math.sin(self.t * 1.9) * 1.6
         for lado, fase in ((-1, paso), (1, -paso)):
             def pie(lado=lado, fase=fase):
                 cr.save()
-                cr.translate(lado * 14, 40 + fase * 0.5)
-                cr.rotate(lado * 0.16)
-                cr.scale(1.0, 0.62)
-                cr.arc(0, 0, 10.5, 0, math.tau)
+                cr.translate(lado * 15, self.RY - 1 + fase * 0.4)
+                cr.rotate(lado * 0.12)
+                cr.scale(1.0, 0.58)
+                cr.arc(0, 0, 11.5, 0, math.tau)
                 cr.restore()
             self._halo(cr, pie, 0.7)
             pie()
             cr.set_source_rgba(*_hex(CREMA_SOMBRA))
             cr.fill_preserve()
-            self._perfil(cr, 0.28)
+            self._perfil(cr, 0.30)
 
     def _brazos(self, cr, color):
-        """Dos bracitos curvos con su manita; el derecho saluda cuando toca.
+        """Dos brazos cortos con manopla; el derecho saluda cuando toca.
 
         Se dibuja solo el derecho: el izquierdo es el mismo trazo en espejo, así
         el balanceo sale simétrico sin repetir la trigonometría.
         """
-        vaiven = math.sin(self.t * 1.9) * 0.20
+        vaiven = math.sin(self.t * 1.9) * 0.10
         p = self.phase("saludo")
         for lado in (1, -1):
-            ang = 0.12 + vaiven
-            largo = 21
+            ang = 0.62 + vaiven                 # hacia fuera y abajo, relajado
+            largo = 15
             if lado == 1 and p is not None:
                 k = suave(min(1.0, p * 4)) * (1 - max(0.0, (p - 0.75) / 0.25))
-                ang = 0.12 - (2.45 + math.sin(p * math.pi * 6) * 0.40) * k
-                largo = 21 + 4 * k
+                # Hacia arriba y hacia fuera: con el brazo detrás del mochi, si
+                # sube recto la manopla queda tapada y el saludo no se ve.
+                ang = 0.62 - (1.95 + math.sin(p * math.pi * 6) * 0.30) * k
+                largo = 15 + 7 * k
 
             cr.save()
-            cr.translate(lado * 32, -9)
+            cr.translate(lado * 30, 5)
             cr.scale(lado, 1)               # el izquierdo, en espejo
             cr.rotate(ang)
             cr.set_line_cap(cairo.LINE_CAP_ROUND)
-            for grosor, rgba in ((10.0, (0.10, 0.07, 0.05, 0.05)),
-                                 (8.8, (0.29, 0.23, 0.19, 0.28)),
-                                 (6.8, _hex(CREMA_SOMBRA))):
+            for grosor, rgba in ((13.5, (0.10, 0.07, 0.05, 0.06)),
+                                 (11.6, (0.29, 0.23, 0.19, 0.30)),
+                                 (9.4, _hex(CREMA))):
                 cr.move_to(0, 0)
-                cr.curve_to(7, 7, 13, 12, 15, largo)
+                cr.line_to(largo, 0)
                 cr.set_source_rgba(*rgba)
                 cr.set_line_width(grosor)
                 cr.stroke()
-            cr.arc(15, largo, 5.2, 0, math.tau)         # la manita
-            cr.set_source_rgba(*_hex(CREMA))
+            cr.arc(largo + 1.5, 0, 6.6, 0, math.tau)     # la manopla
+            cr.set_source_rgba(*_hex(CREMA_CLARO))
             cr.fill_preserve()
-            self._perfil(cr, 0.26)
+            self._perfil(cr, 0.28)
             cr.restore()
-
-    def _asterisco(self, cr, color):
-        """El asterisco de rayos que lleva por corona.
-
-        Gira despacio todo el rato y se acelera cuando tiene algo que enseñarte;
-        el gesto «antena» le da un tirón extra. Va detrás de la cabeza y un poco
-        solapado, para que nazca de ella en vez de flotar encima. Es el guiño a
-        la mascota de Claude, dibujado rayo a rayo.
-        """
-        cx, cy, r = 0, -60, 23
-        # Gira despacio de normal, se acelera al enseñar y casi se para cuando
-        # llevas días sin aparecer.
-        vuelta = self.t * (0.85 if self.teaching else 0.22 * (1 - 0.75 * self.abandono))
-        r -= 2.2 * self.abandono
-        p = self.phase("antena")
-        if p is not None:
-            vuelta += math.sin(p * math.pi * 4) * 0.35 * (1 - p)
-        latido = 1 + math.sin(self.t * (5 if self.teaching else 1.6)) * 0.06
-
-        if self.teaching:               # un halo cálido cuando está enseñando
-            g = cairo.RadialGradient(cx, cy, 2, cx, cy, r * 2.0)
-            g.add_color_stop_rgba(0, *_hex(color, 0.32))
-            g.add_color_stop_rgba(1, *_hex(color, 0.0))
-            cr.arc(cx, cy, r * 2.0, 0, math.tau)
-            cr.set_source(g)
-            cr.fill()
-
-        cr.save()
-        cr.translate(cx, cy)
-        cr.rotate(vuelta)
-        cr.scale(latido, latido)
-        for i in range(11):             # rayos en forma de hoja, en punta fuera
-            cr.save()
-            cr.rotate(i * math.tau / 11)
-            largo, ancho = r, 3.6
-            for grosor, rgba in ((2.6, (0.10, 0.07, 0.05, 0.10)), (0, _hex(color))):
-                cr.move_to(0, 0)
-                cr.curve_to(largo * 0.30, -ancho, largo * 0.72, -ancho * 0.72, largo, 0)
-                cr.curve_to(largo * 0.72, ancho * 0.72, largo * 0.30, ancho, 0, 0)
-                cr.close_path()
-                cr.set_source_rgba(*rgba)
-                if grosor:
-                    cr.set_line_width(grosor)
-                    cr.stroke()
-                else:
-                    cr.fill()
-            cr.restore()
-        cr.restore()
 
     def _cara(self, cr, color, dormido):
-        apertura = {"aburrido": 0.55, "hambre": 0.82, "triste": 0.78}.get(self.mood, 1.0)
+        apertura = {"aburrido": 0.55, "hambre": 0.82, "triste": 0.76}.get(self.mood, 1.0)
         if dormido:
             apertura = 0.0
         p = self.phase("parpadeo")
@@ -623,52 +640,63 @@ class Creature(Gtk.DrawingArea):
             apertura *= 1 - abs(math.sin(math.pi * p * (2 if doble else 1)))
         cerrado = apertura < 0.16
 
-        mx, my = self.mirada[0] * 2.8, self.mirada[1] * 2.0
-        for dx in (-14.5, 14.5):
-            ex, ey = dx, -3
+        mx, my = self.mirada[0] * 3.0, self.mirada[1] * 2.2
+        for dx in (-13.5, 13.5):
+            ex, ey = dx, -5
             if cerrado:                 # ojo cerrado: un arco tranquilo
-                cr.move_to(ex - 7, ey)
-                cr.curve_to(ex - 2.2, ey + 4.4, ex + 2.2, ey + 4.4, ex + 7, ey)
+                cr.move_to(ex - 7.5, ey)
+                cr.curve_to(ex - 2.4, ey + 4.8, ex + 2.4, ey + 4.8, ex + 7.5, ey)
                 cr.set_source_rgba(*TINTA, 0.92)
-                cr.set_line_width(2.6)
+                cr.set_line_width(2.8)
                 cr.set_line_cap(cairo.LINE_CAP_ROUND)
                 cr.stroke()
                 continue
 
-            cr.save()                   # blanco del ojo
-            cr.translate(ex, ey)
-            cr.scale(1.0, apertura)
-            cr.arc(0, 0, 9, 0, math.tau)
-            cr.restore()
+            def ojo():
+                cr.save()
+                cr.translate(ex, ey)
+                cr.scale(1.0, 1.18 * apertura)
+                cr.arc(0, 0, 9.2, 0, math.tau)
+                cr.restore()
+
+            ojo()                        # blanco del ojo
             cr.set_source_rgba(1, 0.995, 0.985, 1)
             cr.fill_preserve()
-            cr.set_source_rgba(0.29, 0.23, 0.19, 0.16)
-            cr.set_line_width(1.2)
+            cr.set_source_rgba(0.29, 0.23, 0.19, 0.20)
+            cr.set_line_width(1.3)
             cr.stroke()
 
-            cr.save()                   # sombra del párpado
-            cr.translate(ex, ey)
-            cr.scale(1.0, apertura)
-            cr.arc(0, 0, 9, 0, math.tau)
+            cr.save()                    # todo lo de dentro, recortado al ojo
+            ojo()
             cr.clip()
-            cr.rectangle(-10, -10, 20, 6.5)
-            cr.set_source_rgba(0.29, 0.23, 0.19, 0.13)
+            # sombra del párpado
+            cr.rectangle(-10 + ex, -12 + ey, 20, 6.5)
+            cr.set_source_rgba(0.29, 0.23, 0.19, 0.14)
             cr.fill()
+            # iris y pupila
+            px, py = ex + mx, ey + my * apertura
+            cr.save()
+            cr.translate(px, py)
+            cr.scale(1.0, max(0.3, min(1.0, apertura * 1.05)))
+            cr.arc(0, 0, 6.0, 0, math.tau)
             cr.restore()
-
-            cr.save()                   # pupila
-            cr.translate(ex + mx, ey + my * apertura)
-            cr.scale(1.0, max(0.25, apertura))
-            cr.arc(0, 0, 4.6, 0, math.tau)
+            cr.set_source_rgba(0.32, 0.22, 0.16, 1)
+            cr.fill()
+            cr.save()
+            cr.translate(px, py)
+            cr.scale(1.0, max(0.3, min(1.0, apertura * 1.05)))
+            cr.arc(0, 0.4, 4.3, 0, math.tau)
             cr.restore()
             cr.set_source_rgba(*TINTA)
             cr.fill()
-            cr.arc(ex + mx - 1.7, ey + my - 1.9, 1.7, 0, math.tau)
-            cr.set_source_rgba(1, 1, 1, 0.92)
+            # dos brillos: el grande arriba a la izquierda, el chico abajo
+            cr.arc(px - 2.3, py - 2.6, 2.5, 0, math.tau)
+            cr.set_source_rgba(1, 1, 1, 0.95)
             cr.fill()
-            cr.arc(ex + mx + 1.6, ey + my + 1.8, 0.85, 0, math.tau)
-            cr.set_source_rgba(1, 1, 1, 0.55)
+            cr.arc(px + 2.2, py + 2.4, 1.15, 0, math.tau)
+            cr.set_source_rgba(1, 1, 1, 0.6)
             cr.fill()
+            cr.restore()
 
         if self.abandono > 0.45 and not dormido:
             self._ojeras(cr, min(1.0, (self.abandono - 0.45) / 0.55))
@@ -678,24 +706,24 @@ class Creature(Gtk.DrawingArea):
 
     def _ojeras(self, cr, k):
         """Dos sombras bajo los ojos: lo que se le pone cuando no apareces."""
-        cr.set_source_rgba(0.42, 0.30, 0.34, 0.22 * k)
-        cr.set_line_width(2.4)
+        cr.set_source_rgba(0.42, 0.30, 0.34, 0.24 * k)
+        cr.set_line_width(2.6)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
-        for dx in (-14.5, 14.5):
-            cr.move_to(dx - 6.5, 7.5)
-            cr.curve_to(dx - 2.5, 10.2, dx + 2.5, 10.2, dx + 6.5, 7.5)
+        for dx in (-13.5, 13.5):
+            cr.move_to(dx - 7, 6.5)
+            cr.curve_to(dx - 2.6, 9.4, dx + 2.6, 9.4, dx + 7, 6.5)
             cr.stroke()
 
     def _cachetes(self, cr, color):
         fuerte = self.mood == "feliz" or self.phase("brillo") is not None
-        for dx in (-25.5, 25.5):
-            g = cairo.RadialGradient(dx, 9, 1, dx, 9, 7.5)
-            g.add_color_stop_rgba(0, *_hex(color, 0.38 if fuerte else 0.20))
+        for dx in (-23, 23):
+            g = cairo.RadialGradient(dx, 8, 1, dx, 8, 8)
+            g.add_color_stop_rgba(0, *_hex(color, 0.40 if fuerte else 0.22))
             g.add_color_stop_rgba(1, *_hex(color, 0.0))
             cr.save()
-            cr.translate(dx, 9)
-            cr.scale(1.25, 1.0)
-            cr.arc(0, 0, 7.5, 0, math.tau)
+            cr.translate(dx, 8)
+            cr.scale(1.3, 1.0)
+            cr.arc(0, 0, 8, 0, math.tau)
             cr.restore()
             cr.set_source(g)
             cr.fill()
@@ -704,62 +732,62 @@ class Creature(Gtk.DrawingArea):
         if self.mood == "dormido":
             return
         # Positivo = extremo interior hacia arriba, que es la cara de pena
-        inclinacion = {"triste": 0.44, "hambre": 0.30, "aburrido": 0.14,
-                       "feliz": -0.18}.get(self.mood, 0.0)
-        alto = -19 - (2 if self.mood == "feliz" else 0)
+        inclinacion = {"triste": 0.46, "hambre": 0.30, "aburrido": 0.14,
+                       "feliz": -0.20}.get(self.mood, 0.0)
+        alto = -21 - (2 if self.mood == "feliz" else 0)
         marcada = self.mood in ("triste", "hambre", "aburrido", "feliz")
-        cr.set_source_rgba(*TINTA, 0.66 if marcada else 0.42)
-        cr.set_line_width(2.1 if marcada else 1.9)
+        cr.set_source_rgba(*TINTA, 0.72 if marcada else 0.50)
+        cr.set_line_width(2.7 if marcada else 2.4)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
         for lado in (-1, 1):
             cr.save()
-            cr.translate(lado * 14.5, alto)
+            cr.translate(lado * 13.5, alto)
             cr.rotate(inclinacion * lado)
-            cr.move_to(-5.6, 0)
-            cr.curve_to(-1.9, -1.8, 1.9, -1.8, 5.6, 0)
+            cr.move_to(-6, 0)
+            cr.curve_to(-2, -2.2, 2, -2.2, 6, 0)
             cr.stroke()
             cr.restore()
 
     def _boca(self, cr, color):
-        my = 15
+        my = 13
         cr.set_source_rgba(*TINTA, 0.9)
-        cr.set_line_width(2.6)
+        cr.set_line_width(2.7)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
         if time.time() < self.hablando_hasta:      # habla: la boca se abre y cierra
-            a = 2.4 + abs(math.sin(self.t * 11)) * 4.4
+            a = 2.4 + abs(math.sin(self.t * 11)) * 4.6
             cr.save()
-            cr.translate(0, my)
-            cr.scale(1.0, a / 6.5)
-            cr.arc(0, 0, 6.5, 0, math.tau)
+            cr.translate(0, my + 1)
+            cr.scale(1.0, a / 6.8)
+            cr.arc(0, 0, 6.8, 0, math.tau)
             cr.restore()
             cr.fill()
             return
         if self.mood == "feliz":                   # sonrisa abierta, con lengua
-            cr.move_to(-9.5, my - 4)
-            cr.curve_to(-9, my + 9, 9, my + 9, 9.5, my - 4)
+            cr.move_to(-10, my - 4)
+            cr.curve_to(-9.5, my + 9.5, 9.5, my + 9.5, 10, my - 4)
             cr.close_path()
             cr.set_source_rgba(*TINTA, 0.92)
             cr.fill_preserve()
             cr.save()
             cr.clip()
-            cr.arc(0, my + 8.5, 5, 0, math.tau)
+            cr.arc(0, my + 9, 5.4, 0, math.tau)
             cr.set_source_rgba(*_hex(TERRACOTA, 0.95))
             cr.fill()
             cr.restore()
         elif self.mood == "triste":
-            cr.arc(0, my + 10, 8, 1.20 * math.pi, 1.80 * math.pi)
+            cr.arc(0, my + 10.5, 8.5, 1.20 * math.pi, 1.80 * math.pi)
             cr.stroke()
         elif self.mood == "hambre":                # boca ondulada
-            cr.move_to(-7.5, my)
-            cr.curve_to(-3.8, my - 3.6, -0.5, my + 3.2, 0, my)
-            cr.curve_to(1, my - 3.2, 4.2, my + 3.6, 7.5, my)
+            cr.move_to(-8, my)
+            cr.curve_to(-4, my - 3.8, -0.5, my + 3.4, 0, my)
+            cr.curve_to(1, my - 3.4, 4.5, my + 3.8, 8, my)
             cr.stroke()
         elif self.mood == "dormido":
             cr.move_to(-5, my)
             cr.line_to(5, my)
             cr.stroke()
         else:
-            cr.arc(0, my - 3, 7, 0.16 * math.pi, 0.84 * math.pi)
+            cr.arc(0, my - 3, 7.5, 0.16 * math.pi, 0.84 * math.pi)
             cr.stroke()
 
     # -- adornos --------------------------------------------------------------
@@ -874,7 +902,7 @@ class PetWindow(Gtk.ApplicationWindow):
         root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.set_child(root)
 
-        self.creature = Creature()
+        self.creature = Creature(self.escala_guardada())
         handle = Gtk.WindowHandle()   # arrastrar la mascota mueve la ventana
         handle.set_child(self.creature)
         # Pegada a la izquierda: así la criatura no se desplaza cuando el globo
@@ -1038,6 +1066,8 @@ class PetWindow(Gtk.ApplicationWindow):
             mood = "normal"
 
         self.stats = {**t, "energia": energia, "horas": horas, "abandono": abandono}
+        if abs(self.escala_guardada() - self.creature.escala) > 0.01:
+            self.creature.set_escala(self.escala_guardada())   # cambiado desde Ajustes
         self.creature.mood = mood
         self.creature.energy = energia
         self.creature.abandono = 0.0 if mood == "dormido" else abandono
@@ -1045,6 +1075,19 @@ class PetWindow(Gtk.ApplicationWindow):
         self.set_tooltip_text(
             f"{NOMBRE} · {t['pendientes']} pendientes · {t['hoy']} hoy · "
             f"racha {t['racha']} d · {sin_estudiar(horas)}")
+
+    def escala_guardada(self) -> float:
+        try:
+            return float(db.get_meta(self.con, "pet_scale", 1.0))
+        except (TypeError, ValueError):
+            return 1.0
+
+    def cambiar_tamano(self, paso):
+        nueva = round(self.creature.escala + paso, 2)
+        nueva = max(ESCALA_MIN, min(ESCALA_MAX, nueva))
+        db.set_meta(self.con, "pet_scale", nueva)
+        self.creature.set_escala(nueva)
+        self.creature.play("salto", 0.5)
 
     def dormida(self) -> bool:
         hasta = float(db.get_meta(self.con, "pet_snooze_until", 0) or 0)
@@ -1600,6 +1643,10 @@ class PetWindow(Gtk.ApplicationWindow):
         seccion.append("Sesión de estudio", "win.study")
         seccion.append("Abrir AppStudy", "win.open")
         m.append_section(None, seccion)
+        tamano = Gio.Menu()
+        tamano.append("Más grande", "win.bigger")
+        tamano.append("Más pequeño", "win.smaller")
+        m.append_section(None, tamano)
         dormir = Gio.Menu()
         dormir.append(f"Duérmete {SNOOZE_MIN} min", "win.snooze")
         dormir.append("Despertar", "win.wake")
@@ -1610,6 +1657,8 @@ class PetWindow(Gtk.ApplicationWindow):
                            ("quote", lambda *_: (self.wake(), self.quote())),
                            ("study", lambda *_: self.study()),
                            ("open", lambda *_: self.open_main()),
+                           ("bigger", lambda *_: self.cambiar_tamano(ESCALA_PASO)),
+                           ("smaller", lambda *_: self.cambiar_tamano(-ESCALA_PASO)),
                            ("snooze", lambda *_: self.snooze()),
                            ("wake", lambda *_: self.wake()),
                            ("quit", lambda *_: self.get_application().quit())):

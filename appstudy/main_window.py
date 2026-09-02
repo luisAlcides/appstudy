@@ -685,6 +685,26 @@ class MainWindow(Adw.ApplicationWindow):
         gp.add(self.pet_every)
         page.add(gp)
 
+        gpr = Adw.PreferencesGroup(
+            title="Progreso",
+            description="Para empezar de cero un día que no cuenta, o una racha que no es tuya.")
+        self.pet_size = Adw.SpinRow.new_with_range(50, 250, 10)
+        self.pet_size.set_title(f"Tamaño de {pet.NOMBRE}")
+        self.pet_size.set_subtitle("En porcentaje; también desde su menú, con Más grande / Más pequeño")
+        self.pet_size.connect("notify::value", self.on_pet_size)
+        gpr.add(self.pet_size)
+        self.hoy_row = Adw.ActionRow(title="Borrar lo estudiado hoy")
+        hb = Gtk.Button(label="Borrar", valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
+        hb.connect("clicked", lambda *_: self.confirm_undo_today())
+        self.hoy_row.add_suffix(hb)
+        gpr.add(self.hoy_row)
+        self.racha_row = Adw.ActionRow(title="Reiniciar la racha")
+        rr = Gtk.Button(label="Reiniciar", valign=Gtk.Align.CENTER)
+        rr.connect("clicked", lambda *_: self.confirm_reset_streak())
+        self.racha_row.add_suffix(rr)
+        gpr.add(self.racha_row)
+        page.add(gpr)
+
         g2 = Adw.PreferencesGroup(title="Contenido")
         recargar = Adw.ActionRow(
             title="Recargar contenido incluido",
@@ -724,6 +744,48 @@ class MainWindow(Adw.ApplicationWindow):
     def on_pet_every(self, fila, _p):
         db.set_meta(self.con, "pet_every", int(fila.get_value()))
 
+    def on_pet_size(self, fila, _p):
+        # La mascota lo lee cada pocos segundos y se redimensiona sola
+        db.set_meta(self.con, "pet_scale", round(fila.get_value() / 100, 2))
+
+    def confirm_undo_today(self):
+        n = db.totals(self.con)["hoy"]
+        if not n:
+            self.notify_user("Hoy no hay nada que borrar")
+            return
+        dlg = Adw.AlertDialog(
+            heading=f"¿Borrar los {n} repasos de hoy?",
+            body="Cada tarjeta vuelve a estar como antes de hoy: mismos intervalos, "
+                 "misma fecha de repaso. La racha se recalcula.")
+        dlg.add_response("cancel", "Cancelar")
+        dlg.add_response("undo", "Borrar")
+        dlg.set_response_appearance("undo", Adw.ResponseAppearance.DESTRUCTIVE)
+        dlg.connect("response", self.on_undo_today)
+        dlg.present(self)
+
+    def on_undo_today(self, _d, respuesta):
+        if respuesta == "undo":
+            n = scheduler.undo_recent(self.con)
+            self.notify_user(f"Borrados {n} repasos · el día empieza de cero")
+            self.refresh()
+
+    def confirm_reset_streak(self):
+        dlg = Adw.AlertDialog(
+            heading="¿Reiniciar la racha?",
+            body="Vuelve a cero y empieza a contar con el próximo repaso. "
+                 "Las tarjetas y su historial no se tocan.")
+        dlg.add_response("cancel", "Cancelar")
+        dlg.add_response("reset", "Reiniciar")
+        dlg.set_response_appearance("reset", Adw.ResponseAppearance.DESTRUCTIVE)
+        dlg.connect("response", self.on_reset_streak)
+        dlg.present(self)
+
+    def on_reset_streak(self, _d, respuesta):
+        if respuesta == "reset":
+            db.reset_streak(self.con)
+            self.notify_user("Racha reiniciada")
+            self.refresh()
+
     def refresh_settings(self):
         b = hotkey.current_binding("")
         entorno = hotkey.desktop()
@@ -743,6 +805,14 @@ class MainWindow(Adw.ApplicationWindow):
         self.pet_every.set_value(float(db.get_meta(self.con, "pet_every",
                                                    pet.DEFAULT_EVERY_MIN)))
         self.pet_every.handler_unblock_by_func(self.on_pet_every)
+        self.pet_size.handler_block_by_func(self.on_pet_size)
+        self.pet_size.set_value(float(db.get_meta(self.con, "pet_scale", 1.0)) * 100)
+        self.pet_size.handler_unblock_by_func(self.on_pet_size)
+        t = db.totals(self.con)
+        self.hoy_row.set_subtitle(f"{t['hoy']} repasos en las últimas 24 h; las tarjetas "
+                                  "vuelven a como estaban")
+        self.racha_row.set_subtitle(f"Ahora: {t['racha']} días seguidos. Vuelve a cero "
+                                    "sin tocar las tarjetas")
 
     def capture_hotkey(self):
         dlg = Adw.Dialog(title="Nuevo atajo")
