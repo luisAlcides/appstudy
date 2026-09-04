@@ -11,7 +11,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, Gtk, Pango  # noqa: E402
 
 from . import buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: E402
-from . import hotkey, ia, lecturas  # noqa: E402
+from . import hotkey, ia, importador, lecturas  # noqa: E402
 from . import libros, logros, pet, respaldo, scheduler  # noqa: E402
 from . import sesiones, sonido, util  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
@@ -490,6 +490,11 @@ class MainWindow(Adw.ApplicationWindow):
                                  tooltip_text="Generar tarjetas con la IA")
         self.btn_ia.connect("clicked", lambda *_: self.generar_con_ia())
         barra.append(self.btn_ia)
+
+        importar = Gtk.Button(icon_name="document-open-symbolic",
+                              tooltip_text="Importar tarjetas de Anki, CSV o TSV")
+        importar.connect("clicked", lambda *_: self.importar_tarjetas())
+        barra.append(importar)
         box.append(barra)
 
         self.browser_list = self.lista_vacia()
@@ -1123,6 +1128,114 @@ class MainWindow(Adw.ApplicationWindow):
                 lambda e: self.ia_estado.set_subtitle(f"✗ {e}"))
 
     # -------------------------------------------------------- tarjetas con IA
+
+    def importar_tarjetas(self):
+        dlg = Gtk.FileDialog(title="Importar tarjetas")
+        filtro = Gtk.FileFilter()
+        filtro.set_name("Anki, CSV o texto tabulado")
+        for patron in ("*.apkg", "*.csv", "*.tsv", "*.txt"):
+            filtro.add_pattern(patron)
+        filtros = Gio.ListStore.new(Gtk.FileFilter)
+        filtros.append(filtro)
+        dlg.set_filters(filtros)
+        dlg.set_default_filter(filtro)
+        dlg.open(self, None, self.on_archivo_tarjetas)
+
+    def on_archivo_tarjetas(self, dlg, resultado):
+        try:
+            elegido = dlg.open_finish(resultado)
+        except GLib.Error:
+            return
+        ruta = elegido.get_path() if elegido else None
+        if not ruta:
+            return
+        self.notify_user(f"Leyendo {Path(ruta).name}…")
+        util.hilo(lambda: importador.leer(ruta),
+                  lambda tarjetas: self.revisar_importadas(tarjetas, Path(ruta).name),
+                  lambda e: self.notify_user(f"No pude importar: {e}"))
+
+    def revisar_importadas(self, tarjetas, nombre):
+        if not tarjetas:
+            self.notify_user("El archivo no contiene tarjetas reconocibles")
+            return
+        mazos = db.deck_stats(self.con)
+        dlg = Adw.AlertDialog(
+            heading=f"{len(tarjetas)} tarjetas encontradas",
+            body=f"Vista previa de «{nombre}». Los duplicados actualizarán su contenido "
+                 "sin perder el historial de repaso.")
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        elegir = Gtk.DropDown.new_from_strings([f"{d['icon']} {d['name']}" for d in mazos])
+        caja.append(self.labeled("Mazo donde guardarlas", elegir))
+
+        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                            css_classes=["boxed-list"])
+        for t in tarjetas[:40]:
+            fila = Adw.ActionRow(title=util.as_label(t["front"]),
+                                 subtitle=util.as_label(t["back"]))
+            fila.set_title_lines(1)
+            fila.set_subtitle_lines(2)
+            lista.append(fila)
+        if len(tarjetas) > 40:
+            lista.append(Adw.ActionRow(
+                title=f"…y {len(tarjetas) - 40} más",
+                subtitle="Se limita la vista previa para mantener fluida la ventana."))
+        scroll = Gtk.ScrolledWindow(propagate_natural_height=True, max_content_height=360)
+        scroll.set_child(lista)
+        caja.append(scroll)
+        dlg.set_extra_child(caja)
+        dlg.add_response("cancel", "Cancelar")
+        dlg.add_response("import", "Importar todas")
+        dlg.set_response_appearance("import", Adw.ResponseAppearance.SUGGESTED)
+        dlg.connect("response", self.on_importar_tarjetas, tarjetas, elegir, mazos)
+        dlg.present(self)
+
+    def on_importar_tarjetas(self, _dlg, respuesta, tarjetas, elegir, mazos):
+        if respuesta != "import":
+            return
+        if getattr(self, "_importacion", None):
+            self.notify_user("Ya hay una importación en marcha")
+            return
+        self._importacion = {
+            "tarjetas": tarjetas, "pos": 0, "nuevas": 0,
+            "mazo": mazos[elegir.get_selected()],
+        }
+        self.notify_user(f"Importando {len(tarjetas)} tarjetas…")
+        GLib.idle_add(self._importar_lote)
+
+    def _importar_lote(self):
+        """Guarda cien y devuelve el control a GTK antes del siguiente lote."""
+        estado = getattr(self, "_importacion", None)
+        if not estado:
+            return False
+        inicio = estado["pos"]
+        lote = estado["tarjetas"][inicio:inicio + 100]
+        mazo = estado["mazo"]
+        try:
+            for t in lote:
+                tags = ", ".join(x for x in (t.get("tags", ""), "importado") if x)
+                _, nueva = db.add_card(
+                    self.con, mazo["id"], mazo["key"], t.get("kind", "card"),
+                    t["front"], t.get("back", ""), hint=t.get("hint", ""),
+                    tags=tags, level=1)
+                estado["nuevas"] += nueva
+            estado["pos"] += len(lote)
+        except Exception as e:
+            self.con.rollback()
+            self._importacion = None
+            self.notify_user(f"No pude guardar la importación: {e}")
+            return False
+
+        if estado["pos"] < len(estado["tarjetas"]):
+            return True
+        self.con.commit()
+        actualizadas = len(estado["tarjetas"]) - estado["nuevas"]
+        mensaje = f"{estado['nuevas']} tarjetas importadas"
+        if actualizadas:
+            mensaje += f" · {actualizadas} actualizadas"
+        self._importacion = None
+        self.notify_user(mensaje)
+        self.refresh()
+        return False
 
     def generar_con_ia(self):
         """Pide un tema y propone tarjetas; tú eliges cuáles se guardan."""

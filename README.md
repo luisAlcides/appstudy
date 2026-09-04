@@ -492,6 +492,13 @@ inversa se etiqueta como `inversa` para que la encuentres:
 Cada una se guarda en un mazo y un **nivel**, y en el explorador puedes filtrar por
 ambos.
 
+El botón **Abrir** del explorador importa tarjetas desde CSV, TSV, exportaciones
+de texto de Anki y paquetes `.apkg`. Antes de guardar enseña una muestra y deja
+elegir el mazo; los duplicados actualizan el contenido sin borrar su historial.
+La lectura ocurre fuera del hilo gráfico, la muestra se limita a 40 filas y las
+tarjetas se guardan en lotes de 100 para que una colección grande no congele la
+ventana. Se aceptan como máximo 5.000 tarjetas y 200 MB por importación.
+
 Admite `<b>negrita</b>`, `<i>cursiva</i>`, `<code>código</code>` y fórmulas en
 LaTeX entre `$…$` (ver [Fórmulas y código](#fórmulas-y-código)).
 
