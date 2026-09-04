@@ -13,6 +13,7 @@ from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 from . import buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: E402
 from . import hotkey, ia, importador, lecturas  # noqa: E402
 from . import libros, logros, pet, recordatorios, respaldo, scheduler  # noqa: E402
+from . import sincronizacion  # noqa: E402
 from . import sesiones, sonido, util  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
 
@@ -866,6 +867,8 @@ class MainWindow(Adw.ApplicationWindow):
                 (deck["id"], kind, front, back, hint,
                  json.dumps(choices, ensure_ascii=False) if choices else "",
                  correcta if kind == "quiz" else -1, tags, nivel, card["id"]))
+            if not card.get("builtin"):
+                db.touch_sync(self.con, "card", card["uid"])
             self.con.commit()
         else:
             cid, _ = db.add_card(self.con, deck["id"], deck["key"], kind, front, back,
@@ -1100,6 +1103,29 @@ class MainWindow(Adw.ApplicationWindow):
         self.objetivo_estado.set_subtitle_lines(2)
         gmeta.add(self.objetivo_estado)
         page.add(gmeta)
+
+        gsync = Adw.PreferencesGroup(
+            title="Sincronización entre equipos",
+            description="Fusiona progreso y contenido propio mediante una carpeta "
+                        "compartida de Nextcloud, Syncthing, Dropbox o una memoria. "
+                        "Solo trabaja cuando pulsas sincronizar.")
+        self.sync_folder_row = Adw.ActionRow(
+            title="Carpeta compartida", subtitle="Todavía no elegida")
+        self.sync_folder_row.set_subtitle_selectable(True)
+        elegir_sync = Gtk.Button(label="Elegir…", valign=Gtk.Align.CENTER)
+        elegir_sync.connect("clicked", lambda *_: self.elegir_carpeta_sync())
+        self.sync_folder_row.add_suffix(elegir_sync)
+        gsync.add(self.sync_folder_row)
+
+        self.sync_now_row = Adw.ActionRow(
+            title="Sincronizar ahora",
+            subtitle="No reemplaza la base: fusiona los cambios más recientes")
+        self.sync_btn = Gtk.Button(label="Sincronizar", valign=Gtk.Align.CENTER,
+                                   css_classes=["suggested-action"])
+        self.sync_btn.connect("clicked", lambda *_: self.sincronizar_ahora())
+        self.sync_now_row.add_suffix(self.sync_btn)
+        gsync.add(self.sync_now_row)
+        page.add(gsync)
 
         gres = Adw.PreferencesGroup(
             title="Respaldo",
@@ -2003,6 +2029,62 @@ echo hola
         self._pintar_sanguijuelas(dentro, dlg)
         self.refresh()
 
+    # ---------------------------------------------------------- sincronización
+
+    def elegir_carpeta_sync(self):
+        dlg = Gtk.FileDialog(title="Elige la carpeta compartida")
+        dlg.select_folder(self, None, self.on_carpeta_sync)
+
+    def on_carpeta_sync(self, dlg, resultado):
+        try:
+            carpeta = dlg.select_folder_finish(resultado)
+        except GLib.Error:
+            return
+        ruta = carpeta.get_path() if carpeta else None
+        if not ruta:
+            self.notify_user("La carpeta debe estar disponible en este equipo")
+            return
+        db.set_meta(self.con, "sync_dir", ruta)
+        self.sync_folder_row.set_subtitle(ruta)
+        self.sync_btn.set_sensitive(True)
+
+    def sincronizar_ahora(self):
+        carpeta = str(db.get_meta(self.con, "sync_dir", "")).strip()
+        if not carpeta:
+            self.elegir_carpeta_sync()
+            return
+        self.sync_btn.set_sensitive(False)
+        self.sync_now_row.set_subtitle("Fusionando sin bloquear la ventana…")
+
+        def trabajo():
+            otra = db.connect()
+            try:
+                return sincronizacion.sincronizar(otra, carpeta)
+            finally:
+                otra.close()
+
+        util.hilo(trabajo, self.on_sync_lista, self.on_sync_error, largo=True)
+
+    def on_sync_lista(self, resultado):
+        self.sync_btn.set_sensitive(True)
+        db.set_meta(self.con, "sync_last", int(time.time()))
+        cambios = (resultado["tarjetas"] + resultado["capitulos"]
+                   + resultado["repasos"] + resultado["lecturas"]
+                   + resultado["borrados"])
+        detalle = (f"{resultado['equipos']} equipos · {resultado['repasos']} repasos · "
+                   f"{resultado['tarjetas']} tarjetas · {resultado['capitulos']} capítulos · "
+                   f"{resultado['lecturas']} avances")
+        if resultado["ignorados"]:
+            detalle += f" · {resultado['ignorados']} archivos ignorados"
+        self.sync_now_row.set_subtitle(detalle)
+        self.notify_user(f"Sincronización lista · {cambios} cambios recibidos")
+        self.refresh()
+
+    def on_sync_error(self, error):
+        self.sync_btn.set_sensitive(True)
+        self.sync_now_row.set_subtitle("Revisa que la carpeta siga disponible")
+        self.notify_user(f"No pude sincronizar: {error}")
+
     # ---------------------------------------------------------------- respaldo
 
     def hacer_respaldo(self):
@@ -2270,6 +2352,14 @@ echo hola
             self.objetivo_estado.set_subtitle(
                 "Sin objetivo · " + " ".join(str(d["n"]) for d in semana)
                 + " tarjetas en los últimos siete días")
+
+        carpeta_sync = str(db.get_meta(self.con, "sync_dir", "")).strip()
+        self.sync_folder_row.set_subtitle(carpeta_sync or "Todavía no elegida")
+        self.sync_btn.set_sensitive(bool(carpeta_sync))
+        ultimo_sync = float(db.get_meta(self.con, "sync_last", 0) or 0)
+        if ultimo_sync:
+            self.sync_now_row.set_subtitle(
+                f"Última sincronización: {respaldo.cuando(ultimo_sync)}")
 
         copias = respaldo.listar()
         if copias:

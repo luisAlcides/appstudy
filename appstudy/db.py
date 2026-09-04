@@ -117,6 +117,16 @@ CREATE TABLE IF NOT EXISTS books (
 
 CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);
 
+-- Reloj por elemento para fusionar cambios entre equipos sin depender de los
+-- identificadores numéricos locales. Una fila borrada conserva aquí su lápida.
+CREATE TABLE IF NOT EXISTS sync_changes (
+    entity   TEXT NOT NULL,
+    uid      TEXT NOT NULL,
+    modified REAL NOT NULL,
+    deleted  INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY(entity, uid)
+);
+
 """
 
 INDEXES = """
@@ -207,6 +217,16 @@ def set_meta(con, key, value):
     con.commit()
 
 
+def touch_sync(con, entity: str, uid: str, deleted: bool = False,
+               modified: float | None = None):
+    """Marca un contenido propio como cambiado, sin hacer commit por separado."""
+    con.execute(
+        """INSERT INTO sync_changes(entity,uid,modified,deleted) VALUES(?,?,?,?)
+           ON CONFLICT(entity,uid) DO UPDATE SET
+               modified=excluded.modified, deleted=excluded.deleted""",
+        (entity, uid, time.time() if modified is None else float(modified), int(deleted)))
+
+
 def upsert_deck(con, key, name, icon, color, pos, levels=None):
     con.execute(
         """INSERT INTO decks(key,name,icon,color,pos,levels) VALUES(?,?,?,?,?,?)
@@ -225,7 +245,10 @@ def add_card(con, deck_id, deck_key, kind, front, back="", hint="", choices=None
     ch = json.dumps(choices, ensure_ascii=False) if choices else ""
     # SQLite informa el mismo rowcount al insertar y al actualizar, así que se
     # comprueba antes para poder distinguir una tarjeta realmente nueva.
-    ya_existia = con.execute("SELECT 1 FROM cards WHERE uid=?", (uid,)).fetchone() is not None
+    anterior = con.execute("SELECT * FROM cards WHERE uid=?", (uid,)).fetchone()
+    ya_existia = anterior is not None
+    valores = (deck_id, kind, front.strip(), back.strip(), hint.strip(), ch, answer,
+               tags, level, builtin)
     con.execute(
         """INSERT INTO cards(deck_id,uid,kind,front,back,hint,choices,answer,tags,
                                level,builtin,created)
@@ -238,6 +261,12 @@ def add_card(con, deck_id, deck_key, kind, front, back="", hint="", choices=None
          level, builtin, time.time()))
     cid = con.execute("SELECT id FROM cards WHERE uid=?", (uid,)).fetchone()["id"]
     con.execute("INSERT OR IGNORE INTO state(card_id, due) VALUES(?, ?)", (cid, 0.0))
+    previo = ((anterior["deck_id"], anterior["kind"], anterior["front"],
+               anterior["back"], anterior["hint"], anterior["choices"],
+               anterior["answer"], anterior["tags"], anterior["level"],
+               anterior["builtin"]) if anterior else None)
+    if not builtin and previo != valores:
+        touch_sync(con, "card", uid)
     return cid, 0 if ya_existia else 1
 
 
@@ -259,6 +288,7 @@ def upsert_chapter(con, deck_id, deck_key, ch):
              ch.get("subtitle", ""), ch.get("minutes", 5), ch.get("tags", ""),
              json.dumps(ch.get("body", []), ensure_ascii=False),
              propio, ch.get("fuente", ""))
+    anterior = con.execute("SELECT * FROM chapters WHERE uid=?", (uid,)).fetchone()
     con.execute(
         """INSERT INTO chapters(deck_id,uid,level,pos,title,subtitle,minutes,tags,
                                 body,propio,fuente)
@@ -270,11 +300,20 @@ def upsert_chapter(con, deck_id, deck_key, ch):
                fuente=excluded.fuente""", datos)
     cid = con.execute("SELECT id FROM chapters WHERE uid=?", (uid,)).fetchone()["id"]
     con.execute("INSERT OR IGNORE INTO reading(chapter_id) VALUES(?)", (cid,))
+    previo = ((anterior["deck_id"], anterior["uid"], anterior["level"],
+               anterior["pos"], anterior["title"], anterior["subtitle"],
+               anterior["minutes"], anterior["tags"], anterior["body"],
+               anterior["propio"], anterior["fuente"]) if anterior else None)
+    if propio and previo != datos:
+        touch_sync(con, "chapter", uid)
     return cid, uid
 
 
 def borrar_capitulo(con, chapter_id: int):
+    fila = con.execute("SELECT uid, propio FROM chapters WHERE id=?", (chapter_id,)).fetchone()
     con.execute("DELETE FROM chapters WHERE id=?", (chapter_id,))
+    if fila and fila["propio"]:
+        touch_sync(con, "chapter", fila["uid"], deleted=True)
     con.commit()
 
 
@@ -513,7 +552,10 @@ def books_todos(con) -> dict:
 
 
 def delete_card(con, card_id):
+    fila = con.execute("SELECT uid, builtin FROM cards WHERE id=?", (card_id,)).fetchone()
     con.execute("DELETE FROM cards WHERE id=?", (card_id,))
+    if fila and not fila["builtin"]:
+        touch_sync(con, "card", fila["uid"], deleted=True)
     con.commit()
 
 

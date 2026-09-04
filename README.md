@@ -890,6 +890,26 @@ Cuando lo pones, aparece en tres sitios:
   una por día de la semana, en verde los días que cumpliste.
 - En **Ajustes**, cuántos de los últimos siete días cumpliste, en un vistazo.
 
+## Sincronización entre equipos
+
+En **Ajustes → Sincronización entre equipos** eliges una carpeta compartida por
+Nextcloud, Syncthing, Dropbox o una memoria y pulsas **Sincronizar**. AppStudy
+fusiona los repasos y su estado FSRS, las tarjetas propias, los capítulos que
+escribiste y su avance de lectura. La operación corre fuera del hilo de la
+interfaz y solo cuando la pides: no hay un servicio residente consultando la red.
+
+Cada instalación escribe un archivo distinto y publica primero a un temporal,
+por lo que dos equipos no pisan el mismo archivo ni dejan una copia a medias.
+Los repasos se unen como eventos y se deduplican; para una edición concurrente
+gana la más reciente. Los borrados conservan una pequeña lápida, así que un
+equipo atrasado no vuelve a crear lo que ya eliminaste. Un archivo corrupto o de
+más de 50 MB se ignora sin tocar el progreso local.
+
+Los PDF/EPUB, sus subrayados y las preferencias del escritorio no se sincronizan:
+sus rutas pertenecen a cada equipo. Los archivos de sincronización son JSON
+legible, no cifrado; usa una carpeta privada si tus tarjetas contienen datos
+sensibles.
+
 ## Respaldo
 
 Todo tu progreso —tarjetas, repasos, racha, libros y por dónde ibas— vive en un
@@ -927,12 +947,13 @@ los de «antes de restaurar» no se borran nunca.
 ./pruebas.sh scheduler    # solo las del planificador
 ```
 
-439 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
+445 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
 calibración, el planificador, las sanguijuelas, el deshacer, el objetivo diario,
 las tarjetas de huecos, las series de la pestaña Progreso, los logros, los seis
 formatos de reto, las fórmulas en LaTeX, los subrayados, la lectura de EPUB, el
-Markdown de tus capítulos, la búsqueda global, los recordatorios, el respaldo y
-la validez del contenido incluido. No hace falta instalar nada más — son
+Markdown de tus capítulos, la búsqueda global, los recordatorios, la
+sincronización, el respaldo y la validez del contenido incluido. No hace falta
+instalar nada más — son
 `unittest` de la biblioteca estándar — y ninguna toca tu progreso real: cada
 caso arranca con una base vacía en un directorio temporal. Los detalles, en
 `tests/README.md`.
