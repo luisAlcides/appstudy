@@ -137,6 +137,50 @@ class TestRetencion(BaseTemporal):
         self.assertGreater(est.retencion_global(self.con, dias=365)["repasos"], 0)
 
 
+class TestTemasDebiles(BaseTemporal):
+    def test_prioriza_la_etiqueta_con_mas_fallos(self):
+        deck = self.mazo()
+        redes = self.tarjeta(deck, "redes", key="redes")
+        shell = self.tarjeta(deck, "shell", key="shell")
+        self.con.execute("UPDATE cards SET tags='redes, tcp' WHERE id=?", (redes,))
+        self.con.execute("UPDATE cards SET tags='shell' WHERE id=?", (shell,))
+        self.con.commit()
+        for nota in (AGAIN, AGAIN, HARD):
+            self.repasar(redes, nota)
+        for nota in (HARD, GOOD, GOOD):
+            self.repasar(shell, nota)
+        temas = est.temas_debiles(self.con)
+        self.assertEqual(temas[0]["tema"], "redes")
+        self.assertEqual(temas[0]["fallos"], 2)
+        self.assertEqual(temas[0]["tags"], "redes")
+
+    def test_sin_etiqueta_usa_el_mazo(self):
+        deck = self.mazo("ingles", "Inglés")
+        cid = self.tarjeta(deck, "verbs", key="verbs")
+        self.repasar(cid, AGAIN)
+        tema = est.temas_debiles(self.con)[0]
+        self.assertEqual(tema["tema"], "Inglés")
+        self.assertEqual(tema["deck_key"], "ingles")
+
+    def test_no_muestra_temas_sin_dificultades(self):
+        cid = self.tarjeta(self.mazo(), "fácil")
+        for _ in range(3):
+            self.repasar(cid, GOOD)
+        self.assertEqual(est.temas_debiles(self.con), [])
+
+    def test_limita_el_historial_consultado(self):
+        deck = self.mazo()
+        viejo = self.tarjeta(deck, "viejo", key="viejo")
+        nuevo = self.tarjeta(deck, "nuevo", key="nuevo")
+        self.con.execute("UPDATE cards SET tags='viejo' WHERE id=?", (viejo,))
+        self.con.execute("UPDATE cards SET tags='nuevo' WHERE id=?", (nuevo,))
+        self.con.commit()
+        self.repasar(viejo, AGAIN, cuando=time.time() - 10)
+        self.repasar(nuevo, AGAIN)
+        temas = est.temas_debiles(self.con, max_repasos=1)
+        self.assertEqual([t["tema"] for t in temas], ["nuevo"])
+
+
 class TestCurvaVencimientos(BaseTemporal):
     def vence_en(self, card_id, dias):
         self.con.execute("UPDATE state SET reps=3, due=? WHERE card_id=?",

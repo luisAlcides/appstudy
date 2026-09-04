@@ -834,6 +834,12 @@ Un detalle que cambia lo que dice el número: en la retención **solo cuentan lo
 repasos de tarjetas que ya habías visto antes**. La primera vez que ves una
 tarjeta no había nada que recordar, así que meterla en la media solo la ensucia.
 
+Debajo de la retención aparece **Qué conviene reforzar**: reúne los fallos y las
+respuestas difíciles de los últimos 90 días por etiqueta —o por mazo cuando una
+tarjeta no tiene etiquetas— y permite practicar ese foco con un clic. Para que
+el panel siga abriendo al instante incluso después de años de uso, solo recorre
+los 5.000 repasos más recientes mediante el índice temporal de SQLite.
+
 ## Logros
 
 Once marcas que se pasan sin darse cuenta. No hay puntos, ni niveles, ni una

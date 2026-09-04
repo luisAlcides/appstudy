@@ -1558,6 +1558,10 @@ echo hola
             pie="Solo cuentan los repasos de tarjetas que ya habías visto antes: "
                 "la primera vez no había nada que recordar."))
 
+        temas = estadisticas.temas_debiles(self.con)
+        if temas:
+            caja.append(self.tarjeta_temas_debiles(temas))
+
         curva = estadisticas.curva_vencimientos(self.con, 30)
         pendientes = sum(d["total"] for d in curva)
         caja.append(self.stats_card(
@@ -1575,6 +1579,34 @@ echo hola
                 "vez para que una media deje de significar nada."))
 
         caja.append(self.tarjeta_logros())
+
+    def tarjeta_temas_debiles(self, temas):
+        """Diagnóstico accionable: cada fila abre el popup ya filtrado."""
+        grupo = Adw.PreferencesGroup(
+            title="Qué conviene reforzar",
+            description="Fallos y respuestas difíciles de los últimos 90 días. "
+                        "El análisis está limitado a los 5.000 repasos más recientes.")
+        for tema in temas:
+            partes = []
+            if tema["fallos"]:
+                partes.append(f"{tema['fallos']} fallos")
+            if tema["dificiles"]:
+                partes.append(f"{tema['dificiles']} difíciles")
+            partes.append(f"{tema['intentos']} intentos")
+            fila = Adw.ActionRow(
+                title=f"{tema['icon']}  {tema['tema']}",
+                subtitle=" · ".join(partes))
+            boton = Gtk.Button(label="Practicar", valign=Gtk.Align.CENTER,
+                               css_classes=["pill"])
+            boton.connect("clicked", lambda _b, t=tema: self.practicar_tema(t))
+            fila.add_suffix(boton)
+            fila.set_activatable_widget(boton)
+            grupo.add(fila)
+        return grupo
+
+    def practicar_tema(self, tema):
+        self.get_application().show_popup(
+            deck_key=tema.get("deck_key"), tags=tema.get("tags"))
 
     def stats_card(self, titulo, alto, pintar, datos_fn, pie=None):
         """Un bloque con su título, el dibujo y una línea de explicación."""

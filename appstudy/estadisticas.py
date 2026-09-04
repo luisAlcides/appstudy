@@ -108,6 +108,62 @@ def retencion_global(con, dias: int = 90) -> dict:
             "objetivo": scheduler.config(con)["retencion"]}
 
 
+# ----------------------------------------------------------- temas más débiles
+
+def temas_debiles(con, dias: int = 90, limite: int = 6,
+                  max_repasos: int = 5000) -> list[dict]:
+    """Etiquetas que más cuestan, ponderando fallos y respuestas difíciles.
+
+    Lee como máximo los últimos 5.000 repasos del período mediante ``idx_log_ts``.
+    Después agrupa en una sola pasada en memoria, porque las etiquetas se guardan
+    como una lista corta separada por comas. Las tarjetas sin etiqueta se agrupan
+    por mazo para que nunca desaparezcan del diagnóstico.
+    """
+    desde = time.time() - max(1, dias) * DIA
+    filas = con.execute(
+        """SELECT l.rating, c.tags, d.key AS deck_key, d.name AS deck_name,
+                  d.icon AS deck_icon, d.color AS deck_color
+           FROM (SELECT card_id, rating, ts FROM log
+                 WHERE ts >= ? ORDER BY ts DESC LIMIT ?) l
+           JOIN cards c ON c.id = l.card_id
+           JOIN decks d ON d.id = c.deck_id
+           WHERE d.enabled = 1""", (desde, max(1, max_repasos))).fetchall()
+
+    grupos: dict[tuple[str, str], dict] = {}
+    for f in filas:
+        tags = [t.strip() for t in (f["tags"] or "").split(",") if t.strip()]
+        temas = [("tag", t.casefold(), t) for t in tags]
+        if not temas:
+            temas = [("deck", f["deck_key"], f["deck_name"])]
+        for tipo, clave, nombre in temas:
+            g = grupos.setdefault((tipo, clave), {
+                "tema": nombre, "intentos": 0, "fallos": 0, "dificiles": 0,
+                "puntos": 0, "deck_key": f["deck_key"] if tipo == "deck" else None,
+                "tags": nombre if tipo == "tag" else None,
+                "icon": "#" if tipo == "tag" else f["deck_icon"],
+                "color": f["deck_color"],
+            })
+            g["intentos"] += 1
+            if f["rating"] == scheduler.AGAIN:
+                g["fallos"] += 1
+                g["puntos"] += 2
+            elif f["rating"] == scheduler.HARD:
+                g["dificiles"] += 1
+                g["puntos"] += 1
+
+    salida = []
+    for g in grupos.values():
+        if not g["puntos"]:
+            continue
+        # El denominador amortigua muestras minúsculas: un único fallo no debe
+        # desplazar a un tema que lleva semanas dando problemas.
+        g["score"] = g["puntos"] / (g["intentos"] + 3)
+        salida.append(g)
+    salida.sort(key=lambda g: (-g["score"], -g["puntos"], -g["intentos"],
+                               g["tema"].casefold()))
+    return salida[:max(0, limite)]
+
+
 # ------------------------------------------------------------- lo que se viene
 
 def curva_vencimientos(con, dias: int = 30) -> list[dict]:
