@@ -550,3 +550,13 @@ window.as-pet box.as-bubble.as-bubble-chat {
 }
 
 .as-bubble button.as-chat-enviar:hover { background: #5B86D6; }
+
+/* ------------------------------------------------------ resumen de sesión */
+
+.as-session-summary { margin-top: 12px; }
+
+.as-session-stat {
+  padding: 14px 8px;
+  border-radius: 12px;
+  background: alpha(currentColor, 0.055);
+}

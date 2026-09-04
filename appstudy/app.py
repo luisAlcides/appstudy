@@ -121,13 +121,16 @@ class AppStudy(Adw.Application):
 
     # ------------------------------------------------------------------ ventanas
 
-    def show_popup(self, deck_key=None, level=None, tags=None):
+    def show_popup(self, deck_key=None, level=None, tags=None, session_plan=None):
         if self.popup is not None:
             # El atajo pulsado de nuevo trae otra tarjeta en vez de abrir otra ventana
-            self.popup.set_filter(deck_key, level, tags)
+            if session_plan:
+                self.popup.begin_session(session_plan, deck_key, level, tags)
+            else:
+                self.popup.set_filter(deck_key, level, tags)
             self.popup.present()
             return
-        self.popup = PopupWindow(self, self.con, deck_key, level, tags)
+        self.popup = PopupWindow(self, self.con, deck_key, level, tags, session_plan)
         self.popup.connect("close-request", self.on_popup_closed)
         self.popup.present()
 

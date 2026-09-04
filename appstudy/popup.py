@@ -7,7 +7,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib, Gdk, Gio, Gtk  # noqa: E402
 
-from . import cloze, db, logros, scheduler, sonido, util  # noqa: E402
+from . import cloze, db, logros, scheduler, sesiones, sonido, util  # noqa: E402
 
 RATINGS = [
     (scheduler.AGAIN, "Otra vez", "1", "as-rate-again"),
@@ -20,7 +20,8 @@ RATINGS = [
 class PopupWindow(Adw.Window):
     """Ventana flotante con una sola tarjeta. Todo se maneja con el teclado o ratón."""
 
-    def __init__(self, app, con, deck_key=None, level=None, tags=None):
+    def __init__(self, app, con, deck_key=None, level=None, tags=None,
+                 session_plan=None):
         super().__init__(application=app, title="AppStudy")
         self.con = con
         self.deck_key = deck_key
@@ -33,6 +34,9 @@ class PopupWindow(Adw.Window):
         self.hueco = None             # qué hueco se tapa en una tarjeta cloze
         self.shown_at = 0.0
         self.recent_ids = []
+        self.sesion = sesiones.Sesion(session_plan) if session_plan else None
+        self.sesion_terminada = False
+        self.sesion_timer = None
 
         self.card_scale = self.card_escala_guardada()
         w = max(580, int(680 * self.card_scale))
@@ -113,6 +117,7 @@ class PopupWindow(Adw.Window):
         self.add_controller(keys)
 
         self.load_card()
+        self._iniciar_reloj_sesion()
 
     # ---------------------------------------------------------------- tamaño y escala
 
@@ -205,6 +210,15 @@ class PopupWindow(Adw.Window):
         self.deck_key, self.level, self.tags = deck_key, level, tags
         self.recent_ids = []
         self.load_card()
+
+    def begin_session(self, plan, deck_key=None, level=None, tags=None):
+        """Empieza un plan nuevo reutilizando la ventana si ya estaba abierta."""
+        self.sesion = sesiones.Sesion(plan)
+        self.sesion_terminada = False
+        self.deck_key, self.level, self.tags = deck_key, level, tags
+        self.recent_ids = []
+        self.load_card()
+        self._iniciar_reloj_sesion()
 
     def load_card(self):
         current_id = self.card["id"] if self.card else None
@@ -540,8 +554,97 @@ class PopupWindow(Adw.Window):
         return box
 
     def progress_text(self):
+        if self.sesion and not self.sesion_terminada:
+            return self.sesion.progreso()
         t = db.totals(self.con)
         return f"{t['hoy']} hoy · {t['pendientes']} pendientes · racha {t['racha']}d"
+
+    # --------------------------------------------------------- sesión guiada
+
+    def _iniciar_reloj_sesion(self):
+        if self.sesion and self.sesion_timer is None and not self.sesion_terminada:
+            self.sesion_timer = GLib.timeout_add_seconds(1, self._tick_sesion)
+
+    def _parar_reloj_sesion(self):
+        if self.sesion_timer is not None:
+            GLib.source_remove(self.sesion_timer)
+            self.sesion_timer = None
+
+    def _tick_sesion(self):
+        if not self.get_visible() or not self.sesion or self.sesion_terminada:
+            self.sesion_timer = None
+            return False
+        if self.card:
+            self.title_widget.set_subtitle(self.sesion.progreso())
+        return True
+
+    def render_session_summary(self):
+        """Cierra el ciclo sin otra consulta: todo sale del estado en memoria."""
+        self.sesion_terminada = True
+        self._parar_reloj_sesion()
+        self.card = None
+        self.clear(self.body)
+        self.clear(self.footer)
+        self.title_widget.set_title("Sesión completada")
+        self.title_widget.set_subtitle(self.sesion.plan.nombre)
+
+        r = self.sesion.resumen()
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18,
+                       css_classes=["as-flashcard", "as-session-summary"])
+        interior = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16,
+                           css_classes=["as-flashcard-inner"])
+        interior.append(Gtk.Label(label="Buen trabajo", xalign=0,
+                                  css_classes=["title-1"]))
+        interior.append(Gtk.Label(
+            label="Terminaste el plan. Esto es lo que construiste en esta sesión.",
+            xalign=0, wrap=True, css_classes=["as-dim"]))
+
+        cifras = Gtk.Box(spacing=10, homogeneous=True)
+        datos = (
+            (r["total"], "TARJETAS"),
+            (f"{r['retencion'] * 100:.0f} %" if r["retencion"] is not None else "–",
+             "RECORDADAS"),
+            (r["nuevas"], "NUEVAS"),
+            (f"{r['mediana_ms'] / 1000:.1f} s" if r["mediana_ms"] else "–",
+             "TIEMPO MEDIO"),
+        )
+        for valor, etiqueta in datos:
+            bloque = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3,
+                             css_classes=["as-session-stat"])
+            bloque.append(Gtk.Label(label=str(valor), css_classes=["as-stat-value"]))
+            bloque.append(Gtk.Label(label=etiqueta, css_classes=["as-stat-label"]))
+            cifras.append(bloque)
+        interior.append(cifras)
+
+        if r["tema_debil"]:
+            debil = r["tema_debil"]
+            aviso = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4,
+                            css_classes=["as-hint-box"])
+            aviso.append(Gtk.Label(label="SIGUIENTE FOCO", xalign=0,
+                                   css_classes=["as-answer-title"]))
+            aviso.append(Gtk.Label(label=debil["tema"], xalign=0,
+                                   css_classes=["heading"]))
+            interior.append(aviso)
+        interior.append(Gtk.Label(label=r["consejo"], xalign=0, wrap=True,
+                                  css_classes=["as-back"]))
+        caja.append(interior)
+        self.body.append(caja)
+
+        acciones = Gtk.Box(spacing=8, homogeneous=True)
+        terminar = Gtk.Button(label="Terminar", css_classes=["pill"])
+        terminar.connect("clicked", lambda *_: self.close())
+        acciones.append(terminar)
+        continuar = Gtk.Button(label="Continuar 5 minutos",
+                               css_classes=["suggested-action", "pill"])
+        continuar.connect("clicked", lambda *_: self.continuar_sesion())
+        acciones.append(continuar)
+        self.footer.append(acciones)
+
+    def continuar_sesion(self):
+        self.sesion.ampliar(5, 8)
+        self.sesion_terminada = False
+        self.load_card()
+        self._iniciar_reloj_sesion()
 
     # ------------------------------------------------------------------ acciones
 
@@ -565,6 +668,8 @@ class PopupWindow(Adw.Window):
                           "acierto" if rating >= scheduler.GOOD else "fallo")
         ms = int((time.time() - self.shown_at) * 1000)
         st = scheduler.apply_review(self.con, self.card["id"], rating, ms)
+        if self.sesion:
+            self.sesion.registrar(self.card, rating, ms)
         conseguidos = logros.revisar(self.con)
         if conseguidos:
             # Casi todos los logros se cruzan al calificar, así que se miran aquí
@@ -595,6 +700,9 @@ class PopupWindow(Adw.Window):
         GLib.timeout_add(180, self._next_after_rate)
 
     def _next_after_rate(self):
+        if self.sesion and self.sesion.terminada():
+            self.render_session_summary()
+            return False
         self.load_card()
         return False
 
@@ -606,6 +714,8 @@ class PopupWindow(Adw.Window):
                                            timeout=2))
             return
         tarjeta = db.card_by_id(self.con, hecho["card_id"])
+        if self.sesion:
+            self.sesion.deshacer_ultima(hecho["card_id"])
         nombre = scheduler.RATING_LABELS.get(hecho["rating"], "")
         self.toast.add_toast(Adw.Toast(
             title=f"Deshecho «{nombre}» · la tarjeta vuelve a estar como antes",

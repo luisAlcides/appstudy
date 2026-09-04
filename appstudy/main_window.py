@@ -13,7 +13,7 @@ from gi.repository import Adw, Gio, GLib, Gtk, Pango  # noqa: E402
 from . import buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: E402
 from . import hotkey, ia, lecturas  # noqa: E402
 from . import libros, logros, pet, respaldo, scheduler  # noqa: E402
-from . import sonido, util  # noqa: E402
+from . import sesiones, sonido, util  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
 
 MAX_FILAS = 120        # tarjetas que se pintan a la vez en el explorador
@@ -58,7 +58,7 @@ class MainWindow(Adw.ApplicationWindow):
         estudiar.set_child(Gtk.Box(spacing=6))
         estudiar.get_child().append(Gtk.Image.new_from_icon_name("media-playback-start-symbolic"))
         estudiar.get_child().append(Gtk.Label(label="Estudiar ahora"))
-        estudiar.connect("clicked", lambda *_: app.show_popup())
+        estudiar.connect("clicked", lambda *_: self.elegir_sesion())
         header.pack_start(estudiar)
 
         nueva = Gtk.Button(icon_name="list-add-symbolic", tooltip_text="Nueva tarjeta")
@@ -80,6 +80,36 @@ class MainWindow(Adw.ApplicationWindow):
 
     def notify_user(self, texto):
         self.toast.add_toast(Adw.Toast(title=texto, timeout=3))
+
+    def elegir_sesion(self):
+        """Elige un bloque manejable; el atajo global conserva el repaso rápido."""
+        dlg = Adw.AlertDialog(
+            heading="¿Cuánto quieres estudiar?",
+            body="La sesión termina al alcanzar el tiempo o la cantidad de tarjetas, "
+                 "sin cortar nunca una respuesta a mitad.")
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        nombres = [f"{p.nombre} · {p.minutos} min · hasta {p.tarjetas} tarjetas"
+                   for p in sesiones.PLANES]
+        elegir = Gtk.DropDown.new_from_strings(nombres)
+        elegir.set_selected(1)
+        caja.append(elegir)
+        caja.append(Gtk.Label(
+            label="El atajo global sigue abriendo un repaso rápido sin temporizador.",
+            xalign=0, wrap=True, css_classes=["caption", "as-dim"]))
+        dlg.set_extra_child(caja)
+        dlg.add_response("quick", "Repaso libre")
+        dlg.add_response("start", "Empezar sesión")
+        dlg.set_response_appearance("start", Adw.ResponseAppearance.SUGGESTED)
+        dlg.set_default_response("start")
+        dlg.connect("response", self._iniciar_sesion_elegida, elegir)
+        dlg.present(self)
+
+    def _iniciar_sesion_elegida(self, _dlg, respuesta, elegir):
+        if respuesta == "start":
+            plan = sesiones.PLANES[elegir.get_selected()]
+            self.get_application().show_popup(session_plan=plan)
+        elif respuesta == "quick":
+            self.get_application().show_popup()
 
     # ------------------------------------------------------------------- panel
 

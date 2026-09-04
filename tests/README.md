@@ -13,6 +13,7 @@ también las corre (`pytest tests/`), porque reconoce las clases de `unittest`.
 |---|---|
 | `test_fsrs.py` | El modelo de memoria: que la probabilidad de acordarte baje siempre, que fallar nunca suba la estabilidad, que pedir más retención acorte, y que calibrar no empeore nunca lo que hay |
 | `test_scheduler.py` | Cómo se aplica el modelo a una tarjeta: el peldaño corto del fallo, el techo del año, la elección de la próxima tarjeta y el deshacer del día |
+| `test_sesiones.py` | Los límites por tiempo y cantidad, la ampliación, el deshacer y el resumen de una sesión guiada |
 | `test_progreso.py` | Las sanguijuelas, el deshacer de un solo repaso, el objetivo diario y la migración desde el SM-2 anterior |
 | `test_cloze.py` | Las tarjetas de huecos: tapar y destapar sin perder nada, las pistas, y el texto completo tal como se escribió |
 | `test_reto.py` | Los seis formatos de reto, y sobre todo que las opciones falsas no se adivinen a ojo ni sean calcadas a la buena |
