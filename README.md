@@ -271,11 +271,13 @@ Nunca está quieto: respira, se balancea, parpadea (a veces dos veces seguidas),
 mira alrededor y sigue el ratón con las pupilas. Al aparecer cae con un pequeño
 rebote; cuando te acercas se inclina con curiosidad, levanta las cejas y las
 manos, sonríe y enciende tres motas alrededor. Cada pocos segundos hace un gesto
-suelto —saltar, estirarse, ladear la cabeza, agitar la antena— y reacciona a lo
-que pasa: saluda al avisarte, mueve la boca mientras habla, saca corazones y
-chispas cuando aciertas, una gota cuando fallas, y zZz mientras duerme. Los
-saltos tienen anticipación, vuelo y un aterrizaje elástico; las cejas, la boca,
-el color y la velocidad del balanceo cambian con su ánimo.
+suelto —saltar, estirarse, ladear la cabeza, asentir, sorprenderse o agitar la
+antena— y reacciona a lo que pasa: saluda al avisarte, mueve la boca mientras
+habla, ríe y baila cuando está feliz, bosteza si se aburre, suspira o tirita si
+está bajo de ánimo, saca corazones y chispas cuando aciertas, una gota cuando
+fallas, y zZz mientras duerme. Los saltos tienen anticipación, vuelo y un
+aterrizaje elástico; cada gesto mueve de forma coordinada los ojos, las cejas,
+la boca, las manos, los pies y el cuerpo.
 
 Todo está dibujado con Cairo en `appstudy/pet.py`: los gestos puntuales se lanzan
 con `play(nombre, segundos)` y `phase(nombre)` dice por dónde van, de 0 a 1.

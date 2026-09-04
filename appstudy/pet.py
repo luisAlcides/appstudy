@@ -163,9 +163,16 @@ class Creature(Gtk.DrawingArea):
     partículas: corazones al acertar, gotas al fallar, chispas y zZz.
     """
 
-    # Lo que hace cuando nadie lo molesta (repetido = más probable)
+    # Lo que hace cuando nadie lo molesta (repetido = más probable). A esta
+    # base se le suman gestos propios de cada ánimo en `_gestos_idle`.
     IDLES = ("parpadeo", "parpadeo", "parpadeo", "parpadeo2", "mirar", "mirar",
-             "antena", "salto", "estirar", "ladear")
+             "antena", "salto", "estirar", "ladear", "asentir")
+    DURACION_GESTO = {
+        "antena": 0.9, "salto": 0.68, "estirar": 1.3, "ladear": 1.4,
+        "asentir": 0.95, "sorpresa": 0.9, "risa": 1.25, "baile": 1.9,
+        "bostezo": 1.8, "suspiro": 1.35, "tiritar": 1.15,
+    }
+    EXPRESIONES = {"sorpresa", "risa", "baile", "bostezo", "suspiro", "tiritar"}
 
     def __init__(self, escala=1.0):
         super().__init__()
@@ -213,6 +220,11 @@ class Creature(Gtk.DrawingArea):
     # ------------------------------------------------------------------ gestos
 
     def play(self, nombre, dur):
+        # Una expresión nueva sustituye la anterior: acertar mientras bostezaba,
+        # por ejemplo, debe convertir el bostezo en risa inmediatamente.
+        if nombre in self.EXPRESIONES:
+            for anterior in self.EXPRESIONES - {nombre}:
+                self.anims.pop(anterior, None)
         self.anims[nombre] = (time.time(), dur)
 
     def phase(self, nombre):
@@ -233,18 +245,35 @@ class Creature(Gtk.DrawingArea):
         self.hablar(1.4)
 
     def celebrar(self):
-        self.play("salto", 0.6)
+        self.play("salto", 0.68)
+        self.play("risa", 1.25)
         self.play("brillo", 1.5)
         self.emitir("corazon", 4)
         self.emitir("chispa", 9)
 
     def desanimar(self):
         self.play("negar", 0.8)
+        self.play("suspiro", 1.35)
         self.emitir("gota", 2)
 
     def pensar(self):
         self.play("ladear", 1.2)
         self.emitir("nota", 2)
+
+    def _gestos_idle(self):
+        """Gestos disponibles ahora: Bit se comporta según cómo se siente."""
+        gestos = list(self.IDLES)
+        if self.mood == "feliz":
+            gestos += ["risa", "risa", "baile", "baile"]
+        elif self.mood == "aburrido":
+            gestos += ["bostezo", "bostezo", "suspiro"]
+        elif self.mood == "hambre":
+            gestos += ["suspiro", "suspiro", "tiritar"]
+        elif self.mood == "triste":
+            gestos += ["suspiro", "suspiro", "tiritar", "bostezo"]
+        else:
+            gestos += ["sorpresa", "asentir"]
+        return gestos
 
     def emitir(self, kind, n):
         arriba = kind in ("corazon", "chispa", "nota")
@@ -271,6 +300,11 @@ class Creature(Gtk.DrawingArea):
     def on_enter(self, _c, x, y):
         self.hover = True
         self.play("antena", 0.7)
+        # A veces Bit se sorprende al verte llegar; no lo repite si ya está
+        # expresando otra cosa importante.
+        expresivos = {"risa", "baile", "bostezo", "suspiro", "tiritar"}
+        if not expresivos.intersection(self.anims) and random.random() < 0.35:
+            self.play("sorpresa", self.DURACION_GESTO["sorpresa"])
 
     def on_leave(self, _c):
         self.hover = False
@@ -326,8 +360,8 @@ class Creature(Gtk.DrawingArea):
                              max(-1.0, min(1.0, self.puntero[1]))]
         if ahora < self.next_idle:
             return
-        self.next_idle = ahora + random.uniform(1.6, 4.8)
-        gesto = random.choice(self.IDLES)
+        self.next_idle = ahora + random.uniform(2.2, 5.2)
+        gesto = random.choice(self._gestos_idle())
         if gesto == "parpadeo":
             self.play("parpadeo", 0.16)
         elif gesto == "parpadeo2":
@@ -336,10 +370,12 @@ class Creature(Gtk.DrawingArea):
             if self.puntero is None:
                 self.objetivo = [random.uniform(-1, 1), random.uniform(-0.7, 0.5)]
                 self.next_idle = ahora + random.uniform(0.9, 2.0)
-        elif gesto == "salto" and self.energy > 0.35:
-            self.play("salto", 0.62)
+        elif gesto == "salto" and self.energy <= 0.35:
+            # Con poca energía no salta: bosteza o suspira según su estado.
+            cansado = "bostezo" if self.mood == "aburrido" else "suspiro"
+            self.play(cansado, self.DURACION_GESTO[cansado])
         else:
-            self.play(gesto, {"antena": 0.9, "estirar": 1.3, "ladear": 1.4}[gesto])
+            self.play(gesto, self.DURACION_GESTO[gesto])
 
     def ocupada(self) -> bool:
         """¿Hay algo que merezca dibujar a plena velocidad?
@@ -421,6 +457,58 @@ class Creature(Gtk.DrawingArea):
         p = self.phase("negar")
         if p is not None:
             rot += math.sin(p * math.pi * 5) * 0.11 * (1 - p)
+
+        p = self.phase("asentir")
+        if p is not None:
+            envolvente = math.sin(math.pi * p)
+            dy += math.sin(p * math.pi * 4) * 3.2 * envolvente
+            rot += math.sin(p * math.pi * 4) * 0.018 * envolvente
+
+        p = self.phase("sorpresa")
+        if p is not None:
+            k = pulso(p)
+            dy -= 4.5 * k
+            sx -= 0.045 * k
+            sy += 0.085 * k
+
+        p = self.phase("risa")
+        if p is not None:
+            envolvente = math.sin(math.pi * p)
+            carcajada = abs(math.sin(p * math.pi * 6))
+            dy -= carcajada * 3.2 * envolvente
+            sx += carcajada * 0.035 * envolvente
+            sy -= carcajada * 0.025 * envolvente
+
+        p = self.phase("baile")
+        if p is not None:
+            envolvente = math.sin(math.pi * p)
+            paso = math.sin(p * math.pi * 6)
+            dy -= abs(paso) * 5.0 * envolvente
+            rot += paso * 0.13 * envolvente
+            sx += abs(paso) * 0.035 * envolvente
+            sy -= abs(paso) * 0.025 * envolvente
+
+        p = self.phase("bostezo")
+        if p is not None:
+            k = pulso(p)
+            dy += 3.5 * k
+            sx += 0.04 * k
+            sy -= 0.05 * k
+            rot -= 0.035 * k
+
+        p = self.phase("suspiro")
+        if p is not None:
+            k = pulso(p)
+            dy += 3.0 * k
+            sx += 0.035 * k
+            sy -= 0.045 * k
+
+        p = self.phase("tiritar")
+        if p is not None:
+            envolvente = math.sin(math.pi * p)
+            temblor = math.sin(p * math.pi * 14) * envolvente
+            rot += temblor * 0.035
+            dy += abs(temblor) * 1.2
 
         # Se acerca con curiosidad al cursor, pero con inercia para no dar un salto.
         sx += 0.025 * self.hover_suave
@@ -641,11 +729,17 @@ class Creature(Gtk.DrawingArea):
     def _pies(self, cr):
         """Dos pies rechonchos que asoman bajo el mochi y alternan con el balanceo."""
         paso = math.sin(self.t * 1.9) * 1.6
+        baile = self.phase("baile")
+        baile_env = math.sin(math.pi * baile) if baile is not None else 0.0
+        baile_paso = math.sin(baile * math.pi * 6) if baile is not None else 0.0
         for lado, fase in ((-1, paso), (1, -paso)):
-            def pie(lado=lado, fase=fase):
+            levanta = max(0.0, baile_paso * lado) * 7.0 * baile_env
+
+            def pie(lado=lado, fase=fase, levanta=levanta):
                 cr.save()
-                cr.translate(lado * 15, self.RY - 1 + fase * 0.4)
-                cr.rotate(lado * 0.12)
+                cr.translate(lado * (15 + levanta * 0.35),
+                             self.RY - 1 + fase * 0.4 - levanta)
+                cr.rotate(lado * (0.12 + levanta * 0.025))
                 cr.scale(1.0, 0.58)
                 cr.arc(0, 0, 11.5, 0, math.tau)
                 cr.restore()
@@ -662,15 +756,33 @@ class Creature(Gtk.DrawingArea):
         el balanceo sale simétrico sin repetir la trigonometría.
         """
         vaiven = math.sin(self.t * 1.9) * 0.10
-        p = self.phase("saludo")
+        saludo = self.phase("saludo")
+        baile = self.phase("baile")
+        sorpresa = self.phase("sorpresa")
+        bostezo = self.phase("bostezo")
+        suspiro = self.phase("suspiro")
         for lado in (1, -1):
             ang = 0.62 + vaiven - 0.10 * self.hover_suave
             largo = 15 + 1.2 * self.hover_suave
-            if lado == 1 and p is not None:
-                k = suave(min(1.0, p * 4)) * (1 - max(0.0, (p - 0.75) / 0.25))
+            if baile is not None:
+                envolvente = math.sin(math.pi * baile)
+                ang -= (0.75 + lado * math.sin(baile * math.pi * 6) * 0.55) * envolvente
+                largo += 3 * envolvente
+            if sorpresa is not None:
+                k = pulso(sorpresa)
+                ang += (-0.72 - ang) * k
+                largo += 3 * k
+            if suspiro is not None:
+                ang += 0.28 * pulso(suspiro)
+            if lado == 1 and bostezo is not None:
+                k = pulso(bostezo)
+                ang += (-2.72 - ang) * k
+                largo += 3 * k
+            if lado == 1 and saludo is not None:
+                k = suave(min(1.0, saludo * 4)) * (1 - max(0.0, (saludo - 0.75) / 0.25))
                 # Hacia arriba y hacia fuera: con el brazo detrás del mochi, si
                 # sube recto la manopla queda tapada y el saludo no se ve.
-                ang = 0.62 - (1.95 + math.sin(p * math.pi * 6) * 0.30) * k
+                ang = 0.62 - (1.95 + math.sin(saludo * math.pi * 6) * 0.30) * k
                 largo = 15 + 7 * k
 
             cr.save()
@@ -700,9 +812,20 @@ class Creature(Gtk.DrawingArea):
         if p is not None:
             doble = self.anims["parpadeo"][1] > 0.3     # el guiño largo son dos
             apertura *= 1 - abs(math.sin(math.pi * p * (2 if doble else 1)))
+
+        sorpresa = self.phase("sorpresa")
+        risa = self.phase("risa")
+        bostezo = self.phase("bostezo")
+        if sorpresa is not None:
+            apertura = max(apertura, 1.0 + 0.25 * pulso(sorpresa))
+        if risa is not None:
+            apertura *= max(0.08, 1 - 1.15 * pulso(risa))
+        if bostezo is not None:
+            apertura *= max(0.06, 1 - 1.05 * pulso(bostezo))
         cerrado = apertura < 0.16
 
         mx, my = self.mirada[0] * 3.0, self.mirada[1] * 2.2
+        pupila_sorpresa = pulso(sorpresa) if sorpresa is not None else 0.0
         for dx in (-13.5, 13.5):
             ex, ey = dx, -5
             if cerrado:                 # ojo cerrado: un arco tranquilo
@@ -737,17 +860,19 @@ class Creature(Gtk.DrawingArea):
             cr.fill()
             # iris y pupila
             px, py = ex + mx, ey + my * apertura
+            iris_r = 6.0 - 1.0 * pupila_sorpresa
+            pupila_r = 4.3 - 0.9 * pupila_sorpresa
             cr.save()
             cr.translate(px, py)
             cr.scale(1.0, max(0.3, min(1.0, apertura * 1.05)))
-            cr.arc(0, 0, 6.0, 0, math.tau)
+            cr.arc(0, 0, iris_r, 0, math.tau)
             cr.restore()
             cr.set_source_rgba(0.32, 0.22, 0.16, 1)
             cr.fill()
             cr.save()
             cr.translate(px, py)
             cr.scale(1.0, max(0.3, min(1.0, apertura * 1.05)))
-            cr.arc(0, 0.4, 4.3, 0, math.tau)
+            cr.arc(0, 0.4, pupila_r, 0, math.tau)
             cr.restore()
             cr.set_source_rgba(*TINTA)
             cr.fill()
@@ -777,7 +902,8 @@ class Creature(Gtk.DrawingArea):
             cr.stroke()
 
     def _cachetes(self, cr, color):
-        fuerte = self.mood == "feliz" or self.phase("brillo") is not None
+        fuerte = (self.mood == "feliz" or self.phase("brillo") is not None or
+                  self.phase("risa") is not None or self.phase("baile") is not None)
         for dx in (-23, 23):
             g = cairo.RadialGradient(dx, 8, 1, dx, 8, 8)
             g.add_color_stop_rgba(0, *_hex(color, 0.40 if fuerte else 0.22))
@@ -798,6 +924,18 @@ class Creature(Gtk.DrawingArea):
                        "feliz": -0.20}.get(self.mood, 0.0)
         inclinacion -= 0.08 * self.hover_suave
         alto = -21 - (2 if self.mood == "feliz" else 0) - 1.8 * self.hover_suave
+        sorpresa = self.phase("sorpresa")
+        risa = self.phase("risa")
+        bostezo = self.phase("bostezo")
+        if sorpresa is not None:
+            k = pulso(sorpresa)
+            alto -= 4.5 * k
+            inclinacion -= 0.16 * k
+        if risa is not None:
+            alto -= 2.0 * pulso(risa)
+            inclinacion -= 0.12 * pulso(risa)
+        if bostezo is not None:
+            alto += 1.5 * pulso(bostezo)
         marcada = self.mood in ("triste", "hambre", "aburrido", "feliz")
         cr.set_source_rgba(*TINTA, 0.72 if marcada else 0.50)
         cr.set_line_width(2.7 if marcada else 2.4)
@@ -825,7 +963,54 @@ class Creature(Gtk.DrawingArea):
             cr.restore()
             cr.fill()
             return
-        if self.mood == "feliz":                   # sonrisa abierta, con lengua
+
+        sorpresa = self.phase("sorpresa")
+        bostezo = self.phase("bostezo")
+        suspiro = self.phase("suspiro")
+        risa = self.phase("risa")
+        baile = self.phase("baile")
+
+        if sorpresa is not None:
+            k = pulso(sorpresa)
+            cr.save()
+            cr.translate(0, my + 1)
+            cr.scale(0.72 + 0.18 * k, 0.86 + 0.45 * k)
+            cr.arc(0, 0, 5.2, 0, math.tau)
+            cr.restore()
+            cr.fill()
+            return
+        if bostezo is not None:
+            k = pulso(bostezo)
+            cr.save()
+            cr.translate(0, my + 2)
+            cr.scale(0.82 + 0.18 * k, 0.68 + 0.72 * k)
+            cr.arc(0, 0, 7.2, 0, math.tau)
+            cr.restore()
+            cr.fill_preserve()
+            cr.save()
+            cr.clip()
+            cr.arc(0, my + 8, 4.7, 0, math.tau)
+            cr.set_source_rgba(*_hex(TERRACOTA, 0.82))
+            cr.fill()
+            cr.restore()
+            return
+        if suspiro is not None:
+            k = pulso(suspiro)
+            cr.save()
+            cr.translate(0, my + 1)
+            cr.scale(1.0, 0.78 + 0.28 * k)
+            cr.arc(0, 0, 3.6 + 1.2 * k, 0, math.tau)
+            cr.restore()
+            cr.fill()
+            return
+        if self.mood == "feliz" or risa is not None or baile is not None:
+            # Sonrisa abierta, con lengua. En una carcajada crece al centro del gesto.
+            fuerza = (pulso(risa) if risa is not None else
+                      pulso(baile) * 0.55 if baile is not None else 0.35)
+            cr.save()
+            cr.translate(0, my + 2)
+            cr.scale(1.0 + 0.08 * fuerza, 1.0 + 0.14 * fuerza)
+            cr.translate(0, -(my + 2))
             cr.move_to(-10, my - 4)
             cr.curve_to(-9.5, my + 9.5, 9.5, my + 9.5, 10, my - 4)
             cr.close_path()
@@ -836,6 +1021,7 @@ class Creature(Gtk.DrawingArea):
             cr.arc(0, my + 9, 5.4, 0, math.tau)
             cr.set_source_rgba(*_hex(TERRACOTA, 0.95))
             cr.fill()
+            cr.restore()
             cr.restore()
         elif self.mood == "triste":
             cr.arc(0, my + 10.5, 8.5, 1.20 * math.pi, 1.80 * math.pi)
@@ -865,9 +1051,12 @@ class Creature(Gtk.DrawingArea):
 
     def _destellos_ambiente(self, cr, cx, cy, color):
         """Tres motas de luz cuando Bit está receptivo; discretas y deterministas."""
+        emocion = (0.46 if (self.phase("risa") is not None or
+                            self.phase("baile") is not None) else
+                   0.34 if self.phase("sorpresa") is not None else 0.0)
         intensidad = max(0.34 if self.mood == "feliz" else 0.0,
                          0.55 if self.teaching else 0.0,
-                         0.28 * self.hover_suave)
+                         0.28 * self.hover_suave, emocion)
         if intensidad <= 0:
             return
         for i, radio in enumerate((61, 68, 64)):
