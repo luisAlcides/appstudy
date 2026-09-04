@@ -8,7 +8,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gio, GLib, Gtk, Pango  # noqa: E402
+from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 
 from . import buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: E402
 from . import hotkey, ia, importador, lecturas  # noqa: E402
@@ -756,6 +756,71 @@ class MainWindow(Adw.ApplicationWindow):
         dlg.set_child(tv)
         dlg.present(self)
 
+    def captura_rapida(self):
+        """Editor mínimo para guardar una idea sin abandonar la aplicación actual."""
+        anterior = getattr(self, "_captura_dialog", None)
+        if anterior:
+            anterior.present(self)
+            return
+        decks = db.deck_stats(self.con)
+        dlg = Adw.Dialog(title="Captura rápida")
+        self._captura_dialog = dlg
+        dlg.connect("closed", lambda *_: setattr(self, "_captura_dialog", None))
+        dlg.set_content_width(560)
+        dlg.set_content_height(500)
+
+        page = Adw.PreferencesPage()
+        grupo = Adw.PreferencesGroup(
+            title="Una idea, una tarjeta",
+            description="Guárdala ahora y continúa con lo que estabas haciendo. "
+                        "Ctrl + Enter también guarda.")
+        pregunta = Adw.EntryRow(title="Pregunta")
+        grupo.add(pregunta)
+        respuesta, marco = self.text_area("", 150)
+        grupo.add(self.labeled("Respuesta", marco))
+        tags = Adw.EntryRow(title="Etiquetas (opcional)")
+        grupo.add(tags)
+        deck = Adw.ComboRow(
+            title="Mazo",
+            model=Gtk.StringList.new([f"{d['icon']} {d['name']}" for d in decks]))
+        seleccionado = self.deck_filter.get_selected() if hasattr(self, "deck_filter") else 0
+        deck.set_selected(max(0, seleccionado - 1))
+        grupo.add(deck)
+        page.add(grupo)
+
+        guardar = Gtk.Button(label="Guardar", css_classes=["suggested-action"])
+        guardar.connect("clicked", lambda *_: self.guardar_captura(
+            dlg, decks[deck.get_selected()], pregunta.get_text(),
+            self.buffer_text(respuesta), tags.get_text()))
+        header = Adw.HeaderBar()
+        header.pack_end(guardar)
+        tv = Adw.ToolbarView()
+        tv.add_top_bar(header)
+        tv.set_content(page)
+        dlg.set_child(tv)
+
+        teclas = Gtk.EventControllerKey()
+        teclas.connect("key-pressed", lambda _c, key, _code, estado: (
+            self.guardar_captura(dlg, decks[deck.get_selected()], pregunta.get_text(),
+                                 self.buffer_text(respuesta), tags.get_text()), True)[1]
+            if key in (Gdk.KEY_Return, Gdk.KEY_KP_Enter)
+            and estado & Gdk.ModifierType.CONTROL_MASK else False)
+        dlg.add_controller(teclas)
+        dlg.present(self)
+        pregunta.grab_focus()
+
+    def guardar_captura(self, dlg, deck, front, back, tags):
+        front, back = front.strip(), back.strip()
+        if not front:
+            self.notify_user("Escribe una pregunta antes de guardar")
+            return
+        db.add_card(self.con, deck["id"], deck["key"], "card", front, back,
+                    tags=tags.strip(), level=1)
+        self.con.commit()
+        dlg.close()
+        self.notify_user("Tarjeta capturada")
+        self.sucias.update({"panel", "tarjetas", "estadisticas"})
+
     def labeled(self, titulo, widget):
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         box.append(Gtk.Label(label=titulo.upper(), xalign=0, css_classes=["as-stat-label"]))
@@ -834,6 +899,22 @@ class MainWindow(Adw.ApplicationWindow):
         b.connect("clicked", lambda *_: self.remove_hotkey())
         quitar.add_suffix(b)
         g.add(quitar)
+
+        self.capture_hotkey_row = Adw.ActionRow(
+            title="Captura rápida",
+            subtitle="Crea una tarjeta desde cualquier aplicación")
+        captura_cambiar = Gtk.Button(label="Cambiar…", valign=Gtk.Align.CENTER)
+        captura_cambiar.connect("clicked", lambda *_: self.capture_hotkey("capture"))
+        self.capture_hotkey_row.add_suffix(captura_cambiar)
+        g.add(self.capture_hotkey_row)
+
+        captura_quitar = Adw.ActionRow(
+            title="Quitar el atajo de captura",
+            subtitle="El atajo de repaso no cambia")
+        cq = Gtk.Button(label="Quitar", valign=Gtk.Align.CENTER)
+        cq.connect("clicked", lambda *_: self.remove_hotkey("capture"))
+        captura_quitar.add_suffix(cq)
+        g.add(captura_quitar)
         page.add(g)
 
         gp = Adw.PreferencesGroup(
@@ -2046,6 +2127,15 @@ echo hola
                 f"Escritorio «{entorno}»: configúralo manualmente con el comando "
                 f"{self.get_application().launch_command()}")
 
+        captura = hotkey.current_binding("", hotkey.CAPTURE_SLOT)
+        if captura:
+            self.capture_hotkey_row.set_subtitle(hotkey.pretty(captura))
+        elif entorno == "gnome":
+            self.capture_hotkey_row.set_subtitle("Sin configurar — pulsa «Cambiar…»")
+        else:
+            self.capture_hotkey_row.set_subtitle(
+                f"Configúralo manualmente con {self.get_application().capture_command()}")
+
         self.pet_auto.handler_block_by_func(self.on_pet_autostart)
         self.pet_auto.set_active(pet.autostart_enabled())
         self.pet_auto.handler_unblock_by_func(self.on_pet_autostart)
@@ -2144,7 +2234,7 @@ echo hola
         self.resp_auto.set_active(bool(int(db.get_meta(self.con, "respaldo_auto", 1))))
         self.resp_auto.handler_unblock_by_func(self.on_respaldo_auto)
 
-    def capture_hotkey(self):
+    def capture_hotkey(self, tipo="study"):
         dlg = Adw.Dialog(title="Nuevo atajo")
         dlg.set_content_width(460)
         dlg.set_content_height(330)
@@ -2158,12 +2248,11 @@ echo hola
         dlg.set_child(tv)
 
         ctrl = Gtk.EventControllerKey()
-        ctrl.connect("key-pressed", self.on_hotkey_key, dlg, estado)
+        ctrl.connect("key-pressed", self.on_hotkey_key, dlg, estado, tipo)
         dlg.add_controller(ctrl)
         dlg.present(self)
 
-    def on_hotkey_key(self, _c, keyval, _code, state, dlg, estado):
-        from gi.repository import Gdk
+    def on_hotkey_key(self, _c, keyval, _code, state, dlg, estado, tipo="study"):
         if keyval == Gdk.KEY_Escape:
             dlg.close()
             return True
@@ -2188,14 +2277,19 @@ echo hola
         # <Super><Shift>e — gsettings espera los modificadores en este orden
         orden = ["<Control>", "<Alt>", "<Super>", "<Shift>"]
         binding = "".join(m for m in orden if m in mods) + Gdk.keyval_name(keyval)
-        ok, mensaje = hotkey.install(self.get_application().launch_command(), binding)
+        if tipo == "capture":
+            ok, mensaje = hotkey.install(
+                self.get_application().capture_command(), binding,
+                slot=hotkey.CAPTURE_SLOT, name=hotkey.CAPTURE_NAME)
+        else:
+            ok, mensaje = hotkey.install(self.get_application().launch_command(), binding)
         dlg.close()
         self.notify_user(mensaje)
         self.refresh()
         return True
 
-    def remove_hotkey(self):
-        hotkey.uninstall()
+    def remove_hotkey(self, tipo="study"):
+        hotkey.uninstall(hotkey.CAPTURE_SLOT if tipo == "capture" else hotkey.SLOT)
         self.notify_user("Atajo eliminado")
         self.refresh()
 

@@ -3,6 +3,7 @@
 set -euo pipefail
 
 ATAJO="${1:-<Super><Shift>e}"
+ATAJO_CAPTURA="${2:-<Super><Shift>n}"
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BIN_DIR="$HOME/.local/bin"
 APP_DIR="$HOME/.local/share/applications"
@@ -51,11 +52,15 @@ Categories=Education;
 Keywords=estudio;flashcards;repaso;ingles;linux;mecanica;
 StartupWMClass=io.github.appstudy.AppStudy
 StartupNotify=true
-Actions=popup;pet;
+Actions=popup;capture;pet;
 
 [Desktop Action popup]
 Name=Estudiar ahora (popup)
 Exec=$RAIZ/bin/appstudy --popup
+
+[Desktop Action capture]
+Name=Captura rápida
+Exec=$RAIZ/bin/appstudy --capture
 
 [Desktop Action pet]
 Name=Soltar a Bit (mascota)
@@ -114,10 +119,13 @@ fi
 
 echo "▸ Registrando el atajo global $ATAJO"
 "$RAIZ/bin/appstudy" --install-hotkey "$ATAJO"
+echo "▸ Registrando captura rápida $ATAJO_CAPTURA"
+"$RAIZ/bin/appstudy" --install-capture-hotkey "$ATAJO_CAPTURA"
 
 echo
 echo "✓ Listo."
 echo "  Popup:            pulsa el atajo desde cualquier aplicación"
+echo "  Captura rápida:   $ATAJO_CAPTURA"
 echo "  Ventana completa: appstudy   (o busca «AppStudy» en el menú)"
 echo "  Mascota:          appstudy --pet   (o Ajustes → Bit, la mascota)"
 echo "  Dock:             anclado con su icono (si algo falla, arrástralo tú)"

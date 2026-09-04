@@ -33,6 +33,11 @@ class AppStudy(Adw.Application):
         self.add_main_option("install-hotkey", 0, GLib.OptionFlags.NONE,
                              GLib.OptionArg.STRING,
                              "Registrar el atajo global (ej. '<Super><Shift>e')", "ATAJO")
+        self.add_main_option("install-capture-hotkey", 0, GLib.OptionFlags.NONE,
+                             GLib.OptionArg.STRING,
+                             "Registrar el atajo global de captura rápida", "ATAJO")
+        self.add_main_option("capture", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+                             "Abrir la captura rápida de una tarjeta", None)
         self.add_main_option("pet", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
                              f"Soltar a {pet.NOMBRE}, la mascota de escritorio", None)
         self.add_main_option("status", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
@@ -62,6 +67,7 @@ class AppStudy(Adw.Application):
 
         for nombre, cb in (("quit", lambda *_: self.quit()),
                            ("popup", lambda *_: self.show_popup()),
+                           ("capture", lambda *_: self.show_capture()),
                            ("main", lambda *_: self.show_main_window()),
                            ("reload", lambda *_: self.reload_content()),
                            ("buscar", lambda *_: self.abrir_buscador())):
@@ -72,6 +78,7 @@ class AppStudy(Adw.Application):
         # Recargar: sirve en cualquier ventana de la aplicación, popup incluido
         self.set_accels_for_action("app.reload", ["<Control>r", "F5"])
         self.set_accels_for_action("app.buscar", ["<Control>k"])
+        self.set_accels_for_action("app.capture", ["<Control><Shift>n"])
 
     def abrir_buscador(self):
         """Ctrl+K desde donde sea: abre la ventana principal y el buscador."""
@@ -100,6 +107,12 @@ class AppStudy(Adw.Application):
             ok, mensaje = hotkey.install(self.launch_command(), opts["install-hotkey"])
             cmdline.print_literal(mensaje + "\n")
             return 0 if ok else 1
+        if "install-capture-hotkey" in opts:
+            ok, mensaje = hotkey.install(
+                self.capture_command(), opts["install-capture-hotkey"],
+                slot=hotkey.CAPTURE_SLOT, name=hotkey.CAPTURE_NAME)
+            cmdline.print_literal(mensaje + "\n")
+            return 0 if ok else 1
         if opts.get("pet"):
             # No debería llegar aquí: main() lo atiende antes de arrancar GTK
             self.launch_pet()
@@ -113,6 +126,8 @@ class AppStudy(Adw.Application):
             self.show_main_window()
             if self.main_window:
                 self.main_window.mostrar_sanguijuelas()
+        elif opts.get("capture"):
+            self.show_capture()
         elif opts.get("popup"):
             self.show_popup(opts.get("deck"))
         else:
@@ -146,6 +161,11 @@ class AppStudy(Adw.Application):
             self.main_window.connect("close-request", self.on_main_closed)
         self.main_window.refresh()
         self.main_window.present()
+
+    def show_capture(self):
+        self.show_main_window()
+        if self.main_window:
+            self.main_window.captura_rapida()
 
     def reload_content(self) -> str:
         """Reimporta los mazos y capítulos incluidos y pone al día lo que se ve.
@@ -194,13 +214,19 @@ class AppStudy(Adw.Application):
 
     def launch_command(self) -> str:
         """Comando absoluto que el atajo del escritorio debe ejecutar."""
+        return f"{self.base_command()} --popup"
+
+    def capture_command(self) -> str:
+        return f"{self.base_command()} --capture"
+
+    def base_command(self) -> str:
         env = os.environ.get("APPSTUDY_COMMAND")
         if env:
-            return env
+            return env.removesuffix(" --popup").removesuffix(" --capture")
         script = Path(sys.argv[0]).resolve()
         if script.name.endswith(".py"):
-            return f"{sys.executable} {script} --popup"
-        return f"{script} --popup"
+            return f"{sys.executable} {script}"
+        return str(script)
 
 
 def main():

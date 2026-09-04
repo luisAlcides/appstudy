@@ -99,6 +99,7 @@ solo volver a abrir lo que estuviera corriendo.
 | Acción | Cómo |
 |---|---|
 | Popup de repaso | el atajo global, desde cualquier aplicación |
+| Capturar una tarjeta | `appstudy --capture` o `Super` + `Shift` + `N` |
 | Ventana completa | `appstudy`, o «AppStudy» en el menú de aplicaciones |
 | Ver tu progreso en gráficas | pestaña **Progreso** |
 | Buscar en todo a la vez | **Ctrl+K** desde cualquier ventana |
