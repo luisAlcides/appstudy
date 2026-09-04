@@ -817,15 +817,22 @@ hayas subrayado**. La gracia no es buscar en cada sitio, que ya se podía, sino 
 tener que acordarse de dónde estaba: escribes «systemd» y salen la tarjeta, el
 capítulo que lo explica, el libro que tienes a medias y el párrafo que marcaste.
 
-- Se exigen **todas** las palabras, y no distingue acentos ni mayúsculas: «ingles»
-  encuentra «inglés».
+- Se exigen **todos los conceptos**, y no distingue acentos ni mayúsculas:
+  «ingles» encuentra «inglés», «eliminación» entiende «eliminar» y «administrar
+  demonios» puede encontrar «controla los servicios».
 - Lo que aparece en el título pesa más que lo que aparece en el cuerpo, y el
-  nombre del mazo cuenta también, así que «inglés» saca ese mazo entero.
+  nombre del mazo cuenta también, así que «inglés» saca ese mazo entero. Una
+  coincidencia literal siempre pesa más que una relacionada, que se marca como
+  **Relacionado** para que sepas por qué apareció.
 - Enter abre el primer resultado; pulsando uno se va a donde esté: la tarjeta se
   abre en su editor, el capítulo en el lector, el libro por donde ibas y un
   subrayado **en su página exacta**.
 - Con la caja vacía ofrece por dónde ibas: lo último que estudiaste y lo último
   que leíste.
+
+La parte semántica es local y ligera: familias de conceptos en español e inglés,
+raíces para sus flexiones y una caché acotada de 8.192 normalizaciones. No carga
+Ollama, no crea embeddings y no deja crecer la memoria sin límite.
 
 ## La pestaña Progreso
 
@@ -947,7 +954,7 @@ los de «antes de restaurar» no se borran nunca.
 ./pruebas.sh scheduler    # solo las del planificador
 ```
 
-445 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
+449 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
 calibración, el planificador, las sanguijuelas, el deshacer, el objetivo diario,
 las tarjetas de huecos, las series de la pestaña Progreso, los logros, los seis
 formatos de reto, las fórmulas en LaTeX, los subrayados, la lectura de EPUB, el

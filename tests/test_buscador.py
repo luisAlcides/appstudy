@@ -42,6 +42,17 @@ class TestPuntuar(unittest.TestCase):
     def test_no_distingue_acentos(self):
         self.assertGreater(buscador._puntuar(["ingles"], "Inglés"), 0.0)
 
+    def test_relaciona_sinonimos_y_flexiones_sin_modelo(self):
+        puntos, relacionado = buscador._puntuar_amplio(
+            ["administrar", "demonios"], "Controla los servicios del sistema")
+        self.assertGreater(puntos, 0)
+        self.assertTrue(relacionado)
+
+    def test_una_relacion_no_puntua_si_falta_un_concepto(self):
+        puntos, _ = buscador._puntuar_amplio(
+            ["administrar", "bicicleta"], "Controla los servicios del sistema")
+        self.assertEqual(puntos, 0)
+
 
 class TestRecorte(unittest.TestCase):
     def test_recorta_alrededor_de_la_palabra(self):
@@ -155,6 +166,22 @@ class TestBuscar(BaseTemporal):
 
     def test_una_base_recien_creada_no_revienta(self):
         self.assertEqual(buscador.buscar(self.con, "lo que sea"), [])
+
+    def test_encuentra_por_conceptos_relacionados(self):
+        self.poblar()
+        salida = buscador.buscar(self.con, "administrar demonios")
+        self.assertTrue(salida)
+        self.assertIn("systemctl", salida[0]["titulo"])
+        self.assertTrue(salida[0]["relacionado"])
+        self.assertIn("Relacionado", salida[0]["contexto"])
+
+    def test_la_coincidencia_literal_gana_a_la_relacionada(self):
+        deck = self.mazo()
+        self.tarjeta(deck, "Eliminar archivo", "literal")
+        self.tarjeta(deck, "Borrar fichero", "relacionado")
+        salida = buscador.buscar(self.con, "eliminar archivo")
+        self.assertEqual(salida[0]["titulo"], "Eliminar archivo")
+        self.assertFalse(salida[0]["relacionado"])
 
 
 class TestRecientes(BaseTemporal):

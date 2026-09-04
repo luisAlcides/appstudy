@@ -1,9 +1,8 @@
 """Buscar a la vez en tarjetas, capítulos, libros y subrayados.
 
-Es lo que hay detrás de Ctrl+K. La gracia no es buscar en cada sitio, que ya se
-podía, sino no tener que acordarse de **dónde** estaba lo que buscas: escribes
-«systemd» y salen la tarjeta, el capítulo que lo explica, el libro que tienes a
-medias y el párrafo que subrayaste.
+Es lo que hay detrás de Ctrl+K. Combina coincidencia literal con un índice
+conceptual pequeño y raíces morfológicas: «administrar demonios» puede encontrar
+«controla los servicios» sin descargar un modelo ni enviar texto fuera.
 
 Sin GTK: la búsqueda se puede probar sin abrir ninguna ventana. Quien enseña los
 resultados es la ventana principal.
@@ -11,6 +10,7 @@ resultados es la ventana principal.
 import re
 import time
 import unicodedata
+from functools import lru_cache
 
 from . import db, util
 
@@ -28,6 +28,7 @@ TIPOS = {
 }
 
 
+@lru_cache(maxsize=8192)
 def normalizar(texto: str) -> str:
     """Minúsculas y sin acentos: buscar «ingles» tiene que encontrar «inglés»."""
     t = unicodedata.normalize("NFD", (texto or "").lower())
@@ -36,6 +37,66 @@ def normalizar(texto: str) -> str:
 
 def _palabras(consulta: str) -> list[str]:
     return [p for p in re.split(r"\s+", normalizar(consulta).strip()) if p]
+
+
+# Familias pequeñas y deliberadas: cubren intenciones habituales sin descargar
+# un modelo ni convertir «cosa» en media biblioteca. Se complementan con raíces
+# morfológicas, de modo que «eliminación» también entiende «eliminar».
+CONCEPTOS = (
+    ("estudiar", "repasar", "practicar", "aprender", "memorizar", "study", "learn"),
+    ("borrar", "eliminar", "quitar", "suprimir", "delete", "remove"),
+    ("crear", "agregar", "anadir", "insertar", "generar", "create", "add"),
+    ("cambiar", "modificar", "editar", "actualizar", "change", "edit", "update"),
+    ("gestionar", "administrar", "controlar", "manejar", "manage", "control"),
+    ("error", "fallo", "problema", "bug", "failure"),
+    ("respuesta", "solucion", "resultado", "answer", "solution"),
+    ("pregunta", "duda", "consulta", "enunciado", "question", "query"),
+    ("tarjeta", "ficha", "flashcard", "card"),
+    ("libro", "texto", "manual", "documento", "book", "document"),
+    ("permiso", "autorizacion", "acceso", "privilegio", "permission"),
+    ("red", "conexion", "internet", "network"),
+    ("servicio", "demonio", "daemon", "proceso", "service"),
+    ("guardar", "almacenar", "persistir", "save", "store"),
+    ("buscar", "encontrar", "localizar", "search", "find"),
+    ("rapido", "veloz", "inmediato", "quick", "fast"),
+    ("seguridad", "proteger", "cifrar", "privacidad", "secure", "encrypt"),
+    ("archivo", "fichero", "file"),
+    ("carpeta", "directorio", "folder", "directory"),
+    ("computadora", "ordenador", "equipo", "pc", "computer", "machine"),
+)
+
+_SUFIJOS = ("amientos", "imientos", "aciones", "iciones", "amiento", "imiento",
+             "acion", "icion", "mente", "adores", "adoras", "ador", "adora",
+             "iendo", "ando", "ados", "adas", "idos", "idas", "es", "s",
+             "ar", "er", "ir", "ed", "ing")
+
+
+@lru_cache(maxsize=4096)
+def _raiz(palabra: str) -> str:
+    for sufijo in _SUFIJOS:
+        if palabra.endswith(sufijo) and len(palabra) - len(sufijo) >= 4:
+            return palabra[:-len(sufijo)]
+    return palabra
+
+
+@lru_cache(maxsize=4096)
+def _alternativas(palabra: str) -> frozenset[str]:
+    raiz = _raiz(palabra)
+    salida = {palabra}
+    for familia in CONCEPTOS:
+        if any(_raiz(x) == raiz for x in familia):
+            salida.update(familia)
+    return frozenset(salida)
+
+
+def _grupos_semanticos(palabras) -> list[frozenset[str]]:
+    """Una consulta como «inteligencia artificial» no duplica el mismo concepto."""
+    salida = []
+    for palabra in palabras:
+        grupo = _alternativas(palabra)
+        if grupo not in salida:
+            salida.append(grupo)
+    return salida
 
 
 def _puntuar(palabras, *campos) -> float:
@@ -65,13 +126,47 @@ def _puntuar(palabras, *campos) -> float:
     return total
 
 
+def _puntuar_amplio(palabras, *campos) -> tuple[float, bool]:
+    """Coincidencia literal primero; conceptos y flexiones solo como respaldo."""
+    exacto = _puntuar(palabras, *campos)
+    if exacto:
+        return exacto, False
+    textos = [normalizar(c) for c in campos]
+    tokens = [re.findall(r"[a-z0-9]+", t) for t in textos]
+    total = 0.0
+    for grupo in _grupos_semanticos(palabras):
+        mejor = 0.0
+        raices = {_raiz(x) for x in grupo}
+        for i, (texto, suyos) in enumerate(zip(textos, tokens)):
+            peso = 1.0 / (i + 1)
+            if any(alt in texto for alt in grupo):
+                mejor = max(mejor, peso)
+                continue
+            for token in suyos:
+                rt = _raiz(token)
+                if any(rt == r or (len(rt) >= 5 and (rt.startswith(r) or r.startswith(rt)))
+                       for r in raices):
+                    mejor = max(mejor, peso * 0.82)
+                    break
+        if not mejor:
+            return 0.0, False
+        total += mejor
+    # Una relación nunca debe desplazar a una coincidencia literal equivalente.
+    return total * 0.58, True
+
+
+def _terminos_recorte(palabras) -> list[str]:
+    return list(dict.fromkeys(x for p in palabras for x in _alternativas(p)))
+
+
 def _recorte(texto: str, palabras, largo: int = 90) -> str:
     """Un trozo del texto alrededor de la primera palabra que encaje."""
     plano = util.plain(texto or "")
     if not plano:
         return ""
     plano_norm = normalizar(plano)
-    posicion = min((plano_norm.find(p) for p in palabras if p in plano_norm),
+    terminos = _terminos_recorte(palabras)
+    posicion = min((plano_norm.find(p) for p in terminos if p in plano_norm),
                    default=-1)
     if posicion < 0 or len(plano) <= largo:
         return plano[:largo] + ("…" if len(plano) > largo else "")
@@ -93,7 +188,8 @@ def _tarjetas(con, palabras, limite):
     for f in filas:
         # El mazo va el último: buscar «inglés» saca sus tarjetas, pero pesa
         # menos que encontrar la palabra en el enunciado.
-        puntos = _puntuar(palabras, f["front"], f["back"], f["tags"], f["deck_name"])
+        puntos, relacionado = _puntuar_amplio(
+            palabras, f["front"], f["back"], f["tags"], f["deck_name"])
         if not puntos:
             continue
         nivel = db.level_name(f["deck_levels"], f["level"])
@@ -102,6 +198,7 @@ def _tarjetas(con, palabras, limite):
             "titulo": util.plain(f["front"]),
             "detalle": _recorte(f["back"], palabras) or "sin respuesta",
             "contexto": f"{f['deck_icon']} {f['deck_name']} · {nivel}",
+            "relacionado": relacionado,
         })
     return sorted(salida, key=lambda x: -x["puntos"])[:limite]
 
@@ -116,8 +213,8 @@ def _capitulos(con, palabras, limite):
     salida = []
     for f in filas:
         cuerpo = db._texto_body(f["body"])
-        puntos = _puntuar(palabras, f["title"], f["subtitle"], f["tags"], cuerpo,
-                          f["deck_name"])
+        puntos, relacionado = _puntuar_amplio(
+            palabras, f["title"], f["subtitle"], f["tags"], cuerpo, f["deck_name"])
         if not puntos:
             continue
         nivel = db.level_name(f["deck_levels"], f["level"])
@@ -128,6 +225,7 @@ def _capitulos(con, palabras, limite):
             "detalle": _recorte(cuerpo, palabras),
             "contexto": f"{f['deck_icon']} {f['deck_name']} · {nivel}"
                         f"{' · leído' if f['leido'] else ''}{marca}",
+            "relacionado": relacionado,
         })
     return sorted(salida, key=lambda x: -x["puntos"])[:limite]
 
@@ -140,7 +238,7 @@ def _libros(con, palabras, limite, catalogo=None):
     """
     vistos, salida = set(), []
     for f in con.execute("SELECT * FROM books"):
-        puntos = _puntuar(palabras, f["titulo"], f["tema"])
+        puntos, relacionado = _puntuar_amplio(palabras, f["titulo"], f["tema"])
         if not puntos:
             continue
         vistos.add(f["ruta"])
@@ -150,19 +248,21 @@ def _libros(con, palabras, limite, catalogo=None):
             "tipo": "libro", "id": f["ruta"], "puntos": puntos + 0.4,
             "titulo": f["titulo"], "detalle": avance,
             "contexto": f["tema"] or "—",
+            "relacionado": relacionado,
             "libro": {"ruta": f["ruta"], "nombre": f["titulo"], "tema": f["tema"],
                       "ext": f["ruta"].rsplit(".", 1)[-1].lower()},
         })
     for libro in (catalogo or []):
         if libro["ruta"] in vistos:
             continue
-        puntos = _puntuar(palabras, libro["nombre"], libro["tema"])
+        puntos, relacionado = _puntuar_amplio(palabras, libro["nombre"], libro["tema"])
         if not puntos:
             continue
         salida.append({
             "tipo": "libro", "id": libro["ruta"], "puntos": puntos,
             "titulo": libro["nombre"], "detalle": "en el estante",
             "contexto": libro["tema"] or "—", "libro": libro,
+            "relacionado": relacionado,
         })
     return sorted(salida, key=lambda x: -x["puntos"])[:limite]
 
@@ -173,7 +273,7 @@ def _notas(con, palabras, limite):
            LEFT JOIN books b ON b.ruta = n.ruta""").fetchall()
     salida = []
     for f in filas:
-        puntos = _puntuar(palabras, f["nota"], f["texto"])
+        puntos, relacionado = _puntuar_amplio(palabras, f["nota"], f["texto"])
         if not puntos:
             continue
         titulo = f["nota"] or util.plain(f["texto"])
@@ -185,6 +285,7 @@ def _notas(con, palabras, limite):
             "libro": {"ruta": f["ruta"], "nombre": f["titulo"] or "",
                       "tema": "", "ext": f["ruta"].rsplit(".", 1)[-1].lower()},
             "pagina": f["pagina"],
+            "relacionado": relacionado,
         })
     return sorted(salida, key=lambda x: -x["puntos"])[:limite]
 
@@ -203,7 +304,10 @@ def buscar(con, consulta: str, catalogo=None, limite: int = LIMITE_TOTAL) -> lis
     for r in resultados:
         r["puntos"] *= TIPOS[r["tipo"]]["peso"]
         r["icono"] = TIPOS[r["tipo"]]["icono"]
-        r["etiqueta"] = TIPOS[r["tipo"]]["nombre"]
+        r["etiqueta"] = (("Relacionado · " if r.get("relacionado") else "")
+                         + TIPOS[r["tipo"]]["nombre"])
+        if r.get("relacionado"):
+            r["contexto"] = "Relacionado · " + r["contexto"]
     return sorted(resultados, key=lambda x: -x["puntos"])[:limite]
 
 
