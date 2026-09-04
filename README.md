@@ -146,8 +146,10 @@ once rayos** en el color de su ánimo y, delante, un mochi crema con la cara —
 ojos grandes y brillantes, cejas que dicen cosas, dos manoplas y dos pies que
 asoman por debajo. Un homenaje hecho a mano con Cairo, no el logotipo de nadie.
 
-El estallido gira despacio todo el rato, se acelera y se enciende cuando tiene
-algo que enseñarte, y casi se para y se encoge cuando llevas días sin aparecer.
+El estallido gira despacio todo el rato, sus rayos ondulan apenas para que la
+silueta respire, se acelera y se enciende cuando tiene algo que enseñarte, y
+casi se para y se encoge cuando llevas días sin aparecer. Los cambios de color
+y de energía se funden de forma gradual, sin saltos entre estados.
 Como se pasa el día sobre fondos que no controla, todo lleva contorno cálido y
 una sombra suave (tres trazos concéntricos, que Cairo no tiene desenfoque): se ve
 igual sobre un escritorio negro, uno crema o una foto. Está dibujado en un lienzo
@@ -266,11 +268,14 @@ que se lo pide a la aplicación principal por la línea de órdenes.
 ### Cómo se mueve
 
 Nunca está quieto: respira, se balancea, parpadea (a veces dos veces seguidas),
-mira alrededor y sigue el ratón con las pupilas. Cada pocos segundos hace un
-gesto suelto —saltar, estirarse, ladear la cabeza, agitar la antena— y reacciona a
-lo que pasa: saluda al avisarte, mueve la boca mientras habla, saca corazones y
-chispas cuando aciertas, una gota cuando fallas, y zZz mientras duerme. Las cejas,
-la boca, el color y la velocidad del balanceo cambian con su ánimo.
+mira alrededor y sigue el ratón con las pupilas. Al aparecer cae con un pequeño
+rebote; cuando te acercas se inclina con curiosidad, levanta las cejas y las
+manos, sonríe y enciende tres motas alrededor. Cada pocos segundos hace un gesto
+suelto —saltar, estirarse, ladear la cabeza, agitar la antena— y reacciona a lo
+que pasa: saluda al avisarte, mueve la boca mientras habla, saca corazones y
+chispas cuando aciertas, una gota cuando fallas, y zZz mientras duerme. Los
+saltos tienen anticipación, vuelo y un aterrizaje elástico; las cejas, la boca,
+el color y la velocidad del balanceo cambian con su ánimo.
 
 Todo está dibujado con Cairo en `appstudy/pet.py`: los gestos puntuales se lanzan
 con `play(nombre, segundos)` y `phase(nombre)` dice por dónde van, de 0 a 1.

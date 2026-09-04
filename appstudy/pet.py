@@ -83,6 +83,10 @@ TINTA = (0.16, 0.14, 0.12)      # ojos, cejas y boca, en marrón cálido
 # ------------------------------------------------------------------- animación
 
 def _hex(color, alpha=1.0):
+    # Las transiciones de ánimo trabajan con RGB ya interpolado. Aceptarlo aquí
+    # permite que todas las piezas sigan usando las mismas ayudas de color.
+    if isinstance(color, (tuple, list)):
+        return float(color[0]), float(color[1]), float(color[2]), alpha
     h = color.lstrip("#")
     r, g, b = (int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
     return r, g, b, alpha
@@ -142,6 +146,12 @@ def pulso(t):
     return math.sin(math.pi * max(0.0, min(1.0, t)))
 
 
+def acercar(actual, objetivo, rapidez, dt):
+    """Interpolación independiente de los FPS, sin saltos al cambiar de estado."""
+    k = 1 - math.exp(-rapidez * max(0.0, dt))
+    return actual + (objetivo - actual) * k
+
+
 class Creature(Gtk.DrawingArea):
     """Bit, dibujado a mano con Cairo.
 
@@ -166,6 +176,7 @@ class Creature(Gtk.DrawingArea):
         self.teaching = False
         self.charlando = False      # modo chatbot: se pinta de azul
         self.hover = False
+        self.hover_suave = 0.0
         # Cuánto llevas sin estudiar, de 0 (acabas de repasar) a 1 (varios días).
         # Le cambia el ánimo, pero también cómo se mueve: se le nota en el cuerpo.
         self.abandono = 0.0
@@ -178,6 +189,8 @@ class Creature(Gtk.DrawingArea):
         self.puntero = None             # posición del ratón, normalizada
         self.hablando_hasta = 0.0
         self.angulo_estrella = 0.0
+        self.color_actual = _hex(MOODS["normal"])[:3]
+        self.energy_mostrada = 1.0
         self.next_idle = time.time() + random.uniform(1.5, 4)
         self._sello_previo = None
 
@@ -187,6 +200,8 @@ class Creature(Gtk.DrawingArea):
         raton.connect("enter", self.on_enter)
         raton.connect("leave", self.on_leave)
         self.add_controller(raton)
+        # En vez de aparecer de golpe al arrancar, cae suavemente en su sitio.
+        self.play("aparecer", 0.85)
 
     def set_escala(self, escala):
         """Tamaño de la mascota respecto al de diseño; la ventana la sigue."""
@@ -271,6 +286,13 @@ class Creature(Gtk.DrawingArea):
 
         ahora = time.time()
         self.anims = {k: v for k, v in self.anims.items() if ahora - v[0] < v[1]}
+        objetivo_color = _hex(CHAT if self.charlando else
+                              MOODS.get(self.mood, MOODS["normal"]))[:3]
+        self.color_actual = tuple(acercar(a, b, 4.2, dt)
+                                  for a, b in zip(self.color_actual, objetivo_color))
+        self.energy_mostrada = acercar(self.energy_mostrada, self.energy, 3.6, dt)
+        self.hover_suave = acercar(self.hover_suave, 1.0 if self.hover else 0.0,
+                                   8.0 if self.hover else 5.0, dt)
         self._mover_particulas(dt)
         self._decidir(ahora, dt)
         for i in (0, 1):                # las pupilas alcanzan su objetivo con calma
@@ -284,6 +306,8 @@ class Creature(Gtk.DrawingArea):
         dy, sx, sy, rot = self._pose()
         return (self.mood, self.teaching, self.charlando, round(self.energy, 2),
                 round(self.abandono, 2),
+                round(self.hover_suave * 20), round(self.energy_mostrada * 50),
+                tuple(round(c * 40) for c in self.color_actual),
                 round(dy * 2), round(sx * 100), round(rot * 125))
 
     def _decidir(self, ahora, dt):
@@ -359,10 +383,12 @@ class Creature(Gtk.DrawingArea):
         dormido = self.mood == "dormido"
         caido = self.abandono                      # 0 al día, 1 tras varios días
         vel = 0.85 if dormido else 1.9 - 0.55 * caido
-        bob = math.sin(self.t * vel) * (1.5 if dormido else 3.0) * (1 - 0.45 * caido)
+        bob = math.sin(self.t * vel) * (1.5 if dormido else 2.5) * (1 - 0.45 * caido)
         resp = math.sin(self.t * (1.0 if dormido else 1.7 - 0.4 * caido))
         sx, sy = 1 + resp * 0.028, 1 - resp * 0.028
-        dy, rot = bob, math.sin(self.t * 0.8) * 0.012
+        dy = bob
+        # Dos frecuencias muy sutiles evitan el balanceo perfectamente pendular.
+        rot = math.sin(self.t * 0.8) * 0.012 + math.sin(self.t * 0.37) * 0.006
         # Sin repasos se va viniendo abajo: hunde los hombros y se aplasta un poco
         dy += 4.0 * caido
         sy -= 0.025 * caido
@@ -370,15 +396,18 @@ class Creature(Gtk.DrawingArea):
 
         p = self.phase("salto")
         if p is not None:
-            dy -= pulso(p) * 26
-            if p < 0.18:                              # se agacha para impulsarse
-                k = 1 - p / 0.18
-                sx += 0.18 * k; sy -= 0.18 * k
-            elif p > 0.84:                            # y se aplasta al aterrizar
-                k = (p - 0.84) / 0.16
-                sx += 0.20 * k; sy -= 0.20 * k
+            # Anticipación, vuelo y aterrizaje son tres fases continuas. Antes el
+            # primer fotograma ya nacía aplastado y el salto se sentía brusco.
+            if p < 0.18:
+                k = math.sin(math.pi * p / 0.18)
+                sx += 0.16 * k; sy -= 0.14 * k; dy += 3 * k
+            elif p < 0.80:
+                k = math.sin(math.pi * (p - 0.18) / 0.62)
+                dy -= 29 * k
+                sx -= 0.065 * k; sy += 0.075 * k
             else:
-                sx -= 0.07; sy += 0.07                # estirado en el aire
+                k = math.sin(math.pi * (p - 0.80) / 0.20)
+                sx += 0.18 * k; sy -= 0.15 * k; dy += 2.5 * k
 
         p = self.phase("estirar")
         if p is not None:
@@ -393,8 +422,18 @@ class Creature(Gtk.DrawingArea):
         if p is not None:
             rot += math.sin(p * math.pi * 5) * 0.11 * (1 - p)
 
-        if self.hover:
-            sy += 0.02; sx += 0.02
+        # Se acerca con curiosidad al cursor, pero con inercia para no dar un salto.
+        sx += 0.025 * self.hover_suave
+        sy += 0.025 * self.hover_suave
+        if self.puntero is not None:
+            rot += self.puntero[0] * 0.018 * self.hover_suave
+
+        p = self.phase("aparecer")
+        if p is not None:
+            k = out_back(p, 1.35)
+            sx *= max(0.01, 0.62 + 0.38 * k)
+            sy *= max(0.01, 0.62 + 0.38 * k)
+            dy += 22 * (1 - out_cubic(p))
 
         return dy, sx, sy, rot
 
@@ -405,7 +444,7 @@ class Creature(Gtk.DrawingArea):
         k = min(w / DISENO[0], h / DISENO[1])
         cr.scale(k, k)
         w, h = DISENO
-        color = CHAT if self.charlando else MOODS.get(self.mood, MOODS["normal"])
+        color = self.color_actual
         dormido = self.mood == "dormido"
         cx = w / 2
         suelo = h - 34
@@ -419,10 +458,12 @@ class Creature(Gtk.DrawingArea):
         cr.translate(cx, suelo + 5)
         cr.scale(1.0, 0.26)
         cr.arc(0, 0, 34 - salto * 10, 0, math.tau)
-        cr.set_source_rgba(0, 0, 0, 0.22 - salto * 0.11)
+        cr.set_source_rgba(0.08, 0.055, 0.04, 0.22 - salto * 0.11)
         cr.fill()
         cr.restore()
 
+        # Las motas pasan por detrás de Bit: pueden orbitar sin cruzarle la cara.
+        self._destellos_ambiente(cr, cx, base + dy, color)
         cr.save()
         cr.translate(cx, base + dy)
         cr.rotate(rot)
@@ -484,7 +525,8 @@ class Creature(Gtk.DrawingArea):
         p = self.phase("antena")
         if p is not None:
             vuelta += math.sin(p * math.pi * 4) * 0.35 * (1 - p)
-        latido = 1 + math.sin(self.t * (5 if self.teaching else 1.6)) * (0.035 if self.teaching else 0.015)
+        latido = (1 + math.sin(self.t * (5 if self.teaching else 1.6)) *
+                  (0.035 if self.teaching else 0.015) + 0.025 * self.hover_suave)
         rb, wb = 21, 11.2                 # base de cada rayo: radio y medio ancho
 
         if self.teaching:                 # un halo cálido cuando está enseñando
@@ -501,15 +543,19 @@ class Creature(Gtk.DrawingArea):
         cr.scale(latido, latido)
 
         def silueta():
-            # Los rayos se solapan en la base, así que su unión ya es la estrella
+            # Una onda mínima recorre los rayos. Rompe la rigidez geométrica sin
+            # desdibujar la silueta de once puntas que identifica a Bit.
             for i in range(11):
                 cr.save()
                 cr.rotate(i * math.tau / 11)
+                onda = math.sin(self.t * 1.35 + i * 1.73)
+                ri = r * (1 + 0.018 * onda * (1 - 0.45 * self.abandono))
+                wi = wb * (1 - 0.025 * onda)
                 # El segundo control va a la altura de la punta: así el rayo
                 # acaba romo y redondeado, como en el logo, no en pincho.
-                cr.move_to(rb, -wb)
-                cr.curve_to(r * 0.68, -wb * 0.90, r * 1.04, -wb * 0.56, r, 0)
-                cr.curve_to(r * 1.04, wb * 0.56, r * 0.68, wb * 0.90, rb, wb)
+                cr.move_to(rb, -wi)
+                cr.curve_to(ri * 0.68, -wi * 0.90, ri * 1.04, -wi * 0.56, ri, 0)
+                cr.curve_to(ri * 1.04, wi * 0.56, ri * 0.68, wi * 0.90, rb, wi)
                 cr.close_path()
                 cr.restore()
 
@@ -525,7 +571,12 @@ class Creature(Gtk.DrawingArea):
         g.add_color_stop_rgba(0.45, *_hex(color))
         g.add_color_stop_rgba(1, *_oscuro(color, 0.80))
         cr.set_source(g)
-        cr.fill()
+        cr.fill_preserve()
+        # Un filo de luz muy fino devuelve definición a las puntas sobre fondos
+        # oscuros y hace que el volumen se lea incluso a tamaño pequeño.
+        cr.set_source_rgba(1, 1, 1, 0.13)
+        cr.set_line_width(1.05)
+        cr.stroke()
         cr.restore()
 
     def _cuerpo(self, cr, color):
@@ -613,8 +664,8 @@ class Creature(Gtk.DrawingArea):
         vaiven = math.sin(self.t * 1.9) * 0.10
         p = self.phase("saludo")
         for lado in (1, -1):
-            ang = 0.62 + vaiven                 # hacia fuera y abajo, relajado
-            largo = 15
+            ang = 0.62 + vaiven - 0.10 * self.hover_suave
+            largo = 15 + 1.2 * self.hover_suave
             if lado == 1 and p is not None:
                 k = suave(min(1.0, p * 4)) * (1 - max(0.0, (p - 0.75) / 0.25))
                 # Hacia arriba y hacia fuera: con el brazo detrás del mochi, si
@@ -745,7 +796,8 @@ class Creature(Gtk.DrawingArea):
         # Positivo = extremo interior hacia arriba, que es la cara de pena
         inclinacion = {"triste": 0.46, "hambre": 0.30, "aburrido": 0.14,
                        "feliz": -0.20}.get(self.mood, 0.0)
-        alto = -21 - (2 if self.mood == "feliz" else 0)
+        inclinacion -= 0.08 * self.hover_suave
+        alto = -21 - (2 if self.mood == "feliz" else 0) - 1.8 * self.hover_suave
         marcada = self.mood in ("triste", "hambre", "aburrido", "feliz")
         cr.set_source_rgba(*TINTA, 0.72 if marcada else 0.50)
         cr.set_line_width(2.7 if marcada else 2.4)
@@ -798,10 +850,34 @@ class Creature(Gtk.DrawingArea):
             cr.line_to(5, my)
             cr.stroke()
         else:
-            cr.arc(0, my - 3, 7.5, 0.16 * math.pi, 0.84 * math.pi)
+            # Al acercarte, la sonrisa se abre un poco: una respuesta pequeña
+            # pero inmediata que acompaña a los ojos y a la inclinación.
+            sonrisa = self.hover_suave if self.mood == "normal" else 0.0
+            ancho = 7.5 + 2.2 * sonrisa
+            cr.save()
+            cr.translate(0, my - 3)
+            cr.scale(1.0, 1.0 + 0.16 * sonrisa)
+            cr.arc(0, 0, ancho, 0.16 * math.pi, 0.84 * math.pi)
+            cr.restore()
             cr.stroke()
 
     # -- adornos --------------------------------------------------------------
+
+    def _destellos_ambiente(self, cr, cx, cy, color):
+        """Tres motas de luz cuando Bit está receptivo; discretas y deterministas."""
+        intensidad = max(0.34 if self.mood == "feliz" else 0.0,
+                         0.55 if self.teaching else 0.0,
+                         0.28 * self.hover_suave)
+        if intensidad <= 0:
+            return
+        for i, radio in enumerate((61, 68, 64)):
+            fase = self.t * (0.42 + i * 0.07) + i * math.tau / 3
+            pulso_luz = 0.35 + 0.65 * (0.5 + 0.5 * math.sin(self.t * 2.2 + i * 2.1))
+            x = cx + math.cos(fase) * radio
+            y = cy - 18 + math.sin(fase) * radio * 0.72
+            cr.arc(x, y, 1.5 + 0.7 * pulso_luz, 0, math.tau)
+            cr.set_source_rgba(*_claro(color, 0.62, intensidad * pulso_luz))
+            cr.fill()
 
     def _particulas(self, cr, cx, cy):
         for p in self.particulas:
@@ -869,7 +945,8 @@ class Creature(Gtk.DrawingArea):
         cr.fill()
 
         # Barra llena con esquinas redondeadas
-        w_llena = max(alto, ancho * self.energy)
+        energia = max(0.0, min(1.0, self.energy_mostrada))
+        w_llena = max(alto, ancho * energia)
         cr.save()
         cr.new_sub_path()
         cr.arc(x + w_llena - r, y + r, r, -math.pi / 2, math.pi / 2)
@@ -879,7 +956,7 @@ class Creature(Gtk.DrawingArea):
         cr.fill_preserve()
         cr.clip()
 
-        if self.energy > 0.05:          # un destello que recorre la barra llena
+        if energia > 0.05:              # un destello que recorre la barra llena
             q = (self.t * 0.35) % 1.6
             if q < 1.0:
                 bx = x + q * w_llena
@@ -891,6 +968,15 @@ class Creature(Gtk.DrawingArea):
                 cr.set_source(g)
                 cr.fill()
         cr.restore()
+
+        # Borde de cristal: mantiene legible el medidor sobre fotos y fondos claros.
+        cr.new_sub_path()
+        cr.arc(x + ancho - r, y + r, r, -math.pi / 2, math.pi / 2)
+        cr.arc(x + r, y + r, r, math.pi / 2, 1.5 * math.pi)
+        cr.close_path()
+        cr.set_source_rgba(1, 1, 1, 0.20)
+        cr.set_line_width(1.0)
+        cr.stroke()
 
 
 class PetWindow(Gtk.ApplicationWindow):
