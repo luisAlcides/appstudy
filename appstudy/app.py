@@ -58,6 +58,10 @@ class AppStudy(Adw.Application):
         Adw.Application.do_startup(self)
         self.con = db.connect()
         seed.ensure_seeded(self.con)
+        ajustes_gtk = Gtk.Settings.get_default()
+        if ajustes_gtk:
+            reducido = str(db.get_meta(self.con, "reduced_motion", "0")).lower()
+            ajustes_gtk.set_property("gtk-enable-animations", reducido not in ("1", "true"))
         # Un respaldo al día, al abrir. Si falla no se dice nada: no poder
         # respaldar no debe impedirte estudiar.
         if str(db.get_meta(self.con, "respaldo_auto", "1")) not in ("0", "False"):

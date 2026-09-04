@@ -12,7 +12,7 @@ from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 
 from . import buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: E402
 from . import hotkey, ia, importador, lecturas  # noqa: E402
-from . import libros, logros, pet, respaldo, scheduler  # noqa: E402
+from . import libros, logros, pet, recordatorios, respaldo, scheduler  # noqa: E402
 from . import sesiones, sonido, util  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
 
@@ -953,6 +953,23 @@ class MainWindow(Adw.ApplicationWindow):
         self.pet_every.set_subtitle("Solo insiste si tienes algo pendiente")
         self.pet_every.connect("notify::value", self.on_pet_every)
         gp.add(self.pet_every)
+
+        self.reminder_days = Adw.ComboRow(
+            title="Días de los recordatorios",
+            model=Gtk.StringList.new(list(recordatorios.NOMBRES_DIAS)))
+        self.reminder_days.connect("notify::selected", self.on_reminder_days)
+        gp.add(self.reminder_days)
+
+        self.reminder_start = Adw.SpinRow.new_with_range(0, 23, 1)
+        self.reminder_start.set_title("Empezar a recordar desde")
+        self.reminder_start.connect("notify::value", self.on_reminder_hours)
+        gp.add(self.reminder_start)
+
+        self.reminder_end = Adw.SpinRow.new_with_range(0, 24, 1)
+        self.reminder_end.set_title("Dejar de recordar a las")
+        self.reminder_end.set_subtitle("La misma hora de inicio y fin permite todo el día")
+        self.reminder_end.connect("notify::value", self.on_reminder_hours)
+        gp.add(self.reminder_end)
         page.add(gp)
 
         gia = Adw.PreferencesGroup(
@@ -1016,6 +1033,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.pet_size.set_subtitle("En porcentaje; también desde su menú, con Más grande / Más pequeño")
         self.pet_size.connect("notify::value", self.on_pet_size)
         gpr.add(self.pet_size)
+        self.reduced_motion = Adw.SwitchRow(
+            title="Reducir movimiento",
+            subtitle="Desactiva rebotes, partículas y transiciones animadas")
+        self.reduced_motion.connect("notify::active", self.on_reduced_motion)
+        gpr.add(self.reduced_motion)
         self.hoy_row = Adw.ActionRow(title="Borrar lo estudiado hoy")
         hb = Gtk.Button(label="Borrar", valign=Gtk.Align.CENTER, css_classes=["destructive-action"])
         hb.connect("clicked", lambda *_: self.confirm_undo_today())
@@ -1158,6 +1180,13 @@ class MainWindow(Adw.ApplicationWindow):
     def on_pet_every(self, fila, _p):
         db.set_meta(self.con, "pet_every", int(fila.get_value()))
 
+    def on_reminder_days(self, fila, _p):
+        recordatorios.guardar(self.con, dias=recordatorios.DIAS[fila.get_selected()])
+
+    def on_reminder_hours(self, _fila, _p):
+        recordatorios.guardar(self.con, inicio=int(self.reminder_start.get_value()),
+                              fin=int(self.reminder_end.get_value()))
+
     def on_sonido(self, fila, _p):
         sonido.guardar(self.con, activo=fila.get_active())
         if fila.get_active():
@@ -1173,6 +1202,12 @@ class MainWindow(Adw.ApplicationWindow):
     def on_pet_size(self, fila, _p):
         # La mascota lo lee cada pocos segundos y se redimensiona sola
         db.set_meta(self.con, "pet_scale", round(fila.get_value() / 100, 2))
+
+    def on_reduced_motion(self, fila, _p):
+        db.set_meta(self.con, "reduced_motion", int(fila.get_active()))
+        ajustes = Gtk.Settings.get_default()
+        if ajustes:
+            ajustes.set_property("gtk-enable-animations", not fila.get_active())
 
     def on_ia_toggle(self, fila, _p):
         activa = fila.get_active()
@@ -2143,6 +2178,16 @@ echo hola
         self.pet_every.set_value(float(db.get_meta(self.con, "pet_every",
                                                    pet.DEFAULT_EVERY_MIN)))
         self.pet_every.handler_unblock_by_func(self.on_pet_every)
+        rcfg = recordatorios.config(self.con)
+        self.reminder_days.handler_block_by_func(self.on_reminder_days)
+        self.reminder_days.set_selected(recordatorios.DIAS.index(rcfg["dias"]))
+        self.reminder_days.handler_unblock_by_func(self.on_reminder_days)
+        for fila in (self.reminder_start, self.reminder_end):
+            fila.handler_block_by_func(self.on_reminder_hours)
+        self.reminder_start.set_value(rcfg["inicio"])
+        self.reminder_end.set_value(rcfg["fin"])
+        for fila in (self.reminder_start, self.reminder_end):
+            fila.handler_unblock_by_func(self.on_reminder_hours)
         self.libros_row.set_subtitle(str(libros.carpeta(self.con)))
 
         snd = sonido.config(self.con)
@@ -2161,6 +2206,10 @@ echo hola
         self.pet_size.handler_block_by_func(self.on_pet_size)
         self.pet_size.set_value(float(db.get_meta(self.con, "pet_scale", 1.0)) * 100)
         self.pet_size.handler_unblock_by_func(self.on_pet_size)
+        self.reduced_motion.handler_block_by_func(self.on_reduced_motion)
+        self.reduced_motion.set_active(
+            str(db.get_meta(self.con, "reduced_motion", "0")).lower() in ("1", "true"))
+        self.reduced_motion.handler_unblock_by_func(self.on_reduced_motion)
         c = ia.config(self.con)
         for fila, cb in ((self.ia_switch, self.on_ia_toggle), (self.ia_url, self.on_ia_url),
                          (self.ia_modelo, self.on_ia_modelo)):

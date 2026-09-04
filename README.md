@@ -221,6 +221,16 @@ libro** —Cervantes, Wittgenstein, Séneca, Knuth, Sagan…— con su autor y s
 También las pides tú desde el menú, y aparece una en el desplegable de la barra
 superior. Están en `appstudy/citas.py`; añade las tuyas ahí.
 
+En Ajustes puedes limitar esos avisos a **días laborables, fines de semana o
+todos los días**, y elegir la franja horaria. También admite horarios que cruzan
+la medianoche. La comprobación aprovecha el mismo pulso ligero que ya actualiza
+a Bit: no se crea ningún servicio ni temporizador adicional.
+
+Si prefieres una interfaz más quieta, **Ajustes → Apariencia y progreso → Reducir
+movimiento** detiene rebotes, balanceos, partículas y transiciones. Las miradas,
+caras y cambios de color permanecen para que Bit conserve sus emociones sin
+movimiento innecesario.
+
 ### Cómo va la semana
 
 Bit lleva la cuenta y de vez en cuando te la cuenta: «esta semana estudiaste 6
@@ -917,14 +927,15 @@ los de «antes de restaurar» no se borran nunca.
 ./pruebas.sh scheduler    # solo las del planificador
 ```
 
-416 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
+439 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
 calibración, el planificador, las sanguijuelas, el deshacer, el objetivo diario,
 las tarjetas de huecos, las series de la pestaña Progreso, los logros, los seis
 formatos de reto, las fórmulas en LaTeX, los subrayados, la lectura de EPUB, el
-Markdown de tus capítulos, la búsqueda global, el respaldo y la validez del
-contenido incluido. No hace falta instalar nada más — son `unittest` de la
-biblioteca estándar — y ninguna toca tu progreso real: cada caso arranca con una
-base vacía en un directorio temporal. Los detalles, en `tests/README.md`.
+Markdown de tus capítulos, la búsqueda global, los recordatorios, el respaldo y
+la validez del contenido incluido. No hace falta instalar nada más — son
+`unittest` de la biblioteca estándar — y ninguna toca tu progreso real: cada
+caso arranca con una base vacía en un directorio temporal. Los detalles, en
+`tests/README.md`.
 
 ## Desinstalar
 

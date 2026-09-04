@@ -16,6 +16,7 @@ también las corre (`pytest tests/`), porque reconoce las clases de `unittest`.
 | `test_sesiones.py` | Los límites por tiempo y cantidad, la ampliación, el deshacer y el resumen de una sesión guiada |
 | `test_importador.py` | CSV/TSV, exportaciones de texto y paquetes de Anki, incluidos límites y rutas maliciosas dentro del ZIP |
 | `test_hotkey.py` | El formato y la separación entre los atajos globales de repaso y captura rápida |
+| `test_recordatorios.py` | Los días permitidos, las franjas normales y nocturnas, los límites y el guardado atómico de recordatorios |
 | `test_progreso.py` | Las sanguijuelas, el deshacer de un solo repaso, el objetivo diario y la migración desde el SM-2 anterior |
 | `test_cloze.py` | Las tarjetas de huecos: tapar y destapar sin perder nada, las pistas, y el texto completo tal como se escribió |
 | `test_reto.py` | Los seis formatos de reto, y sobre todo que las opciones falsas no se adivinen a ojo ni sean calcadas a la buena |

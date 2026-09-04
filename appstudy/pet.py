@@ -23,7 +23,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
 from . import citas, db, estadisticas, ia, logros, reto  # noqa: E402
-from . import scheduler, sonido, util  # noqa: E402
+from . import recordatorios, scheduler, sonido, util  # noqa: E402
 
 PET_APP_ID = "io.github.appstudy.AppStudy.Pet"
 NOMBRE = "Bit"
@@ -184,6 +184,7 @@ class Creature(Gtk.DrawingArea):
         self.charlando = False      # modo chatbot: se pinta de azul
         self.hover = False
         self.hover_suave = 0.0
+        self.reduced_motion = False
         # Cuánto llevas sin estudiar, de 0 (acabas de repasar) a 1 (varios días).
         # Le cambia el ánimo, pero también cómo se mueve: se le nota en el cuerpo.
         self.abandono = 0.0
@@ -235,6 +236,10 @@ class Creature(Gtk.DrawingArea):
         p = (time.time() - dato[0]) / dato[1]
         return None if p >= 1.0 else max(0.0, p)
 
+    def phase_motion(self, nombre):
+        """Una animación corporal, o nada si se pidió reducir el movimiento."""
+        return None if self.reduced_motion else self.phase(nombre)
+
     def hablar(self, segundos=1.2):
         self.hablando_hasta = time.time() + segundos
         self.play("antena", 0.8)
@@ -276,6 +281,8 @@ class Creature(Gtk.DrawingArea):
         return gestos
 
     def emitir(self, kind, n):
+        if self.reduced_motion:
+            return
         arriba = kind in ("corazon", "chispa", "nota")
         for _ in range(n):
             self.particulas.append({
@@ -315,7 +322,8 @@ class Creature(Gtk.DrawingArea):
     def tick(self, dt):
         dt = min(dt, 0.1)               # tras un tirón, no des un salto absurdo
         self.t += dt
-        vel_estrella = (0.85 if self.teaching else 0.22 * (1 - 0.75 * self.abandono))
+        vel_estrella = (0.0 if self.reduced_motion else
+                        0.85 if self.teaching else 0.22 * (1 - 0.75 * self.abandono))
         self.angulo_estrella = (self.angulo_estrella + vel_estrella * dt) % math.tau
 
         ahora = time.time()
@@ -346,7 +354,8 @@ class Creature(Gtk.DrawingArea):
 
     def _decidir(self, ahora, dt):
         if self.mood == "dormido":
-            if random.random() < dt * 0.55 and len(self.particulas) < 6:
+            if (not self.reduced_motion and random.random() < dt * 0.55
+                    and len(self.particulas) < 6):
                 self.particulas.append({
                     "kind": "z", "x": 22, "y": -26,
                     "vx": random.uniform(6, 12), "vy": random.uniform(-22, -14),
@@ -419,18 +428,21 @@ class Creature(Gtk.DrawingArea):
         dormido = self.mood == "dormido"
         caido = self.abandono                      # 0 al día, 1 tras varios días
         vel = 0.85 if dormido else 1.9 - 0.55 * caido
-        bob = math.sin(self.t * vel) * (1.5 if dormido else 2.5) * (1 - 0.45 * caido)
-        resp = math.sin(self.t * (1.0 if dormido else 1.7 - 0.4 * caido))
+        amplitud = 0.0 if self.reduced_motion else 1.0
+        bob = (math.sin(self.t * vel) * (1.5 if dormido else 2.5) *
+               (1 - 0.45 * caido) * amplitud)
+        resp = (math.sin(self.t * (1.0 if dormido else 1.7 - 0.4 * caido)) *
+                amplitud)
         sx, sy = 1 + resp * 0.028, 1 - resp * 0.028
         dy = bob
         # Dos frecuencias muy sutiles evitan el balanceo perfectamente pendular.
-        rot = math.sin(self.t * 0.8) * 0.012 + math.sin(self.t * 0.37) * 0.006
+        rot = (math.sin(self.t * 0.8) * 0.012 + math.sin(self.t * 0.37) * 0.006) * amplitud
         # Sin repasos se va viniendo abajo: hunde los hombros y se aplasta un poco
         dy += 4.0 * caido
         sy -= 0.025 * caido
         sx += 0.025 * caido
 
-        p = self.phase("salto")
+        p = self.phase_motion("salto")
         if p is not None:
             # Anticipación, vuelo y aterrizaje son tres fases continuas. Antes el
             # primer fotograma ya nacía aplastado y el salto se sentía brusco.
@@ -445,33 +457,33 @@ class Creature(Gtk.DrawingArea):
                 k = math.sin(math.pi * (p - 0.80) / 0.20)
                 sx += 0.18 * k; sy -= 0.15 * k; dy += 2.5 * k
 
-        p = self.phase("estirar")
+        p = self.phase_motion("estirar")
         if p is not None:
             k = pulso(p)
             sy += 0.16 * k; sx -= 0.10 * k; dy -= 6 * k
 
-        p = self.phase("ladear")
+        p = self.phase_motion("ladear")
         if p is not None:
             rot += math.sin(math.pi * p) * 0.20
 
-        p = self.phase("negar")
+        p = self.phase_motion("negar")
         if p is not None:
             rot += math.sin(p * math.pi * 5) * 0.11 * (1 - p)
 
-        p = self.phase("asentir")
+        p = self.phase_motion("asentir")
         if p is not None:
             envolvente = math.sin(math.pi * p)
             dy += math.sin(p * math.pi * 4) * 3.2 * envolvente
             rot += math.sin(p * math.pi * 4) * 0.018 * envolvente
 
-        p = self.phase("sorpresa")
+        p = self.phase_motion("sorpresa")
         if p is not None:
             k = pulso(p)
             dy -= 4.5 * k
             sx -= 0.045 * k
             sy += 0.085 * k
 
-        p = self.phase("risa")
+        p = self.phase_motion("risa")
         if p is not None:
             envolvente = math.sin(math.pi * p)
             carcajada = abs(math.sin(p * math.pi * 6))
@@ -479,7 +491,7 @@ class Creature(Gtk.DrawingArea):
             sx += carcajada * 0.035 * envolvente
             sy -= carcajada * 0.025 * envolvente
 
-        p = self.phase("baile")
+        p = self.phase_motion("baile")
         if p is not None:
             envolvente = math.sin(math.pi * p)
             paso = math.sin(p * math.pi * 6)
@@ -488,7 +500,7 @@ class Creature(Gtk.DrawingArea):
             sx += abs(paso) * 0.035 * envolvente
             sy -= abs(paso) * 0.025 * envolvente
 
-        p = self.phase("bostezo")
+        p = self.phase_motion("bostezo")
         if p is not None:
             k = pulso(p)
             dy += 3.5 * k
@@ -496,14 +508,14 @@ class Creature(Gtk.DrawingArea):
             sy -= 0.05 * k
             rot -= 0.035 * k
 
-        p = self.phase("suspiro")
+        p = self.phase_motion("suspiro")
         if p is not None:
             k = pulso(p)
             dy += 3.0 * k
             sx += 0.035 * k
             sy -= 0.045 * k
 
-        p = self.phase("tiritar")
+        p = self.phase_motion("tiritar")
         if p is not None:
             envolvente = math.sin(math.pi * p)
             temblor = math.sin(p * math.pi * 14) * envolvente
@@ -516,7 +528,7 @@ class Creature(Gtk.DrawingArea):
         if self.puntero is not None:
             rot += self.puntero[0] * 0.018 * self.hover_suave
 
-        p = self.phase("aparecer")
+        p = self.phase_motion("aparecer")
         if p is not None:
             k = out_back(p, 1.35)
             sx *= max(0.01, 0.62 + 0.38 * k)
@@ -610,10 +622,11 @@ class Creature(Gtk.DrawingArea):
         cx, cy = 0, -19
         r = 57 * (1 - 0.10 * self.abandono)
         vuelta = self.angulo_estrella
-        p = self.phase("antena")
+        p = self.phase_motion("antena")
         if p is not None:
             vuelta += math.sin(p * math.pi * 4) * 0.35 * (1 - p)
-        latido = (1 + math.sin(self.t * (5 if self.teaching else 1.6)) *
+        latido = (1.0 if self.reduced_motion else
+                  1 + math.sin(self.t * (5 if self.teaching else 1.6)) *
                   (0.035 if self.teaching else 0.015) + 0.025 * self.hover_suave)
         rb, wb = 21, 11.2                 # base de cada rayo: radio y medio ancho
 
@@ -636,7 +649,7 @@ class Creature(Gtk.DrawingArea):
             for i in range(11):
                 cr.save()
                 cr.rotate(i * math.tau / 11)
-                onda = math.sin(self.t * 1.35 + i * 1.73)
+                onda = 0.0 if self.reduced_motion else math.sin(self.t * 1.35 + i * 1.73)
                 ri = r * (1 + 0.018 * onda * (1 - 0.45 * self.abandono))
                 wi = wb * (1 - 0.025 * onda)
                 # El segundo control va a la altura de la punta: así el rayo
@@ -719,7 +732,7 @@ class Creature(Gtk.DrawingArea):
         self._forma(cr, rx, ry)
         self._perfil(cr)
 
-        p = self.phase("brillo")         # aro que se expande al celebrar
+        p = self.phase_motion("brillo")  # aro que se expande al celebrar
         if p is not None:
             cr.arc(0, -10, 62 + out_cubic(p) * 26, 0, math.tau)
             cr.set_source_rgba(*_hex(color, (1 - p) * 0.55))
@@ -728,8 +741,8 @@ class Creature(Gtk.DrawingArea):
 
     def _pies(self, cr):
         """Dos pies rechonchos que asoman bajo el mochi y alternan con el balanceo."""
-        paso = math.sin(self.t * 1.9) * 1.6
-        baile = self.phase("baile")
+        paso = 0.0 if self.reduced_motion else math.sin(self.t * 1.9) * 1.6
+        baile = self.phase_motion("baile")
         baile_env = math.sin(math.pi * baile) if baile is not None else 0.0
         baile_paso = math.sin(baile * math.pi * 6) if baile is not None else 0.0
         for lado, fase in ((-1, paso), (1, -paso)):
@@ -755,12 +768,12 @@ class Creature(Gtk.DrawingArea):
         Se dibuja solo el derecho: el izquierdo es el mismo trazo en espejo, así
         el balanceo sale simétrico sin repetir la trigonometría.
         """
-        vaiven = math.sin(self.t * 1.9) * 0.10
-        saludo = self.phase("saludo")
-        baile = self.phase("baile")
-        sorpresa = self.phase("sorpresa")
-        bostezo = self.phase("bostezo")
-        suspiro = self.phase("suspiro")
+        vaiven = 0.0 if self.reduced_motion else math.sin(self.t * 1.9) * 0.10
+        saludo = self.phase_motion("saludo")
+        baile = self.phase_motion("baile")
+        sorpresa = self.phase_motion("sorpresa")
+        bostezo = self.phase_motion("bostezo")
+        suspiro = self.phase_motion("suspiro")
         for lado in (1, -1):
             ang = 0.62 + vaiven - 0.10 * self.hover_suave
             largo = 15 + 1.2 * self.hover_suave
@@ -1051,6 +1064,8 @@ class Creature(Gtk.DrawingArea):
 
     def _destellos_ambiente(self, cr, cx, cy, color):
         """Tres motas de luz cuando Bit está receptivo; discretas y deterministas."""
+        if self.reduced_motion:
+            return
         emocion = (0.46 if (self.phase("risa") is not None or
                             self.phase("baile") is not None) else
                    0.34 if self.phase("sorpresa") is not None else 0.0)
@@ -1398,6 +1413,8 @@ class PetWindow(Gtk.ApplicationWindow):
         self.creature.mood = mood
         self.creature.energy = energia
         self.creature.abandono = 0.0 if mood == "dormido" else abandono
+        self.creature.reduced_motion = str(
+            db.get_meta(self.con, "reduced_motion", "0")).lower() in ("1", "true")
         self.creature.teaching = self.bubble.get_reveal_child()
         self.set_tooltip_text(
             f"{NOMBRE} · {t['pendientes']} pendientes · {t['hoy']} hoy · "
@@ -1525,6 +1542,8 @@ class PetWindow(Gtk.ApplicationWindow):
     def on_check(self):
         self.refresh_stats()
         if self.dormida() or self.bubble.get_reveal_child():
+            return True
+        if not recordatorios.permitido(recordatorios.config(self.con)):
             return True
         if time.time() - self.last_nag < self.intervalo_min() * 60:
             return True
