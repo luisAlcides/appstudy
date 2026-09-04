@@ -596,14 +596,72 @@ Bit puede conectarse a un **modelo de lenguaje que corre en tu propia máquina**
 Ni tus tarjetas ni tus preguntas salen del equipo, no hay clave de API que
 guardar y no cuesta nada por pregunta.
 
+Hacen falta dos cosas: **el servidor** (Ollama, que habla por
+`http://localhost:11434`) y **los pesos del modelo**.
+
+### Instalar Ollama
+
+Si tienes root, el instalador oficial deja el servidor y su servicio de sistema
+en un paso:
+
 ```bash
-curl -fsSL https://ollama.com/install.sh | sh   # el servidor
-ollama pull gemma3:4b                           # el modelo (o gemma4 cuando lo tengas)
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Si no lo tienes —o prefieres no meter nada fuera de tu carpeta—, el tarball hace
+lo mismo sin tocar el sistema:
+
+```bash
+mkdir -p ~/.local/ollama ~/.local/bin
+curl -fsSL https://ollama.com/download/ollama-linux-amd64.tar.zst \
+  | tar --zstd -x -C ~/.local/ollama
+ln -sf ~/.local/ollama/bin/ollama ~/.local/bin/ollama
+```
+
+Así no hay servicio que lo levante, así que se lo escribes tú en
+`~/.config/systemd/user/ollama.service`:
+
+```ini
+[Unit]
+Description=Ollama (servidor de modelos local, modo usuario)
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/ollama/bin/ollama serve
+Environment="OLLAMA_HOST=127.0.0.1:11434"
+Environment="OLLAMA_KEEP_ALIVE=5m"
+Environment="OLLAMA_MAX_LOADED_MODELS=1"
+Environment="LD_LIBRARY_PATH=%h/.local/ollama/lib/ollama"
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
+```
+
+```bash
+systemctl --user daemon-reload
+systemctl --user enable --now ollama
+```
+
+Las dos variables del medio importan si vas justo de gráfica: `KEEP_ALIVE`
+devuelve la VRAM a los cinco minutos sin preguntar nada, y `MAX_LOADED_MODELS=1`
+impide que se cargue un segundo modelo encima del primero. AppStudy ya pide
+`keep_alive` corto por su cuenta (ver `ia.py`); esto es el cinturón de seguridad
+para cuando hables con Ollama por fuera.
+
+### Descargar el modelo
+
+```bash
+ollama pull gemma3:4b
 ```
 
 Después, en **Ajustes → Inteligencia artificial**: activa el interruptor y pulsa
 **Probar conexión**. Si el modelo que pusiste no está descargado, AppStudy usa el
 gemma que encuentre y te lo dice.
+
+### Dónde se usa
 
 | Dónde | Qué hace |
 |---|---|
@@ -638,9 +696,40 @@ etiquetadas con `ia` para que puedas encontrarlas después.
 base de datos. El `.gitignore` bloquea además `*.gguf`, `*.safetensors`,
 `models/`, `.env` y las claves, por si algún día pruebas con archivos sueltos.
 
-Con qué modelo: en un equipo con 4 GB de VRAM va bien un **4B** cuantizado
-(rápido, cabe en la gráfica); un 12B funciona tirando de los 30 GB de RAM, pero
-responde bastante más despacio.
+### Con qué modelo
+
+Lo que manda es la **VRAM libre**, no la RAM ni el procesador: un modelo que cabe
+entero en la gráfica va a otra velocidad que uno que se desborda, porque las capas
+que no entran las calcula la CPU y ahí se pierde casi todo lo ganado. Y cuenta la
+VRAM *libre*, no la total: el escritorio y el navegador ya se llevan lo suyo.
+
+| VRAM libre | Modelo | Cómo va |
+|---|---|---|
+| 4 GB | `gemma3:4b` | justo, pero entra |
+| 6–8 GB | `gemma3:4b` | ocupa 3,5 GB y sobra sitio para el escritorio |
+| 12 GB o más | `gemma3:12b` | mejor redacción y mejores tarjetas generadas |
+
+Medido en una RTX 5060 Ti (7,5 GiB, 6,3 libres): `gemma3:4b` carga sus **35 capas
+de 35 en la GPU** y responde a **123 tokens por segundo**, que en el globo de Bit
+se lee como texto escribiéndose sin pausas. El mismo `gemma3:12b` pesa 8,1 GB y
+ahí ya no cabe: funciona tirando de RAM, pero responde bastante más despacio.
+
+Para comprobar dónde acabó el modelo:
+
+```bash
+ollama ps                                             # qué hay cargado, y si en GPU o CPU
+journalctl --user -u ollama -n 200 | grep offloaded   # cuántas capas subieron
+```
+
+(sin el `--user` si instalaste Ollama como root, que entonces es servicio del sistema)
+
+La línea que interesa es `offloaded 35/35 layers to GPU`: si los dos números
+coinciden, entró entero. Si el primero es menor, el resto lo está calculando la
+CPU y toca bajar de tamaño.
+
+El nombre del modelo no tiene por qué ser un gemma: en Ajustes puedes escribir
+cualquiera que tengas descargado. La familia gemma solo es la preferida cuando el
+que pediste no está y AppStudy tiene que elegir por ti (`elegir_modelo()`).
 
 ## Empezar de cero
 
