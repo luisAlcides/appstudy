@@ -79,6 +79,51 @@ CHAT = "#5B86D6"
 
 TINTA = (0.16, 0.14, 0.12)      # ojos, cejas y boca, en marrón cálido
 
+# Evoluciona por trabajo real, no por tiempo abierto. Los accesorios son Cairo
+# puro: unas pocas curvas más al dibujar, sin imágenes ni memoria adicional.
+EVOLUCIONES = (
+    {"min": 0, "nombre": "Compañero"},
+    {"min": 25, "nombre": "Curioso"},
+    {"min": 100, "nombre": "Aplicado"},
+    {"min": 500, "nombre": "Sabio"},
+    {"min": 1500, "nombre": "Maestro"},
+)
+ACCESORIOS = (
+    {"key": "ninguno", "nombre": "Sin accesorio", "min": 0},
+    {"key": "panuelo", "nombre": "Pañuelo", "min": 25},
+    {"key": "gafas", "nombre": "Gafas", "min": 100},
+    {"key": "corona", "nombre": "Corona", "min": 500},
+)
+
+
+def evolucion(repasos: int) -> dict:
+    """Etapa actual, siguiente meta y avance 0..1 dentro de la etapa."""
+    n = max(0, int(repasos))
+    indice = max(i for i, etapa in enumerate(EVOLUCIONES) if n >= etapa["min"])
+    actual = EVOLUCIONES[indice]
+    siguiente = EVOLUCIONES[indice + 1] if indice + 1 < len(EVOLUCIONES) else None
+    if siguiente:
+        avance = (n - actual["min"]) / (siguiente["min"] - actual["min"])
+    else:
+        avance = 1.0
+    return {"nombre": actual["nombre"], "min": actual["min"],
+            "siguiente": siguiente, "avance": max(0.0, min(1.0, avance)),
+            "repasos": n}
+
+
+def accesorios_disponibles(repasos: int) -> list[dict]:
+    n = max(0, int(repasos))
+    return [a for a in ACCESORIOS if n >= a["min"]]
+
+
+def accesorio_valido(clave: str, repasos: int) -> str:
+    disponibles = {a["key"] for a in accesorios_disponibles(repasos)}
+    return clave if clave in disponibles else "ninguno"
+
+
+def total_repasos(con) -> int:
+    return int(con.execute("SELECT COUNT(*) FROM log").fetchone()[0])
+
 
 # ------------------------------------------------------------------- animación
 
@@ -185,6 +230,7 @@ class Creature(Gtk.DrawingArea):
         self.hover = False
         self.hover_suave = 0.0
         self.reduced_motion = False
+        self.accessory = "ninguno"
         # Cuánto llevas sin estudiar, de 0 (acabas de repasar) a 1 (varios días).
         # Le cambia el ánimo, pero también cómo se mueve: se le nota en el cuerpo.
         self.abandono = 0.0
@@ -573,6 +619,7 @@ class Creature(Gtk.DrawingArea):
         self._brazos(cr, color)
         self._cuerpo(cr, color)
         self._cara(cr, color, dormido)
+        self._accesorio(cr, color)
         cr.restore()
 
         self._particulas(cr, cx, base + dy)
@@ -1062,6 +1109,62 @@ class Creature(Gtk.DrawingArea):
 
     # -- adornos --------------------------------------------------------------
 
+    def _accesorio(self, cr, color):
+        """Accesorios desbloqueables, todos vectoriales y de coste constante."""
+        if self.accessory == "panuelo":
+            # Banda baja para no tapar la boca, con el nudo hacia la derecha.
+            cr.move_to(-30, 21)
+            cr.curve_to(-16, 27, 16, 27, 30, 21)
+            cr.line_to(29, 28)
+            cr.curve_to(12, 33, -13, 33, -29, 28)
+            cr.close_path()
+            cr.set_source_rgba(*_oscuro(color, 0.82))
+            cr.fill_preserve()
+            self._perfil(cr, 0.26, 1.5)
+            cr.arc(29, 27, 5.4, 0, math.tau)
+            cr.set_source_rgba(*_hex(color))
+            cr.fill_preserve()
+            self._perfil(cr, 0.28, 1.4)
+            cr.move_to(31, 30)
+            cr.line_to(38, 39)
+            cr.line_to(27, 37)
+            cr.close_path()
+            cr.set_source_rgba(*_hex(color))
+            cr.fill_preserve()
+            self._perfil(cr, 0.24, 1.3)
+        elif self.accessory == "gafas":
+            cr.set_source_rgba(*TINTA, 0.78)
+            cr.set_line_width(2.4)
+            for dx in (-13.5, 13.5):
+                cr.save()
+                cr.translate(dx, -5)
+                cr.scale(1.12, 1.0)
+                cr.arc(0, 0, 10.7, 0, math.tau)
+                cr.restore()
+                cr.stroke()
+            cr.move_to(-2.8, -6)
+            cr.curve_to(-1.3, -8, 1.3, -8, 2.8, -6)
+            cr.stroke()
+            cr.move_to(-24, -8); cr.line_to(-34, -12); cr.stroke()
+            cr.move_to(24, -8); cr.line_to(34, -12); cr.stroke()
+        elif self.accessory == "corona":
+            cr.move_to(-18, -31)
+            cr.line_to(-21, -49)
+            cr.line_to(-9, -40)
+            cr.line_to(0, -54)
+            cr.line_to(9, -40)
+            cr.line_to(21, -49)
+            cr.line_to(18, -31)
+            cr.close_path()
+            oro = "#F2C14E"
+            cr.set_source_rgba(*_hex(oro))
+            cr.fill_preserve()
+            self._perfil(cr, 0.36, 1.8)
+            for x, y in ((-12, -43), (0, -48), (12, -43)):
+                cr.arc(x, y, 2.1, 0, math.tau)
+                cr.set_source_rgba(*_claro(color, 0.25))
+                cr.fill()
+
     def _destellos_ambiente(self, cr, cx, cy, color):
         """Tres motas de luz cuando Bit está receptivo; discretas y deterministas."""
         if self.reduced_motion:
@@ -1415,6 +1518,9 @@ class PetWindow(Gtk.ApplicationWindow):
         self.creature.abandono = 0.0 if mood == "dormido" else abandono
         self.creature.reduced_motion = str(
             db.get_meta(self.con, "reduced_motion", "0")).lower() in ("1", "true")
+        repasos = total_repasos(self.con)
+        self.creature.accessory = accesorio_valido(
+            str(db.get_meta(self.con, "pet_accessory", "ninguno")), repasos)
         self.creature.teaching = self.bubble.get_reveal_child()
         self.set_tooltip_text(
             f"{NOMBRE} · {t['pendientes']} pendientes · {t['hoy']} hoy · "

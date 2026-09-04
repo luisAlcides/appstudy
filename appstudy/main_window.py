@@ -1036,6 +1036,19 @@ class MainWindow(Adw.ApplicationWindow):
         self.pet_size.set_subtitle("En porcentaje; también desde su menú, con Más grande / Más pequeño")
         self.pet_size.connect("notify::value", self.on_pet_size)
         gpr.add(self.pet_size)
+        etiquetas_accesorios = [
+            a["nombre"] if not a["min"] else f"{a['nombre']} · {a['min']} repasos"
+            for a in pet.ACCESORIOS]
+        self.pet_accessory = Adw.ComboRow(
+            title=f"Accesorio de {pet.NOMBRE}",
+            model=Gtk.StringList.new(etiquetas_accesorios))
+        self.pet_accessory.connect("notify::selected", self.on_pet_accessory)
+        gpr.add(self.pet_accessory)
+        self.pet_evolution_row = Adw.ActionRow(title="Evolución de Bit")
+        self.pet_evolution_bar = Gtk.ProgressBar(
+            valign=Gtk.Align.CENTER, width_request=120, show_text=False)
+        self.pet_evolution_row.add_suffix(self.pet_evolution_bar)
+        gpr.add(self.pet_evolution_row)
         self.reduced_motion = Adw.SwitchRow(
             title="Reducir movimiento",
             subtitle="Desactiva rebotes, partículas y transiciones animadas")
@@ -1228,6 +1241,25 @@ class MainWindow(Adw.ApplicationWindow):
     def on_pet_size(self, fila, _p):
         # La mascota lo lee cada pocos segundos y se redimensiona sola
         db.set_meta(self.con, "pet_scale", round(fila.get_value() / 100, 2))
+
+    def on_pet_accessory(self, fila, _p):
+        accesorio = pet.ACCESORIOS[fila.get_selected()]
+        repasos = pet.total_repasos(self.con)
+        if accesorio["min"] > repasos:
+            guardado = pet.accesorio_valido(
+                str(db.get_meta(self.con, "pet_accessory", "ninguno")), repasos)
+            indice = next(i for i, a in enumerate(pet.ACCESORIOS)
+                          if a["key"] == guardado)
+            fila.handler_block_by_func(self.on_pet_accessory)
+            fila.set_selected(indice)
+            fila.handler_unblock_by_func(self.on_pet_accessory)
+            self.notify_user(
+                f"El {accesorio['nombre'].lower()} se desbloquea con "
+                f"{accesorio['min']} repasos")
+            return
+        db.set_meta(self.con, "pet_accessory", accesorio["key"])
+        self.notify_user("Bit va sin accesorio" if accesorio["key"] == "ninguno"
+                         else f"Bit lleva {accesorio['nombre'].lower()}")
 
     def on_reduced_motion(self, fila, _p):
         db.set_meta(self.con, "reduced_motion", int(fila.get_active()))
@@ -2288,6 +2320,23 @@ echo hola
         self.pet_size.handler_block_by_func(self.on_pet_size)
         self.pet_size.set_value(float(db.get_meta(self.con, "pet_scale", 1.0)) * 100)
         self.pet_size.handler_unblock_by_func(self.on_pet_size)
+        total_bit = pet.total_repasos(self.con)
+        etapa = pet.evolucion(total_bit)
+        elegido = pet.accesorio_valido(
+            str(db.get_meta(self.con, "pet_accessory", "ninguno")), total_bit)
+        indice = next(i for i, a in enumerate(pet.ACCESORIOS) if a["key"] == elegido)
+        self.pet_accessory.handler_block_by_func(self.on_pet_accessory)
+        self.pet_accessory.set_selected(indice)
+        self.pet_accessory.handler_unblock_by_func(self.on_pet_accessory)
+        if etapa["siguiente"]:
+            faltan = etapa["siguiente"]["min"] - total_bit
+            self.pet_evolution_row.set_subtitle(
+                f"{etapa['nombre']} · {total_bit} repasos · faltan {faltan} para "
+                f"{etapa['siguiente']['nombre']}")
+        else:
+            self.pet_evolution_row.set_subtitle(
+                f"{etapa['nombre']} · {total_bit} repasos")
+        self.pet_evolution_bar.set_fraction(etapa["avance"])
         self.reduced_motion.handler_block_by_func(self.on_reduced_motion)
         self.reduced_motion.set_active(
             str(db.get_meta(self.con, "reduced_motion", "0")).lower() in ("1", "true"))

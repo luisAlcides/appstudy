@@ -174,6 +174,13 @@ tienes pendiente.
 Ajustes → Progreso. Se guarda, y la mascota lo recoge sola aunque lo cambies desde la
 ventana principal.
 
+**Evolución y accesorios**: Bit pasa de Compañero a Curioso, Aplicado, Sabio y
+Maestro según tus repasos reales —no por dejar la aplicación abierta—. En 25,
+100 y 500 repasos desbloquea un pañuelo, unas gafas y una corona. Desde
+**Ajustes → Apariencia y progreso** eliges cuál lleva y ves el avance hacia la
+siguiente etapa. Todo se dibuja con unas pocas curvas Cairo, sin cargar sprites
+ni mantener otra animación.
+
 Cuando **enseña**, enseña de verdad: la pregunta y la respuesta salen juntas desde
 el primer momento, sin botón de por medio. Tú solo dices si la tenías —**No lo
 sabía** / **Lo sabía**— y cuenta como un repaso normal, con el mismo intervalo que
@@ -954,7 +961,7 @@ los de «antes de restaurar» no se borran nunca.
 ./pruebas.sh scheduler    # solo las del planificador
 ```
 
-449 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
+455 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
 calibración, el planificador, las sanguijuelas, el deshacer, el objetivo diario,
 las tarjetas de huecos, las series de la pestaña Progreso, los logros, los seis
 formatos de reto, las fórmulas en LaTeX, los subrayados, la lectura de EPUB, el

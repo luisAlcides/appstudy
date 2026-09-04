@@ -12,6 +12,7 @@ también las corre (`pytest tests/`), porque reconoce las clases de `unittest`.
 | Archivo | Qué protege |
 |---|---|
 | `test_fsrs.py` | El modelo de memoria: que la probabilidad de acordarte baje siempre, que fallar nunca suba la estabilidad, que pedir más retención acorte, y que calibrar no empeore nunca lo que hay |
+| `test_bit.py` | Las etapas de evolución de Bit, su progreso, el desbloqueo seguro de accesorios y el conteo de repasos reales |
 | `test_scheduler.py` | Cómo se aplica el modelo a una tarjeta: el peldaño corto del fallo, el techo del año, la elección de la próxima tarjeta y el deshacer del día |
 | `test_sesiones.py` | Los límites por tiempo y cantidad, la ampliación, el deshacer y el resumen de una sesión guiada |
 | `test_importador.py` | CSV/TSV, exportaciones de texto y paquetes de Anki, incluidos límites y rutas maliciosas dentro del ZIP |
