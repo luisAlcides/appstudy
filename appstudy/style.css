@@ -392,6 +392,11 @@
   padding: 6px 12px;
 }
 
+.as-read-imgbox picture {
+  border-radius: 12px;
+  border: 1px solid alpha(currentColor, 0.12);
+}
+
 .as-callout {
   border-radius: 14px;
   border: 1px solid alpha(currentColor, 0.10);
@@ -578,4 +583,11 @@ window.as-pet box.as-bubble.as-bubble-chat {
   padding: 14px 8px;
   border-radius: 12px;
   background: alpha(currentColor, 0.055);
+}
+
+.as-rel-header {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-top: 6px;
+  opacity: 0.75;
 }

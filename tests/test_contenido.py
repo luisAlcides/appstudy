@@ -145,7 +145,7 @@ class TestLecturas(unittest.TestCase):
 
     def test_los_bloques_son_de_un_tipo_conocido(self):
         conocidos = {"h", "p", "list", "steps", "code", "math", "note", "warn",
-                     "key", "quote"}
+                     "key", "quote", "img", "image"}
         for archivo in CAPITULOS:
             for ch in leer(archivo)["chapters"]:
                 for bloque in ch["body"]:

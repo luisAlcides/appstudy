@@ -97,6 +97,7 @@ _CITA = re.compile(r"^>\s?(.*)$")
 _AVISO = re.compile(r"^\[!([A-Za-zÁÉÍÓÚÑ]+)\]\s*(.*)$")
 _VALLA = re.compile(r"^\s*```\s*([A-Za-z0-9_+-]*)\s*$")
 _MATE = re.compile(r"^\s*\$\$(.*?)\$\$\s*$", re.S)
+_IMAGEN = re.compile(r"^\s*!\[(.*?)\]\((https?://[^\s)]+)\)\s*$")
 
 
 def _linea(texto: str) -> str:
@@ -160,6 +161,15 @@ def a_bloques(cuerpo: str) -> tuple[str, list]:
         if mate and mate.group(1).strip():
             cerrar()
             bloques.append({"math": mate.group(1).strip()})
+            i += 1
+            continue
+
+        img_m = _IMAGEN.match(linea)
+        if img_m:
+            cerrar()
+            caption = img_m.group(1).strip()
+            url = img_m.group(2).strip()
+            bloques.append({"img": {"url": url, "caption": caption} if caption else {"url": url}})
             i += 1
             continue
 
@@ -288,6 +298,10 @@ def a_markdown(capitulo: dict) -> str:
             elif clave in ("note", "warn", "key"):
                 etiqueta = {"note": "NOTA", "warn": "AVISO", "key": "CLAVE"}[clave]
                 partes += [f"> [!{etiqueta}] {_a_md(valor)}", ""]
+            elif clave in ("img", "image"):
+                url = valor.get("url", "") if isinstance(valor, dict) else str(valor)
+                caption = valor.get("caption", "") if isinstance(valor, dict) else ""
+                partes += [f"![{caption}]({url})", ""]
     return "\n".join(partes).rstrip() + "\n"
 
 

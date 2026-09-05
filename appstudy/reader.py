@@ -38,7 +38,8 @@ _PALABRA = re.compile(r"[a-z0-9ñ]{4,}")
 def _str(contenido) -> str:
     """El texto de un bloque, venga suelto o dentro de un objeto con lenguaje."""
     if isinstance(contenido, dict):
-        return contenido.get("text") or contenido.get("code") or contenido.get("latex", "")
+        return (contenido.get("text") or contenido.get("code")
+                or contenido.get("latex") or contenido.get("caption") or "")
     return str(contenido)
 
 
@@ -172,7 +173,128 @@ def _bloque(tipo, contenido):
         texto.set_margin_end(16)
         caja.append(texto)
         return caja
+    if tipo in ("img", "image"):
+        return _imagen(contenido)
     return None
+
+
+def _imagen(contenido):
+    """Carga y muestra una imagen desde una URL externa de forma asíncrona.
+
+    Descarga en segundo plano sin congelar la interfaz y guarda una copia
+    en la caché local del usuario para no saturar la red ni la memoria.
+    """
+    import hashlib
+    import urllib.request
+    from pathlib import Path
+
+    if isinstance(contenido, dict):
+        url = contenido.get("url", "")
+        caption = contenido.get("caption", "")
+    else:
+        url = str(contenido)
+        caption = ""
+
+    caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8,
+                   css_classes=["as-read-imgbox"])
+    caja.set_margin_top(16)
+    caja.set_margin_bottom(18)
+    caja.set_halign(Gtk.Align.CENTER)
+    caja.set_hexpand(True)
+
+    pic = Gtk.Picture()
+    pic.set_can_shrink(True)
+    if hasattr(Gtk, "ContentFit"):
+        pic.set_content_fit(Gtk.ContentFit.CONTAIN)
+    pic.set_size_request(-1, 320)
+    pic.set_visible(False)
+    caja.append(pic)
+
+    spinner = Gtk.Spinner()
+    spinner.set_size_request(32, 32)
+    spinner.set_halign(Gtk.Align.CENTER)
+    spinner.set_margin_top(40)
+    spinner.set_margin_bottom(40)
+    caja.append(spinner)
+
+    if caption:
+        pie = Gtk.Label(label=util.to_markup(caption), use_markup=True, wrap=True,
+                        xalign=0.5, justify=Gtk.Justification.CENTER,
+                        css_classes=["as-dim", "caption"])
+        pie.set_margin_top(6)
+        caja.append(pie)
+
+    cache_dir = Path(GLib.get_user_cache_dir()) / "appstudy" / "images"
+
+    # Si ya está en la caché local, se monta al instante sin tocar la red
+    if url and url.startswith("http"):
+        h = hashlib.sha256(url.encode("utf-8")).hexdigest()
+        archivo = cache_dir / f"{h}.bin"
+        if archivo.exists():
+            try:
+                data = archivo.read_bytes()
+                tex = Gdk.Texture.new_from_bytes(GLib.Bytes.new(data))
+                pic.set_paintable(tex)
+                pic.set_visible(True)
+                spinner.set_visible(False)
+                return caja
+            except Exception:
+                pass
+
+    spinner.start()
+
+    def cargar():
+        if not url or not url.startswith("http"):
+            return None
+        try:
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            h = hashlib.sha256(url.encode("utf-8")).hexdigest()
+            archivo = cache_dir / f"{h}.bin"
+            if archivo.exists():
+                try:
+                    return archivo.read_bytes()
+                except Exception:
+                    pass
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppStudy/1.0"}
+            )
+            with urllib.request.urlopen(req, timeout=12) as resp:
+                data = resp.read()
+                try:
+                    archivo.write_bytes(data)
+                except Exception:
+                    pass
+                return data
+        except Exception:
+            return None
+
+    def al_terminar(datos):
+        spinner.stop()
+        spinner.set_visible(False)
+        if not datos:
+            aviso = Gtk.Label(label="⚠️ (Imagen disponible al conectarse a internet)",
+                              css_classes=["as-dim", "caption"])
+            caja.insert_child_after(aviso, pic)
+            return
+        try:
+            tex = Gdk.Texture.new_from_bytes(GLib.Bytes.new(datos))
+            pic.set_paintable(tex)
+            pic.set_visible(True)
+        except Exception:
+            aviso = Gtk.Label(label="⚠️ (No se pudo procesar la imagen)",
+                              css_classes=["as-dim", "caption"])
+            caja.insert_child_after(aviso, pic)
+
+    def al_fallar(_err):
+        spinner.stop()
+        spinner.set_visible(False)
+        aviso = Gtk.Label(label="⚠️ (Imagen disponible al conectarse a internet)",
+                          css_classes=["as-dim", "caption"])
+        caja.insert_child_after(aviso, pic)
+
+    util.hilo(cargar, al_terminar, al_fallar, fondo=True)
+    return caja
 
 
 class ChapterView(Gtk.Box):
@@ -231,6 +353,11 @@ class ChapterView(Gtk.Box):
                               ch["deck_color"], soft=True))
         meta.append(Gtk.Label(label=f"· {ch['minutes']} min de lectura",
                               css_classes=["as-dim", "caption"]))
+        btn_ciegas = Gtk.Button(label="⚡ Test a ciegas",
+                                tooltip_text="Comprueba si ya dominas este tema antes de leerlo",
+                                css_classes=["flat", "pill", "caption"])
+        btn_ciegas.connect("clicked", lambda *_: getattr(self, "on_ciegas", lambda: None)())
+        meta.append(btn_ciegas)
         cab.append(meta)
 
         cab.append(Gtk.Label(label=util.to_markup(ch["title"]), use_markup=True, wrap=True,

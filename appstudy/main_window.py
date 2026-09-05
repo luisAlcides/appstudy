@@ -204,6 +204,10 @@ class MainWindow(Adw.ApplicationWindow):
         estudiar.connect("clicked", lambda *_: self.elegir_sesion())
         header.pack_start(estudiar)
 
+        from . import pomodoro
+        self.pomo_widget = pomodoro.PomodoroWidget(self.get_application(), self.con)
+        header.pack_start(self.pomo_widget)
+
         nueva = Gtk.Button(icon_name="list-add-symbolic", tooltip_text="Nueva tarjeta")
         nueva.connect("clicked", lambda *_: self.card_editor())
         header.pack_end(nueva)
@@ -235,11 +239,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.toast.add_toast(Adw.Toast(title=texto, timeout=3))
 
     def elegir_sesion(self):
-        """Elige un bloque manejable; el atajo global conserva el repaso rápido."""
+        """Elige un bloque manejable o un modo especial de estudio."""
         dlg = Adw.AlertDialog(
-            heading="¿Cuánto quieres estudiar?",
-            body="La sesión termina al alcanzar el tiempo o la cantidad de tarjetas, "
-                 "sin cortar nunca una respuesta a mitad.")
+            heading="¿Cómo quieres estudiar?",
+            body="Elige una sesión con temporizador, un simulacro de examen o práctica de redacción.")
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         nombres = [f"{p.nombre} · {p.minutos} min · hasta {p.tarjetas} tarjetas"
                    for p in sesiones.PLANES]
@@ -251,6 +254,9 @@ class MainWindow(Adw.ApplicationWindow):
             xalign=0, wrap=True, css_classes=["caption", "as-dim"]))
         dlg.set_extra_child(caja)
         dlg.add_response("quick", "Repaso libre")
+        dlg.add_response("examen", "📝 Modo Examen")
+        dlg.add_response("escritura", "✍️ Escritura libre")
+        dlg.add_response("cursos", "🎬 Cursos Online")
         dlg.add_response("start", "Empezar sesión")
         dlg.set_response_appearance("start", Adw.ResponseAppearance.SUGGESTED)
         dlg.set_default_response("start")
@@ -263,6 +269,12 @@ class MainWindow(Adw.ApplicationWindow):
             self.get_application().show_popup(session_plan=plan)
         elif respuesta == "quick":
             self.get_application().show_popup()
+        elif respuesta == "examen":
+            self.abrir_simulacro_examen()
+        elif respuesta == "escritura":
+            self.abrir_escritura_libre()
+        elif respuesta == "cursos":
+            self.abrir_reproductor_cursos()
 
     # ------------------------------------------------------------------- panel
 
@@ -324,6 +336,9 @@ class MainWindow(Adw.ApplicationWindow):
         if siguiente:
             box.append(self.continue_reading_card(siguiente))
 
+        box.append(self.section_title("Modos de estudio"))
+        box.append(self.tarjeta_modos_estudio())
+
         box.append(self.section_title("Mazos"))
         lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
                             css_classes=["boxed-list"])
@@ -331,6 +346,73 @@ class MainWindow(Adw.ApplicationWindow):
         for d in db.deck_stats(self.con):
             lista.append(self.deck_row(d, avance.get(d["id"], [])))
         box.append(lista)
+
+    def tarjeta_modos_estudio(self):
+        caja = Gtk.Box(spacing=12, homogeneous=True)
+
+        b_ex = Gtk.Button(css_classes=["card"])
+        c_ex = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        c_ex.set_margin_top(12)
+        c_ex.set_margin_bottom(12)
+        c_ex.set_margin_start(12)
+        c_ex.set_margin_end(12)
+        c_ex.append(Gtk.Label(label="📝 Modo Examen", css_classes=["heading"], xalign=0))
+        c_ex.append(Gtk.Label(
+            label="Simulacro de 20 o 40 preguntas sin calificar hasta el final, con nota y desglose.",
+            wrap=True, xalign=0, css_classes=["caption", "as-dim"]))
+        b_ex.set_child(c_ex)
+        b_ex.connect("clicked", lambda *_: self.abrir_simulacro_examen())
+        caja.append(b_ex)
+
+        b_es = Gtk.Button(css_classes=["card"])
+        c_es = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        c_es.set_margin_top(12)
+        c_es.set_margin_bottom(12)
+        c_es.set_margin_start(12)
+        c_es.set_margin_end(12)
+        c_es.append(Gtk.Label(label="✍️ Escritura Libre", css_classes=["heading"], xalign=0))
+        c_es.append(Gtk.Label(
+            label="Redacta un párrafo sobre un tema del mazo y recibe corrección con IA local.",
+            wrap=True, xalign=0, css_classes=["caption", "as-dim"]))
+        b_es.set_child(c_es)
+        b_es.connect("clicked", lambda *_: self.abrir_escritura_libre())
+        caja.append(b_es)
+
+        b_cur = Gtk.Button(css_classes=["card"])
+        c_cur = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        c_cur.set_margin_top(12)
+        c_cur.set_margin_bottom(12)
+        c_cur.set_margin_start(12)
+        c_cur.set_margin_end(12)
+        c_cur.append(Gtk.Label(label="🎬 Cursos Online", css_classes=["heading"], xalign=0))
+        c_cur.append(Gtk.Label(
+            label="Reproductor integrado de Platzi y Udemy con detección de último y siguiente video.",
+            wrap=True, xalign=0, css_classes=["caption", "as-dim"]))
+        b_cur.set_child(c_cur)
+        b_cur.connect("clicked", lambda *_: self.abrir_reproductor_cursos())
+        caja.append(b_cur)
+
+        return caja
+
+    def abrir_reproductor_cursos(self, plataforma=None, siguiente=False):
+        from . import reproductor
+        reproductor.abrir_reproductor(self.con, parent_window=self, plataforma=plataforma, siguiente=siguiente)
+
+    def abrir_simulacro_examen(self, deck_id=None, level=None, n=20):
+        from . import examen
+        deck_nombre = "General"
+        if deck_id:
+            d = db.deck_by_id(self.con, deck_id)
+            if d:
+                deck_nombre = d["name"]
+        win = examen.ExamenWindow(self, self.con, deck_id=deck_id, level=level, n=n,
+                                  deck_nombre=deck_nombre, on_close_cb=self.refresh)
+        win.present()
+
+    def abrir_escritura_libre(self, deck_key="ingles"):
+        from . import escritura
+        win = escritura.EscrituraWindow(self, self.con, deck_key=deck_key)
+        win.present()
 
     def next_unread(self):
         """El primer capítulo sin leer, respetando el orden de básico a avanzado."""
@@ -661,9 +743,14 @@ class MainWindow(Adw.ApplicationWindow):
 
         vista.on_back = lambda: self.nav.pop()
         vista.on_cards = self.generar_desde_capitulo
+        vista.on_ciegas = lambda: self.test_ciegas_capitulo(cap, hermanos)
 
         pagina = Adw.NavigationPage(title=util.plain(cap["title"])[:60])
         cabecera = Adw.HeaderBar()
+        ciegas = Gtk.Button(icon_name="dialog-question-symbolic",
+                            tooltip_text="Test a ciegas: comprueba si ya dominas este tema antes de leer")
+        ciegas.connect("clicked", lambda *_: self.test_ciegas_capitulo(cap, hermanos))
+        cabecera.pack_end(ciegas)
         practicar = Gtk.Button(icon_name="media-playback-start-symbolic",
                                tooltip_text="Practicar este capítulo")
         practicar.connect("clicked", lambda *_: vista.practicar())
@@ -679,6 +766,21 @@ class MainWindow(Adw.ApplicationWindow):
 
         pagina.connect("hidden", lambda *_: self.refresh_reader())
         self.nav.push(pagina)
+
+    def test_ciegas_capitulo(self, cap, hermanos=None):
+        from . import ciegas
+        def on_saltar():
+            self.refresh_reader()
+            if hermanos:
+                pos = next((i for i, c in enumerate(hermanos) if c["id"] == cap["id"]), -1)
+                if pos >= 0 and pos + 1 < len(hermanos):
+                    self.nav.pop()
+                    self.open_chapter(hermanos[pos + 1], hermanos)
+                    return
+            self.nav.pop()
+
+        dlg = ciegas.TestCiegasDialog(self, self.con, cap, on_saltar=on_saltar)
+        dlg.present()
 
     def progress_bar(self, hecho, total):
         barra = Gtk.ProgressBar()

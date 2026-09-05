@@ -142,6 +142,21 @@ CREATE TABLE IF NOT EXISTS card_sources (
     title       TEXT NOT NULL DEFAULT ''
 );
 
+-- Cursos online (Platzi, Udemy) y seguimiento de último y siguiente video
+CREATE TABLE IF NOT EXISTS online_courses (
+    id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+    platform             TEXT NOT NULL,
+    course_slug          TEXT NOT NULL,
+    course_title         TEXT NOT NULL,
+    course_url           TEXT NOT NULL DEFAULT '',
+    last_video_title     TEXT NOT NULL DEFAULT '',
+    last_video_url       TEXT NOT NULL DEFAULT '',
+    next_video_title     TEXT NOT NULL DEFAULT '',
+    next_video_url       TEXT NOT NULL DEFAULT '',
+    updated_at           REAL NOT NULL DEFAULT 0,
+    UNIQUE(platform, course_slug)
+);
+
 """
 
 INDEXES = """
@@ -154,6 +169,7 @@ CREATE INDEX IF NOT EXISTS idx_chap_deck   ON chapters(deck_id, level, pos);
 CREATE INDEX IF NOT EXISTS idx_books_abierto ON books(abierto DESC);
 CREATE INDEX IF NOT EXISTS idx_notas_libro  ON notas(ruta, pagina);
 CREATE INDEX IF NOT EXISTS idx_sources_chapter ON card_sources(chapter_uid);
+CREATE INDEX IF NOT EXISTS idx_online_plat ON online_courses(platform, updated_at DESC);
 """
 
 
@@ -503,6 +519,43 @@ def chapter_for_card(con, card):
     return mejor if mejor_puntos >= 1.5 else None
 
 
+def related_cards_for_card(con, card, limit: int = 3) -> list[dict]:
+    """Busca 2 o 3 tarjetas relacionadas del mismo mazo por etiquetas y palabras en común."""
+    if not card:
+        return []
+    card_dict = dict(card)
+    cid = card_dict.get("id")
+    deck_id = card_dict.get("deck_id")
+    if not cid or not deck_id:
+        return []
+    etiquetas = {t.strip().lower() for t in (card_dict.get("tags") or "").split(",") if t.strip()}
+    busca = _palabras(f"{card_dict.get('front', '')} {card_dict.get('back', '')}")
+
+    candidatas = con.execute(
+        """SELECT c.id, c.deck_id, c.level, c.kind, c.front, c.back, c.tags,
+                  d.name AS deck_name, d.color AS deck_color, d.icon AS deck_icon
+           FROM cards c JOIN decks d ON d.id=c.deck_id
+            WHERE c.deck_id=? AND c.id!=?""",
+        (deck_id, cid)).fetchall()
+
+    puntuadas = []
+    for c in candidatas:
+        suyas = {t.strip().lower() for t in (c["tags"] or "").split(",") if t.strip()}
+        puntos = 3.0 * len(etiquetas & suyas)
+        if c["level"] == card_dict.get("level"):
+            puntos += 1.0
+        if busca:
+            texto = _palabras(f"{c['front']} {c['back']}")
+            comunes = len(busca & texto)
+            if busca:
+                puntos += 4.0 * (comunes / len(busca))
+        if puntos >= 1.5:
+            puntuadas.append((puntos, dict(c)))
+
+    puntuadas.sort(key=lambda x: x[0], reverse=True)
+    return [c for _, c in puntuadas[:limit]]
+
+
 def set_card_source(con, card_id: int, source: dict, touch: bool = True):
     """Asocia una tarjeta a su capítulo o tramo de libro, sin commit propio."""
     kind = "chapter" if source.get("kind") == "chapter" else "book"
@@ -850,3 +903,65 @@ def streak(con):
         n += 1
         cuando -= 86400
     return n
+
+
+# ---------------------------------------------------------------- cursos online
+
+def upsert_online_course(con, platform: str, course_slug: str, course_title: str,
+                         course_url: str = "", last_video_title: str = "",
+                         last_video_url: str = "", next_video_title: str = "",
+                         next_video_url: str = "") -> int:
+    """Registra o actualiza el progreso de un curso en Platzi o Udemy."""
+    p = platform.lower().strip()
+    slug = course_slug.strip()
+    titulo = course_title.strip() or slug
+    con.execute(
+        """INSERT INTO online_courses (platform, course_slug, course_title, course_url,
+                                       last_video_title, last_video_url, next_video_title,
+                                       next_video_url, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(platform, course_slug) DO UPDATE SET
+               course_title=CASE WHEN excluded.course_title != '' THEN excluded.course_title ELSE online_courses.course_title END,
+               course_url=CASE WHEN excluded.course_url != '' THEN excluded.course_url ELSE online_courses.course_url END,
+               last_video_title=CASE WHEN excluded.last_video_title != '' THEN excluded.last_video_title ELSE online_courses.last_video_title END,
+               last_video_url=CASE WHEN excluded.last_video_url != '' THEN excluded.last_video_url ELSE online_courses.last_video_url END,
+               next_video_title=CASE WHEN excluded.next_video_title != '' THEN excluded.next_video_title ELSE online_courses.next_video_title END,
+               next_video_url=CASE WHEN excluded.next_video_url != '' THEN excluded.next_video_url ELSE online_courses.next_video_url END,
+               updated_at=excluded.updated_at""",
+        (p, slug, titulo, course_url.strip(), last_video_title.strip(), last_video_url.strip(),
+         next_video_title.strip(), next_video_url.strip(), time.time())
+    )
+    con.commit()
+    fila = con.execute("SELECT id FROM online_courses WHERE platform=? AND course_slug=?",
+                       (p, slug)).fetchone()
+    return fila["id"] if fila else 0
+
+
+def get_online_courses(con, platform: str | None = None) -> list[dict]:
+    """Devuelve la lista de cursos registrados ordenados por fecha reciente."""
+    if platform:
+        filas = con.execute(
+            "SELECT * FROM online_courses WHERE platform=? ORDER BY updated_at DESC",
+            (platform.lower().strip(),)
+        ).fetchall()
+    else:
+        filas = con.execute(
+            "SELECT * FROM online_courses ORDER BY updated_at DESC"
+        ).fetchall()
+    return [dict(f) for f in filas]
+
+
+def get_last_course(con, platform: str | None = None) -> dict | None:
+    """Devuelve el curso con actividad más reciente."""
+    cursos = get_online_courses(con, platform)
+    return cursos[0] if cursos else None
+
+
+def get_online_course(con, platform: str, course_slug: str) -> dict | None:
+    """Devuelve un curso específico por plataforma y slug."""
+    fila = con.execute(
+        "SELECT * FROM online_courses WHERE platform=? AND course_slug=?",
+        (platform.lower().strip(), course_slug.strip())
+    ).fetchone()
+    return dict(fila) if fila else None
+

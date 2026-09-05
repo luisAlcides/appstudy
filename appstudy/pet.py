@@ -1972,6 +1972,18 @@ class PetWindow(Gtk.ApplicationWindow):
             self.btn_voz.connect("clicked", lambda *_: self.alternar_voz_globo())
             fila.append(self.btn_voz)
 
+        self.btn_mic = Gtk.Button(icon_name="audio-input-microphone-symbolic",
+                                  tooltip_text="Responder por voz (habla al micrófono)",
+                                  css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
+        self.btn_mic.connect("clicked", lambda *_: self.alternar_microfono())
+        fila.append(self.btn_mic)
+
+        self.btn_cursos = Gtk.Button(icon_name="media-playback-start-symbolic",
+                                      tooltip_text="Cursos Online (Platzi & Udemy)",
+                                      css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
+        self.btn_cursos.connect("clicked", lambda *_: self.mostrar_menu_cursos())
+        fila.append(self.btn_cursos)
+
         recientes = Gtk.Button(icon_name="document-open-recent-symbolic",
                                 tooltip_text="Tarjetas recientes",
                                 css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
@@ -2011,7 +2023,73 @@ class PetWindow(Gtk.ApplicationWindow):
                 self.btn_voz.set_icon_name("media-playback-stop-symbolic")
                 self.btn_voz.set_tooltip_text("Detener voz")
 
+    def alternar_microfono(self):
+        import threading
+        from . import ia, voz, voz_rec
+        if not hasattr(self, "grabador_mic") or not self.grabador_mic:
+            self.grabador_mic = voz_rec.GrabadorMicrofono()
+
+        if self.grabador_mic.esta_grabando():
+            ruta = self.grabador_mic.detener()
+            if hasattr(self, "btn_mic") and self.btn_mic:
+                self.btn_mic.set_icon_name("audio-input-microphone-symbolic")
+                self.btn_mic.set_tooltip_text("Responder por voz (habla al micrófono)")
+                self.btn_mic.remove_css_class("destructive-action")
+
+            if ruta and getattr(self, "card", None):
+                idioma = "en" if voz.es_tarjeta_ingles(self.card) else "es"
+                cfg_ia = ia.config(self.con)
+                esperada = self.card.get("back", "")
+
+                def _tarea():
+                    dicho = voz_rec.transcribir_audio(ruta, idioma=idioma)
+                    return voz_rec.juzgar_respuesta(dicho, esperada, card=self.card, cfg_ia=cfg_ia)
+
+                def _fin(juicio):
+                    if juicio["acierto"]:
+                        self.creature.celebrar()
+                        self.sonar("acierto")
+                    else:
+                        self.creature.desanimar()
+                        self.sonar("fallo")
+                    duracion = voz.hablar(juicio["feedback"], self.voz_cfg, card=self.card)
+                    if duracion > 0:
+                        self.creature.hablar(duracion)
+
+                threading.Thread(target=lambda: GLib.idle_add(_fin, _tarea()), daemon=True).start()
+            elif ruta:
+                def _tarea_gen():
+                    return voz_rec.transcribir_audio(ruta, idioma="es")
+
+                def _fin_gen(dicho):
+                    if not dicho:
+                        return
+                    dicho_l = dicho.lower()
+                    es_c = any(k in dicho_l for k in ("platzi", "udemy", "curso", "clase", "reproductor", "video"))
+                    es_a = any(k in dicho_l for k in ("platzi", "udemy", "siguiente", "proximo", "próximo", "ultimo", "último", "abre", "abrir", "pon", "poner", "ver", "reproduce", "reproducir", "mostrar", "muéstrame"))
+                    if es_c and es_a:
+                        plat = "platzi" if "platzi" in dicho_l else ("udemy" if "udemy" in dicho_l else None)
+                        self.abrir_reproductor_cursos(plat)
+                    elif self.chat is not None:
+                        self.enviar_chat(dicho)
+                    else:
+                        self.abrir_chat()
+                        self.enviar_chat(dicho)
+
+                threading.Thread(target=lambda: GLib.idle_add(_fin_gen, _tarea_gen()), daemon=True).start()
+        else:
+            if hasattr(self, "detener_voz"):
+                self.detener_voz()
+            ruta = self.grabador_mic.iniciar()
+            if hasattr(self, "btn_mic") and self.btn_mic:
+                self.btn_mic.set_icon_name("media-record-symbolic")
+                self.btn_mic.add_css_class("destructive-action")
+                self.btn_mic.set_tooltip_text("Grabando tu respuesta… pulsa para terminar y evaluar")
+            if hasattr(self, "creature") and self.creature:
+                self.creature.pensar()
+
     def detener_voz(self):
+        from . import voz
         voz.detener()
         if hasattr(self, "creature") and self.creature:
             self.creature.hablando_hasta = 0
@@ -2639,6 +2717,19 @@ class PetWindow(Gtk.ApplicationWindow):
     def enviar_chat(self, texto):
         if not texto or self.chat is None:
             return
+
+        texto_l = texto.lower()
+        if any(k in texto_l for k in ("crea una tarjeta", "crear una tarjeta", "haz una tarjeta", "nueva tarjeta")):
+            self.crear_tarjeta_con_ia(texto)
+            return
+
+        es_c = any(k in texto_l for k in ("platzi", "udemy", "curso", "clase", "reproductor", "video"))
+        es_a = any(k in texto_l for k in ("platzi", "udemy", "siguiente", "proximo", "próximo", "ultimo", "último", "abre", "abrir", "pon", "poner", "ver", "reproduce", "reproducir", "mostrar", "muéstrame"))
+        if es_c and es_a:
+            plat = "platzi" if "platzi" in texto_l else ("udemy" if "udemy" in texto_l else None)
+            self.abrir_reproductor_cursos(plat)
+            return
+
         self.chat["historial"].append({"role": "user", "content": texto})
         cuerpo = Gtk.Label(label="…", wrap=True, xalign=0, max_width_chars=self.char_width(32),
                            css_classes=["as-chat-bit"])
@@ -2829,6 +2920,123 @@ class PetWindow(Gtk.ApplicationWindow):
         self.close_bubble()
         historial.abrir(self, self.con)
 
+    def crear_tarjeta_con_ia(self, texto_usuario: str):
+        from . import ia
+        self.wake()
+        cfg_ia = ia.config(self.con)
+        if not cfg_ia.get("activa"):
+            self.say("Actívame la IA en Ajustes para redactar tarjetas automáticamente.", titulo="🧠 Sin IA")
+            return
+
+        ultimo = db.get_last_course(self.con)
+        contexto = f"Curso: {ultimo['course_title']} (Clase: {ultimo['last_video_title']})" if ultimo else "General"
+
+        self.say("✨ Redactando tu tarjeta con IA local...", titulo="💡 Nueva tarjeta")
+        self.creature.pensar()
+
+        def _tarea():
+            prompt = (
+                f"El estudiante te pide crear una tarjeta de estudio: «{texto_usuario}».\n"
+                f"Contexto del curso que está viendo: {contexto}.\n\n"
+                "Genera una tarjeta flashcard concisa en formato JSON estricto:\n"
+                "{\n  \"front\": \"Pregunta o concepto clave\",\n  \"back\": \"Respuesta o explicación concisa\",\n  \"tags\": \"etiquetas\"\n}"
+            )
+            try:
+                resp = ia.completar(cfg_ia, prompt, timeout=12)
+                m = re.search(r"\{.*\}", resp, re.DOTALL)
+                if m:
+                    return json.loads(m.group(0))
+            except Exception:
+                pass
+            return None
+
+        def _fin(res):
+            if res and res.get("front") and res.get("back"):
+                mazos = self.con.execute("SELECT id, name FROM decks ORDER BY pos").fetchall()
+                deck_id = mazos[0]["id"] if mazos else 1
+                deck_key = mazos[0]["name"].lower() if mazos else "general"
+                tags = res.get("tags") or "ia,cursos"
+                db.add_card(self.con, deck_id, deck_key, "card", res["front"], res["back"], tags=tags)
+                self.con.commit()
+                self.creature.celebrar()
+                self.sonar("acierto")
+                msg = f"¡Tarjeta creada con éxito!\n<b>{res['front']}</b> → {res['back']}"
+                self.say(msg, titulo="✅ Tarjeta guardada")
+                if getattr(self, "voz_cfg", {}).get("activo", True):
+                    voz.hablar(f"Tarjeta creada y guardada: {res['front']}", self.voz_cfg)
+            else:
+                self.creature.desanimar()
+                self.say("No pude redactar la tarjeta automáticamente. Intenta especificar un poco más el concepto.", titulo="⚠️ Aviso")
+
+        import threading
+        threading.Thread(target=lambda: GLib.idle_add(_fin, _tarea()), daemon=True).start()
+
+    def abrir_reproductor_cursos(self, plataforma=None, **kwargs):
+        from . import reproductor
+        self.wake()
+        p = (plataforma or "").lower().strip()
+        nombre_plat = "Udemy" if p == "udemy" else ("Platzi" if p == "platzi" else "Cursos")
+        texto_voz = f"Abriendo {nombre_plat} en el reproductor..."
+
+        self.say(f"🎬 <b>{texto_voz}</b>", titulo="🎬 Cursos Online")
+        if getattr(self, "voz_cfg", {}).get("activo", True):
+            dur = voz.hablar(texto_voz, self.voz_cfg)
+            if dur > 0:
+                self.creature.hablar(dur)
+
+        reproductor.abrir_reproductor(self.con, plataforma=p if p else None)
+
+    def mostrar_menu_cursos(self):
+        self.clear_bubble()
+        self.card = None
+        self.reto = None
+
+        cabecera = self.bubble_header("🎬 Cursos Online", "#2ec27e")
+        self.bubble_box.append(cabecera)
+
+        p_platzi = db.get_last_course(self.con, "platzi")
+        p_udemy = db.get_last_course(self.con, "udemy")
+
+        # Tarjeta Platzi
+        box_platzi = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, css_classes=["card"])
+        box_platzi.set_margin_top(4)
+        box_platzi.set_margin_bottom(4)
+        box_platzi.set_margin_start(4)
+        box_platzi.set_margin_end(4)
+        lbl_p_tit = Gtk.Label(label="🟢 Platzi", css_classes=["heading"], xalign=0)
+        box_platzi.append(lbl_p_tit)
+        if p_platzi and p_platzi.get("course_title"):
+            info_p = f"<b>{p_platzi.get('course_title')}</b>"
+        else:
+            info_p = "Accede a tus cursos y clases de Platzi."
+        box_platzi.append(Gtk.Label(label=info_p, use_markup=True, wrap=True, xalign=0, css_classes=["caption"]))
+
+        btn_platzi = Gtk.Button(label="🟢 Abrir Platzi", css_classes=["pill", "suggested-action"])
+        btn_platzi.connect("clicked", lambda *_: self.abrir_reproductor_cursos("platzi"))
+        box_platzi.append(btn_platzi)
+        self.bubble_box.append(box_platzi)
+
+        # Tarjeta Udemy
+        box_udemy = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, css_classes=["card"])
+        box_udemy.set_margin_top(4)
+        box_udemy.set_margin_bottom(4)
+        box_udemy.set_margin_start(4)
+        box_udemy.set_margin_end(4)
+        lbl_u_tit = Gtk.Label(label="🟣 Udemy", css_classes=["heading"], xalign=0)
+        box_udemy.append(lbl_u_tit)
+        if p_udemy and p_udemy.get("course_title"):
+            info_u = f"<b>{p_udemy.get('course_title')}</b>"
+        else:
+            info_u = "Accede a tu biblioteca de cursos de Udemy."
+        box_udemy.append(Gtk.Label(label=info_u, use_markup=True, wrap=True, xalign=0, css_classes=["caption"]))
+
+        btn_udemy = Gtk.Button(label="🟣 Abrir Udemy", css_classes=["pill", "suggested-action"])
+        btn_udemy.connect("clicked", lambda *_: self.abrir_reproductor_cursos("udemy"))
+        box_udemy.append(btn_udemy)
+        self.bubble_box.append(box_udemy)
+
+        self.open_bubble()
+
     def build_menu(self):
         m = Gio.Menu()
         seccion = Gio.Menu()
@@ -2843,6 +3051,12 @@ class PetWindow(Gtk.ApplicationWindow):
         seccion.append("Abrir AppStudy", "win.open")
         seccion.append("Cómo se usa", "win.ayuda")
         m.append_section(None, seccion)
+
+        # Submenú Cursos Online
+        cursos_menu = Gio.Menu()
+        cursos_menu.append("🟢 Abrir Platzi", "win.platzi_open")
+        cursos_menu.append("🟣 Abrir Udemy", "win.udemy_open")
+        m.append_submenu("🎬 Cursos Online", cursos_menu)
 
         tamano = Gio.Menu()
         tamano.append("Silencio" if self.sonido["activo"] else "Con sonido", "win.mute")
@@ -2878,6 +3092,13 @@ class PetWindow(Gtk.ApplicationWindow):
                            ("study", lambda *_: self.study()),
                            ("open", lambda *_: self.open_main()),
                            ("ayuda", lambda *_: self.abrir_ayuda()),
+                           ("platzi_open", lambda *_: self.abrir_reproductor_cursos("platzi")),
+                           ("udemy_open", lambda *_: self.abrir_reproductor_cursos("udemy")),
+                           ("platzi_next", lambda *_: self.abrir_reproductor_cursos("platzi")),
+                           ("platzi_last", lambda *_: self.abrir_reproductor_cursos("platzi")),
+                           ("udemy_next", lambda *_: self.abrir_reproductor_cursos("udemy")),
+                           ("udemy_last", lambda *_: self.abrir_reproductor_cursos("udemy")),
+                           ("cursos_player", lambda *_: self.abrir_reproductor_cursos(None)),
                            ("mute", lambda *_: self.alternar_sonido()),
                            ("card_bigger", lambda *_: self.cambiar_tamano_tarjeta(0.15)),
                            ("card_smaller", lambda *_: self.cambiar_tamano_tarjeta(-0.15)),

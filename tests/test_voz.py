@@ -1,5 +1,5 @@
 import unittest
-from .apoyo import BaseTemporal
+from tests.apoyo import BaseTemporal
 from appstudy import voz
 
 

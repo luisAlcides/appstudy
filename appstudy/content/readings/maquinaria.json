@@ -15,6 +15,12 @@
      "h": "La familia de maquinaria pesada de obra"
     },
     {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/82/Excavator_Postiguet_Beach_2.jpg/960px-Excavator_Postiguet_Beach_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Excavadora hidráulica sobre orugas en labores de excavación."
+     }
+    },
+    {
      "list": [
       "<b>Excavadora hidráulica</b> — montada sobre orugas o ruedas, con tornamesa de giro continuo de 360°, pluma (boom), brazo (stick) y cucharón. Diseñada para excavación masiva, zanjeo, carga de camiones y demolición con martillo hidráulico.",
       "<b>Retroexcavadora (pajarita / mixta)</b> — montada sobre neumáticos, equipada con cargador frontal delantero y brazo excavador trasero con estabilizadores hidráulicos. La máquina más versátil en obras urbanas y canalizaciones.",
@@ -95,6 +101,12 @@
      "h": "Anatomía del sistema de volteo"
     },
     {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Freightliner_M2_106_6x4_2014_%2814240376744%29.jpg/960px-Freightliner_M2_106_6x4_2014_%2814240376744%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Camión volquete pesado con tolva basculante de descarga trasera."
+     }
+    },
+    {
      "p": "El sistema que eleva la tolva basculante es un circuito hidráulico de alta presión alimentado mecánicamente por el propio tren motriz del camión:"
     },
     {
@@ -149,6 +161,12 @@
     },
     {
      "h": "La regla de oro del diagnóstico hidráulico"
+    },
+    {
+     "img": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/f/fd/Hydraulic_circuit_directional_control.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "caption": "Circuito hidráulico: bomba de presión, válvula distribuidora y cilindro actuador."
+     }
     },
     {
      "key": "<b>La bomba NO genera presión: la bomba genera CAUDAL</b>. La presión es el resultado de la <b>resistencia</b> que la carga o las restricciones mecánicas oponen al flujo de ese caudal."
@@ -225,6 +243,12 @@
      "h": "Componentes del tren de rodaje"
     },
     {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Caterpillar_track_shingle.JPG/960px-Caterpillar_track_shingle.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Tren de rodaje: zapatas con garra, eslabones de oruga y rueda guía."
+     }
+    },
+    {
      "list": [
       "<b>Eslabones, pasadores y bujes</b>: forman la cadena articulada. El «estiramiento» de la cadena no se debe a la deformación del metal, sino al desgaste por fricción entre el pasador interno y el buje.",
       "<b>Zapatas (tejas)</b>: placas de acero atornilladas a la cadena. Su garra proporciona tracción. En terrenos duros o rocosos se utilizan zapatas estrechas para no transmitir torsión excesiva a los rodillos.",
@@ -285,6 +309,12 @@
     },
     {
      "h": "El circuito de aire comprimido"
+    },
+    {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Air_disc_brake.jpg/960px-Air_disc_brake.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Freno neumático de servicio pesado con cámara de aire (pulmón de resorte) y disco ventilado."
+     }
     },
     {
      "list": [
@@ -348,6 +378,12 @@
     },
     {
      "h": "La bomba de pistones axiales y su plato oscilante"
+    },
+    {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a7/OelpumpeModel_Retouched.JPG/960px-OelpumpeModel_Retouched.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Corte técnico de bomba de pistones axiales con plato basculante para variación de caudal."
+     }
     },
     {
      "p": "Las bombas de caudal variable contienen un tambor de cilindros rotatorio con pistones axiales apoyados sobre un <b>plato oscilante (swashplate)</b> basculante:"
@@ -414,6 +450,12 @@
      "h": "Inyección Common Rail de alta presión (HPCR)"
     },
     {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/38/Cutaway_of_a_MAN_V8_Diesel_engine.jpg/960px-Cutaway_of_a_MAN_V8_Diesel_engine.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Corte seccional de motor diésel pesado con inyección Common Rail y turbocompresor."
+     }
+    },
+    {
      "p": "A diferencia de las viejas bombas rotativas mecánicas, en un sistema Common Rail la generación de presión y la inyección están totalmente desacopladas:"
     },
     {
@@ -464,6 +506,12 @@
     },
     {
      "h": "Tribología: qué revela el análisis de aceite (SOS / Laboratorio)"
+    },
+    {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8b/Lube_Oil_Sample_Rack_%288194652377%29.jpg/960px-Lube_Oil_Sample_Rack_%288194652377%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Muestras de aceite lubricante en gradilla para análisis espectrométrico de desgaste (SOS)."
+     }
     },
     {
      "p": "El análisis de muestras de aceite lubricante tomadas en caliente en cada cambio programado es la herramienta predictiva más rentable del sector:"
@@ -517,6 +565,12 @@
      "h": "Cómo funciona"
     },
     {
+     "img": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/96/BetriebsstundenzaehlerGE_mod03_res.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "caption": "Horómetro de maquinaria industrial: registro de horas y décimas de turno de trabajo."
+     }
+    },
+    {
      "p": "Distingue duración del turno, incremento del horómetro y tiempo productivo. No son necesariamente iguales: el horómetro puede registrar funcionamiento según el diseño de la máquina, y una parte de ese tiempo puede corresponder a espera. Anota las unidades de producción: toneladas, metros cúbicos o viajes no son intercambiables sin información adicional."
     },
     {
@@ -558,6 +612,12 @@
     },
     {
      "h": "Cómo funciona"
+    },
+    {
+     "img": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Liebherr_t282_1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "caption": "Dúmper minero de gran tonelaje (Liebherr T 282) durante el ciclo de transporte y acarreo."
+     }
     },
     {
      "p": "Si un ciclo completo dura t minutos, el máximo teórico bajo ese supuesto es 60/t ciclos por hora. Multiplicado por la carga media válida de cada ciclo da una tasa de producción. En una cadena, la etapa con menor capacidad puede limitar a las demás. Aumentar velocidad en otra etapa no elimina ese límite y puede generar más espera. La planificación debe respetar capacidades y procedimientos de operación."
@@ -606,6 +666,12 @@
      "h": "Cómo funciona"
     },
     {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5a/Siilinj%C3%A4rvi_mine.jpg/960px-Siilinj%C3%A4rvi_mine.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Operación minera a cielo abierto: gestión de disponibilidad y acarreo de flota."
+     }
+    },
+    {
      "p": "En el modelo de este capítulo, disponibilidad = horas disponibles / horas programadas; utilización = horas productivas / horas disponibles. Consideramos categorías sin solapamiento y horas productivas contenidas en las disponibles. Su producto es horas productivas / horas programadas. Una espera organizativa no debe convertirse automáticamente en una avería para mejorar otro indicador."
     },
     {
@@ -632,6 +698,336 @@
     },
     {
      "key": "Un porcentaje sin definición puede confundir; conserva tiempos, categorías y denominadores para interpretar la flota."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 8,
+   "tags": "intermedio,transmisión,convertidor de par,powershift,retardador",
+   "title": "Trenes de transmisión: convertidor de par, Powershift y retardadores",
+   "subtitle": "Impulsor, turbina y estator, embrague de traba (lock-up), modulación electrohidráulica y frenado continuo.",
+   "body": [
+    {
+     "p": "En cargadores frontales, tractores de orugas y camiones fuera de carretera, el tren de transmisión debe transmitir cientos de kilovatios absorbiendo impactos violentos de carga sin calar el motor diésel. El dominio de la hidrodinámica del convertidor, la modulación Powershift y el retardador es fundamental para la fiabilidad de la máquina y el ahorro de combustible."
+    },
+    {
+     "h": "El convertidor de par hidrodinámico (Torque Converter)"
+    },
+    {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b8/Bauma_2007_ZF_Drehmomentwandler.jpg/960px-Bauma_2007_ZF_Drehmomentwandler.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Convertidor de par seccionado para maquinaria pesada: impulsor, turbina y estator con rueda libre."
+     }
+    },
+    {
+     "list": [
+      "<b>Impulsor (bomba)</b>: acoplado rígidamente al volante de inercia del motor diésel. Al girar, sus álabes centrifugan el aceite hacia el exterior a alta velocidad y presión.",
+      "<b>Turbina</b>: conectada al eje de entrada de la servotransmisión. Recibe el impacto del flujo de aceite a presión haciéndola girar y transmitiendo par mecánico a las ruedas u orugas.",
+      "<b>Estator con rueda libre (one-way clutch)</b>: el componente multiplicador. Cuando la máquina clava el cucharón en un banco y la turbina se frena (alto resbalamiento), el aceite choca contra los álabes curvos del estator. La rueda libre se bloquea y redirige el flujo de retorno hacia los álabes del impulsor en su mismo sentido de giro, multiplicando el par de salida entre 2.2:1 y 3.0:1.",
+      "<b>Fase de acoplamiento (coupling phase)</b>: al acelerar la turbina y alcanzar ~85% de las RPM del impulsor, el aceite incide por el dorso del estator. La rueda libre se desbloquea y el estator gira libremente con el flujo, reduciendo pérdidas por turbulencia y comportándose como un acoplamiento hidráulico 1:1."
+     ]
+    },
+    {
+     "h": "El embrague de traba directa (Lock-Up Clutch)"
+    },
+    {
+     "p": "En tramos largos de acarreo en carretera o pistas mineras, el resbalamiento hidrodinámico del convertidor genera calor innecesario y aumenta el consumo diésel entre un 8% y un 15%. Para eliminarlo, los equipos modernos incorporan un <b>embrague de traba (lock-up)</b> en el convertidor gobernado por el ECM: al alcanzar velocidad de régimen, un pistón hidráulico bloquea mecánicamente el impulsor con la turbina, convirtiendo la transmisión en mando directo con 100% de eficiencia mecánica."
+    },
+    {
+     "h": "Transmisiones Powershift (servotransmisiones)"
+    },
+    {
+     "p": "Permiten cambiar de velocidad y sentido (avance/retroceso) bajo plena carga y aceleración sin interrumpir el flujo de potencia a las ruedas. Utilizan trenes planetarios o contraejes con paquetes de embragues multidisco bañados en aceite:"
+    },
+    {
+     "list": [
+      "<b>Modulación electrohidráulica (ECM)</b>: válvulas solenoides proporcionales controlan con precisión milimétrica la rampa de presión hidráulica al comprimir cada paquete de embrague, evitando tirones bruscos que fracturarían ejes o crucetas.",
+      "<b>Aceite para transmisiones pesadas (Caterpillar TO-4 / Allison C-4)</b>: nunca se debe utilizar aceite común de motor. El fluido TO-4 cuenta con aditivos de fricción calibrados para embragues húmedos de bronce y grafito; un aceite equivocado provoca deslizamiento excesivo o agarrotamiento prematuro de los discos."
+     ]
+    },
+    {
+     "h": "Retardadores hidráulicos en volquetes (Dumpers)"
+    },
+    {
+     "p": "En bajadas pronunciadas con 30 a 100 toneladas de carga, el freno de motor no puede absorber toda la energía cinética del camión. El <b>retardador hidráulico</b> inyecta aceite a presión entre un rotor giratorio y un estator fijo: la resistencia al cizallamiento del fluido genera una contrafuerza de frenado masiva que disipa la energía en calor transferido al radiador, manteniendo los frenos de servicio fríos e intactos para frenadas de emergencia."
+    },
+    {
+     "h": "Prueba de calado (Stall Test) en taller"
+    },
+    {
+     "p": "Es la prueba definitiva para discriminar si una falta de empuje se debe al motor diésel o a la transmisión:"
+    },
+    {
+     "steps": [
+      "Calza las ruedas firmemente, aplica los frenos de servicio y de parqueo, y calienta los fluidos a temperatura normal de operación.",
+      "Engrana la marcha más alta de trabajo, acelera el motor a fondo (WOT) y lee las RPM alcanzadas durante un máximo estricto de 10 a 15 segundos.",
+      "<b>RPM por debajo de lo especificado</b>: la transmisión retiene bien pero el motor diésel no entrega su potencia (revisar inyección, turbo o filtros de combustible).",
+      "<b>RPM por encima de lo especificado</b>: los paquetes de embrague de la transmisión o el convertidor de par están patinando por desgaste interno de discos o fugas de presión hidráulica.",
+      "Al terminar, pon de inmediato la palanca en neutro a 1.200 RPM durante 2 a 3 minutos para que el enfriador baje la temperatura del aceite."
+     ]
+    },
+    {
+     "warn": "Nunca prolongues el Stall Test más de 15 segundos: toda la potencia del motor se disipa en calor directo dentro del convertidor, pudiendo sobrepasar los 130 °C y fundir sellos internos en instantes."
+    },
+    {
+     "key": "El convertidor multiplica el par a baja velocidad a costa de calor; el lock-up ahorra diésel a velocidad de crucero; y el retardador disipa energía en bajadas para proteger los frenos de servicio."
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 8,
+   "tags": "básico,herramientas de corte,get,implementos,martillo hidráulico",
+   "title": "Herramientas de corte (GET), cucharones y martillos hidráulicos",
+   "subtitle": "Dientes hammerless, adaptadores, tipos de cucharón, factor de llenado y operación de martillos.",
+   "body": [
+    {
+     "p": "Las herramientas de corte o GET (Ground Engaging Tools) son los elementos de sacrificio en contacto directo con la tierra y la roca. Elegir el perfil adecuado y sustituirlos en el momento exacto evita deformaciones estructurales en el cucharón y fracturas costosas en los brazos de la máquina."
+    },
+    {
+     "h": "Componentes del sistema GET"
+    },
+    {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d6/Warsaw_Excavator_006.jpg/960px-Warsaw_Excavator_006.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Excavadora operando con martillo hidráulico demoledor en ángulo recto sobre material duro."
+     }
+    },
+    {
+     "list": [
+      "<b>Adaptadores (porta-dientes)</b>: piezas base soldadas o empernadas al labio del cucharón sobre las que calzan las puntas reemplazables.",
+      "<b>Puntas o dientes (tips)</b>: piezas de fundición de acero aleado al cromo-níquel-molibdeno templado diseñadas para penetrar y fracturar el terreno.",
+      "<b>Cantoneras y protectores laterales (shrouds)</b>: blindajes que protegen las esquinas y los laterales del cucharón de la abrasión en las paredes de la zanja.",
+      "<b>Sistemas de fijación sin martillo (Hammerless)</b>: retenedores mecánicos rotativos que se fijan con una simple llave de carraca (sistemas Cat Advansys, ESCO Ultralok, etc.), eliminando los riesgos de esquirlas voladoras al golpear pasadores con mandarria."
+     ]
+    },
+    {
+     "h": "Criterio de sustitución y costos"
+    },
+    {
+     "p": "Los dientes deben cambiarse en cuanto el desgaste alcance la marca de servicio o antes de exponer la nariz del adaptador. Trabajar con dientes gastados hasta la raíz somete al adaptador al impacto directo de la roca: cambiar un juego de puntas toma 15 minutos en el frente, mientras que desoldar, alinear y soldar adaptadores nuevos en taller inmoviliza la máquina durante días con costos miles de dólares superiores."
+    },
+    {
+     "h": "Tipología de cucharones y factor de llenado"
+    },
+    {
+     "list": [
+      "<b>Cucharón de uso general (GP)</b>: labio plano y mayor capacidad volumétrica; ideal para mover áridos, arena y tierra vegetal sin piedras grandes.",
+      "<b>Cucharón para roca y servicio severo (HD/Rock)</b>: perfil en «V», estructura de menor anchura, placas de refuerzo Hardox en el fondo y dientes de perfil reforzado para canteras y excavación pesada.",
+      "<b>Cucharón de limpieza / perfilado</b>: ancho, sin dientes, diseñado para rasantes finas, cunetas y taludes.",
+      "<b>Factor de llenado (Fill Factor)</b>: porcentaje del volumen nominal colmado que realmente entra en el cucharón. En tierra húmeda puede llegar al 105-110% (abombamiento), pero en roca volada fragmentada suele rondar el 75-85% debido a los huecos entre bloques."
+     ]
+    },
+    {
+     "h": "El martillo hidráulico (breaker): reglas de oro"
+    },
+    {
+     "p": "El martillo demoledor hidráulico utiliza aceite a alta presión para cargar un acumulador de gas nitrógeno ($N_2$) que descarga un pistón pesado contra la pica. Su mantenimiento y operación exigen disciplina estricta:"
+    },
+    {
+     "steps": [
+      "<b>Engrase cada 2 horas de percusión</b>: utiliza exclusivamente pasta especial para martillos con bisulfuro de molibdeno y partículas de cobre, resistente a más de 300 °C. La grasa común de litio se licúa y quema con la fricción, dejando la pica seca y gripando los casquillos guía.",
+      "<b>Ángulo recto de 90°</b>: la pica debe mantenerse siempre perpendicular a la roca. Golpear en ángulo introduce esfuerzos de flexión que parten la pica templada instantáneamente.",
+      "<b>Nunca picar en vacío (Blank Firing)</b>: en cuanto la roca se rompe, suelta el pedal de inmediato. Si el pistón golpea sin roca que absorba el impacto, la energía la reciben los pasadores de retención y la carcasa, partiendo los tirantes internos.",
+      "<b>Prohibido apalancar con la pica</b>: nunca uses el martillo para voltear rocas como palanca; se fracturará la pica y se torcerán los cilindros de la excavadora.",
+      "<b>Máximo 15-20 segundos por punto</b>: si una roca dura no cede en 20 segundos, reposiciona la pica más cerca de una fisura o borde libre; insistir solo calienta el acero en forma de hongo y recalienta el circuito hidráulico."
+     ]
+    },
+    {
+     "key": "Cambia dientes antes de rozar los adaptadores; engrasa la pica cada 2 horas con pasta de cobre y suelta el pedal en cuanto la roca fracture para evitar el disparo en vacío."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 8,
+   "tags": "intermedio,volquete,adt,rdt,seguridad de vertido",
+   "title": "Volquetes articulados (ADT) vs rígidos (RDT) y seguridad en botaderos",
+   "subtitle": "Chasis oscilante 6x6, bloqueos de diferencial, bermas de contención y prevención de vuelcos por carryback.",
+   "body": [
+    {
+     "p": "En proyectos de movimiento masivo de tierras y minería, la flota de transporte de áridos se divide entre dúmperes articulados (ADT) y dúmperes rígidos (RDT). Entender sus límites mecánicos y aplicar estrictos procedimientos de descarga en botaderos previene los siniestros más graves de vuelco y despeñamiento."
+    },
+    {
+     "h": "Dúmper Articulado (ADT) vs Dúmper Rígido (RDT)"
+    },
+    {
+     "img": {
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Cat740Ejector.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+      "caption": "Dúmper articulado 6x6 (Caterpillar 740) con junta oscilante central para terrenos deformables."
+     }
+    },
+    {
+     "list": [
+      "<b>ADT (6x6 articulado)</b>: chasis dividido en dos cuerpos unidos por una junta de articulación oscilante. Cuenta con tracción integral en los tres ejes y neumáticos anchos de baja presión. Es la máquina insustituible en suelos arcillosos o enfangados, con pendientes pronunciadas de hasta el 25-30% y caminos provisionales no preparados.",
+      "<b>RDT (4x2 rígido)</b>: chasis rígido de una pieza con dos ejes y doble rueda motriz trasera. Diseñado para transportar cargas enormes (de 40 a más de 300 toneladas) a velocidades altas sobre pistas de acarreo afirmadas y bien conservadas, logrando el menor coste posible por tonelada transportada."
+     ]
+    },
+    {
+     "h": "Gestión de tracción y diferenciales"
+    },
+    {
+     "p": "Para superar tramos resbaladizos sin dañar el tren motriz:"
+    },
+    {
+     "list": [
+      "<b>Bloqueo longitudinal (Inter-Axle)</b>: bloquea el reparto entre el eje delantero y el bogie trasero, asegurando que ambos trenes reciban par por igual.",
+      "<b>Bloqueo transversal (Cross-Axle)</b>: bloquea las ruedas izquierda y derecha de un mismo eje para salir de pérdidas totales de adherencia. Debe conectarse solo en línea recta o con la máquina parada, y desconectarse inmediatamente al recuperar terreno firme para no forzar los semiejes en curvas."
+     ]
+    },
+    {
+     "h": "Seguridad en la descarga en botaderos y taludes"
+    },
+    {
+     "p": "El basculamiento en la cresta de un talud es la maniobra con mayor riesgo de vuelco de toda la obra:"
+    },
+    {
+     "steps": [
+      "<b>Berma de contención reglamentaria</b>: en el borde del botadero debe mantenerse un camellón de material compactado cuya altura mínima sea <b>la mitad del diámetro del neumático más grande</b> del volquete (y dos tercios en turnos nocturnos o lluvia).",
+      "<b>Aproximación perpendicular suave</b>: retrocede a 90° hacia la berma a velocidad muy lenta. Toca la berma suavemente con las ruedas traseras como tope de referencia; nunca choques contra ella para frenar el camión.",
+      "<b>Nivelación transversal</b>: nunca levantes la tolva si el camión presenta una inclinación lateral superior a <b>3 a 5 grados</b>. Al elevar la tolva, el centro de gravedad sube varios metros; cualquier desnivel o neumático hundido saca el vector de peso fuera de la huella y el camión volcará de costado.",
+      "<b>El peligro del Carryback (material pegado)</b>: arcillas y tierras pegajosas quedan atrapadas en la parte alta de la tolva. Al elevarla, el material no desliza y actúa como un enorme péndulo inestable arriba. Si notas que la carga no resbala al subir el cilindro, baja la tolva de inmediato y desaloja el material en terreno plano con una excavadora."
+     ]
+    },
+    {
+     "warn": "Nunca te desplaces a más de 5 km/h ni realices giros con la tolva levantada. Asegúrate de que la tolva esté completamente asentada sobre el bastidor antes de incorporarte a la pista de transporte."
+    },
+    {
+     "key": "La berma debe medir al menos medio diámetro de neumático; inspecciona grietas en la cresta del talud y cancela la descarga si hay material adherido en lo alto de la tolva."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 9,
+   "tags": "avanzado,electrónica,can bus,j1939,diagnóstico",
+   "title": "Diagnóstico electrónico: Red CAN Bus J1939 y sensores de maquinaria",
+   "subtitle": "Par trenzado diferencial, impedancia de 60 Ω, códigos SPN/FMI y electrohidráulica PWM.",
+   "body": [
+    {
+     "p": "La maquinaria pesada actual integra decenas de módulos electrónicos (ECU motor, ECM hidráulico, controlador de transmisión, monitor de cabina) que dialogan mediante la red <b>SAE J1939</b> sobre bus CAN. El diagnóstico moderno requiere comprender la capa física de la red y el formato de fallas estandarizado."
+    },
+    {
+     "h": "Física y arquitectura del bus SAE J1939"
+    },
+    {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dd/MaxScan_OE509_img95.jpg/960px-MaxScan_OE509_img95.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Escáner de diagnóstico electrónico conectado a puerto de datos para lectura de códigos de falla."
+     }
+    },
+    {
+     "p": "La red emplea un par trenzado con cables <b>CAN-High (amarillo)</b> y <b>CAN-Low (verde)</b> que transmite señales de voltaje diferencial para cancelar interferencias electromagnéticas:"
+    },
+    {
+     "list": [
+      "<b>Voltajes de trabajo</b>: en estado recesivo (reposo), ambas líneas marcan <b>2.5 V</b> respecto a tierra. Al transmitir un bit dominante, CAN-High sube a <b>3.5 V</b> y CAN-Low baja a <b>1.5 V</b>, generando una señal diferencial neta de 2.0 V.",
+      "<b>Resistencias terminadoras (Terminating Resistors)</b>: el bus cuenta con dos resistencias de <b>120 Ω</b> en cada extremo físico de la línea troncal para suprimir el rebote de ondas de alta frecuencia (250 kbps / 500 kbps)."
+     ]
+    },
+    {
+     "h": "Comprobación de la red con multímetro"
+    },
+    {
+     "steps": [
+      "Gira la llave a OFF y desconecta el interruptor maestro de baterías (LOTO).",
+      "Mide con el multímetro en escala de ohmios ($\\Omega$) entre el pin CAN-High y el pin CAN-Low en el conector de diagnóstico estándar de 9 pines.",
+      "<b>Lectura normal = 60 Ω</b>: las dos resistencias de 120 Ω en paralelo marcan $\\frac{120 \\times 120}{120 + 120} = 60\\,\\Omega$ ($\\pm 3\\,\\Omega$).",
+      "<b>Si marca 120 Ω</b>: una de las resistencias terminadoras está ausente o la línea troncal está cortada en algún punto intermedio.",
+      "<b>Si marca ~0 Ω</b>: cortocircuito directo entre los cables CAN-H y CAN-L.",
+      "<b>Si marca resistencia infinita (OL)</b>: ambas terminaciones están desconectadas o el cableado del conector está cortado."
+     ]
+    },
+    {
+     "h": "Estructura de los códigos de diagnóstico (DTC J1939)"
+    },
+    {
+     "p": "Cada código de avería en maquinaria consta de tres campos normalizados:"
+    },
+    {
+     "list": [
+      "<b>SPN (Suspect Parameter Number)</b>: indica el circuito o componente afectado (ej. SPN 100 = Presión de aceite del motor; SPN 110 = Temperatura de refrigerante; SPN 102 = Presión de admisión de turbo).",
+      "<b>FMI (Failure Mode Identifier)</b>: describe el tipo exacto de anomalía eléctrica o funcional:",
+      "• <b>FMI 03</b>: voltaje por encima de lo normal o corto a positivo (+).",
+      "• <b>FMI 04</b>: voltaje por debajo de lo normal o corto a masa (tierra).",
+      "• <b>FMI 05</b>: corriente por debajo de lo normal o circuito abierto (bobina desconectada o cable roto).",
+      "• <b>FMI 08</b>: frecuencia o ancho de pulso anormal (sensor de RPM o velocidad con entrehierro sucio o descalibrado).",
+      "• <b>FMI 14</b>: instrucción especial o fuera de calibración electrónica.",
+      "<b>OC (Occurrence Count)</b>: contador que registra cuántas veces se ha repetido la anomalía durante las operaciones."
+     ]
+    },
+    {
+     "h": "Control electrohidráulico proporcional (PWM) y Dither"
+    },
+    {
+     "p": "Las electroválvulas hidráulicas proporcionales de pilotaje no abren ni cierran de golpe (on/off): el controlador envía una señal <b>PWM (modulación por ancho de pulsos) con corriente controlada</b>. Para evitar que el carrete de acero de la válvula se quede adherido por fricción estática (histéresis), el ECM superpone una microvibración de alta frecuencia llamada <b>dither</b>, permitiendo movimientos suaves, precisos y milimétricos en los joysticks."
+    },
+    {
+     "key": "La resistencia del bus CAN J1939 en reposo debe ser siempre de 60 Ω. El SPN dice qué falla y el FMI indica si es corto a positivo, corto a tierra o circuito abierto."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 9,
+   "tags": "avanzado,tren de rodaje,cadenas,desgaste,mantenimiento",
+   "title": "Gestión avanzada del tren de rodaje: medición de desgaste y cadenas SALT",
+   "subtitle": "Cadenas selladas y lubricadas, medición de paso (pitch), giro de bocines y vida útil.",
+   "body": [
+    {
+     "p": "El tren de rodaje de una excavadora o bulldozer de gran tonelaje representa hasta la mitad del coste de mantenimiento durante toda la vida útil de la máquina. El servicio técnico predictivo (CTS - Custom Track Service) permite programar reconstrucciones intermedias que reducen drásticamente el costo horario de operación."
+    },
+    {
+     "h": "Tecnología de cadenas selladas y lubricadas (SALT)"
+    },
+    {
+     "img": {
+      "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/CatD9T.jpg/960px-CatD9T.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+      "caption": "Tractor de cadenas Caterpillar D9T con rueda motriz elevada y cadenas lubricadas (SALT)."
+     }
+    },
+    {
+     "p": "Las orugas pesadas modernas utilizan el sistema SALT (Sealed and Lubricated Track):"
+    },
+    {
+     "list": [
+      "<b>Depósito de aceite sintético</b>: los pasadores son huecos y almacenan lubricante sellado de fábrica mediante tapones de goma de alta resistencia.",
+      "<b>Sellos Belleville de poliuretano</b>: anillos elásticos que sellan las caras del buje, impidiendo que el aceite se escape y bloqueando la entrada de partículas abrasivas (arena, arcilla) a la articulación interna.",
+      "<b>Detección de eslabones secos (Dry Links)</b>: cuando un sello se daña, el aceite se pierde y la fricción metal-metal en seco dispara la temperatura del pasador a 80-100 °C. Un técnico puede detectar eslabones secos en minutos con un termómetro infrarrojo durante una parada tras desplazamiento continuo."
+     ]
+    },
+    {
+     "h": "Desgaste interno vs desgaste externo"
+    },
+    {
+     "list": [
+      "<b>Desgaste externo del buje</b>: provocado por la fricción contra los dientes de la rueda motriz (sprocket), acelerándose fuertemente durante la marcha atrás.",
+      "<b>Desgaste interno y estiramiento del paso (Pitch Extension)</b>: al perder lubricación o en cadenas convencionales, el desgaste entre pasador y buje alarga la distancia centro a centro entre eslabones contiguos. Al aumentar el paso, los bujes dejan de encajar en el fondo del diente del sprocket y montan sobre la punta, destruyendo la corona dentada."
+     ]
+    },
+    {
+     "h": "Medición y control de desgaste (CTS)"
+    },
+    {
+     "steps": [
+      "<b>Medición del paso (pitch)</b>: tras desplazar la máquina hacia adelante para tensar la cadena superior, mide con cinta métrica de precisión la distancia entre las caras de cuatro o cinco pasadores consecutivos y divide entre el número de tramos.",
+      "<b>Altura del eslabón (Link Height)</b>: mide con calibre de profundidad desde la zapata hasta la superficie de rodadura donde pisan los rodillos.",
+      "<b>Diámetro y pestañas de rodillos</b>: comprueba el desgaste de la pista de rodadura y la holgura de las pestañas guía.",
+      "<b>Espesor de pared del buje</b>: verifica con micrómetro de exteriores o medidor de ultrasonidos en la zona de mayor desgaste."
+     ]
+    },
+    {
+     "h": "El giro de pasadores y bujes (Pin & Bushing Turn)"
+    },
+    {
+     "p": "Dado que el buje solo se desgasta en un lado durante la marcha habitual, si la cadena se interviene antes de llegar al límite estructural (idealmente al <b>70-80% de desgaste</b>, antes de alcanzar el núcleo blando del acero), la cadena se prensa en taller y se realiza el <b>giro a 180° de pasadores y bujes</b>. Con caras vírgenes, sellos nuevos y aceite fresco, se duplica la vida útil del tren de rodaje por una fracción del costo de una cadena nueva."
+    },
+    {
+     "warn": "Esperar a que la cadena salte sobre el sprocket arruina los eslabones e invalida el giro de bujes, forzando la compra prematura de cadenas completas y ruedas cabilla."
+    },
+    {
+     "key": "Supervisa el tren de rodaje con ultrasonidos, identifica eslabones secos con pirómetro láser y programa el giro de pasadores y bujes al 75% de desgaste para maximizar la rentabilidad de las orugas."
     }
    ]
   }

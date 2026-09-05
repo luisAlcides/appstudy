@@ -830,6 +830,454 @@
    "front": "Para interpretar un indicador de flota, documenta siempre su {{denominador}}.",
    "back": "El mismo número de horas productivas produce porcentajes distintos según la base elegida.",
    "tags": "indicadores de flota"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Cuáles son los tres componentes principales de un convertidor de par hidrodinámico?",
+   "back": "1. <b>Impulsor (bomba)</b>: conectado al volante del motor diésel; lanza el aceite a alta velocidad centrífuga.\n2. <b>Turbina</b>: conectada al eje de entrada de la transmisión; recibe la energía cinética del aceite y gira.\n3. <b>Estator</b>: elemento intermedio con rueda libre que redirige el flujo de aceite para multiplicar el par de salida.",
+   "tags": "transmisión,convertidor de par"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "front": "¿Por qué está prohibido «picar en vacío» (blank firing) con un martillo hidráulico?",
+   "choices": [
+    "Porque el pistón golpea sin resistencia dañando los pasadores de retención y la carcasa",
+    "Porque se consume combustible innecesario en el motor",
+    "Porque el gas nitrógeno se derrama fuera de la cámara",
+    "Porque la excavadora pierde tracción en las orugas"
+   ],
+   "answer": 0,
+   "back": "Disparar sin que la pica esté firmemente apoyada contra la roca hace que la energía destructiva del pistón se absorba en los pasadores de retención internos y los tirantes de la carcasa, fracturándolos por fatiga.",
+   "tags": "implementos,martillo hidráulico,seguridad"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Cada cuánto tiempo y con qué tipo de grasa se lubrica un martillo hidráulico?",
+   "back": "Cada <b>2 horas</b> de percusión continua (o mediante engrasador automático).\nSe usa grasa especial de <b>bisulfuro de molibdeno o pasta con partículas de cobre</b> formulada para extrema presión y más de 300 °C. La grasa común de litio se licúa y quema con la fricción dejando la pica seca.",
+   "tags": "mantenimiento,martillo hidráulico"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Por qué debe cambiarse un diente de excavadora antes de que el desgaste llegue a la nariz del adaptador?",
+   "back": "Un juego de dientes cuesta poco y se cambia en minutos. Si se desgasta hasta el adaptador, la roca desgasta y deforma la nariz porta-diente; cambiar o reconstruir adaptadores soldados en taller cuesta miles de dólares y detiene la máquina durante días.",
+   "tags": "herramientas de corte,get,mantenimiento"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "front": "¿Qué ventaja principal ofrecen los sistemas de fijación de dientes «hammerless» (sin martillo)?",
+   "choices": [
+    "Permiten montar dientes de plástico",
+    "Seguridad: evitan lesiones por esquirlas metálicas al no requerir golpes de mazo",
+    "Aumentan la potencia del motor diésel",
+    "Hacen que el cucharón pese la mitad"
+   ],
+   "answer": 1,
+   "back": "Los sistemas hammerless utilizan seguros accionados por llave de carraca o palanca. Eliminan el riesgo de desprendimiento de esquirlas de acero templado proyectadas violentamente al golpear pasadores con mandarria.",
+   "tags": "herramientas de corte,get,seguridad"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "front": "En un martillo hidráulico, la pica debe colocarse siempre a un ángulo de {{90}} grados respecto a la roca para evitar roturas por flexión.",
+   "back": "Picar en ángulo transmite esfuerzos laterales a la pica templada, que tiene altísima dureza pero baja flexibilidad; esto rompe la pica o agrieta los casquillos guía.",
+   "tags": "martillo hidráulico,operación"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Qué es el «carryback» en la tolva de un volquete y qué peligro crítico genera?",
+   "back": "Es el material pegajoso (arcilla, barro) que queda adherido en el fondo superior de la tolva tras el volteo.\n<b>Peligro</b>: al bascular en la siguiente descarga, esa masa no desliza y queda en la parte más alta, elevando peligrosamente el centro de gravedad e induciendo un <b>vuelco lateral inmediato</b> ante cualquier pequeño desnivel.",
+   "tags": "volquete,seguridad"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "front": "¿Cuál debe ser la altura mínima obligatoria de la berma de contención en el borde de un botadero de material?",
+   "choices": [
+    "Al menos la mitad del diámetro del neumático más grande del camión",
+    "Exactamente 20 centímetros sobre el suelo",
+    "El doble de la altura de la cabina",
+    "No se requiere berma si el operador tiene experiencia"
+   ],
+   "answer": 0,
+   "back": "La normativa internacional minera y de obras establece que la berma debe medir al menos 1/2 del diámetro de la llanta más grande (y preferiblemente 2/3 en turnos nocturnos o terreno inestable) para detener el camión si retrocede de más.",
+   "tags": "volquete,seguridad de vertido"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Cómo debe aproximarse un camión volquete a la berma de un botadero?",
+   "back": "A <b>90° (perpendicular)</b> respecto al borde, a velocidad muy baja, tocando suavemente la berma con las llantas traseras para verificar posición.\n<b>Nunca</b> se debe chocar violentamente contra la berma para frenar ni golpear repetidamente con el eje trasero.",
+   "tags": "volquete,operación,seguridad"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "Si una máquina toca un cable eléctrico aéreo de alta tensión, ¿cuál es la conducta correcta del operador?",
+   "back": "1. <b>Permanecer en la cabina</b>: es una jaula de Faraday segura mientras no toque el suelo.\n2. Avisar por radio para cortar el suministro y despejar el área.\n3. Si la máquina se incendia y hay que evacuar obligatoriamente: <b>saltar con los dos pies juntos sin tocar el suelo y la máquina al mismo tiempo</b>, y alejarse dando pequeños saltos con ambos pies juntos para evitar tensión de paso.",
+   "tags": "seguridad,operación"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "front": "Al trasladar una excavadora o retroexcavadora en el frente de obra, el cucharón debe llevarse a unos {{30 a 40}} centímetros del suelo.",
+   "back": "Llevar el cucharón alto eleva el centro de gravedad del equipo y reduce drásticamente el margen de estabilidad ante baches o pendientes.",
+   "tags": "operación,seguridad"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Qué diferencia hay entre un cucharón de uso general y uno de roca (servicio pesado)?",
+   "back": "El de <b>uso general</b> es más ancho y liviano para mover tierra suelta o arena a máximo volumen.\nEl de <b>roca</b> es más estrecho, con perfil en «V», estructura de acero Hardox reforzado, blindaje inferior antidesgaste y cantoneras pesadas para resistir alta abrasión e impacto.",
+   "tags": "herramientas de corte,get,implementos"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "front": "¿Cuánto tiempo continuo como máximo debe insistirse con un martillo hidráulico en un mismo punto de una roca?",
+   "choices": [
+    "15 a 20 segundos; si no rompe, reposicionar la pica cerca de un borde",
+    "5 a 10 minutos sin interrupción hasta que ceda",
+    "Todo el turno completo mientras salga polvo",
+    "No hay límite mientras el aceite esté frío"
+   ],
+   "answer": 0,
+   "back": "Picar en el mismo punto más de 20 segundos recalienta la punta de la pica (forma de hongo), destempla el acero y calienta de forma crítica el aceite hidráulico sin producir avance.",
+   "tags": "martillo hidráulico,operación"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Por qué el respiradero (breather) del depósito hidráulico no es un tapón hueco cualquiera?",
+   "back": "Contiene un filtro micronizado de aire y a menudo una <b>válvula de retención presurizadora</b> (0.2 a 0.5 bar) que mantiene una ligera sobrepresión en el tanque para facilitar la aspiración de la bomba y evitar cavitación en frío.",
+   "tags": "hidráulica,mantenimiento"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "front": "Para evitar el vuelco lateral de un volquete durante la descarga, la inclinación transversal del terreno no debe superar los {{3 a 5}} grados.",
+   "back": "Al subir la tolva el centro de gravedad se eleva considerablemente; una pendiente transversal mínima basta para que el vector de peso caiga fuera de las ruedas.",
+   "tags": "volquete,seguridad"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Qué función cumple la junta de oscilación central en un camión articulado (ADT)?",
+   "back": "Permite que la sección delantera de la cabina y la sección trasera de la tolva <b>roten independientemente sobre su eje longitudinal</b>, manteniendo todas las ruedas pegadas al terreno incluso sobre baches extremos.",
+   "tags": "volquete,adt"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Cuál es el rol del estator con rueda libre en el convertidor de par hidrodinámico?",
+   "back": "En arranques y carga pesada (alto resbalamiento), el estator permanece fijo bloqueado por la rueda libre y <b>redirige el aceite hacia el impulsor</b> en el sentido de giro, multiplicando el par motor.\nA velocidad de crucero, la rueda libre se suelta y el estator gira libre, eliminando resistencia hidrodinámica.",
+   "tags": "transmisión,convertidor de par"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "¿Qué función cumple el embrague de traba (Lock-Up Clutch) en un convertidor de par?",
+   "choices": [
+    "Acopla rígidamente el motor con la transmisión en velocidad de crucero para ahorrar combustible",
+    "Desconecta la bomba hidráulica para que no gire el volante",
+    "Aumenta el resbalamiento del aceite para enfriar la transmisión",
+    "Frena las ruedas de la máquina en emergencias"
+   ],
+   "answer": 0,
+   "back": "El lock-up elimina las pérdidas por fricción hidrodinámica del fluido en traslados largos, funcionando como una transmisión mecánica de acoplamiento directo (100% de eficiencia).",
+   "tags": "transmisión,convertidor de par"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Qué es la prueba de calado (Stall Test) en una transmisión y cómo se interpreta?",
+   "back": "Se calzan las ruedas, se aplican frenos y se acelera a fondo con la marcha más alta de trabajo (máximo 15 segundos):\n• <b>RPM por debajo de lo normal</b>: pérdida de potencia en el motor diésel (inyección, turbo, compresión).\n• <b>RPM por encima de lo normal</b>: patinamiento en convertidor de par o embragues de la transmisión.",
+   "tags": "transmisión,diagnóstico"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "¿Por qué una transmisión Powershift requiere aceite con especificación Caterpillar TO-4 en vez de aceite de motor común?",
+   "choices": [
+    "Porque el aceite de motor contiene modificadores de fricción que hacen patinar o desgastan los embragues húmedos",
+    "Porque el aceite TO-4 es comestible",
+    "Porque el aceite de motor se congela a temperatura ambiente",
+    "Porque el TO-4 tiene menor viscosidad que el agua"
+   ],
+   "answer": 0,
+   "back": "Los aceites de motor reducen al mínimo la fricción; en un embrague Powershift de discos húmedos, esto provoca deslizamiento excesivo y sobrecalentamiento. El TO-4 está calibrado para la fricción exacta de los discos de bronce y grafito.",
+   "tags": "transmisión,lubricación"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Cómo funciona el retardador hidráulico de un camión volquete y cuándo se utiliza?",
+   "back": "Un rotor accionado por la transmisión bombea aceite contra un estator fijo dentro de una carcasa hermética. La resistencia al cizallamiento del fluido frena el camión y el calor se disipa por el radiador.\nSe usa para descensos prolongados con carga, reservando los frenos de servicio fríos y sin desgaste.",
+   "tags": "volquete,frenos,retardador"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "Diferencia entre diferencial interaxle y diferencial cross-axle en un dumper articulado 6x6",
+   "back": "<b>Interaxle (longitudinal)</b>: bloquea el reparto de giro entre el eje delantero y los ejes traseros.\n<b>Cross-axle (transversal)</b>: bloquea la rueda izquierda con la rueda derecha del mismo eje.\nEl cross-axle solo se debe activar en línea recta y sobre terreno resbaladizo, nunca en giros cerrados.",
+   "tags": "volquete,adt,transmisión"
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "front": "Durante un Stall Test de transmisión, el tiempo de aceleración a fondo nunca debe superar los {{15}} segundos para evitar el sobrecalentamiento crítico del fluido.",
+   "back": "Toda la potencia del motor absorbida en calado se convierte inmediatamente en calor dentro del convertidor, pudiendo sobrepasar los 130 °C y fundir sellos internos.",
+   "tags": "transmisión,diagnóstico"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Qué es la válvula de retención de rotura de manguera (hose burst check valve) en un cilindro de pluma?",
+   "back": "Es una válvula de seguridad montada directamente sobre el puerto del cilindro. Si la manguera de alimentación estalla a alta presión, la válvula se cierra al instante por contrapresión, evitando la caída libre catastrófica de la pluma y la carga levantada.",
+   "tags": "hidráulica,seguridad"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "¿En qué condiciones de terreno es superior un Dumper Articulado (ADT) frente a un Dumper Rígido (RDT)?",
+   "choices": [
+    "En suelos blandos, barro y pistas no afirmadas con fuertes pendientes",
+    "En autopistas pavimentadas a alta velocidad",
+    "En acarreos de más de 15 kilómetros sobre pistas de asfalto",
+    "Únicamente dentro de túneles estrechos de metro"
+   ],
+   "answer": 0,
+   "back": "El ADT ofrece tracción 6x6, chasis oscilante y neumáticos anchos de baja presión para negociar terrenos deformables donde un camión rígido se enterraría hasta los ejes.",
+   "tags": "volquete,adt"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Qué significa el índice TKPH en los neumáticos de volquetes mineros y por qué es crítico?",
+   "back": "<b>Toneladas-Kilómetro Por Hora</b>: mide la capacidad térmica del neumático.\n$\\text{TKPH} = \\text{Carga media por neumático} \\times \\text{Velocidad media de ciclo}$.\nSuperar el TKPH máximo especificado genera sobrecalentamiento interno del caucho que provoca la separación de lonas y la explosión del neumático.",
+   "tags": "volquete,neumáticos"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Qué ocurre si se trabaja con las cuchillas de una motoniveladora desgastadas más allá de los orificios de fijación?",
+   "back": "La abrasión del suelo empieza a desgastar directamente la <b>vertedera (moldboard)</b>. Las cuchillas son placas de desgaste atornilladas reversibles y económicas; rellenar o cambiar la vertedera curva requiere soldadura mayor de precisión y costos exorbitantes.",
+   "tags": "herramientas de corte,get,mantenimiento"
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "front": "En una cadena de oruga, la flecha de combamiento entre la rueda guía y el rodillo superior debe ser habitualmente de {{30 a 45}} mm.",
+   "back": "Si la flecha es menor, la cadena está sobretensada y triplica la carga en bujes y cojinetes; si es mayor, la cadena flamea y puede descarrilar.",
+   "tags": "tren de rodaje,mantenimiento"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "¿Cómo se comporta el factor de llenado (fill factor) en un cucharón al excavar roca volada frente a tierra suelta?",
+   "choices": [
+    "Es menor en roca volada (75-85%) debido a los grandes huecos entre fragmentos angulares",
+    "Es mayor en roca volada (150%) porque la roca pesa más",
+    "Es siempre exactamente 100% en cualquier material",
+    "El tipo de material no altera el volumen del cucharón"
+   ],
+   "answer": 0,
+   "back": "El esponjamiento y los huecos intergranulares de la roca volada impiden llenar completamente los rincones del cucharón, rindiendo típicamente entre 75% y 85% de la capacidad geométrica nominal.",
+   "tags": "productividad de ciclos,operación"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Por qué en terrenos fangosos o con arcilla húmeda se debe ajustar la cadena de orugas algo más floja de lo normal?",
+   "back": "Porque el barro y la tierra se adhieren y compactan entre los eslabones, bujes y rodillos formando una costra que <b>tensa la cadena por sí misma durante la marcha</b>. Si se ajusta a tensión estándar en seco, quedará sobretensada y reventará sellos en el lodo.",
+   "tags": "tren de rodaje,operación"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Qué síntoma causa el desgaste en la placa de distribución (valve plate) de un motor hidráulico de traslación?",
+   "back": "<b>Fuga interna excesiva</b>: a medida que el aceite se calienta y pierde viscosidad, la oruga de ese lado pierde fuerza y velocidad, provocando que la excavadora «se vaya hacia un lado» al avanzar en línea recta con las dos palancas iguales.",
+   "tags": "hidráulica,diagnóstico"
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "front": "El índice TKPH de un neumático de maquinaria pesada relaciona la {{carga}} media transportada con la velocidad media del ciclo.",
+   "back": "TKPH representa la generación de energía térmica disipada por la flexión del caucho en la carcasa durante el turno.",
+   "tags": "volquete,neumáticos"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "Si un camión volquete articulado (ADT) patina con una sola rueda en un lodazal, ¿qué diferencial debe bloquearse primero?",
+   "choices": [
+    "El bloqueo longitudinal interaxle",
+    "Los bloqueos transversales cross-axle",
+    "El freno de parqueo Maxi-Brake",
+    "La toma de fuerza PTO"
+   ],
+   "answer": 0,
+   "back": "El bloqueo interaxle reparte el par 50/50 entre la sección delantera y el tándem trasero sin impedir que las ruedas giren a distinta velocidad al maniobrar en curvas suaves.",
+   "tags": "volquete,adt"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Cuál es el valor de resistencia normal entre los cables CAN-H y CAN-L en una red J1939 con la máquina apagada?",
+   "back": "<b>60 $\\Omega$</b> (ohmios).\nLa red cuenta con dos resistencias terminadoras de 120 $\\Omega$ situadas en los extremos del bus conectadas en paralelo: $\\frac{120 \\times 120}{120 + 120} = 60\\,\\Omega$.",
+   "tags": "can bus,j1939,electrónica,diagnóstico"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "Si al medir entre CAN-High y CAN-Low con el multímetro en ohmios obtienes 120 Ω, ¿cuál es el diagnóstico?",
+   "choices": [
+    "Una de las resistencias terminadoras está desconectada o la línea principal está cortada",
+    "La red funciona a la perfección",
+    "Ambas líneas CAN están en cortocircuito entre sí",
+    "El alternador está sobrecargando las baterías"
+   ],
+   "answer": 0,
+   "back": "Si una de las dos resistencias de 120 $\\Omega$ se desconecta o hay una rotura en el cableado troncal, el multímetro solo mide la resistencia restante (120 $\\Omega$), lo que provoca reflexiones de señal y fallas intermitentes de comunicación.",
+   "tags": "can bus,j1939,diagnóstico"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "En la norma SAE J1939, ¿qué indican los códigos SPN y FMI?",
+   "back": "• <b>SPN (Suspect Parameter Number)</b>: identifica el componente o sensor afectado (ej. SPN 100 = presión de aceite de motor).\n• <b>FMI (Failure Mode Identifier)</b>: identifica la naturaleza de la falla (ej. FMI 03 = voltaje alto/corto a positivo; FMI 04 = voltaje bajo/corto a tierra; FMI 05 = circuito abierto).",
+   "tags": "j1939,electrónica,diagnóstico"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Qué distingue a las cadenas SALT (Sealed and Lubricated Track) y qué es un «eslabón seco»?",
+   "back": "Las cadenas SALT llevan <b>aceite sintético sellado</b> en el interior de cada pasador con sellos elásticos Belleville para evitar el roce seco.\nUn <b>eslabón seco (dry link)</b> ocurre cuando un sello falla y pierde el aceite: el pasador roza metal con metal en seco, alcanzando 80-100 °C de temperatura detectable con pirómetro infrarrojo.",
+   "tags": "tren de rodaje,cadenas,mantenimiento"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "¿A qué porcentaje de desgaste se recomienda realizar el giro de pasadores y bocines (Pin & Bushing Turn) en una oruga?",
+   "choices": [
+    "Al 70-80% de desgaste, antes de que se destruya la capa cementada superficial",
+    "Al 100% cuando la cadena se rompe por la mitad",
+    "Al 10% durante las primeras 100 horas de uso",
+    "Nunca, los pasadores y bocines no se pueden rotar"
+   ],
+   "answer": 0,
+   "back": "Girar los pasadores y bujes 180° antes de que el metal se agriete expone la cara posterior intacta y duplica la vida útil del tren de rodaje a mitad de precio.",
+   "tags": "tren de rodaje,cadenas,mantenimiento"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Cómo se mide el «paso» (pitch extension) en una oruga para detectar desgaste interno de la cadena?",
+   "back": "Con la máquina tensada hacia adelante, se mide la distancia entre las caras de <b>4 o 5 pasadores consecutivos</b> con cinta milimétrica de precisión y se divide entre el número de eslabones.\nSi el paso promedio supera el límite del fabricante (ej. +6 a 8 mm por eslabón), la cadena ya no asienta en los sprockets y debe renovarse.",
+   "tags": "tren de rodaje,cadenas,diagnóstico"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "front": "En una red CAN Bus J1939 estándar, el voltaje en reposo de las líneas CAN-High y CAN-Low es de aproximadamente {{2.5}} voltios.",
+   "back": "Al transmitir un bit dominante, CAN-High sube a unos 3.5 V y CAN-Low desciende a unos 1.5 V, manteniendo una señal diferencial limpia de 2.0 V.",
+   "tags": "can bus,j1939,electrónica"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Por qué los solenoides electrohidráulicos proporcionales usan corriente PWM con señal «dither»?",
+   "back": "La modulación de ancho de pulsos (PWM) controla la fuerza magnética mediante corriente continua modulada.\nEl <b>dither</b> añade una pequeña oscilación alterna de alta frecuencia (ej. 100 Hz) que mantiene el carrete vibrando microscópicamente para <b>eliminar la fricción estática (histéresis)</b> y lograr movimientos hidráulicos precisos y suaves.",
+   "tags": "hidráulica,electrónica"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "¿Qué significa un código de falla con FMI 04 en la electrónica de una máquina?",
+   "choices": [
+    "Voltaje por debajo de lo normal o cortocircuito a masa (tierra)",
+    "Voltaje por encima de lo normal o cortocircuito a batería (+)",
+    "Frecuencia fuera de rango en sensor de revoluciones",
+    "Falla mecánica interna sin causa eléctrica"
+   ],
+   "answer": 0,
+   "back": "FMI 04 indica típicamente un cable de señal pellizcado que está rozando contra el chasis metálico de la máquina, derivando el voltaje a tierra (0 V).",
+   "tags": "j1939,electrónica,diagnóstico"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Qué consecuencia mecánica inmediata tiene tensar en exceso la cadena de una excavadora o bulldozer?",
+   "back": "Multiplica hasta por <b>300% las cargas radiales</b> sobre los rodamientos de la rueda guía (idler) y los cojinetes del mando final/motor de traslación, dispara la temperatura en bujes y aumenta el consumo de combustible diésel hasta un 10%.",
+   "tags": "tren de rodaje,mantenimiento"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "Si el manómetro en la bomba de pistones axiales Load Sensing marca la presión de margen con los mandos en neutro, ¿qué significa?",
+   "choices": [
+    "Es normal: es la presión de stand-by (espera) generada por el resorte del compensador de margen",
+    "La bomba tiene una fuga interna catastrófica",
+    "La válvula de alivio principal está atascada abierta",
+    "El motor diésel está girando en sentido inverso"
+   ],
+   "answer": 0,
+   "back": "La presión de espera (stand-by o margen, típicamente 20 a 30 bar / 300-450 psi) mantiene el plato basculante con ángulo mínimo para lubricación y respuesta inmediata al accionar el joystick.",
+   "tags": "hidráulica,diagnóstico"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "front": "El código FMI {{03}} en el protocolo J1939 representa un voltaje por encima de lo normal o cortocircuito a fuente positiva.",
+   "back": "Suele presentarse cuando se corta un cable de señal con resistencia pull-up interna o se puentea a la línea de alimentación de 5V/24V.",
+   "tags": "j1939,electrónica,diagnóstico"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Cómo se detecta cavitación incipiente en una bomba hidráulica de pistones antes de que reviente?",
+   "back": "1. Ruido característico a «grava o canicas trituradas» dentro de la carcasa de la bomba.\n2. Espuma y microburbujas visibles en el visor del depósito hidráulico.\n3. Caída de vacío en la línea de aspiración (vacuómetro marca más de 0.2 bar de restricción).\n4. Aumento rápido de temperatura en la línea de drenaje de carcasa de la bomba.",
+   "tags": "hidráulica,diagnóstico"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Qué es la línea de drenaje de carcasa (Case Drain) de una bomba de pistones y qué revela su caudal?",
+   "back": "Es la línea que retorna el aceite que lubrica los pistones y patines al tanque sin presión.\nMedir los litros por minuto del drenaje de carcasa a presión de trabajo es la prueba definitiva de desgaste: si el caudal de fuga supera el <b>10% del caudal nominal</b>, la placa oscilante y los pistones tienen holguras destructivas.",
+   "tags": "hidráulica,diagnóstico"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "¿Qué función cumple la regeneración activa del filtro de partículas diésel (DPF) en una máquina Tier 4 Final?",
+   "choices": [
+    "Inyecta diésel en el escape para elevar los gases a 550-600 °C e incinerar el hollín acumulado",
+    "Lava el filtro con agua a presión desde el tanque de expansión",
+    "Detiene el motor diésel durante 4 horas para enfriar los catalizadores",
+    "Reemplaza el aceite del cárter de forma automática"
+   ],
+   "answer": 0,
+   "back": "Cuando el diferencial de presión a través del DPF es alto y la máquina no alcanza suficiente temperatura en trabajo ligero, la ECU activa una post-inyección de combustible que combustiona en el catalizador DOC elevando la temperatura para quemar el carbón.",
+   "tags": "motor,emisiones"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "front": "Si el caudal de fuga por el drenaje de carcasa (case drain) de una bomba de pistones excede el {{10}} % del caudal máximo, la bomba requiere reacondicionamiento urgente.",
+   "back": "Una fuga mayor indica holguras excesivas entre patines, placa de válvulas y bloque de cilindros, con riesgo de gripado catastrófico.",
+   "tags": "hidráulica,mantenimiento"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Por qué se debe esperar varios minutos tras apagar el motor antes de desconectar la batería en máquinas con sistema SCR de DEF/AdBlue?",
+   "back": "Al apagar la máquina, la bomba de inyección de urea invierte el giro para <b>purgar el DEF remanente en las líneas hacia el tanque</b>. Si cortas el mástil de batería de inmediato, el DEF (que se congela a -11 °C y cristaliza) queda atrapado en el inyector y tuberías, cristalizando y destruyendo el inyector por taponamiento.",
+   "tags": "motor,emisiones,mantenimiento"
   }
  ],
  "levels": [

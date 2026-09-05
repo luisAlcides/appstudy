@@ -25,6 +25,10 @@ from gi.repository import Gtk, Adw
 }
 python3 -c "import pygments" 2>/dev/null || \
   echo "  (aviso) falta pygments: el código se verá sin colores. sudo apt install python3-pygments"
+command -v curl >/dev/null || command -v wget >/dev/null || \
+  echo "  (aviso) falta curl o wget para descargar modelos: sudo apt install curl"
+command -v paplay >/dev/null || command -v pw-play >/dev/null || command -v aplay >/dev/null || \
+  echo "  (aviso) falta reproductor de audio: sudo apt install pulseaudio-utils"
 command -v ollama >/dev/null || \
   echo "  (opcional) sin ollama no hay IA local. curl -fsSL https://ollama.com/install.sh | sh"
 
@@ -122,6 +126,85 @@ echo "▸ Registrando el atajo global $ATAJO"
 echo "▸ Registrando captura rápida $ATAJO_CAPTURA"
 "$RAIZ/bin/appstudy" --install-capture-hotkey "$ATAJO_CAPTURA"
 
+echo "▸ Configurando modelos neuronales de voz (Piper TTS)…"
+PIPER_DIR="$HOME/.local/share/appstudy/piper"
+mkdir -p "$PIPER_DIR"
+
+PROGRESS_FLAG=""
+if [ -t 1 ]; then
+  PROGRESS_FLAG="--progress-bar"
+else
+  PROGRESS_FLAG="-s"
+fi
+
+# 1. Motor Piper TTS
+if [ ! -x "$PIPER_DIR/piper" ]; then
+  echo "  Descargando binario Piper TTS…"
+  ARCH="$(uname -m)"
+  case "$ARCH" in
+    x86_64)        PIPER_TAR="piper_linux_x86_64.tar.gz" ;;
+    aarch64|arm64) PIPER_TAR="piper_linux_aarch64.tar.gz" ;;
+    armv7l)        PIPER_TAR="piper_linux_armv7.tar.gz" ;;
+    *)             PIPER_TAR="piper_linux_x86_64.tar.gz" ;;
+  esac
+  PIPER_URL="https://github.com/rhasspy/piper/releases/download/2023.11.14-2/${PIPER_TAR}"
+  TMP_DIR="$(mktemp -d)"
+  if curl -fSL $PROGRESS_FLAG "$PIPER_URL" -o "$TMP_DIR/piper.tar.gz" 2>/dev/null || \
+     wget -qO "$TMP_DIR/piper.tar.gz" "$PIPER_URL" 2>/dev/null; then
+    tar -xzf "$TMP_DIR/piper.tar.gz" -C "$HOME/.local/share/appstudy/"
+    echo "  ✓ Piper instalado en $PIPER_DIR"
+  else
+    echo "  (aviso) No se pudo descargar Piper automáticamente."
+  fi
+  rm -rf "$TMP_DIR"
+else
+  echo "  ✓ Piper TTS ya instalado"
+fi
+
+# 2. Modelo de voz en español (es_ES-davefx-medium)
+ES_BASE="https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/es/es_ES/davefx/medium"
+if [ ! -f "$PIPER_DIR/es_ES-davefx-medium.onnx" ]; then
+  echo "  Descargando modelo de voz en español (es_ES-davefx-medium)…"
+  curl -fSL $PROGRESS_FLAG "${ES_BASE}/es_ES-davefx-medium.onnx" -o "$PIPER_DIR/es_ES-davefx-medium.onnx" 2>/dev/null || \
+    wget -qO "$PIPER_DIR/es_ES-davefx-medium.onnx" "${ES_BASE}/es_ES-davefx-medium.onnx" 2>/dev/null || true
+  curl -fSL -s "${ES_BASE}/es_ES-davefx-medium.onnx.json" -o "$PIPER_DIR/es_ES-davefx-medium.onnx.json" 2>/dev/null || \
+    wget -qO "$PIPER_DIR/es_ES-davefx-medium.onnx.json" "${ES_BASE}/es_ES-davefx-medium.onnx.json" 2>/dev/null || true
+  if [ -f "$PIPER_DIR/es_ES-davefx-medium.onnx" ]; then
+    echo "  ✓ Modelo de voz en español listo"
+  fi
+else
+  echo "  ✓ Modelo de voz en español listo"
+fi
+
+# 3. Modelo de voz en inglés (en_US-lessac-medium)
+EN_BASE="https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium"
+if [ ! -f "$PIPER_DIR/en_US-lessac-medium.onnx" ]; then
+  echo "  Descargando modelo de voz en inglés (en_US-lessac-medium)…"
+  curl -fSL $PROGRESS_FLAG "${EN_BASE}/en_US-lessac-medium.onnx" -o "$PIPER_DIR/en_US-lessac-medium.onnx" 2>/dev/null || \
+    wget -qO "$PIPER_DIR/en_US-lessac-medium.onnx" "${EN_BASE}/en_US-lessac-medium.onnx" 2>/dev/null || true
+  curl -fSL -s "${EN_BASE}/en_US-lessac-medium.onnx.json" -o "$PIPER_DIR/en_US-lessac-medium.onnx.json" 2>/dev/null || \
+    wget -qO "$PIPER_DIR/en_US-lessac-medium.onnx.json" "${EN_BASE}/en_US-lessac-medium.onnx.json" 2>/dev/null || true
+  if [ -f "$PIPER_DIR/en_US-lessac-medium.onnx" ]; then
+    echo "  ✓ Modelo de voz en inglés listo"
+  fi
+else
+  echo "  ✓ Modelo de voz en inglés listo"
+fi
+
+# 4. Modelo de IA local (Ollama)
+echo "▸ Verificando modelo de IA local (Ollama)…"
+if command -v ollama >/dev/null; then
+  if ollama list 2>/dev/null | grep -q "gemma3:4b"; then
+    echo "  ✓ Modelo gemma3:4b ya está disponible en Ollama"
+  else
+    echo "  Descargando modelo gemma3:4b en Ollama (esto puede tardar unos minutos)…"
+    ollama pull gemma3:4b || echo "  (aviso) no se pudo descargar gemma3:4b automáticamente. Ejecuta: ollama pull gemma3:4b"
+  fi
+else
+  echo "  (opcional) Sin Ollama no hay IA local. Para instalar:"
+  echo "    curl -fsSL https://ollama.com/install.sh | sh && ollama pull gemma3:4b"
+fi
+
 echo
 echo "✓ Listo."
 echo "  Popup:            pulsa el atajo desde cualquier aplicación"
@@ -130,4 +213,6 @@ echo "  Ventana completa: appstudy   (o busca «AppStudy» en el menú)"
 echo "  Mascota:          appstudy --pet   (o Ajustes → Bit, la mascota)"
 echo "  Dock:             anclado con su icono (si algo falla, arrástralo tú)"
 echo "  Barra superior:   icono de AppStudy (tras reiniciar la sesión)"
+echo "  Voz neuronal:     Piper TTS (español e inglés en $PIPER_DIR)"
+echo "  IA local:         Ollama (gemma3:4b)"
 echo "  Cambiar el atajo: dentro de la app, pestaña Ajustes"

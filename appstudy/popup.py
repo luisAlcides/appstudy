@@ -81,6 +81,13 @@ class PopupWindow(Adw.Window):
         else:
             self.btn_voz = None
 
+        self.btn_mic = Gtk.Button(icon_name="audio-input-microphone-symbolic",
+                                  tooltip_text="Responder por voz (habla al micrófono)")
+        self.btn_mic.connect("clicked", lambda *_: self.alternar_microfono())
+        header.pack_start(self.btn_mic)
+        self.grabador_mic = None
+        self.feedback_voz = None
+
         self.connect("close-request", lambda *_: (self.detener_voz(), False)[1])
 
         # Botones para cambiar tamaño de la tarjeta
@@ -239,6 +246,7 @@ class PopupWindow(Adw.Window):
     def load_card(self):
         if hasattr(self, "detener_voz"):
             self.detener_voz()
+        self.feedback_voz = None
         current_id = self.card["id"] if self.card else None
         if not hasattr(self, "recent_ids"):
             self.recent_ids = []
@@ -498,6 +506,25 @@ class PopupWindow(Adw.Window):
         if titulo:
             box.append(Gtk.Label(label=titulo.upper(), xalign=0,
                                  css_classes=["as-answer-title"]))
+
+        if getattr(self, "feedback_voz", None):
+            jv = self.feedback_voz
+            caja_fb = Gtk.Box(spacing=10, css_classes=["as-card"])
+            caja_fb.set_margin_top(4)
+            caja_fb.set_margin_bottom(6)
+            in_fb = Gtk.Box(spacing=8)
+            for l in ("top", "bottom", "start", "end"):
+                getattr(in_fb, f"set_margin_{l}")(8)
+            icono_fb = "emblem-ok-symbolic" if jv.get("acierto") else "dialog-information-symbolic"
+            img_fb = Gtk.Image.new_from_icon_name(icono_fb)
+            if jv.get("acierto"):
+                img_fb.add_css_class("success")
+            in_fb.append(img_fb)
+            in_fb.append(Gtk.Label(label=f"<b>Dijiste:</b> «{jv['dicho']}»\n{jv['feedback']}",
+                                   use_markup=True, wrap=True, xalign=0))
+            caja_fb.append(in_fb)
+            box.append(caja_fb)
+
         box.append(Gtk.Label(label=util.to_markup(text), use_markup=True, wrap=True,
                              xalign=0, css_classes=["as-back"], selectable=True))
 
@@ -514,7 +541,38 @@ class PopupWindow(Adw.Window):
             btn_link.connect("clicked", lambda *_: self.open_chapter_for_card(cap))
             box.append(btn_link)
 
+        # Tarjetas relacionadas del mismo tema
+        relacionadas = db.related_cards_for_card(self.con, self.card, limit=3) if self.card else []
+        if relacionadas:
+            caja_rel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+            caja_rel.append(Gtk.Label(label="Tarjetas relacionadas:", xalign=0,
+                                      css_classes=["as-dim", "as-rel-header"]))
+            fila_chips = Gtk.Box(spacing=6)
+            for rc in relacionadas:
+                texto_chip = util.plain(rc["front"])
+                if len(texto_chip) > 30:
+                    texto_chip = texto_chip[:27] + "…"
+                b_rel = Gtk.Button(label=f"🔗 {texto_chip}",
+                                   tooltip_text=f"{rc['front']}\n→ {rc['back']}",
+                                   css_classes=["flat", "pill", "as-chapter-link"])
+                b_rel.connect("clicked", lambda *_, c_id=rc["id"]: self.mostrar_tarjeta_relacionada(c_id))
+                fila_chips.append(b_rel)
+            caja_rel.append(fila_chips)
+            box.append(caja_rel)
+
         return box
+
+    def mostrar_tarjeta_relacionada(self, card_id):
+        card = db.card_by_id(self.con, card_id)
+        if card:
+            if hasattr(self, "detener_voz"):
+                self.detener_voz()
+            self.card = card
+            self.revealed = False
+            self.hint_revealed = False
+            self.answered = None
+            self.shown_at = time.time()
+            self.render()
 
     def open_chapter_for_card(self, cap):
         app = self.get_application()
@@ -876,3 +934,43 @@ class PopupWindow(Adw.Window):
                 self.btn_voz.set_icon_name("media-playback-stop-symbolic")
                 self.btn_voz.set_tooltip_text("Detener lectura (V)")
         return False
+
+    def alternar_microfono(self):
+        import threading
+        from . import voz_rec
+        if not self.grabador_mic:
+            self.grabador_mic = voz_rec.GrabadorMicrofono()
+
+        if self.grabador_mic.esta_grabando():
+            ruta = self.grabador_mic.detener()
+            if self.btn_mic:
+                self.btn_mic.set_icon_name("audio-input-microphone-symbolic")
+                self.btn_mic.set_tooltip_text("Responder por voz al micrófono")
+                self.btn_mic.remove_css_class("destructive-action")
+
+            if ruta and self.card:
+                from . import ia, voz
+                idioma = "en" if voz.es_tarjeta_ingles(self.card) else "es"
+                cfg_ia = ia.config(self.con)
+
+                def _tarea():
+                    dicho = voz_rec.transcribir_audio(ruta, idioma=idioma)
+                    return voz_rec.juzgar_respuesta(dicho, self.card["back"], card=self.card, cfg_ia=cfg_ia)
+
+                def _fin(juicio):
+                    self.feedback_voz = juicio
+                    if not self.revealed:
+                        self.reveal(answered_rating=(scheduler.GOOD if juicio["acierto"] else scheduler.AGAIN))
+                    else:
+                        self.render()
+                    voz.hablar(juicio["feedback"], self.voz_cfg, card=self.card)
+
+                threading.Thread(target=lambda: GLib.idle_add(_fin, _tarea()), daemon=True).start()
+        else:
+            if hasattr(self, "detener_voz"):
+                self.detener_voz()
+            ruta = self.grabador_mic.iniciar()
+            if self.btn_mic:
+                self.btn_mic.set_icon_name("media-record-symbolic")
+                self.btn_mic.add_css_class("destructive-action")
+                self.btn_mic.set_tooltip_text("Grabando tu voz… pulsa para terminar y evaluar")

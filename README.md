@@ -25,7 +25,7 @@ el capítulo o página exactos de donde salió.
 Las fórmulas se escriben en **LaTeX** y el código sale **coloreado**; los detalles,
 en [Fórmulas y código](#fórmulas-y-código).
 
-Temas incluidos (**1.195 tarjetas** de fábrica, ordenadas **de básico a avanzado**):
+Temas incluidos (**1.245 tarjetas** de fábrica, ordenadas **de básico a avanzado**):
 
 | Mazo | Niveles | Contenido |
 |---|---|---|
@@ -33,7 +33,7 @@ Temas incluidos (**1.195 tarjetas** de fábrica, ordenadas **de básico a avanza
 | 🐧 Linux (172) | Básico · Intermedio · Avanzado | shell, permisos, procesos, systemd, red, SSH, LVM, codificación, inodos y escritura atómica |
 | 📊 Ciencia de Datos (268) | Básico · Intermedio · Avanzado | estadística, pandas, SQL, modelado, granularidad, cardinalidad y disponibilidad temporal |
 | 🤖 Inteligencia Artificial (141) | Básico · Intermedio · Avanzado | LLM, RAG, embeddings, agentes, razonamiento, MCP, inferencia, extracción validada, evaluación y abstención |
-| 🚜 Maquinaria Amarilla y Volquete (100) | Básico · Intermedio · Avanzado | hidráulica, tren de rodaje, diagnóstico, partes de turno, ciclos e indicadores de flota |
+| 🚜 Maquinaria Amarilla y Volquete (150) | Básico · Intermedio · Avanzado | hidráulica, transmisiones powershift, GET, orugas SALT, CAN J1939, ciclos y flotas |
 | 🔧 Mecánica Automotriz (100) | Básico · Intermedio · Avanzado | motor, frenos, eléctrico, OBD2, common rail, híbridos, bitácora, consumo y evidencia diagnóstica |
 | 🧮 Matemáticas y Cálculo Rápido (95) | Básico · Intermedio · Avanzado | cálculo mental, porcentajes, cuadrados, fracciones, ecuaciones y probabilidad |
 | ⚡ Electricidad y Electrónica (86) | Básico · Intermedio · Avanzado | Ohm, medición, componentes, motores, Kirchhoff, circuitos RC y conversión ADC |
@@ -490,7 +490,7 @@ memoria de una repasada tres veces seguidas.
 
 ## Las lecturas
 
-145 capítulos, **1.368 minutos** de material, ordenados por nivel dentro de cada mazo:
+150 capítulos, **1.410 minutos** de material, ordenados por nivel dentro de cada mazo:
 
 | Mazo | Capítulos |
 |---|---|
@@ -498,7 +498,7 @@ memoria de una repasada tres veces seguidas.
 | 🐧 Linux (19 · 167 min) | Terminal, permisos, almacenamiento y servicios; nuevas lecturas de globbing y comillas, empaquetado, redirección, entorno, señales y rendimiento |
 | 📊 Ciencia de Datos (53 · 531 min) | Análisis, modelos y producción; nuevas lecturas de granularidad, cardinalidad y datos disponibles a tiempo |
 | 🤖 Inteligencia Artificial (16 · 150 min) | Modelos, RAG, agentes y seguridad; criterios de aceptación, extracción y evaluación pareada; nuevas lecturas de uso responsable, modelos de razonamiento, MCP, latencia de inferencia y mantenimiento |
-| 🚜 Maquinaria (11 · 98 min) | Operación, hidráulica y mantenimiento; nuevas lecturas de partes de turno, ciclos y disponibilidad |
+| 🚜 Maquinaria (16 · 140 min) | Operación, hidráulica y mantenimiento; transmisiones powershift, GET, volquetes ADT/RDT, CAN J1939 y gestión de orugas |
 | 🔧 Automotriz (11 · 99 min) | Sistemas y diagnóstico; nuevas lecturas de bitácora, consumo y pruebas que discriminan hipótesis |
 | ⚡ Electricidad (6 · 43 min) | Magnitudes, componentes y alterna; nuevas lecturas de nodos y mallas, transitorios RC y ADC |
 | 🧮 Matemáticas (9 · 72 min) | Cálculo mental y verificación; nuevas lecturas de fracciones, ecuaciones y probabilidad compuesta |
@@ -515,6 +515,7 @@ Los capítulos viven en `appstudy/content/readings/*.json`. Cada uno tiene `leve
 | `math` | una fórmula suelta en LaTeX, centrada |
 | `note` 💡 / `warn` ⚠️ / `key` 🔑 | recuadros destacados |
 | `quote` | cita o ejemplo largo |
+| `img` | imagen remota por URL con descarga asíncrona y caché local |
 
 ## Fórmulas y código
 
