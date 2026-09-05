@@ -7,7 +7,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib, Gdk, Gio, Gtk  # noqa: E402
 
-from . import cloze, db, historial, logros, scheduler, sesiones, sonido, util  # noqa: E402
+from . import cloze, db, historial, logros, scheduler, sesiones, sonido, util, voz  # noqa: E402
 
 RATINGS = [
     (scheduler.AGAIN, "Otra vez", "1", "as-rate-again"),
@@ -71,6 +71,17 @@ class PopupWindow(Adw.Window):
                                 tooltip_text="Tarjetas recientes")
         recientes.connect("clicked", lambda *_: historial.abrir(self, self.con))
         header.pack_start(recientes)
+
+        self.voz_cfg = voz.config(self.con)
+        if self.voz_cfg.get("activo", True):
+            self.btn_voz = Gtk.Button(icon_name="audio-volume-high-symbolic",
+                                      tooltip_text="Escuchar tarjeta (V)")
+            self.btn_voz.connect("clicked", lambda *_: self.alternar_voz())
+            header.pack_start(self.btn_voz)
+        else:
+            self.btn_voz = None
+
+        self.connect("close-request", lambda *_: (self.detener_voz(), False)[1])
 
         # Botones para cambiar tamaño de la tarjeta
         zoom_box = Gtk.Box(spacing=2)
@@ -226,6 +237,8 @@ class PopupWindow(Adw.Window):
         self._iniciar_reloj_sesion()
 
     def load_card(self):
+        if hasattr(self, "detener_voz"):
+            self.detener_voz()
         current_id = self.card["id"] if self.card else None
         if not hasattr(self, "recent_ids"):
             self.recent_ids = []
@@ -257,6 +270,8 @@ class PopupWindow(Adw.Window):
         if self.card:
             historial.registrar(self.con, self.card["id"])
         self.render()
+        if hasattr(self, "voz_auto_si_toca"):
+            self.voz_auto_si_toca(solo_pregunta=True)
 
     def es_cloze(self) -> bool:
         return bool(self.card) and self.card["kind"] == "cloze" \
@@ -662,6 +677,8 @@ class PopupWindow(Adw.Window):
             return
         self.revealed = True
         self.render()
+        if hasattr(self, "voz_auto_si_toca"):
+            self.voz_auto_si_toca(solo_respuesta=True)
 
     def answer(self, idx):
         if self.answered is not None:
@@ -785,6 +802,9 @@ class PopupWindow(Adw.Window):
         if k in ("a", "A"):
             self.open_main()
             return True
+        if k in ("v", "V"):
+            self.alternar_voz()
+            return True
         if (k == "space" and not self.revealed and self.card
                 and self.card["kind"] in ("card", "cloze")):
             self.reveal()
@@ -803,4 +823,56 @@ class PopupWindow(Adw.Window):
                     return True
                 self.rate(n)
             return True
+        return False
+
+    def alternar_voz(self):
+        if voz.esta_hablando():
+            self.detener_voz()
+            return
+        if not self.card:
+            return
+        self.voz_cfg = voz.config(self.con)
+        if not self.voz_cfg.get("activo", True):
+            return
+        texto = self.card["front"]
+        if self.revealed:
+            back = self.card["back"] or self.card.get("hint", "")
+            if back:
+                texto += f". {back}"
+        duracion = voz.hablar(texto, self.voz_cfg, on_done=self.on_voz_terminada)
+        if duracion > 0 and hasattr(self, "btn_voz") and self.btn_voz:
+            self.btn_voz.set_icon_name("media-playback-stop-symbolic")
+            self.btn_voz.set_tooltip_text("Detener lectura (V)")
+
+    def detener_voz(self):
+        voz.detener()
+        if hasattr(self, "btn_voz") and self.btn_voz:
+            self.btn_voz.set_icon_name("audio-volume-high-symbolic")
+            self.btn_voz.set_tooltip_text("Escuchar tarjeta (V)")
+
+    def on_voz_terminada(self):
+        if hasattr(self, "btn_voz") and self.btn_voz:
+            self.btn_voz.set_icon_name("audio-volume-high-symbolic")
+            self.btn_voz.set_tooltip_text("Escuchar tarjeta (V)")
+
+    def voz_auto_si_toca(self, solo_pregunta=False, solo_respuesta=False):
+        if hasattr(self, "voz_cfg") and self.voz_cfg.get("activo", True) and self.voz_cfg.get("auto", False):
+            GLib.timeout_add(180, lambda: self._auto_hablar_timer(solo_pregunta, solo_respuesta))
+
+    def _auto_hablar_timer(self, solo_pregunta=False, solo_respuesta=False):
+        if not getattr(self, "card", None):
+            return False
+        if solo_respuesta:
+            back = self.card["back"] or self.card.get("hint", "")
+            if back:
+                dur = voz.hablar(back, self.voz_cfg, on_done=self.on_voz_terminada)
+                if dur > 0 and hasattr(self, "btn_voz") and self.btn_voz:
+                    self.btn_voz.set_icon_name("media-playback-stop-symbolic")
+                    self.btn_voz.set_tooltip_text("Detener lectura (V)")
+        else:
+            texto = self.card["front"]
+            dur = voz.hablar(texto, self.voz_cfg, on_done=self.on_voz_terminada)
+            if dur > 0 and hasattr(self, "btn_voz") and self.btn_voz:
+                self.btn_voz.set_icon_name("media-playback-stop-symbolic")
+                self.btn_voz.set_tooltip_text("Detener lectura (V)")
         return False

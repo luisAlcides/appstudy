@@ -55,6 +55,9 @@ class AppStudy(Adw.Application):
                              GLib.OptionArg.NONE,
                              "Reimportar el contenido incluido y refrescar la ventana",
                              None)
+        self.add_main_option("say", 0, GLib.OptionFlags.NONE,
+                             GLib.OptionArg.STRING,
+                             "Leer un texto en voz alta con la voz de Bit", "TEXTO")
 
     # ------------------------------------------------------------------ arranque
 
@@ -135,6 +138,11 @@ class AppStudy(Adw.Application):
             return 0
         if opts.get("reload"):
             cmdline.print_literal(self.reload_content() + "\n")
+            return 0
+        if "say" in opts:
+            from . import voz
+            cfg = voz.config(self.con)
+            voz.hablar(opts["say"], cfg)
             return 0
         if "read-card" in opts:
             self.show_reading_for_card(opts["read-card"])

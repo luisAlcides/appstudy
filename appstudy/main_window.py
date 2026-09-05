@@ -14,7 +14,7 @@ from . import ayuda, buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: 
 from . import historial, hotkey, ia, importador, lecturas  # noqa: E402
 from . import libros, logros, pet, recordatorios, respaldo, scheduler  # noqa: E402
 from . import nube, sincronizacion  # noqa: E402
-from . import sesiones, sonido, util  # noqa: E402
+from . import sesiones, sonido, util, voz  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
 
 from .reader import ChapterView, render_body  # noqa: E402
@@ -1212,6 +1212,51 @@ class MainWindow(Adw.ApplicationWindow):
         gp.add(self.reminder_end)
         page.add(gp)
 
+        desc_voz = ("Voz neuronal de alta calidad (Piper · modelo en español natural y humano)."
+                    if voz.tiene_motor_neuronal() else
+                    "Permite que Bit y las tarjetas lean su texto en voz alta bajo demanda o automáticamente.")
+        gvoz = Adw.PreferencesGroup(
+            title="Voz y lectura en voz alta",
+            description=desc_voz)
+
+        self.voz_switch = Adw.SwitchRow(
+            title="Activar voz",
+            subtitle="Muestra el botón de altavoz en el globo de Bit y en las tarjetas (atajo V)")
+        self.voz_switch.connect("notify::active", self.on_voz_toggle)
+        gvoz.add(self.voz_switch)
+
+        self.voz_auto = Adw.SwitchRow(
+            title="Lectura automática",
+            subtitle="Lee automáticamente tarjetas, citas y mensajes cuando aparecen")
+        self.voz_auto.connect("notify::active", self.on_voz_auto)
+        gvoz.add(self.voz_auto)
+
+        self.voz_vol = Adw.SpinRow.new_with_range(0, 100, 10)
+        self.voz_vol.set_title("Volumen de voz")
+        self.voz_vol.connect("notify::value", self.on_voz_volumen)
+        gvoz.add(self.voz_vol)
+
+        self.voz_vel = Adw.SpinRow.new_with_range(-50, 50, 5)
+        self.voz_vel.set_title("Velocidad")
+        self.voz_vel.set_subtitle("0 normal · valores negativos más lento, positivos más rápido")
+        self.voz_vel.connect("notify::value", self.on_voz_velocidad)
+        gvoz.add(self.voz_vel)
+
+        self.voz_tono = Adw.SpinRow.new_with_range(-50, 50, 5)
+        self.voz_tono.set_title("Tono")
+        self.voz_tono.set_subtitle("0 estándar · valores positivos más agudo")
+        self.voz_tono.connect("notify::value", self.on_voz_tono)
+        gvoz.add(self.voz_tono)
+
+        probar_voz_row = Adw.ActionRow(
+            title="Probar voz",
+            subtitle="Escuchar una muestra con la configuración actual")
+        btn_probar_voz = Gtk.Button(label="Probar", valign=Gtk.Align.CENTER)
+        btn_probar_voz.connect("clicked", lambda *_: self.probar_voz())
+        probar_voz_row.add_suffix(btn_probar_voz)
+        gvoz.add(probar_voz_row)
+        page.add(gvoz)
+
         gia = Adw.PreferencesGroup(
             title="Inteligencia artificial",
             description="Un modelo que corre en tu propia máquina con Ollama: puedes "
@@ -1538,6 +1583,28 @@ class MainWindow(Adw.ApplicationWindow):
     def on_volumen(self, fila, _p):
         sonido.guardar(self.con, volumen=fila.get_value() / 100)
         sonido.reproducir(sonido.config(self.con), "clic")
+
+    def on_voz_toggle(self, fila, _p):
+        voz.guardar(self.con, activo=fila.get_active())
+        if fila.get_active():
+            self.probar_voz()
+
+    def on_voz_auto(self, fila, _p):
+        voz.guardar(self.con, auto=fila.get_active())
+
+    def on_voz_volumen(self, fila, _p):
+        voz.guardar(self.con, volumen=int(fila.get_value()))
+
+    def on_voz_velocidad(self, fila, _p):
+        voz.guardar(self.con, velocidad=int(fila.get_value()))
+
+    def on_voz_tono(self, fila, _p):
+        voz.guardar(self.con, tono=int(fila.get_value()))
+
+    def probar_voz(self):
+        cfg = voz.config(self.con)
+        cfg["activo"] = True
+        voz.hablar(f"¡Hola! Soy {pet.NOMBRE}, tu compañero de estudio.", cfg)
 
     def on_card_size(self, fila, _p):
         db.set_meta(self.con, "card_scale", round(fila.get_value() / 100, 2))
@@ -2881,6 +2948,25 @@ echo hola
         self.snd_switch.set_active(snd["activo"])
         self.snd_vol.set_value(round(snd["volumen"] * 100))
         for fila, cb in ((self.snd_switch, self.on_sonido), (self.snd_vol, self.on_volumen)):
+            fila.handler_unblock_by_func(cb)
+
+        vcfg = voz.config(self.con)
+        for fila, cb in ((self.voz_switch, self.on_voz_toggle),
+                         (self.voz_auto, self.on_voz_auto),
+                         (self.voz_vol, self.on_voz_volumen),
+                         (self.voz_vel, self.on_voz_velocidad),
+                         (self.voz_tono, self.on_voz_tono)):
+            fila.handler_block_by_func(cb)
+        self.voz_switch.set_active(vcfg["activo"])
+        self.voz_auto.set_active(vcfg["auto"])
+        self.voz_vol.set_value(vcfg["volumen"])
+        self.voz_vel.set_value(vcfg["velocidad"])
+        self.voz_tono.set_value(vcfg["tono"])
+        for fila, cb in ((self.voz_switch, self.on_voz_toggle),
+                         (self.voz_auto, self.on_voz_auto),
+                         (self.voz_vol, self.on_voz_volumen),
+                         (self.voz_vel, self.on_voz_velocidad),
+                         (self.voz_tono, self.on_voz_tono)):
             fila.handler_unblock_by_func(cb)
 
         self.card_size.handler_block_by_func(self.on_card_size)

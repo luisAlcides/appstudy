@@ -23,7 +23,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
 from . import citas, db, estadisticas, ia, logros, reto  # noqa: E402
-from . import historial, recordatorios, scheduler, sonido, util  # noqa: E402
+from . import historial, recordatorios, scheduler, sonido, util, voz  # noqa: E402
 
 PET_APP_ID = "io.github.appstudy.AppStudy.Pet"
 NOMBRE = "Bit"
@@ -1489,6 +1489,9 @@ class PetWindow(Gtk.ApplicationWindow):
         self.ia_cuerpo = None
         self.contexto_ia = ""         # la tarjeta desde la que preguntaste
         self.sonido = sonido.config(self.con)     # se relee al refrescar el estado
+        self.voz_cfg = voz.config(self.con)
+        self.btn_voz = None
+        self.texto_hablable = ""
         self.chat = None              # {"historial": [...], "contexto": str} en modo chatbot
         self.stats = {}
         self.ultimas_citas = []     # para no repetir la misma frase seguida
@@ -1663,6 +1666,7 @@ class PetWindow(Gtk.ApplicationWindow):
         califiques una tarjeta.
         """
         self.sonido = sonido.config(self.con)
+        self.voz_cfg = voz.config(self.con)
         t = db.totals(self.con)
         fila = self.con.execute("SELECT MAX(ts) AS ts FROM log").fetchone()
         ultimo = fila["ts"] or 0
@@ -1886,6 +1890,8 @@ class PetWindow(Gtk.ApplicationWindow):
     # ------------------------------------------------------------------ globo
 
     def clear_bubble(self):
+        if hasattr(self, "detener_voz"):
+            self.detener_voz()
         while (hijo := self.bubble_box.get_first_child()) is not None:
             self.bubble_box.remove(hijo)
 
@@ -1896,6 +1902,8 @@ class PetWindow(Gtk.ApplicationWindow):
             ia.hilo(lambda: ia.descargar(cfg))
 
     def close_bubble(self, *_):
+        if hasattr(self, "detener_voz"):
+            self.detener_voz()
         if self.chat is not None or self.ia_cuerpo is not None:
             self.liberar_ia()
         self.parar_cuenta()
@@ -1957,6 +1965,13 @@ class PetWindow(Gtk.ApplicationWindow):
                              valign=Gtk.Align.CENTER, css_classes=["as-bubble-title"])
         fila.append(etiqueta)
 
+        if getattr(self, "voz_cfg", {}).get("activo", True):
+            self.btn_voz = Gtk.Button(icon_name="audio-volume-high-symbolic",
+                                      tooltip_text="Escuchar (leer en voz alta)",
+                                      css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
+            self.btn_voz.connect("clicked", lambda *_: self.alternar_voz_globo())
+            fila.append(self.btn_voz)
+
         recientes = Gtk.Button(icon_name="document-open-recent-symbolic",
                                 tooltip_text="Tarjetas recientes",
                                 css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
@@ -1978,6 +1993,63 @@ class PetWindow(Gtk.ApplicationWindow):
         caja.append(linea)
         return caja
 
+    def alternar_voz_globo(self):
+        if voz.esta_hablando():
+            self.detener_voz()
+            return
+        texto = getattr(self, "texto_hablable", "") or self.obtener_texto_globo()
+        if not texto:
+            return
+        self.voz_cfg = voz.config(self.con)
+        if not self.voz_cfg.get("activo", True):
+            return
+        duracion = voz.hablar(texto, self.voz_cfg, on_done=self.on_voz_terminada)
+        if duracion > 0:
+            self.creature.hablar(duracion)
+            if hasattr(self, "btn_voz") and self.btn_voz:
+                self.btn_voz.set_icon_name("media-playback-stop-symbolic")
+                self.btn_voz.set_tooltip_text("Detener voz")
+
+    def detener_voz(self):
+        voz.detener()
+        if hasattr(self, "creature") and self.creature:
+            self.creature.hablando_hasta = 0
+        if hasattr(self, "btn_voz") and self.btn_voz:
+            self.btn_voz.set_icon_name("audio-volume-high-symbolic")
+            self.btn_voz.set_tooltip_text("Escuchar (leer en voz alta)")
+
+    def on_voz_terminada(self):
+        if hasattr(self, "creature") and self.creature:
+            self.creature.hablando_hasta = 0
+        if hasattr(self, "btn_voz") and self.btn_voz:
+            self.btn_voz.set_icon_name("audio-volume-high-symbolic")
+            self.btn_voz.set_tooltip_text("Escuchar (leer en voz alta)")
+
+    def obtener_texto_globo(self) -> str:
+        partes = []
+        def recorrer(widget):
+            if isinstance(widget, Gtk.Label):
+                lbl = widget.get_label()
+                if lbl and not widget.has_css_class("as-chip-mazo") and not widget.has_css_class("as-bubble-title"):
+                    partes.append(lbl)
+            hijo = widget.get_first_child() if hasattr(widget, "get_first_child") else None
+            while hijo:
+                recorrer(hijo)
+                hijo = hijo.get_next_sibling()
+        if hasattr(self, "bubble_box"):
+            recorrer(self.bubble_box)
+        return " ".join(partes)
+
+    def voz_auto_si_toca(self):
+        if hasattr(self, "voz_cfg") and self.voz_cfg.get("activo", True) and self.voz_cfg.get("auto", False):
+            GLib.timeout_add(260, self._auto_hablar_timer)
+
+    def _auto_hablar_timer(self):
+        if hasattr(self, "bubble") and self.bubble.get_reveal_child():
+            if not voz.esta_hablando():
+                self.alternar_voz_globo()
+        return False
+
     @staticmethod
     def pintar(widget, css):
         proveedor = Gtk.CssProvider()
@@ -1988,6 +2060,7 @@ class PetWindow(Gtk.ApplicationWindow):
     def say(self, texto, titulo=f"{NOMBRE} dice", boton=None):
         """Un mensaje corto, con un botón opcional."""
         self.card = None
+        self.texto_hablable = texto
         self.clear_bubble()
         self.bubble_box.append(self.bubble_header(titulo))
         self.bubble_box.append(Gtk.Label(label=util.to_markup(texto), use_markup=True,
@@ -1999,12 +2072,14 @@ class PetWindow(Gtk.ApplicationWindow):
             b.connect("clicked", lambda *_: cb())
             self.bubble_box.append(b)
         self.open_bubble()
+        self.voz_auto_si_toca()
 
     def quote(self):
         """Una frase de un libro, con su autor y su obra."""
         frase, autor, obra = citas.aleatoria(self.ultimas_citas)
         self.ultimas_citas = (self.ultimas_citas + [frase])[-12:]
         self.card = None
+        self.texto_hablable = f"«{frase}». {autor}, {obra}."
         self.clear_bubble()
         self.bubble_box.append(self.bubble_header("📖 De un libro"))
         self.bubble_box.append(Gtk.Label(
@@ -2026,6 +2101,7 @@ class PetWindow(Gtk.ApplicationWindow):
         self.bubble_box.append(fila)
         self.creature.pensar()
         self.open_bubble()
+        self.voz_auto_si_toca()
 
     def teach(self):
         """Saca una tarjeta y te la explica: pregunta y respuesta, las dos."""
@@ -2056,6 +2132,9 @@ class PetWindow(Gtk.ApplicationWindow):
     def render_card(self):
         """Enseñar es enseñar: la respuesta está a la vista desde el principio."""
         c = self.card
+        f = c["front"]
+        b = c["back"] or c.get("hint", "")
+        self.texto_hablable = f"{f}. {b}" if b else f
         self.clear_bubble()
         titulo = {"quiz": "Fíjate en esto", "lesson": "¿Sabías esto?"}.get(
             c["kind"], "Repasemos esto")
@@ -2101,6 +2180,7 @@ class PetWindow(Gtk.ApplicationWindow):
 
         self.bubble_box.append(self.pie_leer())
         self.open_bubble()
+        self.voz_auto_si_toca()
 
     def celebrar_logro(self) -> bool:
         """Si acabas de pasar una marca, la celebra. Solo la primera vez.
@@ -2206,6 +2286,8 @@ class PetWindow(Gtk.ApplicationWindow):
 
     def render_reto(self):
         r, c = self.reto, self.card
+        ops = ". ".join(r.get("opciones", [])) if r.get("opciones") else ""
+        self.texto_hablable = f"{r.get('pregunta', '')}. {ops}".strip()
         self.clear_bubble()
         self.bubble_box.append(self.bubble_header(
             f"{r['icono']} {r['titulo']}", c["deck_color"],
@@ -2225,6 +2307,7 @@ class PetWindow(Gtk.ApplicationWindow):
         self.creature.pensar()
         self.arrancar_cuenta(r["segundos"])
         self.open_bubble()
+        self.voz_auto_si_toca()
 
     def enunciado(self):
         """Lo que hay que leer antes de responder, según el formato del reto."""
@@ -2576,10 +2659,12 @@ class PetWindow(Gtk.ApplicationWindow):
         self.creature.hablando_hasta = 0
         if self.chat is None:
             return                       # saliste del chat mientras pensaba
+        self.texto_hablable = respuesta or ""
         self.chat["historial"].append({"role": "assistant",
                                        "content": respuesta or "(sin respuesta)"})
         self.sonar("listo")
         self.render_chat()
+        self.voz_auto_si_toca()
 
     def preguntar(self):
         """Un globo con una caja de texto: pregúntale lo que quieras."""
@@ -2652,6 +2737,7 @@ class PetWindow(Gtk.ApplicationWindow):
         self.creature.hablando_hasta = 0
         if cuerpo is not self.ia_cuerpo:
             return                        # el globo ya se cerró o cambió
+        self.texto_hablable = texto or ""
         cuerpo.set_markup(util.to_markup(texto or "(sin respuesta)"))
         self.sonar("listo")
         fila = Gtk.Box(spacing=6, homogeneous=True)
@@ -2666,6 +2752,7 @@ class PetWindow(Gtk.ApplicationWindow):
         if card:
             self.bubble_box.append(self.pie_leer())
         self.creature.play("salto", 0.5)
+        self.voz_auto_si_toca()
 
     # --------------------------------------------------------- leer sobre esto
 
