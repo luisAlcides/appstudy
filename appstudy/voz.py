@@ -19,12 +19,94 @@ from . import db
 
 PIPER_DIR = Path.home() / ".local" / "share" / "appstudy" / "piper"
 PIPER_BIN = PIPER_DIR / "piper"
-PIPER_MODEL = PIPER_DIR / "es_ES-davefx-medium.onnx"
+PIPER_MODEL_ES = PIPER_DIR / "es_ES-davefx-medium.onnx"
+PIPER_MODEL_EN = PIPER_DIR / "en_US-lessac-medium.onnx"
+PIPER_MODEL = PIPER_MODEL_ES  # retrocompatibilidad
+
+STOPWORDS_EN = {
+    "the", "be", "to", "of", "and", "that", "have", "i", "it", "for", "not",
+    "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from",
+    "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would",
+    "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which",
+    "go", "when", "make", "can", "like", "time", "just", "him", "know",
+    "take", "people", "into", "year", "your", "good", "some", "could", "them", "see",
+    "other", "than", "then", "now", "look", "only", "come", "its", "over", "think",
+    "also", "back", "after", "use", "two", "how", "our", "work", "first", "well",
+    "way", "even", "new", "want", "because", "any", "these", "give", "day", "most",
+    "us", "is", "are", "was", "were", "been", "has", "had", "does", "did", "doing",
+    "don't", "doesn't", "didn't", "won't", "can't", "should", "must", "might",
+    "choose", "correct", "sentence", "meaning", "words", "fill", "blank", "listen",
+    "answer", "question", "questions", "following", "where", "why"
+}
+
+STOPWORDS_ES = {
+    "de", "la", "que", "el", "en", "y", "los", "del", "se", "las", "por", "un", "para",
+    "con", "una", "su", "al", "lo", "como", "más", "pero", "sus", "le", "ya", "o",
+    "este", "sí", "porque", "esta", "entre", "cuando", "muy", "sin", "sobre", "también",
+    "hasta", "hay", "donde", "quien", "desde", "todo", "nos", "durante", "todos",
+    "uno", "les", "ni", "contra", "otros", "ese", "eso", "ante", "ellos", "e", "esto",
+    "mí", "antes", "algunos", "qué", "unos", "yo", "otro", "otras", "otra", "él", "tanto",
+    "esa", "estos", "mucho", "quienes", "nada", "muchos", "cual", "poco", "ella", "estar",
+    "estas", "algunas", "algo", "nosotros", "mi", "mis", "tú", "te", "ti", "tu", "tus",
+    "es", "son", "fue", "era", "ser", "ha", "han", "hemos", "está", "están", "estaba"
+}
 
 
-def tiene_motor_neuronal() -> bool:
-    """Indica si el motor de voz neuronal (Piper + modelo en español) está listo."""
-    return PIPER_BIN.is_file() and os.access(PIPER_BIN, os.X_OK) and PIPER_MODEL.is_file()
+def _val_tarjeta(card, clave: str, defecto: str = "") -> str:
+    if not card:
+        return defecto
+    try:
+        val = card[clave]
+        return "" if val is None else str(val)
+    except Exception:
+        return defecto
+
+
+def es_tarjeta_ingles(card: dict | None = None, texto: str = "") -> bool:
+    """Determina si una tarjeta o texto corresponde al idioma inglés.
+
+    Se usa para seleccionar automáticamente el modelo de voz en inglés en Piper o spd-say,
+    evitando que las tarjetas de inglés se lean literalmente con fonética española.
+    """
+    palabras = re.findall(r"[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ']+", texto.lower()) if texto else []
+    cuenta_en = sum(1 for p in palabras if p in STOPWORDS_EN)
+    cuenta_es = sum(1 for p in palabras if p in STOPWORDS_ES)
+
+    # Si el texto es predominantemente una explicación o frase en español, usar español
+    if cuenta_es >= 4 and cuenta_es > cuenta_en * 2:
+        return False
+
+    if card:
+        deck_key = _val_tarjeta(card, "deck_key").lower()
+        deck_name = _val_tarjeta(card, "deck_name").lower()
+        if deck_key in ("ingles", "english", "en") or "ingl" in deck_name or "english" in deck_name:
+            return True
+        tags = _val_tarjeta(card, "tags").lower()
+        for t in re.split(r"[\s,;]+", tags):
+            if t in ("ingles", "inglés", "english", "grammar", "vocabulary", "idioms", "en"):
+                return True
+
+    # Detección heurística en texto libre sin tarjeta
+    if cuenta_en >= 2 and cuenta_en > cuenta_es:
+        return True
+    if cuenta_en >= 1 and cuenta_es == 0 and len(palabras) <= 4:
+        return True
+
+    return False
+
+
+def detectar_idioma(card: dict | None = None, texto: str = "") -> str:
+    """Devuelve 'en' si es inglés, 'es' si es español."""
+    return "en" if es_tarjeta_ingles(card=card, texto=texto) else "es"
+
+
+def tiene_motor_neuronal(idioma: str | None = None) -> bool:
+    """Indica si el motor de voz neuronal (Piper) está disponible."""
+    if not (PIPER_BIN.is_file() and os.access(PIPER_BIN, os.X_OK)):
+        return False
+    if idioma and str(idioma).lower().startswith("en"):
+        return PIPER_MODEL_EN.is_file()
+    return PIPER_MODEL_ES.is_file() or PIPER_MODEL.is_file()
 
 
 def limpiar_para_voz(texto: str) -> str:
@@ -160,7 +242,8 @@ class ReproductorVoz:
 
     def reproducir(self, texto: str, cfg: dict, duracion: float, on_done=None):
         self.detener()
-        if tiene_motor_neuronal():
+        idioma = cfg.get("idioma", "es")
+        if tiene_motor_neuronal(idioma):
             self._reproducir_piper(texto, cfg, duracion, on_done)
         elif self._spd_cmd:
             self._reproducir_spdsay(texto, cfg, duracion, on_done)
@@ -183,9 +266,17 @@ class ReproductorVoz:
         factor = max(0.5, min(2.0, 1.0 + (velocidad / 100.0)))
         length_scale = round(1.0 / factor, 3)
 
+        idioma = cfg.get("idioma", "es")
+        if idioma and str(idioma).lower().startswith("en") and PIPER_MODEL_EN.is_file():
+            modelo = PIPER_MODEL_EN
+        elif PIPER_MODEL_ES.is_file():
+            modelo = PIPER_MODEL_ES
+        else:
+            modelo = PIPER_MODEL
+
         cmd_piper = [
             str(PIPER_BIN),
-            "--model", str(PIPER_MODEL),
+            "--model", str(modelo),
             "--length_scale", str(length_scale),
             "--output-raw",
         ]
@@ -252,7 +343,8 @@ class ReproductorVoz:
         vol_spd = int((vol - 50) * 2)  # escala -100..100 de spd-say
         rate = cfg.get("velocidad", 0)
         pitch = cfg.get("tono", 0)
-        lang = cfg.get("idioma", "es")
+        idioma = cfg.get("idioma", "es")
+        lang = "en" if str(idioma).lower().startswith("en") else "es"
 
         cmd = [
             self._spd_cmd,
@@ -300,7 +392,8 @@ class ReproductorVoz:
             client = speechd.SSIPClient("appstudy")
             rate = cfg.get("velocidad", 0)
             pitch = cfg.get("tono", 0)
-            lang = cfg.get("idioma", "es")
+            idioma = cfg.get("idioma", "es")
+            lang = "en" if str(idioma).lower().startswith("en") else "es"
             vol = cfg.get("volumen", 100)
             client.set_language(lang)
             client.set_rate(rate)
@@ -329,19 +422,29 @@ class ReproductorVoz:
 _reproductor = ReproductorVoz()
 
 
-def hablar(texto: str, cfg: dict | None = None, on_done=None) -> float:
+def hablar(texto: str, cfg: dict | None = None, on_done=None,
+           card: dict | None = None, idioma: str | None = None) -> float:
     """Lee el texto en voz alta de forma asíncrona.
 
+    Soporta selección automática de idioma (español o inglés) según la tarjeta o texto,
+    evitando la lectura literal con fonética inapropiada.
     Devuelve la duración estimada en segundos para animar la boca de Bit.
     """
     if not texto:
         return 0.0
-    cfg = cfg or {}
+    cfg = dict(cfg) if cfg else {}
     if not cfg.get("activo", True):
         return 0.0
     limpio = limpiar_para_voz(texto)
     if not limpio:
         return 0.0
+
+    if idioma:
+        cfg["idioma"] = idioma
+    elif not cfg.get("idioma") or cfg.get("idioma") == "es":
+        if es_tarjeta_ingles(card=card, texto=limpio):
+            cfg["idioma"] = "en"
+
     duracion = duracion_estimada(limpio, cfg.get("velocidad", 0))
     _reproductor.reproducir(limpio, cfg, duracion, on_done)
     return duracion

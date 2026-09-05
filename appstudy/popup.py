@@ -839,7 +839,7 @@ class PopupWindow(Adw.Window):
             back = self.card["back"] or self.card.get("hint", "")
             if back:
                 texto += f". {back}"
-        duracion = voz.hablar(texto, self.voz_cfg, on_done=self.on_voz_terminada)
+        duracion = voz.hablar(texto, self.voz_cfg, on_done=self.on_voz_terminada, card=self.card)
         if duracion > 0 and hasattr(self, "btn_voz") and self.btn_voz:
             self.btn_voz.set_icon_name("media-playback-stop-symbolic")
             self.btn_voz.set_tooltip_text("Detener lectura (V)")
@@ -865,13 +865,13 @@ class PopupWindow(Adw.Window):
         if solo_respuesta:
             back = self.card["back"] or self.card.get("hint", "")
             if back:
-                dur = voz.hablar(back, self.voz_cfg, on_done=self.on_voz_terminada)
+                dur = voz.hablar(back, self.voz_cfg, on_done=self.on_voz_terminada, card=self.card)
                 if dur > 0 and hasattr(self, "btn_voz") and self.btn_voz:
                     self.btn_voz.set_icon_name("media-playback-stop-symbolic")
                     self.btn_voz.set_tooltip_text("Detener lectura (V)")
         else:
             texto = self.card["front"]
-            dur = voz.hablar(texto, self.voz_cfg, on_done=self.on_voz_terminada)
+            dur = voz.hablar(texto, self.voz_cfg, on_done=self.on_voz_terminada, card=self.card)
             if dur > 0 and hasattr(self, "btn_voz") and self.btn_voz:
                 self.btn_voz.set_icon_name("media-playback-stop-symbolic")
                 self.btn_voz.set_tooltip_text("Detener lectura (V)")

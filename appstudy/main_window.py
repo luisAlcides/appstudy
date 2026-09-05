@@ -1212,7 +1212,7 @@ class MainWindow(Adw.ApplicationWindow):
         gp.add(self.reminder_end)
         page.add(gp)
 
-        desc_voz = ("Voz neuronal de alta calidad (Piper · modelo en español natural y humano)."
+        desc_voz = ("Voz neuronal de alta calidad (Piper · modelos en español e inglés natural)."
                     if voz.tiene_motor_neuronal() else
                     "Permite que Bit y las tarjetas lean su texto en voz alta bajo demanda o automáticamente.")
         gvoz = Adw.PreferencesGroup(

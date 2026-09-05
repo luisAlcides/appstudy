@@ -50,6 +50,29 @@ class TestVoz(BaseTemporal):
 
     def test_tiene_motor_neuronal(self):
         self.assertTrue(voz.tiene_motor_neuronal())
+        self.assertTrue(voz.tiene_motor_neuronal("es"))
+        self.assertTrue(voz.tiene_motor_neuronal("en"))
+
+    def test_es_tarjeta_ingles_deck(self):
+        card_en = {"deck_key": "ingles", "deck_name": "Inglés", "front": "Present Simple"}
+        self.assertTrue(voz.es_tarjeta_ingles(card_en))
+        self.assertEqual(voz.detectar_idioma(card_en), "en")
+
+        card_es = {"deck_key": "automotriz", "deck_name": "Mecánica Automotriz", "front": "Alternador"}
+        self.assertFalse(voz.es_tarjeta_ingles(card_es))
+        self.assertEqual(voz.detectar_idioma(card_es), "es")
+
+    def test_es_tarjeta_ingles_texto(self):
+        self.assertTrue(voz.es_tarjeta_ingles(None, "Choose the correct sentence for this question"))
+        self.assertTrue(voz.es_tarjeta_ingles(None, "She doesn't work on Sundays"))
+        self.assertFalse(voz.es_tarjeta_ingles(None, "Esta es una oración explicativa en español"))
+
+    def test_es_tarjeta_ingles_explicacion_espanol(self):
+        # Si la IA da una explicación larga en español de una tarjeta de inglés, debe leerse en español
+        card_en = {"deck_key": "ingles", "deck_name": "Inglés"}
+        texto_es = "En esta lección vamos a estudiar cómo y cuándo se utiliza el presente simple con ejemplos prácticos."
+        self.assertFalse(voz.es_tarjeta_ingles(card_en, texto_es))
+        self.assertEqual(voz.detectar_idioma(card_en, texto_es), "es")
 
     def test_hablar_inactivo_devuelve_cero(self):
         cfg = {"activo": False}

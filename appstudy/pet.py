@@ -2003,7 +2003,8 @@ class PetWindow(Gtk.ApplicationWindow):
         self.voz_cfg = voz.config(self.con)
         if not self.voz_cfg.get("activo", True):
             return
-        duracion = voz.hablar(texto, self.voz_cfg, on_done=self.on_voz_terminada)
+        duracion = voz.hablar(texto, self.voz_cfg, on_done=self.on_voz_terminada,
+                              card=getattr(self, "card", None))
         if duracion > 0:
             self.creature.hablar(duracion)
             if hasattr(self, "btn_voz") and self.btn_voz:
