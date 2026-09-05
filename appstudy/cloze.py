@@ -33,6 +33,8 @@ def _partes(texto: str):
         if m.start() > pos:
             piezas.append({"tipo": "texto", "valor": texto[pos:m.start()]})
         cuerpo = m.group(1)
+        # Limpiar prefijo c1:: si proviene de tarjetas estilo Anki
+        cuerpo = re.sub(r"^c\d+::", "", cuerpo)
         respuesta, _, pista = cuerpo.partition(SEPARADOR)
         piezas.append({"tipo": "hueco", "indice": n,
                        "valor": respuesta.strip(), "pista": pista.strip()})

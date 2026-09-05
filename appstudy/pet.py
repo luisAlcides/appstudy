@@ -22,7 +22,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
-from . import citas, db, estadisticas, ia, logros, reto  # noqa: E402
+from . import citas, cloze, db, estadisticas, ia, logros, reto  # noqa: E402
 from . import historial, recordatorios, scheduler, sonido, util, voz  # noqa: E402
 
 PET_APP_ID = "io.github.appstudy.AppStudy.Pet"
@@ -2211,7 +2211,7 @@ class PetWindow(Gtk.ApplicationWindow):
     def render_card(self):
         """Enseñar es enseñar: la respuesta está a la vista desde el principio."""
         c = self.card
-        f = c["front"]
+        f = cloze.completo(c["front"]) if cloze.tiene_huecos(c["front"]) else c["front"]
         b = c["back"] or c.get("hint", "")
         self.texto_hablable = f"{f}. {b}" if b else f
         self.clear_bubble()
@@ -2221,8 +2221,10 @@ class PetWindow(Gtk.ApplicationWindow):
             titulo, c["deck_color"], mazo=f"{c['deck_icon']} {c['deck_name']}",
             nivel=db.level_name(c["deck_levels"], c["level"])))
 
+        texto_front = (cloze.resaltado(c["front"]) if cloze.tiene_huecos(c["front"])
+                       else c["front"])
         self.bubble_box.append(Gtk.Label(
-            label=util.to_markup(c["front"]), use_markup=True, wrap=True, xalign=0,
+            label=util.to_markup(texto_front), use_markup=True, wrap=True, xalign=0,
             max_width_chars=self.char_width(30), css_classes=["as-bubble-front"]))
 
         if c["back"]:
@@ -2477,8 +2479,10 @@ class PetWindow(Gtk.ApplicationWindow):
         self.bubble_box.append(self.bubble_header(
             "⏱ Se acabó el tiempo" if agotado else "⚡ A ver si coincidimos",
             c["deck_color"], mazo=f"{c['deck_icon']} {c['deck_name']}"))
+        texto_front = (cloze.resaltado(c["front"]) if cloze.tiene_huecos(c["front"])
+                       else c["front"])
         self.bubble_box.append(Gtk.Label(
-            label=util.to_markup(c["front"]), use_markup=True, wrap=True, xalign=0,
+            label=util.to_markup(texto_front), use_markup=True, wrap=True, xalign=0,
             max_width_chars=self.char_width(30), css_classes=["as-bubble-front"]))
         self.bubble_box.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
         self.bubble_box.append(Gtk.Label(
@@ -2566,8 +2570,10 @@ class PetWindow(Gtk.ApplicationWindow):
         else:
             titulo, clase = "❌ Casi", "as-reto-mal"
         self.bubble_box.append(self.bubble_header(titulo))
+        texto_front = (cloze.resaltado(card["front"]) if cloze.tiene_huecos(card["front"])
+                       else card["front"])
         self.bubble_box.append(Gtk.Label(
-            label=util.to_markup(card["front"]), use_markup=True, wrap=True, xalign=0,
+            label=util.to_markup(texto_front), use_markup=True, wrap=True, xalign=0,
             max_width_chars=self.char_width(30), css_classes=["as-bubble-front"]))
         if not acierto and elegida:
             self.bubble_box.append(Gtk.Label(

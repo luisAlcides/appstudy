@@ -113,7 +113,11 @@ def limpiar_para_voz(texto: str) -> str:
     """Limpia etiquetas HTML, markdown, cloze y fórmulas para que suene natural."""
     if not texto:
         return ""
-    # Cloze deletions: {{c1::palabra}} -> palabra
+    # Cloze deletions: {{palabra}} o {{palabra::pista}} -> palabra
+    from . import cloze
+    if cloze.tiene_huecos(texto):
+        texto = cloze.completo(texto)
+    # Por si queda algún resto con prefijo Anki c1::
     t = re.sub(r"\{\{c\d+::(.*?)(?:::.*?)?\}\}", r"\1", texto)
     # Fórmulas matemáticas sencillas: $x^2$ -> x^2
     t = re.sub(r"\$\$?(.*?)\$\$?", r"\1", t)

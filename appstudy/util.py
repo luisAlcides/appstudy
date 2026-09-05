@@ -94,6 +94,9 @@ _ENTIDADES = (("&lt;", "<"), ("&gt;", ">"), ("&quot;", '"'), ("&#39;", "'"), ("&
 
 def plain(text: str) -> str:
     """Texto sin etiquetas ni entidades, para búsquedas y listados."""
+    if "{{" in (text or ""):
+        from . import cloze
+        text = cloze.completo(text)
     t = re.sub(r"<[^>]+>", "", text or "").replace("\n", " ").strip()
     for entidad, caracter in _ENTIDADES:
         t = t.replace(entidad, caracter)
@@ -106,6 +109,9 @@ def lines(text: str) -> list[str]:
     Muchas respuestas son una lista («cat — todo de golpe / less — paginado»);
     juntarlas en un párrafo las vuelve ilegibles.
     """
+    if "{{" in (text or ""):
+        from . import cloze
+        text = cloze.completo(text)
     t = re.sub(r"<[^>]+>", "", text or "")
     for entidad, caracter in _ENTIDADES:
         t = t.replace(entidad, caracter)

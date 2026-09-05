@@ -13,7 +13,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib, Gtk
 
-from . import db, reto, util
+from . import cloze, db, reto, util
 
 
 def tarjetas_para_test(con, chapter: dict, n: int = 5) -> list[dict]:
@@ -135,13 +135,16 @@ class TestCiegasDialog(Adw.Window):
         inner.set_margin_start(16)
         inner.set_margin_end(16)
 
+        frente = (cloze.enmascarar(c["front"]) if cloze.tiene_huecos(c["front"])
+                  else c["front"])
         lbl_front = Gtk.Label(
-            label=util.to_markup(c["front"]),
+            label=util.to_markup(frente),
             use_markup=True,
             wrap=True,
             xalign=0,
             css_classes=["as-bubble-front"],
         )
+        self.lbl_front = lbl_front
         inner.append(lbl_front)
         card_box.append(inner)
         self.contenedor.append(card_box)
@@ -185,7 +188,12 @@ class TestCiegasDialog(Adw.Window):
         box_resp = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         box_resp.set_visible(False)
         box_resp.append(Gtk.Separator())
-        lbl_b = Gtk.Label(label=util.to_markup(card["back"]), use_markup=True, wrap=True, xalign=0)
+        if cloze.tiene_huecos(card["front"]):
+            falta = cloze.respuesta(card["front"])
+            texto_resp = f"<b>{falta}</b>" + (f"\n\n{card['back']}" if card.get("back") else "")
+        else:
+            texto_resp = card.get("back", "")
+        lbl_b = Gtk.Label(label=util.to_markup(texto_resp), use_markup=True, wrap=True, xalign=0)
         box_resp.append(lbl_b)
         caja_rev.append(box_resp)
 
@@ -206,6 +214,8 @@ class TestCiegasDialog(Adw.Window):
         caja_rev.append(caja_voto)
 
         def al_ver(*_):
+            if cloze.tiene_huecos(card["front"]) and getattr(self, "lbl_front", None):
+                self.lbl_front.set_markup(util.to_markup(cloze.resaltado(card["front"])))
             box_resp.set_visible(True)
             caja_voto.set_visible(True)
             btn_ver.set_visible(False)

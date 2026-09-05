@@ -282,8 +282,9 @@ class PopupWindow(Adw.Window):
             self.voz_auto_si_toca(solo_pregunta=True)
 
     def es_cloze(self) -> bool:
-        return bool(self.card) and self.card["kind"] == "cloze" \
-            and cloze.tiene_huecos(self.card["front"])
+        return bool(self.card) and (
+            self.card.get("kind") == "cloze" or cloze.tiene_huecos(self.card.get("front", ""))
+        ) and cloze.tiene_huecos(self.card.get("front", ""))
 
     def clear(self, box):
         while (child := box.get_first_child()) is not None:
@@ -892,7 +893,11 @@ class PopupWindow(Adw.Window):
         self.voz_cfg = voz.config(self.con)
         if not self.voz_cfg.get("activo", True):
             return
-        texto = self.card["front"]
+        if self.es_cloze():
+            texto = (cloze.completo(self.card["front"]) if self.revealed
+                     else cloze.enmascarar(self.card["front"], self.hueco))
+        else:
+            texto = self.card["front"]
         if self.revealed:
             back = self.card["back"] or self.card.get("hint", "")
             if back:
@@ -928,7 +933,10 @@ class PopupWindow(Adw.Window):
                     self.btn_voz.set_icon_name("media-playback-stop-symbolic")
                     self.btn_voz.set_tooltip_text("Detener lectura (V)")
         else:
-            texto = self.card["front"]
+            if self.es_cloze():
+                texto = cloze.enmascarar(self.card["front"], self.hueco)
+            else:
+                texto = self.card["front"]
             dur = voz.hablar(texto, self.voz_cfg, on_done=self.on_voz_terminada, card=self.card)
             if dur > 0 and hasattr(self, "btn_voz") and self.btn_voz:
                 self.btn_voz.set_icon_name("media-playback-stop-symbolic")

@@ -94,6 +94,8 @@ def _primeras_lineas(texto: str, minimo: int) -> str:
 
 def esencia(texto: str, maximo: int = MAX_OPCION) -> str:
     """La primera idea de una respuesta larga, cortada por donde no duele."""
+    if cloze.tiene_huecos(texto):
+        texto = cloze.completo(texto)
     t = _primeras_lineas(texto, 28)
     corta = _SIGUIENTE.search(t)
     if corta and corta.start() >= 16:
@@ -192,9 +194,10 @@ def es_cloze(card) -> bool:
     """¿Es una tarjeta de huecos escritos a mano?"""
     try:
         tipo = card["kind"]
+        frente = card["front"]
     except (KeyError, IndexError, TypeError):
         return False
-    return tipo == "cloze" and cloze.tiene_huecos(card["front"])
+    return (tipo == "cloze" or cloze.tiene_huecos(frente)) and cloze.tiene_huecos(frente)
 
 
 def preparar(con, card, evitar=None) -> dict:

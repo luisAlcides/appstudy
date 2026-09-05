@@ -154,6 +154,25 @@ class TestCasosRaros(unittest.TestCase):
         texto = "Usa {{<tt>chmod</tt>}} para eso."
         self.assertIn("<tt>chmod</tt>", cloze.completo(texto))
 
+    def test_formato_estilo_anki_limpia_prefijo_c1(self):
+        h = cloze.huecos("How much {{c1::are::be, plural}} these shoes?")
+        self.assertEqual(h[0]["valor"], "are")
+        self.assertEqual(h[0]["pista"], "be, plural")
+        self.assertEqual(cloze.completo("How much {{c1::are::be, plural}} these shoes?"),
+                         "How much are these shoes?")
+
+
+class TestUtilCloze(unittest.TestCase):
+    def test_plain_limpia_huecos_cloze(self):
+        from appstudy import util
+        self.assertEqual(util.plain("How much {{are::be, plural}} these shoes?"),
+                         "How much are these shoes?")
+
+    def test_as_label_limpia_huecos_cloze(self):
+        from appstudy import util
+        self.assertEqual(util.as_label("How much {{are::be, plural}} these shoes?"),
+                         "How much are these shoes?")
+
 
 if __name__ == "__main__":
     unittest.main()

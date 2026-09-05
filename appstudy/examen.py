@@ -13,7 +13,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib, Gtk
 
-from . import db, reto, util
+from . import cloze, db, reto, util
 
 
 def generar_preguntas_examen(con, deck_id: int | None = None, level: int | None = None,
@@ -87,6 +87,9 @@ def generar_preguntas_examen(con, deck_id: int | None = None, level: int | None 
             item["opciones"] = opciones
             item["correcta"] = opciones.index(util.plain(c["back"]))
             item["pregunta"] = c["front"]
+
+        if cloze.tiene_huecos(item["pregunta"]):
+            item["pregunta"] = cloze.enmascarar(item["pregunta"])
 
         items.append(item)
 

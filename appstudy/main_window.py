@@ -920,7 +920,7 @@ class MainWindow(Adw.ApplicationWindow):
         row.set_title_lines(2)
         estado = ("✨ sin ver" if f["reps"] == 0
                   else f"🔄 repaso en {scheduler.due_label(f['due'])}")
-        tipo = {"quiz": "⚡ Reto", "lesson": "📖 Lección"}.get(f["kind"], "📝 Tarjeta")
+        tipo = {"quiz": "⚡ Reto", "lesson": "📖 Lección", "cloze": "🧩 Huecos"}.get(f["kind"], "📝 Tarjeta")
         # Dentro de un tema el mazo es el título de la página y el nivel es el
         # encabezado del grupo: repetirlos en cada fila solo estorba.
         pie = f"{tipo} · {estado}" if escueta else (
@@ -1196,6 +1196,8 @@ class MainWindow(Adw.ApplicationWindow):
         if kind == "cloze" and not cloze.tiene_huecos(front):
             self.notify_user("Una tarjeta de huecos necesita al menos un {{hueco}}")
             return
+        if kind == "card" and cloze.tiene_huecos(front):
+            kind = "cloze"
 
         if card:
             self.con.execute(

@@ -58,7 +58,10 @@ def _cloze_appstudy(texto: str) -> tuple[str, bool]:
         pista = f"::{m.group(2)}" if m.group(2) else ""
         return "{{" + m.group(1) + pista + "}}"
 
-    return _CLOZE.sub(cambia, texto), hubo
+    res = _CLOZE.sub(cambia, texto)
+    if not hubo and re.search(r"\{\{.+?\}\}", res):
+        hubo = True
+    return res, hubo
 
 
 def _tarjeta(front="", back="", tags="", deck="", hint="") -> dict | None:
