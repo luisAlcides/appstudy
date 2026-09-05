@@ -97,6 +97,141 @@
   {"p": "Con un diferencial de 30 mA salen unos 1.666 Ω; con uno de 300 mA, apenas 166. En terreno seco, una sola pica rara vez basta."},
   {"note": "Para saber si un aislamiento aguanta no vale el multímetro, que mide con 3 V: se usa un <b>megóhmetro</b> a 500 o 1.000 V. Lo que importa no es tanto el valor absoluto (por encima de 1 MΩ suele aceptarse en un motor) como la <b>tendencia</b> entre revisiones."}
  ]
-}
+},
+ {
+  "level": 1,
+  "minutes": 4,
+  "title": "Nodos y mallas: comprobar un circuito en papel",
+  "subtitle": "kirchhoff · Conservar corriente y energía en circuitos ideales.",
+  "tags": "kirchhoff",
+  "body": [
+   {
+    "p": "La ley de Ohm relaciona tensión y corriente en una resistencia. Para analizar varias ramas necesitas además conservar la carga en los nodos y llevar la cuenta de las tensiones en un recorrido cerrado. Trabajaremos con circuitos ideales de corriente continua sobre papel; los valores sirven para practicar razonamiento, no para dimensionar una instalación real."
+   },
+   {
+    "h": "Cómo funciona"
+   },
+   {
+    "p": "En un nodo de un circuito estacionario, la suma de corrientes que entran iguala la suma de las que salen. En una malla del modelo de circuito concentrado, la suma algebraica de las tensiones es cero. Elige sentidos y signos coherentes. Si una corriente calculada es negativa, su sentido real es contrario al que supusiste; no significa que el cálculo sea imposible."
+   },
+   {
+    "steps": [
+     "Dibuja los nodos y marca un sentido supuesto para cada corriente.",
+     "Escribe entradas igual a salidas en cada nodo necesario.",
+     "Recorre una malla con signos coherentes y comprueba las caídas con la ley de Ohm."
+    ]
+   },
+   {
+    "h": "Ejemplo resuelto"
+   },
+   {
+    "p": "Una fuente ideal de 12 V alimenta resistencias en serie de 100 y 200 ohmios. La resistencia total es 300 ohmios y la corriente 12/300 = 0,04 A. Las caídas son 4 y 8 V: 12 − 4 − 8 = 0. En otro circuito, si llegan 7 mA a un nodo y salen 2 mA por una rama, deben salir 5 mA por las otras ramas en conjunto."
+   },
+   {
+    "h": "Practica antes de seguir"
+   },
+   {
+    "p": "Una fuente ideal de 9 V alimenta en serie 100 y 200 ohmios. Calcula la corriente y las dos caídas. Si al plantear otra rama obtienes −3 mA, interpreta el signo."
+   },
+   {
+    "note": "Solución: La corriente es 9/300 = 0,03 A = 30 mA. Las caídas son 3 V y 6 V. Una corriente de −3 mA significa 3 mA en el sentido opuesto al supuesto."
+   },
+   {
+    "key": "Comprueba dos balances: la corriente en los nodos y las tensiones a lo largo de las mallas."
+   }
+  ]
+ },
+ {
+  "level": 2,
+  "minutes": 4,
+  "title": "Circuitos RC: por qué una señal tarda en cambiar",
+  "subtitle": "transitorios rc · Constante de tiempo y respuesta exponencial.",
+  "tags": "transitorios rc",
+  "body": [
+   {
+    "p": "Una resistencia y un condensador forman un circuito cuya respuesta cambia con el tiempo. El condensador no pasa instantáneamente de descargado a la tensión final en el modelo RC ideal. La resistencia limita la corriente y, a medida que aumenta la tensión del condensador, disminuye la diferencia que impulsa la carga. Estudiaremos el modelo en papel, con una fuente ideal y sin cargas adicionales."
+   },
+   {
+    "h": "Cómo funciona"
+   },
+   {
+    "p": "La constante de tiempo es tau = R × C, con R en ohmios y C en faradios, y se expresa en segundos. Al cargar desde cero con un escalón de tensión, tras una tau se alcanza aproximadamente el 63,2 % del valor final. En una descarga hacia cero queda aproximadamente el 36,8 % del valor inicial. Tras cinco tau el cambio está cerca del final, pero matemáticamente no se completa al 100 % en un tiempo finito."
+   },
+   {
+    "steps": [
+     "Convierte kiloohmios a ohmios y microfaradios a faradios antes de multiplicar.",
+     "Identifica si estudias una carga, una descarga o un cambio desde otro valor inicial.",
+     "Comprueba si existen otras resistencias o cargas que modifiquen la respuesta del modelo."
+    ]
+   },
+   {
+    "h": "Ejemplo resuelto"
+   },
+   {
+    "p": "Con 10 kΩ y 100 µF, tau = 10 000 × 0,0001 = 1 segundo. Para una carga desde cero hacia 5 V, al segundo hay unos 3,16 V. Después de cinco segundos hay aproximadamente 4,97 V. Duplicar la resistencia duplica tau si el condensador y el resto del circuito permanecen iguales."
+   },
+   {
+    "h": "Practica antes de seguir"
+   },
+   {
+    "p": "Calcula tau para 2 kΩ y 220 µF. En una descarga ideal desde 10 V, ¿cuánta tensión queda tras una tau?"
+   },
+   {
+    "note": "Solución: Tau = 2 000 × 0,000220 = 0,44 segundos. Después de una tau quedan aproximadamente 3,68 V. No confundas la fracción que queda con la que ya se ha perdido."
+   },
+   {
+    "key": "La constante de tiempo fija la escala del cambio; no es el tiempo para completar el 100 %."
+   },
+   {
+    "note": "Referencia: Analog Devices, respuesta transitoria RC: https://www.analog.com/en/resources/analog-dialogue/studentzone/studentzone-april-2018.html"
+   }
+  ]
+ },
+ {
+  "level": 3,
+  "minutes": 4,
+  "title": "Del voltaje al número: resolución y errores de un ADC",
+  "subtitle": "conversión adc · Cuantización, referencia y límites de precisión.",
+  "tags": "conversión adc",
+  "body": [
+   {
+    "p": "Un convertidor analógico a digital asigna códigos numéricos a intervalos de una señal analógica. Si tiene N bits, dispone de 2 elevado a N códigos. La resolución describe el tamaño de esos pasos; la exactitud describe cuánto se aproxima la medida al valor real. Más bits pueden mostrar más detalle sin corregir errores de referencia, ruido o desviaciones del circuito."
+   },
+   {
+    "h": "Cómo funciona"
+   },
+   {
+    "p": "Para un ADC ideal unipolar, el tamaño nominal de un paso es el rango de entrada dividido entre 2 elevado a N. Los códigos van de cero a 2 elevado a N menos uno. La relación exacta entre un código y sus límites de transición depende de la función de transferencia del convertidor; no confundas el cálculo del tamaño de paso con una calibración entre extremos."
+   },
+   {
+    "steps": [
+     "Identifica el rango de entrada y la referencia, no solo el número de bits.",
+     "Calcula el tamaño del paso y compáralo con el cambio de señal que necesitas observar.",
+     "Considera ruido, error de referencia y saturación antes de interpretar los decimales."
+    ]
+   },
+   {
+    "h": "Ejemplo resuelto"
+   },
+   {
+    "p": "Un ADC ideal de 12 bits con rango de 4,096 V tiene 4 096 códigos y un paso nominal de 0,001 V, es decir, 1 mV. Un cambio de señal de 0,2 mV es menor que un paso. Promediar varias muestras puede reducir ruido aleatorio bajo condiciones adecuadas, pero no elimina automáticamente un error sistemático en la referencia."
+   },
+   {
+    "h": "Practica antes de seguir"
+   },
+   {
+    "p": "Calcula el número de códigos y el paso nominal de un ADC ideal de 10 bits con rango de 3,3 V. Si la entrada rebasa el rango permitido, ¿puedes recuperar su valor real solo a partir del código máximo?"
+   },
+   {
+    "note": "Solución: Hay 1 024 códigos y el paso es 3,3/1 024 ≈ 3,22 mV. Un código saturado no permite reconstruir cuánto se excedió el rango; además deben respetarse los límites eléctricos del componente."
+   },
+   {
+    "key": "Resolución es tamaño de paso; exactitud exige controlar también los errores del sistema de medida."
+   },
+   {
+    "note": "Referencia: Analog Devices, conversión analógica a digital: https://wiki.analog.com/university/courses/electronics/text/chapter-20"
+   }
+  ]
+ }
 ]
 }

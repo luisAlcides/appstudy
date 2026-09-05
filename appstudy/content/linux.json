@@ -761,6 +761,699 @@
    "tags": "procesos",
    "front": "¿Qué señal manda <tt>kill</tt> por defecto?",
    "back": "SIGTERM (15)"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "En UTF-8, ¿cuántos bytes ocupa «año» sin salto de línea?",
+   "back": "Cuatro: a y o ocupan un byte cada una; ñ ocupa dos.",
+   "tags": "texto y codificación"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Qué cuenta wc -c en un archivo?",
+   "back": "Bytes. No necesariamente coincide con los caracteres o símbolos visibles.",
+   "tags": "texto y codificación"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Cómo pasas «mi lista.txt» como un solo argumento a cat?",
+   "back": "<code>cat \"mi lista.txt\"</code>",
+   "tags": "texto y codificación"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Renombrar datos.txt a datos.csv convierte su contenido a CSV?",
+   "back": "No. Cambia el nombre, no la estructura de los datos.",
+   "tags": "texto y codificación"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "front": "Un texto se ve como «aÃ±o». ¿Qué investigarías primero?",
+   "choices": [
+    "La codificación con que se interpreta",
+    "El permiso de ejecución",
+    "La velocidad del ventilador",
+    "La extensión del monitor"
+   ],
+   "answer": 0,
+   "back": "Ese patrón puede aparecer al interpretar bytes UTF-8 con otra codificación.",
+   "tags": "texto y codificación"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "front": "Los finales de línea habituales son {{LF}} en Unix y {{CRLF}} en archivos de Windows.",
+   "back": "Son convenciones de representación; la compatibilidad depende del programa.",
+   "tags": "texto y codificación"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Qué comparte un enlace duro con el archivo original?",
+   "back": "El mismo objeto e inodo dentro del mismo sistema de archivos; es otro nombre para ese archivo.",
+   "tags": "inodos"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Puede un enlace simbólico apuntar a un destino inexistente?",
+   "back": "Sí. Guarda una ruta y puede quedar roto si el destino no existe.",
+   "tags": "inodos"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Basta comparar números de inodo entre dos discos para saber si es el mismo archivo?",
+   "back": "No. La identidad incluye el sistema de archivos y el inodo.",
+   "tags": "inodos"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Por qué un guardado mediante temporal puede separar dos enlaces duros?",
+   "back": "Porque reemplaza una entrada de directorio por otro inodo; el otro enlace conserva el objeto anterior.",
+   "tags": "inodos"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "¿Cuál puede apuntar a un archivo de otro sistema de archivos?",
+   "choices": [
+    "Un enlace duro ordinario",
+    "Un enlace simbólico",
+    "El contador de enlaces",
+    "Un número de inodo aislado"
+   ],
+   "answer": 1,
+   "back": "El enlace simbólico contiene una ruta que puede cruzar sistemas de archivos.",
+   "tags": "inodos"
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "front": "Un enlace simbólico guarda una {{ruta}}; un enlace duro comparte el mismo {{inodo}}.",
+   "back": "Los enlaces duros comparten objeto dentro del mismo sistema de archivos.",
+   "tags": "inodos"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Por qué crear el temporal en el mismo directorio que el archivo final?",
+   "back": "Para que normalmente esté en el mismo sistema de archivos y pueda publicarse mediante renombrado atómico.",
+   "tags": "escritura atómica"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Qué puede leer un proceso que ya tenía abierto el archivo antes de reemplazar su nombre?",
+   "back": "Puede continuar leyendo el objeto anterior; el descriptor abierto no cambia automáticamente al nuevo.",
+   "tags": "escritura atómica"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Un reemplazo atómico evita que dos escritores pierdan actualizaciones?",
+   "back": "No. Se necesita coordinación, bloqueo o una transacción adecuada.",
+   "tags": "escritura atómica"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Qué diferencia hay entre atomicidad y durabilidad de un archivo?",
+   "back": "Atomicidad: no exponer una actualización parcial. Durabilidad: conservar el resultado frente a fallos como un corte de energía.",
+   "tags": "escritura atómica"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "¿Qué riesgo introduce preparar el temporal en otro disco?",
+   "choices": [
+    "Duplicar siempre los inodos",
+    "Convertir automáticamente el texto a UTF-8",
+    "Que mover implique copiar y borrar, sin reemplazo atómico",
+    "Impedir cualquier lectura"
+   ],
+   "answer": 2,
+   "back": "El renombrado atómico requiere el mismo sistema de archivos.",
+   "tags": "escritura atómica"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "front": "Publicar mediante renombrado atómico no sustituye una {{transacción}} para coordinar varias actualizaciones relacionadas.",
+   "back": "Por ejemplo, modificar dos archivos requiere un diseño adicional para mantenerlos coherentes.",
+   "tags": "escritura atómica"
+  },
+  {
+   "kind": "card",
+   "front": "¿Quién expande <code>*.log</code>: el shell o el programa que ejecutas?",
+   "back": "El shell, antes de lanzar el programa. El programa recibe ya la lista de nombres que casaron.",
+   "tags": "rutas y globbing",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Incluye <code>*</code> los archivos ocultos?",
+   "back": "No. Los nombres que empiezan por punto quedan fuera; hay que pedirlos aparte, con <code>.*</code> o con <code>ls -a</code>.",
+   "tags": "rutas y globbing",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué diferencia hay entre comillas simples y dobles?",
+   "back": "Las dobles conservan el texto entero pero siguen expandiendo variables y <code>$(...)</code>. Las simples no expanden nada: el texto va literal.",
+   "tags": "rutas y globbing",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "En bash, ¿qué pasa si un comodín no coincide con ningún archivo?",
+   "back": "Por defecto el texto se pasa literal al programa, con el asterisco incluido. Las opciones <code>nullglob</code> y <code>failglob</code> cambian ese comportamiento.",
+   "tags": "rutas y globbing",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo borras un archivo llamado <code>-informe</code>?",
+   "back": "<code>rm -- -informe</code> para cortar las opciones, o <code>rm ./-informe</code> para que empiece por punto y no por guión.",
+   "tags": "rutas y globbing",
+   "level": 1
+  },
+  {
+   "kind": "quiz",
+   "front": "Existe el archivo «informe final.txt». ¿Qué hace <code>rm informe final.txt</code>?",
+   "choices": [
+    "Borra «informe final.txt»",
+    "Intenta borrar dos archivos: «informe» y «final.txt»",
+    "Renombra el archivo",
+    "Pide confirmación antes de borrar"
+   ],
+   "answer": 1,
+   "back": "El espacio separa argumentos. Hay que citarlo: <code>rm \"informe final.txt\"</code>.",
+   "tags": "rutas y globbing",
+   "level": 1
+  },
+  {
+   "kind": "quiz",
+   "front": "¿En qué se convierte <code>{rojo,azul}.txt</code> si no existe ninguno de los dos archivos?",
+   "choices": [
+    "En nada, se descarta",
+    "En «rojo.txt azul.txt» igualmente",
+    "En un error del shell",
+    "En el texto literal {rojo,azul}.txt"
+   ],
+   "answer": 1,
+   "back": "La expansión de llaves no consulta el disco: genera las combinaciones existan o no.",
+   "tags": "rutas y globbing",
+   "level": 1
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Cuál de estas líneas <b>no</b> expande <code>$HOME</code>?",
+   "choices": [
+    "echo $HOME",
+    "echo \"$HOME\"",
+    "echo '$HOME'",
+    "echo ${HOME}"
+   ],
+   "answer": 2,
+   "back": "Dentro de comillas simples nada se expande; el texto va literal.",
+   "tags": "rutas y globbing",
+   "level": 1
+  },
+  {
+   "kind": "cloze",
+   "front": "El shell sustituye {{~}} por la ruta de tu carpeta personal antes de ejecutar el programa.",
+   "back": "Es expansión del shell, no una función del programa: entre comillas simples no ocurre.",
+   "tags": "rutas y globbing",
+   "level": 1
+  },
+  {
+   "kind": "cloze",
+   "front": "Una ruta que empieza por una barra es {{absoluta}}; cualquier otra se interpreta desde tu directorio actual.",
+   "back": "Las rutas relativas dependen de dónde estés; las absolutas significan lo mismo desde cualquier sitio.",
+   "tags": "rutas y globbing",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué hace <code>tar</code> y qué hace <code>gzip</code>?",
+   "back": "<code>tar</code> empaqueta muchos archivos en uno conservando estructura y permisos; <code>gzip</code> comprime un flujo. Un <code>.tar.gz</code> es primero el paquete y después la compresión.",
+   "tags": "empaquetado y copias",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Por qué conviene <code>tar -tzf</code> antes de extraer?",
+   "back": "Para ver el contenido y saber si hay una carpeta raíz. Si no la hay, la extracción te llena el directorio actual de archivos sueltos.",
+   "tags": "empaquetado y copias",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué cambia la barra final del origen en rsync?",
+   "back": "Con <code>origen/</code> copias el contenido dentro del destino. Sin la barra, se crea <code>destino/origen</code>.",
+   "tags": "empaquetado y copias",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué demuestra un <code>sha256sum</code> que coincide?",
+   "back": "Que el contenido es idéntico al que generó esa huella: integridad. No demuestra autenticidad ni quién lo produjo; para eso hace falta una firma.",
+   "tags": "empaquetado y copias",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo copias una carpeta preservando permisos, fechas y enlaces?",
+   "back": "<code>cp -a origen destino</code> en local, o <code>rsync -a origen/ destino/</code> si además quieres transferencia incremental o por SSH.",
+   "tags": "empaquetado y copias",
+   "level": 1
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué opción de tar extrae un archivo <code>.tar.gz</code>?",
+   "choices": [
+    "tar -czf",
+    "tar -tzf",
+    "tar -xzf",
+    "tar -rzf"
+   ],
+   "answer": 2,
+   "back": "<code>x</code> extrae, <code>z</code> pasa por gzip, <code>f</code> indica el archivo.",
+   "tags": "empaquetado y copias",
+   "level": 1
+  },
+  {
+   "kind": "quiz",
+   "front": "Vas a ejecutar rsync con <code>--delete</code>. ¿Qué haces primero?",
+   "choices": [
+    "Nada, --delete solo copia",
+    "Un ensayo con --dry-run y leer la lista",
+    "Cambiar el destino a solo lectura",
+    "Comprimir el origen"
+   ],
+   "answer": 1,
+   "back": "<code>--delete</code> borra en el destino lo que falte en el origen; el ensayo te enseña qué desaparecería.",
+   "tags": "empaquetado y copias",
+   "level": 1
+  },
+  {
+   "kind": "quiz",
+   "front": "Vas a respaldar un sistema Linux conservando permisos y propietarios. ¿Qué formato eliges?",
+   "choices": [
+    "zip, porque se abre en Windows",
+    "tar, que guarda los metadatos de Unix",
+    "Un PDF con la lista de archivos",
+    "Da igual: todos guardan lo mismo"
+   ],
+   "answer": 1,
+   "back": "zip es cómodo para intercambiar, pero guarda peor los permisos y la propiedad de Unix.",
+   "tags": "empaquetado y copias",
+   "level": 1
+  },
+  {
+   "kind": "cloze",
+   "front": "Antes de un rsync con --delete conviene ejecutarlo con {{--dry-run}} para ver qué se borraría.",
+   "back": "El ensayo no toca el destino: solo enseña la lista de cambios.",
+   "tags": "empaquetado y copias",
+   "level": 1
+  },
+  {
+   "kind": "cloze",
+   "front": "En un archivo .tar.gz, {{tar}} pone los archivos en un solo paquete y gzip lo comprime.",
+   "back": "Son dos pasos distintos y en ese orden.",
+   "tags": "empaquetado y copias",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué diferencia hay entre <code>&gt;</code> y <code>&gt;&gt;</code>?",
+   "back": "<code>&gt;</code> trunca el archivo y escribe desde cero; <code>&gt;&gt;</code> añade al final lo que ya había.",
+   "tags": "redirección",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Por qué <code>cmd 2>&1 > f</code> deja los errores en pantalla?",
+   "back": "Porque <code>2>&1</code> copia el destino que tiene el 1 <b>en ese momento</b>, que aún es la terminal. El orden correcto es <code>cmd > f 2>&1</code>.",
+   "tags": "redirección",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué código de salida significa éxito y dónde se consulta?",
+   "back": "El 0. Se consulta en <code>$?</code> y lo usan <code>&&</code> y <code>||</code> para encadenar.",
+   "tags": "redirección",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Por qué <code>sudo cmd > /root/salida.txt</code> da «permiso denegado»?",
+   "back": "Porque la redirección la hace tu shell con tus permisos, no sudo. Se resuelve con <code>cmd | sudo tee /root/salida.txt</code>.",
+   "tags": "redirección",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué hace <code>set -o pipefail</code>?",
+   "back": "Hace que una tubería devuelva el fallo del primer comando que falle, en vez de solo el estado del último.",
+   "tags": "redirección",
+   "level": 2
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Cómo mandas la salida normal y los errores al mismo archivo?",
+   "choices": [
+    "cmd > f 2>&1",
+    "cmd 2>&1 > f",
+    "cmd > f > f",
+    "cmd 2> f 1"
+   ],
+   "answer": 0,
+   "back": "Primero se redirige el 1 al archivo y después el 2 copia ese destino.",
+   "tags": "redirección",
+   "level": 2
+  },
+  {
+   "kind": "quiz",
+   "front": "Quieres ver la salida en pantalla y guardarla a la vez. ¿Qué usas?",
+   "choices": [
+    "cmd > f",
+    "cmd | tee f",
+    "cmd 2> f",
+    "cmd < f"
+   ],
+   "answer": 1,
+   "back": "<code>tee</code> escribe en el archivo y reenvía a la salida estándar.",
+   "tags": "redirección",
+   "level": 2
+  },
+  {
+   "kind": "quiz",
+   "front": "Sin pipefail, ¿qué código devuelve <code>false | true</code>?",
+   "choices": [
+    "1, porque false falló",
+    "0, el del último comando",
+    "2, la suma de los dos",
+    "Ninguno: la tubería no devuelve estado"
+   ],
+   "answer": 1,
+   "back": "Por defecto el estado de una tubería es el de su último comando.",
+   "tags": "redirección",
+   "level": 2
+  },
+  {
+   "kind": "cloze",
+   "front": "El descriptor {{2}} es la salida de errores, separada de la salida normal.",
+   "back": "Por eso se pueden guardar en archivos distintos.",
+   "tags": "redirección",
+   "level": 2
+  },
+  {
+   "kind": "cloze",
+   "front": "Un here-doc cuyo delimitador va entre comillas, <<'EOF', no {{expande}} las variables de dentro.",
+   "back": "Sin comillas en el delimitador, el shell sustituye $VAR y $(...) antes de entregar el texto.",
+   "tags": "redirección",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué diferencia hay entre <code>VAR=valor</code> y <code>export VAR=valor</code>?",
+   "back": "Sin <code>export</code> la variable solo existe en el shell actual. Con <code>export</code> la heredan los procesos que lances desde él.",
+   "tags": "entorno y PATH",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Por qué un script que hace <code>export</code> no cambia tu shell?",
+   "back": "Porque se ejecuta en un proceso hijo y su entorno muere con él. Para que te afecte, ejecútalo con <code>source script.sh</code>.",
+   "tags": "entorno y PATH",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo averiguas qué se ejecuta realmente al escribir un comando?",
+   "back": "<code>type -a comando</code>, que enseña también alias y funciones, o <code>command -v comando</code> para la que se usaría.",
+   "tags": "entorno y PATH",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Por qué un comando funciona en tu terminal y falla en cron?",
+   "back": "Cron arranca con un entorno mínimo y no lee tus archivos de inicio, así que el PATH y las variables no son los tuyos. Usa rutas absolutas y declara lo que necesites.",
+   "tags": "entorno y PATH",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué riesgo tiene incluir <code>.</code> en el PATH?",
+   "back": "Que al entrar en una carpeta ajena ejecutes un programa dejado allí con el nombre de un comando habitual.",
+   "tags": "entorno y PATH",
+   "level": 2
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué carácter separa los directorios del PATH?",
+   "choices": [
+    "El espacio",
+    "La coma",
+    "Los dos puntos",
+    "El punto y coma"
+   ],
+   "answer": 2,
+   "back": "PATH es una lista separada por <code>:</code> que se recorre en orden.",
+   "tags": "entorno y PATH",
+   "level": 2
+  },
+  {
+   "kind": "quiz",
+   "front": "Hay dos versiones del mismo programa en el PATH. ¿Cuál se ejecuta?",
+   "choices": [
+    "La más reciente",
+    "La del primer directorio de la lista",
+    "La del último directorio",
+    "La de mayor tamaño"
+   ],
+   "answer": 1,
+   "back": "El shell se queda con la primera coincidencia según el orden del PATH.",
+   "tags": "entorno y PATH",
+   "level": 2
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué archivo lee normalmente un bash interactivo que no es de login?",
+   "choices": [
+    "/etc/profile",
+    "~/.bash_profile",
+    "~/.bashrc",
+    "Ninguno"
+   ],
+   "answer": 2,
+   "back": "Los de login leen /etc/profile y ~/.bash_profile o ~/.profile; los interactivos sin login, ~/.bashrc.",
+   "tags": "entorno y PATH",
+   "level": 2
+  },
+  {
+   "kind": "cloze",
+   "front": "Para que un script modifique las variables de tu shell actual hay que ejecutarlo con {{source}}.",
+   "back": "Lanzarlo como un programa crea un proceso hijo cuyo entorno desaparece al terminar.",
+   "tags": "entorno y PATH",
+   "level": 2
+  },
+  {
+   "kind": "cloze",
+   "front": "{{export}} marca una variable para que la hereden los procesos hijos.",
+   "back": "Sin ella la variable existe solo dentro del shell donde se definió.",
+   "tags": "entorno y PATH",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué diferencia hay entre SIGTERM y SIGKILL?",
+   "back": "SIGTERM (15) es una petición que el proceso puede capturar para cerrar ordenadamente. SIGKILL (9) no se puede capturar ni ignorar: el proceso muere sin ejecutar ninguna limpieza.",
+   "tags": "señales",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es un proceso zombi y cómo se resuelve?",
+   "back": "Uno que ya terminó y solo conserva su entrada en la tabla esperando a que el padre lea su estado. No gasta CPU ni memoria; se arregla actuando sobre el padre, que no lo está recogiendo.",
+   "tags": "señales",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Por qué un proceso en estado D no muere ni con <code>kill -9</code>?",
+   "back": "Está en espera ininterrumpible de E/S y no puede atender señales hasta que la operación termine. El problema está en el disco o en la red, no en el proceso.",
+   "tags": "señales",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué significa que un proceso salga con código 137?",
+   "back": "Que terminó por una señal: 128+9, es decir SIGKILL. En un servidor o contenedor suele ser el kernel matándolo por falta de memoria.",
+   "tags": "señales",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Para qué sirve <code>trap 'limpieza' EXIT</code> en un script?",
+   "back": "Para ejecutar la limpieza salga como salga el script, incluido un error o un Ctrl+C. Con SIGKILL no hay nada que hacer: no se puede capturar.",
+   "tags": "señales",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué señal envía <code>kill 1234</code> sin más opciones?",
+   "choices": [
+    "SIGKILL (9)",
+    "SIGTERM (15)",
+    "SIGHUP (1)",
+    "SIGSTOP"
+   ],
+   "answer": 1,
+   "back": "Por defecto es SIGTERM, una petición de cierre ordenado.",
+   "tags": "señales",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué señal recibe el proceso en primer plano al pulsar Ctrl+C?",
+   "choices": [
+    "SIGINT",
+    "SIGKILL",
+    "SIGTERM",
+    "SIGCONT"
+   ],
+   "answer": 0,
+   "back": "Ctrl+C envía SIGINT al grupo de procesos en primer plano.",
+   "tags": "señales",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Cuál de estas señales <b>no</b> puede capturar un proceso?",
+   "choices": [
+    "SIGTERM",
+    "SIGINT",
+    "SIGHUP",
+    "SIGKILL"
+   ],
+   "answer": 3,
+   "back": "SIGKILL y SIGSTOP no se pueden capturar ni ignorar.",
+   "tags": "señales",
+   "level": 3
+  },
+  {
+   "kind": "cloze",
+   "front": "Un proceso terminado por la señal 2 sale con el código {{130}}, porque el shell informa de 128 más el número de señal.",
+   "back": "Por eso un 137 corresponde a SIGKILL (128+9).",
+   "tags": "señales",
+   "level": 3
+  },
+  {
+   "kind": "cloze",
+   "front": "Al cerrar la terminal, sus procesos reciben {{SIGHUP}}; para evitarlo se usa nohup, tmux o systemd-run.",
+   "back": "Muchos demonios reinterpretan esa misma señal como «recarga la configuración».",
+   "tags": "señales",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué cuenta el promedio de carga en Linux?",
+   "back": "Los procesos ejecutables y, a diferencia de otros Unix, también los que están en espera ininterrumpible de E/S, promediados a 1, 5 y 15 minutos. Se interpreta comparándolo con el número de CPU.",
+   "tags": "rendimiento",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Por qué tener poca memoria «free» no es un problema?",
+   "back": "Porque Linux usa la memoria sobrante como caché de disco y la devuelve en cuanto se pide. La cifra que hay que mirar es <b>available</b>.",
+   "tags": "rendimiento",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué indica un <code>%wa</code> alto y sostenido en top?",
+   "back": "CPU ociosa esperando entrada/salida: el cuello está en el almacenamiento. Se confirma con <code>iostat -x 1</code> y se localiza con <code>pidstat -d 1</code> o <code>iotop</code>.",
+   "tags": "rendimiento",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Dónde se comprueba si el kernel mató un proceso por falta de memoria?",
+   "back": "En <code>dmesg -T</code> o <code>journalctl -k</code>. El registro de la aplicación no dice nada porque el proceso muere sin poder escribir.",
+   "tags": "rendimiento",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Por qué no basta con una sola foto de <code>vmstat</code> o <code>iostat</code>?",
+   "back": "Porque su primera línea es un promedio desde el arranque. Hay que medir en el tiempo y quedarse con las lecturas siguientes.",
+   "tags": "rendimiento",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "La carga es 8 en una máquina de 8 CPU, pero la CPU está casi ociosa. ¿Qué sugiere?",
+   "choices": [
+    "Que la CPU está saturada",
+    "Que hay procesos esperando E/S o bloqueados",
+    "Que sobra memoria",
+    "Que el promedio está mal calculado"
+   ],
+   "answer": 1,
+   "back": "En Linux la carga incluye la espera ininterrumpible de E/S, así que puede subir con la CPU libre.",
+   "tags": "rendimiento",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué columna de <code>free -h</code> estima la memoria realmente utilizable?",
+   "choices": [
+    "free",
+    "shared",
+    "buff/cache",
+    "available"
+   ],
+   "answer": 3,
+   "back": "<b>available</b> ya cuenta la caché que el kernel puede liberar.",
+   "tags": "rendimiento",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "En <code>vmstat 1</code>, ¿qué significan valores altos y sostenidos de si/so?",
+   "choices": [
+    "Mucha E/S de red",
+    "Trasiego constante de swap",
+    "Muchos procesos zombis",
+    "Uso alto de la caché de disco"
+   ],
+   "answer": 1,
+   "back": "si/so son páginas entrando y saliendo de swap; el trasiego continuo sí penaliza.",
+   "tags": "rendimiento",
+   "level": 3
+  },
+  {
+   "kind": "cloze",
+   "front": "El campo {{available}} de free estima la memoria utilizable sin recurrir a swap.",
+   "back": "La memoria en caché cuenta como disponible porque el kernel la libera cuando hace falta.",
+   "tags": "rendimiento",
+   "level": 3
+  },
+  {
+   "kind": "cloze",
+   "front": "El promedio de carga de Linux incluye los procesos en espera {{ininterrumpible}} de E/S, no solo los que usan CPU.",
+   "back": "Por eso una carga alta con la CPU ociosa apunta al almacenamiento o a la red.",
+   "tags": "rendimiento",
+   "level": 3
   }
  ],
  "levels": [

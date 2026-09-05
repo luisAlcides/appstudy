@@ -2784,6 +2784,138 @@
      "key": "La responsabilidad legal y ética de una decisión automatizada jamás recae sobre el algoritmo: recae siempre sobre el equipo y la organización que diseñaron, desplegaron y supervisaron el sistema."
     }
    ]
+  },
+  {
+   "level": 1,
+   "minutes": 4,
+   "title": "Una fila, una cosa: granularidad y diccionarios de datos",
+   "subtitle": "granularidad · Definir qué representa cada registro antes de contar.",
+   "tags": "granularidad",
+   "body": [
+    {
+     "p": "Antes de calcular una media, termina esta frase: «Cada fila representa…». Una tabla puede guardar clientes, pedidos o artículos de un pedido. Contar filas de artículos no da el número de pedidos. La granularidad es el nivel de detalle de los registros, y decidirla evita que una cuenta técnicamente correcta responda a una pregunta distinta de la que te hicieron."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Un diccionario de datos describe columnas, unidades, valores permitidos y significado de los faltantes. Una clave identifica un registro dentro de esa granularidad; puede necesitar varias columnas. Un importe de pedido repetido en cada artículo no debe sumarse como si fuera el importe de cada línea. El cero significa una cantidad observada nula; un dato ausente puede significar que todavía no se conoce."
+    },
+    {
+     "steps": [
+      "Describe la unidad de observación y busca una clave que la identifique.",
+      "Anota unidad, significado y periodo de cada medida.",
+      "Verifica que la agregación elegida coincide con la pregunta y con la granularidad."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "El pedido A tiene dos artículos y el B tiene uno. La tabla de líneas contiene tres filas, pero hay dos pedidos. Si el total de A es 30 y aparece en sus dos filas, mientras B tiene total 20, sumar la columna produce 80 en vez de 50. No arregles esto quitando importes repetidos: dos pedidos diferentes pueden tener el mismo total."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Una tabla tiene una fila por sensor y hora. ¿Basta sensor_id para identificar cada fila? ¿Qué información añadirías al diccionario de una columna llamada temperatura?"
+    },
+    {
+     "note": "Solución: Necesitas sensor_id y hora, suponiendo una sola lectura por sensor en cada hora. Para temperatura: unidad, si es instantánea o promedio, momento de medición y significado de un dato faltante."
+    },
+    {
+     "key": "Una agregación solo tiene sentido cuando sabes qué representa cada fila y qué mide cada columna."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 4,
+   "title": "Uniones que multiplican filas: comprobar la cardinalidad",
+   "subtitle": "cardinalidad · Auditar un JOIN antes de sumar sus resultados.",
+   "tags": "cardinalidad",
+   "body": [
+    {
+     "p": "Una unión relaciona registros mediante una condición. Si una fila encuentra varias coincidencias, aparece una vez por cada pareja compatible. Esto es correcto para una relación uno a muchos, pero puede inflar medidas si esperabas una sola coincidencia. La pregunta previa es: «¿Cuántas filas de la derecha puede encontrar cada fila de la izquierda?»."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "En una unión por cliente, dos pedidos y tres contactos del mismo cliente producen seis parejas. No significa que se hayan creado nuevos pedidos. Si quieres un total por cliente, puedes agregar los pedidos primero y seleccionar o agregar los contactos con una regla explícita. Un LEFT JOIN conserva filas sin coincidencia, pero no impide la multiplicación cuando hay varias."
+    },
+    {
+     "steps": [
+      "Comprueba unicidad de la clave en el lado que esperas único.",
+      "Compara filas, claves distintas y sumas antes y después de unir.",
+      "Investiga los casos sin coincidencia y las claves con muchas coincidencias por separado."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Pedidos: A por 10 y B por 20, ambos del cliente 7. Contactos: tres filas para ese cliente. La unión produce seis filas y sumar importes da 90, aunque el total real es 30. Un DISTINCT sobre importes no es una solución general: eliminaría pedidos legítimos que compartan valor."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Tienes cuatro ventas de un producto y dos filas de catálogo con el mismo producto_id. ¿Cuántas filas genera la unión por ese identificador? ¿Qué debes decidir antes de corregir el catálogo?"
+    },
+    {
+     "note": "Solución: Genera ocho filas. Averigua si las dos filas son un error o versiones válidas del producto; en el segundo caso hace falta otra condición, como la versión o el periodo aplicable."
+    },
+    {
+     "key": "La cardinalidad esperada es parte del contrato de una unión; compruébala antes de confiar en sus sumas."
+    },
+    {
+     "note": "Referencia: PostgreSQL, uniones entre tablas: https://www.postgresql.org/docs/current/tutorial-join.html"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 4,
+   "title": "Datos disponibles a tiempo: reconstruir lo que se sabía",
+   "subtitle": "disponibilidad temporal · Evitar información futura en modelos históricos.",
+   "tags": "disponibilidad temporal",
+   "body": [
+    {
+     "p": "Para evaluar una predicción histórica debes reconstruir la información que existía cuando se habría tomado la decisión. Un evento puede ocurrir el lunes y llegar al sistema el miércoles. Si predices el martes, ese evento aún no estaba disponible, aunque su fecha de ocurrencia sea anterior. Separar ambas fechas permite descubrir filtraciones temporales difíciles de ver."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "La fecha del evento describe cuándo pasó algo; la de disponibilidad indica cuándo pudo usarlo el sistema. También hay correcciones posteriores: una cifra de enero revisada en marzo no es necesariamente la que conocías en febrero. Una unión temporal debe escoger la versión elegible para el instante de predicción. Dividir entrenamiento y prueba por fecha no corrige una variable construida con conocimiento futuro."
+    },
+    {
+     "steps": [
+      "Fija el instante de predicción y el horizonte del resultado a predecir.",
+      "Conserva marcas de disponibilidad y versiones cuando la fuente pueda llegar tarde o cambiar.",
+      "Construye las variables usando únicamente datos disponibles hasta ese instante y audita ejemplos manuales."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Quieres predecir el miércoles si una entrega llegará tarde. Un registro del martes se cargó el jueves. Aunque su evento es anterior al miércoles, usarlo introduce información que la predicción real no tendría. En cambio, un registro del lunes recibido el martes sí es elegible, siempre que sus demás campos tampoco incorporen revisiones posteriores."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Un saldo del día 1 se publica el día 3 y se corrige el día 8. Para simular una decisión del día 5, ¿qué versión usarías? ¿Qué registrarías para poder repetir el experimento?"
+    },
+    {
+     "note": "Solución: La versión publicada el día 3, no la corrección del día 8. Guarda el instante de decisión, las versiones de datos y las reglas de construcción de variables para reconstruir la misma información."
+    },
+    {
+     "key": "Un dato es utilizable cuando estaba disponible, no solamente porque su evento ocurrió antes."
+    }
+   ]
   }
  ]
 }

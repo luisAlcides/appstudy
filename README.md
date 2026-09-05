@@ -2,9 +2,9 @@
 
 Aplicación de escritorio con **tres formas de estudiar**:
 
-- **Modo lectura** — 101 capítulos que se leen de corrido, como un libro: portada, títulos,
+- **Modo lectura** — 145 capítulos que se leen de corrido, como un libro: portada, títulos,
   ejemplos, avisos y navegación entre capítulos. Para aprender algo desde cero.
-  Los ocho de inglés son los más extensos (152 min, casi un tercio en A2).
+  Inglés incluye veinte capítulos de A2 a C1 (208 min).
 - **Modo repaso** — un popup que aparece con un atajo de teclado, te enseña algo o te pone
   un reto de lo que ya estudiaste, lo calificas en un segundo y desaparece. Para no olvidarlo.
 
@@ -25,18 +25,49 @@ el capítulo o página exactos de donde salió.
 Las fórmulas se escriben en **LaTeX** y el código sale **coloreado**; los detalles,
 en [Fórmulas y código](#fórmulas-y-código).
 
-Temas incluidos (**864 tarjetas** de fábrica, ordenadas **de básico a avanzado**):
+Temas incluidos (**1.195 tarjetas** de fábrica, ordenadas **de básico a avanzado**):
 
 | Mazo | Niveles | Contenido |
 |---|---|---|
-| 🗣️ Inglés (129) | A2 · B1 · B2 · C1 | **todo en inglés**: gramática, phrasal verbs, vocabulario, registro y escritura profesional |
-| 🐧 Linux (94) | Básico · Intermedio · Avanzado | shell, permisos, procesos, systemd, red, SSH, LVM, scripting |
-| 📊 Ciencia de Datos (250) | Básico · Intermedio · Avanzado | estadística, pandas, SQL, modelado, experimentos, producción |
-| 🤖 Inteligencia Artificial (82) | Básico · Intermedio · Avanzado | LLM, RAG, embeddings, agentes, evaluación, coste y criterio |
-| 🚜 Maquinaria Amarilla y Volquete (82) | Básico · Intermedio · Avanzado | hidráulica, tren de rodaje, diagnóstico, seguridad, gestión |
-| 🔧 Mecánica Automotriz (82) | Básico · Intermedio · Avanzado | motor, frenos, eléctrico, diagnóstico OBD2, common rail, híbridos |
-| 🧮 Matemáticas y Cálculo Rápido (77) | Básico · Intermedio · Avanzado | complementos, multiplicación védica, porcentajes, cuadrados, prueba del 9 |
-| ⚡ Electricidad y Electrónica (68) | Básico · Intermedio · Avanzado | Ohm, medición, componentes, PWM, alterna, motores, protecciones |
+| 🗣️ Inglés (233) | A2 · B1 · B2 · C1 | **todo en inglés**: gramática, phrasal verbs, vocabulario, acuerdos, negociación y síntesis de fuentes |
+| 🐧 Linux (172) | Básico · Intermedio · Avanzado | shell, permisos, procesos, systemd, red, SSH, LVM, codificación, inodos y escritura atómica |
+| 📊 Ciencia de Datos (268) | Básico · Intermedio · Avanzado | estadística, pandas, SQL, modelado, granularidad, cardinalidad y disponibilidad temporal |
+| 🤖 Inteligencia Artificial (141) | Básico · Intermedio · Avanzado | LLM, RAG, embeddings, agentes, razonamiento, MCP, inferencia, extracción validada, evaluación y abstención |
+| 🚜 Maquinaria Amarilla y Volquete (100) | Básico · Intermedio · Avanzado | hidráulica, tren de rodaje, diagnóstico, partes de turno, ciclos e indicadores de flota |
+| 🔧 Mecánica Automotriz (100) | Básico · Intermedio · Avanzado | motor, frenos, eléctrico, OBD2, common rail, híbridos, bitácora, consumo y evidencia diagnóstica |
+| 🧮 Matemáticas y Cálculo Rápido (95) | Básico · Intermedio · Avanzado | cálculo mental, porcentajes, cuadrados, fracciones, ecuaciones y probabilidad |
+| ⚡ Electricidad y Electrónica (86) | Básico · Intermedio · Avanzado | Ohm, medición, componentes, motores, Kirchhoff, circuitos RC y conversión ADC |
+
+La ampliación general incorpora **25 lecturas y 150 tarjetas**: una lectura y seis tarjetas
+por nivel en cada mazo (cuatro niveles en inglés y tres en los demás). Cada lectura
+nueva incluye explicación, ejemplo resuelto, ejercicio con solución y tarjetas
+con las mismas etiquetas para practicar al terminar. Hay preguntas abiertas,
+retos de opción múltiple y huecos; el contenido de inglés se mantiene en inglés.
+
+Inglés añade además **8 lecturas y 80 tarjetas** específicas: dos lecturas y veinte
+tarjetas por nivel. Las nuevas tarjetas se reparten en **32 retos de opción
+múltiple**, **32 frases con huecos** y **16 retos de escritura o corrección** con
+respuesta orientativa para autoevaluarse. Las opciones múltiples muestran la
+respuesta correcta y su explicación al responder.
+
+| Nivel | Nuevas lecturas de inglés |
+|---|---|
+| A2 | Compras, precios y cantidades; direcciones y lugares de la ciudad |
+| B1 | Narraciones con tiempos pasados; reservas, viajes y cambios de planes |
+| B2 | Reclamaciones y solicitudes concretas; comparación de opciones |
+| C1 | Argumentación y contraargumentos; precisión, ambigüedad y estructura paralela |
+
+Linux añade **6 lecturas y 60 tarjetas** propias: dos lecturas por nivel con
+sus bloques de código, un ejemplo resuelto y un ejercicio con solución. Las
+tarjetas se reparten en **30 preguntas abiertas**, **18 retos de opción
+múltiple** y **12 frases con huecos**, todas con la etiqueta de su lectura para
+practicarlas al terminar de leer.
+
+| Nivel | Nuevas lecturas de Linux |
+|---|---|
+| Básico | Rutas, comodines y comillas; empaquetar, comprimir y copiar |
+| Intermedio | Redirección y código de salida; entorno, PATH y archivos de inicio |
+| Avanzado | Señales y procesos que no se van; carga, memoria y espera de disco |
 
 ### Niveles
 
@@ -167,6 +198,8 @@ un «ver también» apunta a un tema que no existe.
 
 ## Bit, la mascota
 
+[Vista previa animada de Bit](docs/bit-demo.gif).
+
 Vive en una ventanita sin bordes, **siempre encima del resto** y en todos los
 espacios de trabajo. Es el asterisco de Claude cobrando vida: un **estallido de
 once rayos** en el color de su ánimo y, delante, un mochi crema con la cara —
@@ -178,7 +211,7 @@ silueta respire, se acelera y se enciende cuando tiene algo que enseñarte, y
 casi se para y se encoge cuando llevas días sin aparecer. Los cambios de color
 y de energía se funden de forma gradual, sin saltos entre estados.
 Como se pasa el día sobre fondos que no controla, todo lleva contorno cálido y
-una sombra suave (tres trazos concéntricos, que Cairo no tiene desenfoque): se ve
+una sombra suave (dos trazos concéntricos, que Cairo no tiene desenfoque): se ve
 igual sobre un escritorio negro, uno crema o una foto. Está dibujado en un lienzo
 fijo de 152×184 que luego se escala, así que para hacerlo más grande o más
 pequeño basta con cambiar `ANCHO` y `ALTO_PET` en `appstudy/pet.py`.
@@ -194,7 +227,18 @@ tienes pendiente.
 | Clic | salta y te enseña una tarjeta en el globo |
 | Pasar el ratón | te sigue con la mirada |
 | Arrastrar | la mueve; recuerda dónde la dejaste |
+| Tarjetas recientes (icono de historial o clic derecho) | recupera las últimas tarjetas para releerlas |
 | Clic derecho | menú: enséñame algo, ponme a prueba, una frase de libro, **cómo va la semana**, sesión completa, abrir AppStudy, **más grande / más pequeño**, dormir, salir |
+
+**Volver a una tarjeta**: pulsa el icono de historial del globo o elige
+**Tarjetas recientes** con clic derecho sobre Bit. También está en la cabecera
+de AppStudy y de la ventana de estudio. Conserva las últimas 100 tarjetas
+mostradas en este equipo, incluso las que cerraste sin responder, y permite
+buscar por texto o mazo. Selecciona una para ver la pregunta y su respuesta;
+consultarla no la vuelve a calificar ni cambia su próximo repaso. El historial
+permanece al reiniciar y se incluye en los respaldos locales. Al estrenarlo
+recupera los repasos anteriores que aún constan en la base de datos; las
+tarjetas cerradas sin responder antes de esta función no se pueden reconstruir.
 
 **Tamaño**: del 50 % al 250 %, desde su menú (pasos del 15 %) o con el número exacto en
 Ajustes → Progreso. Se guarda, y la mascota lo recoge sola aunque lo cambies desde la
@@ -332,17 +376,25 @@ con `play(nombre, segundos)` y `phase(nombre)` dice por dónde van, de 0 a 1.
 
 ### Lo que gasta
 
-Medido en este escritorio, **3 % de un núcleo y 127 MB** con la mascota suelta y
-sin tocarla. Tres decisiones lo bajaron desde el 9 % del primer intento:
+Bit limita el trabajo en reposo y usa el reloj de fotogramas de GTK durante los
+gestos. El consumo depende de la pantalla, el tamaño y el renderizador; las
+mediciones de versiones anteriores no describen esta nueva animación.
 
 - **`GSK_RENDERER=cairo`** (se pone en `bin/appstudy`). Para una ventanita de 168
   píxeles dibujada a mano, el renderizador de software gasta menos de la mitad
   que el acelerado y 60 MB menos, porque el coste está en subir la textura en
   cada fotograma, no en pintarla.
-- **Cadencia adaptativa**: 30 fotogramas por segundo mientras salta, habla o la
-  señalas con el ratón; 10 cuando solo respira.
-- **Repintar solo si se nota**: en reposo se compara la pose con la del fotograma
-  anterior y se salta el repintado si no ha cambiado ni medio píxel.
+- **Cadencia adaptativa**: los gestos siguen la frecuencia de la pantalla;
+  en reposo dibuja como máximo 20 veces por segundo, y 10 con movimiento reducido.
+- **Reloj de animación**: se pausa cuando el widget no está mapeado y se retoma
+  sin saltos. Los cambios de hora del sistema no interrumpen los gestos.
+- **Movimiento reducido**: respeta tanto Ajustes de AppStudy como la preferencia
+  de animaciones de GTK; elimina partículas, deformaciones y destellos móviles.
+
+Las tarjetas y el chat componen el color de tarjeta de Adwaita sobre una base
+opaca. Así, incluso cuando el tema oscuro usa un color con transparencia, el
+escritorio no se ve a través del texto. Solo el lienzo de la mascota y sus
+contenedores externos quedan transparentes.
 
 ### Por qué necesita X11 y wmctrl
 
@@ -438,18 +490,18 @@ memoria de una repasada tres veces seguidas.
 
 ## Las lecturas
 
-101 capítulos, **1.128 minutos** de material, ordenados por nivel dentro de cada mazo:
+145 capítulos, **1.368 minutos** de material, ordenados por nivel dentro de cada mazo:
 
 | Mazo | Capítulos |
 |---|---|
-| 🗣️ Inglés (8 · 152 min) | Building a sentence in English · Getting things done in English · Present Perfect and the logic of phrasal verbs · Technical procedures, passive voice and instructions · Conditionals, reported speech and professional writing · … y 3 más |
-| 🐧 Linux (10 · 107 min) | La terminal, sin misterio · Edición de texto, configuración y paquetes · Tuberías: la idea que hace poderosa a la terminal · Permisos, usuarios y control de procesos · Almacenamiento: discos, sistemas de archivos y fstab · … y 5 más |
-| 📊 Ciencia de Datos (50 · 519 min) | Mirar los datos antes de tocarlos · Limpieza, transformación y consultas: Pandas y SQL · Motores analíticos modernos: DuckDB, Polars y Parquet · Visualización que cuenta historias y evita engaños · Álgebra lineal y optimización para ciencia de datos · … y 45 más |
-| 🤖 Inteligencia Artificial (8 · 86 min) | Qué es realmente un modelo de lenguaje · El mapa de la IA: de las reglas al Deep Learning · RAG, bases vectoriales y búsqueda híbrida · Agentes autónomos y llamada a herramientas · Evaluación, observabilidad y optimización de costes · … y 3 más |
-| 🚜 Maquinaria (8 · 86 min) | La familia de maquinaria y la inspección pre-operacional · El volquete: componentes, tolva y operación segura · Fundamentos y circuitos del sistema hidráulico · Tren de rodaje, mandos finales y neumáticos gigantes · Sistema neumático, frenos de aire y tren motriz del volquete · … y 3 más |
-| 🔧 Automotriz (8 · 87 min) | El motor de combustión y el mantenimiento preventivo · Frenos, suspensión, dirección y transmisión · Diagnóstico ordenado: del síntoma a la causa raíz · Inyección electrónica, sensores y escáner OBD2 · Gestión de combustible: Fuel Trims y calibración estequiométrica · … y 3 más |
-| ⚡ Electricidad (3 · 31 min) | Cuatro magnitudes y una sola ley · Los componentes y lo que hace cada uno · Alterna, motores y protecciones |
-| 🧮 Matemáticas (6 · 60 min) | Suma, resta y complementos relámpago · Multiplicaciones relámpago y atajos directos · Porcentajes instantáneos y la regla reversible · Multiplicación védica cruzada y método de la base 100 · Cuadrados, raíces y productos notables mentales · Verificación por prueba del 9 y la Regla del 72 |
+| 🗣️ Inglés (20 · 208 min) | Gramática y escritura profesional; nuevas lecturas de acuerdos, aclaración, negociación y síntesis |
+| 🐧 Linux (19 · 167 min) | Terminal, permisos, almacenamiento y servicios; nuevas lecturas de globbing y comillas, empaquetado, redirección, entorno, señales y rendimiento |
+| 📊 Ciencia de Datos (53 · 531 min) | Análisis, modelos y producción; nuevas lecturas de granularidad, cardinalidad y datos disponibles a tiempo |
+| 🤖 Inteligencia Artificial (16 · 150 min) | Modelos, RAG, agentes y seguridad; criterios de aceptación, extracción y evaluación pareada; nuevas lecturas de uso responsable, modelos de razonamiento, MCP, latencia de inferencia y mantenimiento |
+| 🚜 Maquinaria (11 · 98 min) | Operación, hidráulica y mantenimiento; nuevas lecturas de partes de turno, ciclos y disponibilidad |
+| 🔧 Automotriz (11 · 99 min) | Sistemas y diagnóstico; nuevas lecturas de bitácora, consumo y pruebas que discriminan hipótesis |
+| ⚡ Electricidad (6 · 43 min) | Magnitudes, componentes y alterna; nuevas lecturas de nodos y mallas, transitorios RC y ADC |
+| 🧮 Matemáticas (9 · 72 min) | Cálculo mental y verificación; nuevas lecturas de fracciones, ecuaciones y probabilidad compuesta |
 
 Los capítulos viven en `appstudy/content/readings/*.json`. Cada uno tiene `level`,
 `minutes`, `tags` (define qué tarjetas se practican al final) y un `body` de bloques:
@@ -538,7 +590,10 @@ inversa se etiqueta como `inversa` para que la encuentres:
 ```
 
 Cada una se guarda en un mazo y un **nivel**, y en el explorador puedes filtrar por
-ambos.
+ambos. El explorador no pinta la colección entera: pide a la base de datos grupos
+de 60 tarjetas y el pie de la lista dice por dónde vas («Viendo 60 de 1.019») con
+un botón **Ver 60 más** que añade el grupo siguiente sin rehacer lo ya pintado.
+Al cambiar la búsqueda, el mazo o el nivel se vuelve al primer grupo.
 
 El botón **Abrir** del explorador importa tarjetas desde CSV, TSV, exportaciones
 de texto de Anki y paquetes `.apkg`. Antes de guardar enseña una muestra y deja
@@ -808,7 +863,7 @@ En Ajustes → **Apariencia y progreso** hay dos botones que piden confirmación
 
 ## Escribir tus propios capítulos
 
-Los 101 capítulos de fábrica vienen en JSON porque es lo que come la base, pero
+Los 134 capítulos de fábrica vienen en JSON porque es lo que come la base, pero
 escribir JSON a mano es un castigo. Los tuyos se escriben en **Markdown**.
 
 Desde la pestaña **Leer**, «Escribir un capítulo». O directamente, dejando un

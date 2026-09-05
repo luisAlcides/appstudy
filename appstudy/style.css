@@ -6,7 +6,11 @@
 
 /* Tarjeta Flashcard moderna y contenedores */
 .as-flashcard {
-  background: @card_bg_color;
+  /* El color de tarjeta de Adwaita puede tener alfa (modo oscuro).
+     Se compone sobre una base opaca, también en ventanas transparentes. */
+  background-color: @window_bg_color;
+  background-image: linear-gradient(@card_bg_color, @card_bg_color);
+  color: @card_fg_color;
   border-radius: 20px;
   border: 1px solid alpha(currentColor, 0.09);
   box-shadow: 0 6px 24px alpha(black, 0.08);
@@ -24,7 +28,9 @@
 }
 
 .as-card {
-  background: @card_bg_color;
+  background-color: @window_bg_color;
+  background-image: linear-gradient(@card_bg_color, @card_bg_color);
+  color: @card_fg_color;
   border-radius: 18px;
   border: 1px solid alpha(currentColor, 0.08);
   box-shadow: 0 4px 16px alpha(black, 0.05);
@@ -168,15 +174,15 @@
 }
 
 .as-choice-right {
-  background: alpha(#2ec27e, 0.22) !important;
-  border: 1.5px solid #2ec27e !important;
+  background: alpha(#2ec27e, 0.22);
+  border: 1.5px solid #2ec27e;
   color: inherit;
   font-weight: 700;
 }
 
 .as-choice-wrong {
-  background: alpha(#e01b24, 0.20) !important;
-  border: 1.5px solid #e01b24 !important;
+  background: alpha(#e01b24, 0.20);
+  border: 1.5px solid #e01b24;
   color: inherit;
 }
 
@@ -289,6 +295,15 @@
 }
 
 .as-deck-row-icon { font-size: 1.6rem; }
+
+/* Separador de nivel dentro de un tema: se lee como rótulo, no como fila */
+.as-level-header {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.6;
+  min-height: 30px;
+}
 
 .as-hero {
   border-radius: 20px;
@@ -414,10 +429,10 @@
 window.as-pet,
 window.as-pet.background,
 window.as-pet > widget,
-window.as-pet box,
-window.as-pet windowhandle,
+window.as-pet .as-pet-layout,
+window.as-pet .as-pet-handle,
 window.as-pet drawingarea,
-window.as-pet revealer {
+window.as-pet .as-pet-revealer {
   background-color: transparent;
   background-image: none;
   box-shadow: none;
@@ -425,10 +440,12 @@ window.as-pet revealer {
 }
 
 window.as-pet box.as-bubble {
-  background-color: @card_bg_color;
+  background-color: @window_bg_color;
+  background-image: linear-gradient(@card_bg_color, @card_bg_color);
+  color: @card_fg_color;
   border: 1px solid alpha(currentColor, 0.12);
-  border-radius: 18px;
-  padding: 14px 16px;
+  border-radius: 22px;
+  padding: 18px 20px;
   margin: 0 4px 6px 4px;
   box-shadow: 0 8px 24px alpha(black, 0.38);
 }
@@ -523,7 +540,9 @@ window.as-pet box.as-bubble {
 /* El globo cambia de color mientras charlas: azul frío frente al crema de
    siempre, para que se vea de un vistazo en qué modo está. */
 window.as-pet box.as-bubble.as-bubble-chat {
-  background-color: mix(@card_bg_color, #5B86D6, 0.10);
+  background-color: @window_bg_color;
+  background-image: linear-gradient(mix(@card_bg_color, #5B86D6, 0.10),
+                                    mix(@card_bg_color, #5B86D6, 0.10));
   border: 1px solid alpha(#5B86D6, 0.55);
   box-shadow: 0 6px 22px alpha(#5B86D6, 0.28);
 }

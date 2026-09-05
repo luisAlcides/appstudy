@@ -342,6 +342,135 @@
      ]
     }
    ]
+  },
+  {
+   "level": 1,
+   "minutes": 4,
+   "title": "Fracciones como cantidades: repartir, sumar y comparar",
+   "subtitle": "fracciones · Partes de una misma unidad y operaciones con sentido.",
+   "tags": "fracciones",
+   "body": [
+    {
+     "p": "Una fracción describe una cantidad tomando otra como unidad. En 3/4, el denominador indica que la unidad se dividió en cuatro partes iguales y el numerador que usamos tres. Antes de operar, identifica la unidad: media botella de un litro no contiene lo mismo que media botella de dos litros. El dibujo de una barra dividida ayuda a comprobar si una respuesta tiene sentido."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Dos fracciones son equivalentes si representan la misma cantidad: 3/4 = 6/8. Multiplicar numerador y denominador por el mismo número distinto de cero cambia el nombre de las partes, pero no la cantidad. Para sumar necesitas partes del mismo tamaño; para multiplicar puedes interpretar «una fracción de otra cantidad». Dividir entre una fracción pregunta cuántas porciones de ese tamaño caben."
+    },
+    {
+     "steps": [
+      "Escribe las unidades junto a los datos y busca un denominador común al sumar.",
+      "Suma los numeradores cuando los denominadores ya coincidan; simplifica al final.",
+      "Comprueba con una estimación: sumar dos cantidades positivas debe aumentar la cantidad."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Tienes 3/4 de litro y añades 2/3 de litro. Con doceavos: 9/12 + 8/12 = 17/12 de litro, es decir, 1 litro y 5/12. En cambio, tomar 2/3 de los 3/4 de litro iniciales da 6/12 = 1/2 litro. La palabra «de» en este segundo problema representa una multiplicación."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Una cinta mide 5/6 de metro y cortas 1/4 de metro. ¿Cuánto queda? Después, calcula cuántas porciones de 1/8 de litro caben en 3/4 de litro."
+    },
+    {
+     "note": "Solución: Quedan 10/12 − 3/12 = 7/12 de metro. Caben (3/4) ÷ (1/8) = 6 porciones. No sumes los denominadores: eso cambiaría el tamaño de las partes."
+    },
+    {
+     "key": "Primero decide qué operación describe la situación; después calcula con partes comparables."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 4,
+   "title": "Ecuaciones para convertir un problema en una cuenta",
+   "subtitle": "ecuaciones · Incógnitas, operaciones inversas y comprobación.",
+   "tags": "ecuaciones",
+   "body": [
+    {
+     "p": "Una ecuación expresa que dos cantidades son iguales. La incógnita representa un valor que todavía no conoces, no una orden de adivinar. Traducir un enunciado exige separar lo fijo de lo variable: un servicio cobra una cuota de 12 unidades monetarias y 3 por cada hora. Para h horas, el total es 12 + 3h."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "La igualdad se conserva al hacer la misma operación en ambos lados. Restar una cantidad o dividir entre un número distinto de cero son formas de aislar la incógnita. «Pasar al otro lado» es una abreviatura de estas operaciones; entenderlas evita cambiar signos por memoria. Una solución debe satisfacer la ecuación original y las restricciones del contexto."
+    },
+    {
+     "steps": [
+      "Define la incógnita con su unidad: h es el número de horas.",
+      "Escribe la relación completa antes de sustituir o despejar.",
+      "Deshaz las operaciones en orden inverso y verifica sustituyendo."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Si el total es 39, escribimos 12 + 3h = 39. Restamos 12 a ambos lados: 3h = 27. Dividimos entre 3: h = 9. Comprobación: 12 + 3 × 9 = 39. Si solo se permiten horas enteras y obtienes 9,5, debes revisar cómo se factura; una solución algebraica no decide las reglas del servicio."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Un depósito contiene 8 litros y recibe 4 litros por minuto, sin pérdidas. ¿Cuántos minutos tarda en contener 36 litros? Resuelve también 2(x + 3) = 18."
+    },
+    {
+     "note": "Solución: 8 + 4t = 36 da t = 7 minutos. En la segunda ecuación, divide entre 2: x + 3 = 9; luego x = 6. Sustituir confirma ambos resultados."
+    },
+    {
+     "key": "Una ecuación bien planteada conserva las unidades y una solución bien terminada se comprueba."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 4,
+   "title": "Probabilidad compuesta: contar casos y usar el complemento",
+   "subtitle": "probabilidad · Sucesos independientes y extracciones sin reemplazo.",
+   "tags": "probabilidad",
+   "body": [
+    {
+     "p": "Una probabilidad es un número entre cero y uno que resume la posibilidad de un suceso bajo un modelo. En un dado equilibrado hay seis resultados equiprobables; obtener un número par tiene probabilidad 3/6. Contar casos favorables y dividir entre casos posibles solo funciona directamente si esos casos son igualmente probables."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Para que ocurran A y B se usa P(A y B) = P(A) × P(B dado A). Si son independientes, saber que ocurrió A no cambia la probabilidad de B. Sin reemplazo, la primera extracción modifica lo que queda y normalmente introduce dependencia. Para «al menos uno», suele ser más sencillo calcular el complemento: uno menos la probabilidad de ninguno."
+    },
+    {
+     "steps": [
+      "Define el experimento y comprueba si se repone lo extraído.",
+      "Distingue «y» de «o»: multiplicar condiciones no es sumar alternativas.",
+      "Para alternativas que se solapan, resta la intersección al sumar sus probabilidades."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "En dos lanzamientos independientes de una moneda equilibrada, la probabilidad de ninguna cara es (1/2) × (1/2) = 1/4. Por tanto, al menos una cara tiene probabilidad 3/4. En una bolsa con tres bolas rojas y dos azules, sacar dos rojas sin reemplazo tiene probabilidad (3/5) × (2/4) = 3/10."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "En tres lanzamientos independientes de moneda equilibrada, calcula la probabilidad de al menos una cara. En un dado equilibrado, calcula la probabilidad de obtener un número par o mayor que cuatro."
+    },
+    {
+     "note": "Solución: Al menos una cara: 1 − (1/2)³ = 7/8. En el dado, pares = {2,4,6} y mayores que cuatro = {5,6}; su unión tiene cuatro resultados, así que 4/6 = 2/3. El 6 se cuenta una sola vez."
+    },
+    {
+     "key": "Antes de multiplicar probabilidades, justifica la independencia o utiliza una probabilidad condicionada."
+    }
+   ]
   }
  ]
 }

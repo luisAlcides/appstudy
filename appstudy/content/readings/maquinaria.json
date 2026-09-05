@@ -502,6 +502,138 @@
      ]
     }
    ]
+  },
+  {
+   "level": 1,
+   "minutes": 4,
+   "title": "El parte de turno: horas, producción y hechos verificables",
+   "subtitle": "parte de turno · Registrar actividad sin mezclar tiempos y unidades.",
+   "tags": "parte de turno",
+   "body": [
+    {
+     "p": "Un parte de turno permite que el siguiente equipo entienda qué ocurrió. No necesita ser largo, pero sí conservar identificación de la máquina, fecha, lecturas del horómetro, actividad y novedades. «Todo bien» dice poco; «se realizaron doce ciclos y hubo una espera de veinte minutos por falta de camión» permite analizar el trabajo y organizar el relevo."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Distingue duración del turno, incremento del horómetro y tiempo productivo. No son necesariamente iguales: el horómetro puede registrar funcionamiento según el diseño de la máquina, y una parte de ese tiempo puede corresponder a espera. Anota las unidades de producción: toneladas, metros cúbicos o viajes no son intercambiables sin información adicional."
+    },
+    {
+     "steps": [
+      "Registra lecturas inicial y final, con la identificación correcta de la máquina.",
+      "Separa trabajo, espera y parada usando categorías definidas por el equipo.",
+      "Describe novedades como hechos y comunica incidencias conforme al procedimiento del lugar."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "El turno dura ocho horas y el horómetro pasa de 1 250,4 a 1 256,9: el incremento es 6,5 horas, equivalente a seis horas y treinta minutos. No son seis horas y cincuenta minutos. Si hubo 90 minutos de espera con motor funcionando, ese tiempo puede estar incluido en el incremento del horómetro, pero no representa producción."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "El horómetro pasa de 2 010,2 a 2 017,0. ¿Cuánto aumentó y cuántos minutos representa la parte decimal? ¿Puedes calcular toneladas producidas con ese dato solamente?"
+    },
+    {
+     "note": "Solución: Aumentó 6,8 horas: seis horas y 48 minutos. No puedes deducir toneladas sin un registro de carga o producción; tiempo y producción miden cosas distintas."
+    },
+    {
+     "key": "Registra por separado tiempo, actividad y producción, siempre con unidades y definiciones claras."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 4,
+   "title": "Tiempo de ciclo y cuello de botella en una operación",
+   "subtitle": "productividad de ciclos · Calcular capacidad sin confundirla con producción real.",
+   "tags": "productividad de ciclos",
+   "body": [
+    {
+     "p": "Una operación repetitiva tiene un ciclo: cargar, trasladar, descargar y regresar, según el trabajo. Su duración ayuda a estimar cuántas repeticiones caben en una hora. Pero una estimación teórica no incluye automáticamente esperas, interrupciones ni variación de carga. Define qué etapas incluye tu medición antes de comparar equipos o turnos."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Si un ciclo completo dura t minutos, el máximo teórico bajo ese supuesto es 60/t ciclos por hora. Multiplicado por la carga media válida de cada ciclo da una tasa de producción. En una cadena, la etapa con menor capacidad puede limitar a las demás. Aumentar velocidad en otra etapa no elimina ese límite y puede generar más espera. La planificación debe respetar capacidades y procedimientos de operación."
+    },
+    {
+     "steps": [
+      "Mide ciclos completos y separa tiempos de servicio de tiempos de espera.",
+      "Convierte todas las capacidades a una misma unidad, por ejemplo toneladas por hora.",
+      "Busca la etapa limitante antes de proponer cambios en el reparto del trabajo."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "En un ejemplo de planificación, un ciclo de cinco minutos mueve una carga media de ocho toneladas dentro de la capacidad autorizada. Son doce ciclos y 96 t/h teóricas. Si hay solo 45 minutos efectivos de esa actividad por hora de turno, la estimación baja a nueve ciclos y 72 t/h. Si la descarga admite 60 t/h, esa etapa limita la cadena bajo estos supuestos."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Una etapa puede cargar 80 t/h, el transporte mover 65 t/h y la descarga recibir 90 t/h. ¿Qué capacidad limita la cadena en un modelo estable? ¿Elevar solo la carga a 100 t/h resuelve el límite?"
+    },
+    {
+     "note": "Solución: El transporte, con 65 t/h. Aumentar solo la carga no eleva ese límite; hay que estudiar el transporte y las esperas, además de la variabilidad real del sistema."
+    },
+    {
+     "key": "La productividad depende del ciclo completo y de la etapa limitante, no de un movimiento aislado más rápido."
+    },
+    {
+     "note": "Referencia: Caterpillar, cálculo de productividad: https://www.cat.com/en_US/articles/for-owners/how-to-calculate-cat-wheel-loader-productivity.html"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 4,
+   "title": "Disponibilidad y utilización: explicar dónde se pierde el turno",
+   "subtitle": "indicadores de flota · Denominadores explícitos y causas de pérdida.",
+   "tags": "indicadores de flota",
+   "body": [
+    {
+     "p": "Dos máquinas pueden producir lo mismo por razones distintas: una estuvo parada por reparación y otra pasó tiempo disponible sin trabajo asignado. Un indicador único mezcla esas situaciones. Separar disponibilidad y utilización ayuda a distinguir pérdidas por indisponibilidad de pérdidas por falta de uso. Las organizaciones pueden definir estos indicadores de manera diferente, así que siempre escribe la fórmula junto al valor."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "En el modelo de este capítulo, disponibilidad = horas disponibles / horas programadas; utilización = horas productivas / horas disponibles. Consideramos categorías sin solapamiento y horas productivas contenidas en las disponibles. Su producto es horas productivas / horas programadas. Una espera organizativa no debe convertirse automáticamente en una avería para mejorar otro indicador."
+    },
+    {
+     "steps": [
+      "Define el periodo programado y clasifica cada intervalo con criterios consistentes.",
+      "Calcula ambos indicadores con sus denominadores y conserva los tiempos originales.",
+      "Investiga causas de pérdidas antes de comparar equipos con trabajos o condiciones diferentes."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Una máquina tiene ocho horas programadas, dos de reparación y seis disponibles. De esas seis, trabaja productivamente cuatro y espera dos. Disponibilidad: 6/8 = 75 %. Utilización de lo disponible: 4/6 ≈ 66,7 %. Fracción productiva del turno: 4/8 = 50 %. El producto 0,75 × 0,6667 coincide aproximadamente con 0,50, salvo redondeo."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Otra máquina tiene diez horas programadas, ocho disponibles y seis productivas. Calcula los tres indicadores. Si un informe llama utilización a 6/10, ¿está necesariamente mal?"
+    },
+    {
+     "note": "Solución: Disponibilidad 80 %, utilización según nuestra definición 75 % y fracción productiva 60 %. El otro informe puede usar otra definición válida; hace falta aclarar el denominador antes de comparar."
+    },
+    {
+     "key": "Un porcentaje sin definición puede confundir; conserva tiempos, categorías y denominadores para interpretar la flota."
+    }
+   ]
   }
  ]
 }

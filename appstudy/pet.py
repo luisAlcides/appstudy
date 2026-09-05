@@ -23,15 +23,28 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
 from . import citas, db, estadisticas, ia, logros, reto  # noqa: E402
-from . import recordatorios, scheduler, sonido, util  # noqa: E402
+from . import historial, recordatorios, scheduler, sonido, util  # noqa: E402
 
 PET_APP_ID = "io.github.appstudy.AppStudy.Pet"
 NOMBRE = "Bit"
 
-# Cadencia del dibujo, en milisegundos: fluido cuando pasa algo, tranquilo
-# cuando solo respira.
-FRAME_ACTIVO = 33
-FRAME_REPOSO = 100
+# Los gestos siguen el reloj de fotogramas de GTK; en reposo limitamos el dibujo.
+FRAME_REPOSO = 50
+
+# El estallido de once rayos costaba la mitad del fotograma —dos trazos anchos de
+# halo sobre un contorno de once puntas—, así que se pinta una vez en una imagen
+# y luego solo se gira. El lienzo tiene que dar para el radio (54) más el halo, y
+# se pinta al doble de resolución para que al girarlo no se vean los bordes. El
+# paso de la onda es el redondeo de su fase: mueve las puntas menos de dos
+# píxeles, así que a saltos de 0,3 rad no se nota y varios fotogramas seguidos
+# reaprovechan el mismo dibujo.
+ESTRELLA_LADO = 132
+ESTRELLA_PASO_ONDA = 0.3
+
+# El mochi se guarda igual. Aquí no hace falta redondear nada: lo único que lo
+# cambia es el color del ánimo, así que en reposo se pinta una vez y ya. El
+# lienzo tiene que dar para la sombra de contacto, que se sale del cuerpo.
+CUERPO_LADO = 120
 
 # Cada cuánto revisa el estado y cada cuánto insiste, en segundos
 CHECK_EVERY = 15
@@ -46,7 +59,7 @@ HORAS_TRISTE = 72
 # Y cada cuánto, como mucho, te lo echa en cara
 HORAS_REPROCHE = 3
 
-# Bit está dibujado en un lienzo fijo de 152x176 y luego se escala al tamaño
+# Bit está dibujado en un lienzo fijo de 152x184 y luego se escala al tamaño
 # real del widget: para hacerlo más grande o más pequeño basta con tocar ANCHO y
 # ALTO_PET, que las proporciones se mantienen solas.
 DISENO = (152, 184)
@@ -197,6 +210,16 @@ def acercar(actual, objetivo, rapidez, dt):
     return actual + (objetivo - actual) * k
 
 
+def muelle(actual, velocidad, objetivo, rapidez, dt):
+    """Muelle críticamente amortiguado, estable incluso cuando se pierde un frame."""
+    dt = max(0.0, dt)
+    distancia = actual - objetivo
+    impulso = velocidad + rapidez * distancia
+    decae = math.exp(-rapidez * dt)
+    return (objetivo + (distancia + impulso * dt) * decae,
+            (velocidad - rapidez * impulso * dt) * decae)
+
+
 class Creature(Gtk.DrawingArea):
     """Bit, dibujado a mano con Cairo.
 
@@ -245,8 +268,12 @@ class Creature(Gtk.DrawingArea):
         self.angulo_estrella = 0.0
         self.color_actual = _hex(MOODS["normal"])[:3]
         self.energy_mostrada = 1.0
-        self.next_idle = time.time() + random.uniform(1.5, 4)
-        self._sello_previo = None
+        self.next_idle = random.uniform(1.5, 4)
+        self.inercia = self.inercia_vel = 0.0
+        self._pose_y = 0.0
+        self._frame_time = None
+        self._cache_estrella = None     # (clave, imagen) del estallido ya pintado
+        self._cache_cuerpo = None       # (color, imagen) del mochi ya pintado
 
         self.set_draw_func(self.draw)
         raton = Gtk.EventControllerMotion()
@@ -256,10 +283,34 @@ class Creature(Gtk.DrawingArea):
         self.add_controller(raton)
         # En vez de aparecer de golpe al arrancar, cae suavemente en su sitio.
         self.play("aparecer", 0.85)
+        self.connect("map", self._reiniciar_reloj)
+        self.add_tick_callback(self._on_frame)
+
+    def _reiniciar_reloj(self, *_):
+        self._frame_time = None
+
+    def _on_frame(self, _widget, reloj):
+        ahora = reloj.get_frame_time()
+        if self._frame_time is None:
+            self._frame_time = ahora
+            return GLib.SOURCE_CONTINUE
+        dt = (ahora - self._frame_time) / 1_000_000
+        intervalo = 0.1 if self.reduced_motion else FRAME_REPOSO / 1000
+        if (self.reduced_motion or not self.ocupada()) and dt < intervalo:
+            return GLib.SOURCE_CONTINUE
+        self._frame_time = ahora
+        self.tick(dt)
+        return GLib.SOURCE_CONTINUE
 
     def set_escala(self, escala):
         """Tamaño de la mascota respecto al de diseño; la ventana la sigue."""
         self.escala = max(ESCALA_MIN, min(ESCALA_MAX, float(escala)))
+        # Las piezas guardadas se pintan con holgura sobre el tamaño en pantalla,
+        # que es lo que evita que se vean blandas cuando Bit se agranda.
+        detalle = max(2, math.ceil(self.escala * 2))
+        if detalle != self._ss:
+            self._ss = detalle
+            self._cache_estrella = self._cache_cuerpo = None
         self.set_content_width(round(ANCHO * self.escala))
         self.set_content_height(round(ALTO_PET * self.escala))
         self.queue_draw()
@@ -272,14 +323,14 @@ class Creature(Gtk.DrawingArea):
         if nombre in self.EXPRESIONES:
             for anterior in self.EXPRESIONES - {nombre}:
                 self.anims.pop(anterior, None)
-        self.anims[nombre] = (time.time(), dur)
+        self.anims[nombre] = (self.t, max(0.001, dur))
 
     def phase(self, nombre):
         """0..1 mientras el gesto corre; None cuando ya terminó."""
         dato = self.anims.get(nombre)
         if dato is None:
             return None
-        p = (time.time() - dato[0]) / dato[1]
+        p = (self.t - dato[0]) / dato[1]
         return None if p >= 1.0 else max(0.0, p)
 
     def phase_motion(self, nombre):
@@ -287,7 +338,7 @@ class Creature(Gtk.DrawingArea):
         return None if self.reduced_motion else self.phase(nombre)
 
     def hablar(self, segundos=1.2):
-        self.hablando_hasta = time.time() + segundos
+        self.hablando_hasta = self.t + segundos
         self.play("antena", 0.8)
 
     def saludar(self):
@@ -351,7 +402,7 @@ class Creature(Gtk.DrawingArea):
         self.puntero = ((x - w / 2) / (w / 2), (y - h / 2) / (h / 2))
 
     def on_enter(self, _c, x, y):
-        self.hover = True
+        self.on_motion(_c, x, y)
         self.play("antena", 0.7)
         # A veces Bit se sorprende al verte llegar; no lo repite si ya está
         # expresando otra cosa importante.
@@ -366,13 +417,13 @@ class Creature(Gtk.DrawingArea):
     # ------------------------------------------------------------------ tiempo
 
     def tick(self, dt):
-        dt = min(dt, 0.1)               # tras un tirón, no des un salto absurdo
+        dt = max(0.0, min(dt, 0.1))      # reloj monotónico, acotado tras una pausa
         self.t += dt
         vel_estrella = (0.0 if self.reduced_motion else
                         0.85 if self.teaching else 0.22 * (1 - 0.75 * self.abandono))
         self.angulo_estrella = (self.angulo_estrella + vel_estrella * dt) % math.tau
 
-        ahora = time.time()
+        ahora = self.t
         self.anims = {k: v for k, v in self.anims.items() if ahora - v[0] < v[1]}
         objetivo_color = _hex(CHAT if self.charlando else
                               MOODS.get(self.mood, MOODS["normal"]))[:3]
@@ -381,22 +432,22 @@ class Creature(Gtk.DrawingArea):
         self.energy_mostrada = acercar(self.energy_mostrada, self.energy, 3.6, dt)
         self.hover_suave = acercar(self.hover_suave, 1.0 if self.hover else 0.0,
                                    8.0 if self.hover else 5.0, dt)
-        self._mover_particulas(dt)
+        if self.reduced_motion:
+            self.particulas.clear()
+        else:
+            self._mover_particulas(dt)
         self._decidir(ahora, dt)
         for i in (0, 1):                # las pupilas alcanzan su objetivo con calma
-            self.mirada[i] += (self.objetivo[i] - self.mirada[i]) * min(1.0, dt * 7)
+            self.mirada[i] = acercar(self.mirada[i], self.objetivo[i], 7, dt)
+
+        dy, _, _, rot = self._pose()
+        velocidad_y = (dy - self._pose_y) / max(dt, 0.001)
+        objetivo = max(-0.24, min(0.24, -velocidad_y * 0.002 + rot * 0.7))
+        self.inercia, self.inercia_vel = muelle(
+            self.inercia, self.inercia_vel, objetivo, 12, dt)
+        self._pose_y = dy
 
         self.queue_draw()
-
-    def _sello(self):
-        if self.ocupada():
-            return ("activo", self.t)       # con algo en marcha, siempre se pinta
-        dy, sx, sy, rot = self._pose()
-        return (self.mood, self.teaching, self.charlando, round(self.energy, 2),
-                round(self.abandono, 2),
-                round(self.hover_suave * 20), round(self.energy_mostrada * 50),
-                tuple(round(c * 40) for c in self.color_actual),
-                round(dy * 2), round(sx * 100), round(rot * 125))
 
     def _decidir(self, ahora, dt):
         if self.mood == "dormido":
@@ -435,12 +486,18 @@ class Creature(Gtk.DrawingArea):
     def ocupada(self) -> bool:
         """¿Hay algo que merezca dibujar a plena velocidad?
 
-        En reposo solo respira y se balancea, y eso se ve igual de bien a diez
-        fotogramas por segundo. Vive en el escritorio todo el día: no tiene
-        sentido gastar un cuarto de núcleo en mecerse.
+        En reposo se limita la cadencia; los gestos y las transiciones de color
+        siguen la frecuencia de la pantalla.
         """
+        objetivo_color = _hex(CHAT if self.charlando else
+                              MOODS.get(self.mood, MOODS["normal"]))[:3]
         return bool(self.anims or self.particulas or self.hover or self.teaching
-                    or time.time() < self.hablando_hasta
+                    or self.t < self.hablando_hasta
+                    or abs(self.inercia) > 0.01
+                    or abs(self.hover_suave - float(self.hover)) > 0.01
+                    or abs(self.energy - self.energy_mostrada) > 0.01
+                    or any(abs(a - b) > 0.005 for a, b in
+                           zip(self.color_actual, objetivo_color))
                     or abs(self.objetivo[0] - self.mirada[0]) > 0.02
                     or abs(self.objetivo[1] - self.mirada[1]) > 0.02)
 
@@ -493,14 +550,14 @@ class Creature(Gtk.DrawingArea):
             # Anticipación, vuelo y aterrizaje son tres fases continuas. Antes el
             # primer fotograma ya nacía aplastado y el salto se sentía brusco.
             if p < 0.18:
-                k = math.sin(math.pi * p / 0.18)
+                k = math.sin(math.pi * p / 0.18) ** 2
                 sx += 0.16 * k; sy -= 0.14 * k; dy += 3 * k
             elif p < 0.80:
-                k = math.sin(math.pi * (p - 0.18) / 0.62)
-                dy -= 29 * k
+                k = math.sin(math.pi * (p - 0.18) / 0.62) ** 2
+                dy -= 25 * k
                 sx -= 0.065 * k; sy += 0.075 * k
             else:
-                k = math.sin(math.pi * (p - 0.80) / 0.20)
+                k = math.sin(math.pi * (p - 0.80) / 0.20) ** 2
                 sx += 0.18 * k; sy -= 0.15 * k; dy += 2.5 * k
 
         p = self.phase_motion("estirar")
@@ -588,6 +645,7 @@ class Creature(Gtk.DrawingArea):
         # que se toca si algún día se quiere una mascota más grande.
         cr.save()
         k = min(w / DISENO[0], h / DISENO[1])
+        cr.translate((w - DISENO[0] * k) / 2, (h - DISENO[1] * k) / 2)
         cr.scale(k, k)
         w, h = DISENO
         color = self.color_actual
@@ -599,12 +657,16 @@ class Creature(Gtk.DrawingArea):
         dy, sx, sy, rot = self._pose()
 
         # sombra en el suelo: se encoge y se aclara cuando salta
-        salto = max(0.0, -dy - 3) / 24
+        salto = min(1.0, max(0.0, -dy - 3) / 24)
         cr.save()
         cr.translate(cx, suelo + 5)
         cr.scale(1.0, 0.26)
-        cr.arc(0, 0, 34 - salto * 10, 0, math.tau)
-        cr.set_source_rgba(0.08, 0.055, 0.04, 0.22 - salto * 0.11)
+        radio = 38 - salto * 10
+        sombra = cairo.RadialGradient(0, 0, 3, 0, 0, radio)
+        sombra.add_color_stop_rgba(0, 0.08, 0.055, 0.04, 0.30 - salto * 0.16)
+        sombra.add_color_stop_rgba(1, 0.08, 0.055, 0.04, 0)
+        cr.arc(0, 0, radio, 0, math.tau)
+        cr.set_source(sombra)
         cr.fill()
         cr.restore()
 
@@ -618,8 +680,12 @@ class Creature(Gtk.DrawingArea):
         self._pies(cr)
         self._brazos(cr, color)
         self._cuerpo(cr, color)
+        cr.save()
+        # La cara acompaña la mirada, con menos recorrido que las pupilas.
+        cr.translate(self.mirada[0] * 1.2, self.mirada[1] * 0.8)
         self._cara(cr, color, dormido)
         self._accesorio(cr, color)
+        cr.restore()
         cr.restore()
 
         self._particulas(cr, cx, base + dy)
@@ -628,7 +694,11 @@ class Creature(Gtk.DrawingArea):
 
     # -- piezas ---------------------------------------------------------------
 
-    RX, RY = 37, 34                       # el mochi: medio ancho y medio alto
+    RX, RY = 39, 35                       # mejillas amplias, silueta de mochi
+
+    # Cuánto más fino que la pantalla se pintan las piezas guardadas. Lo ajusta
+    # `set_escala`; aquí queda el valor de una mascota a tamaño normal.
+    _ss = 2
 
     def _forma(self, cr, rx, ry):
         """La silueta del cuerpo: un mochi, redondo arriba y ancho y plano abajo."""
@@ -658,46 +728,26 @@ class Creature(Gtk.DrawingArea):
         cr.set_line_width(grosor)
         cr.stroke()
 
-    def _estrella(self, cr, color):
-        """El estallido de once rayos: es el cuerpo de Bit y su estado de ánimo.
+    def _pintar_estrella(self, cr, color, r, inercia, fase):
+        """Dibuja el estallido centrado en el origen, sin girarlo ni latir.
 
-        Va detrás del mochi, en el color del humor, y gira despacio todo el rato:
-        se acelera cuando tiene algo que enseñarte, el gesto «antena» le da un
-        tirón, y cuando llevas días sin aparecer casi se para y se encoge. Es el
-        guiño a la mascota de Claude, dibujado rayo a rayo.
+        Es la parte cara del fotograma: once rayos con dos trazos anchos de halo
+        encima. Se mantiene aparte para poder guardarla en `_cache_estrella` y
+        reaprovecharla mientras la forma no cambie.
         """
-        cx, cy = 0, -19
-        r = 57 * (1 - 0.10 * self.abandono)
-        vuelta = self.angulo_estrella
-        p = self.phase_motion("antena")
-        if p is not None:
-            vuelta += math.sin(p * math.pi * 4) * 0.35 * (1 - p)
-        latido = (1.0 if self.reduced_motion else
-                  1 + math.sin(self.t * (5 if self.teaching else 1.6)) *
-                  (0.035 if self.teaching else 0.015) + 0.025 * self.hover_suave)
-        rb, wb = 21, 11.2                 # base de cada rayo: radio y medio ancho
-
-        if self.teaching:                 # un halo cálido cuando está enseñando
-            g = cairo.RadialGradient(cx, cy, r * 0.6, cx, cy, r * 1.45)
-            g.add_color_stop_rgba(0, *_hex(color, 0.30))
-            g.add_color_stop_rgba(1, *_hex(color, 0.0))
-            cr.arc(cx, cy, r * 1.45, 0, math.tau)
-            cr.set_source(g)
-            cr.fill()
-
-        cr.save()
-        cr.translate(cx, cy)
-        cr.rotate(vuelta)
-        cr.scale(latido, latido)
+        rb, wb = 21, 10.4                 # separación clara entre los once rayos
 
         def silueta():
+            cr.new_sub_path()
+            cr.arc(0, 0, rb + 3, 0, math.tau)
             # Una onda mínima recorre los rayos. Rompe la rigidez geométrica sin
             # desdibujar la silueta de once puntas que identifica a Bit.
             for i in range(11):
                 cr.save()
-                cr.rotate(i * math.tau / 11)
-                onda = 0.0 if self.reduced_motion else math.sin(self.t * 1.35 + i * 1.73)
-                ri = r * (1 + 0.018 * onda * (1 - 0.45 * self.abandono))
+                cr.rotate(i * math.tau / 11 + inercia * math.sin(i * 1.73) * 0.45)
+                onda = 0.0 if self.reduced_motion else math.sin(fase + i * 1.73)
+                ri = r * (1 + 0.045 * math.sin(i * 2.4) +
+                          0.028 * onda * (1 - 0.45 * self.abandono))
                 wi = wb * (1 - 0.025 * onda)
                 # El segundo control va a la altura de la punta: así el rayo
                 # acaba romo y redondeado, como en el logo, no en pincho.
@@ -719,15 +769,142 @@ class Creature(Gtk.DrawingArea):
         g.add_color_stop_rgba(0.45, *_hex(color))
         g.add_color_stop_rgba(1, *_oscuro(color, 0.80))
         cr.set_source(g)
-        cr.fill_preserve()
-        # Un filo de luz muy fino devuelve definición a las puntas sobre fondos
-        # oscuros y hace que el volumen se lea incluso a tamaño pequeño.
-        cr.set_source_rgba(1, 1, 1, 0.13)
-        cr.set_line_width(1.05)
-        cr.stroke()
+        cr.fill()
+
+        # Relieves cortos: cada pétalo tiene volumen sin añadir textura ruidosa.
+        cr.set_line_cap(cairo.LINE_CAP_ROUND)
+        for i in range(11):
+            cr.save()
+            cr.rotate(i * math.tau / 11 + inercia * math.sin(i * 1.73) * 0.45)
+            cr.move_to(r * 0.67, -3)
+            cr.curve_to(r * 0.74, -4.5, r * 0.83, -3.5, r * 0.88, -1.5)
+            cr.set_source_rgba(1, 0.96, 0.87, 0.24)
+            cr.set_line_width(2.1)
+            cr.stroke()
+            cr.restore()
+
+    def _estrella_grabada(self, color, r, inercia, fase):
+        """El estallido ya pintado en una imagen, listo para girar y pegar.
+
+        Girar y escalar son cosas que Cairo hace al pegar la imagen, así que no
+        entran en la clave: mientras el color, el tamaño y la onda sigan siendo
+        los mismos, el fotograma siguiente reutiliza este dibujo tal cual.
+        """
+        clave = (tuple(round(c, 2) for c in color[:3]), round(r, 1),
+                 round(inercia, 2), round(fase, 2), self.reduced_motion,
+                 round(self.abandono, 2))
+        if self._cache_estrella and self._cache_estrella[0] == clave:
+            return self._cache_estrella[1]
+
+        # El lienzo se reaprovecha entre repintados: pedir 280 kB al sistema cada
+        # vez que la onda avanza costaba más que volver a trazar los rayos.
+        lado = ESTRELLA_LADO * self._ss
+        superficie = self._cache_estrella[1] if self._cache_estrella else \
+            cairo.ImageSurface(cairo.FORMAT_ARGB32, lado, lado)
+        ctx = cairo.Context(superficie)
+        ctx.save()
+        ctx.set_operator(cairo.OPERATOR_CLEAR)
+        ctx.paint()
+        ctx.restore()
+        ctx.scale(self._ss, self._ss)
+        ctx.translate(ESTRELLA_LADO / 2, ESTRELLA_LADO / 2)
+        self._pintar_estrella(ctx, color, r, inercia, fase)
+        superficie.flush()
+        self._cache_estrella = (clave, superficie)
+        return superficie
+
+    def _estrella(self, cr, color):
+        """El estallido de once rayos: es el cuerpo de Bit y su estado de ánimo.
+
+        Va detrás del mochi, en el color del humor, y gira despacio todo el rato:
+        se acelera cuando tiene algo que enseñarte, el gesto «antena» le da un
+        tirón, y cuando llevas días sin aparecer casi se para y se encoge. Es el
+        guiño a la mascota de Claude, dibujado rayo a rayo.
+
+        El dibujo en sí sale de `_estrella_grabada`, que lo guarda entre
+        fotogramas; aquí solo se le da la vuelta y el latido, que son justo lo
+        que cambia siempre y lo que Cairo sabe hacer barato al pegar la imagen.
+        """
+        cx, cy = 0, -19
+        r = 54 * (1 - 0.10 * self.abandono)
+        inercia = 0.0 if self.reduced_motion else self.inercia
+        vuelta = self.angulo_estrella + inercia
+        p = self.phase_motion("antena")
+        if p is not None:
+            vuelta += math.sin(p * math.pi * 4) * 0.35 * (1 - p)
+        latido = (1.0 if self.reduced_motion else
+                  1 + math.sin(self.t * (5 if self.teaching else 1.6)) *
+                  (0.035 if self.teaching else 0.015) + 0.025 * self.hover_suave)
+
+        if self.teaching:                 # un halo cálido cuando está enseñando
+            g = cairo.RadialGradient(cx, cy, r * 0.6, cx, cy, r * 1.45)
+            g.add_color_stop_rgba(0, *_hex(color, 0.30))
+            g.add_color_stop_rgba(1, *_hex(color, 0.0))
+            cr.arc(cx, cy, r * 1.45, 0, math.tau)
+            cr.set_source(g)
+            cr.fill()
+
+        # La onda de los rayos se redondea antes de pedir el dibujo: mueve las
+        # puntas menos de dos píxeles, así que avanzar a saltos no se nota y en
+        # cambio deja que varios fotogramas seguidos compartan la misma imagen.
+        fase = 0.0 if self.reduced_motion else (
+            round(self.t * 1.35 / ESTRELLA_PASO_ONDA) * ESTRELLA_PASO_ONDA)
+        superficie = self._estrella_grabada(color, r, inercia, fase)
+
+        cr.save()
+        cr.translate(cx, cy)
+        cr.rotate(vuelta)
+        cr.scale(latido / self._ss, latido / self._ss)
+        lado = ESTRELLA_LADO * self._ss
+        cr.set_source_surface(superficie, -lado / 2, -lado / 2)
+        cr.get_source().set_filter(cairo.FILTER_BILINEAR)
+        cr.paint()
         cr.restore()
 
     def _cuerpo(self, cr, color):
+        """El mochi, con su sombra, sus luces y su insignia.
+
+        El dibujo no depende del tiempo —la respiración y el balanceo se los
+        aplica `draw` por fuera, al deformar el lienzo—, así que se guarda ya
+        pintado y solo se vuelve a trazar cuando cambia el color del ánimo.
+        """
+        cr.save()
+        cr.scale(1 / self._ss, 1 / self._ss)
+        lado = CUERPO_LADO * self._ss
+        cr.set_source_surface(self._cuerpo_grabado(color), -lado / 2, -lado / 2)
+        cr.get_source().set_filter(cairo.FILTER_BILINEAR)
+        cr.paint()
+        cr.restore()
+
+        p = self.phase_motion("brillo")  # aro que se expande al celebrar
+        if p is not None:
+            cr.arc(0, -10, 62 + out_cubic(p) * 26, 0, math.tau)
+            cr.set_source_rgba(*_hex(color, (1 - p) * 0.55))
+            cr.set_line_width(3.5 * (1 - p))
+            cr.stroke()
+
+    def _cuerpo_grabado(self, color):
+        """El mochi ya pintado. Solo el color del ánimo invalida la copia."""
+        clave = tuple(round(c, 2) for c in color[:3])
+        if self._cache_cuerpo and self._cache_cuerpo[0] == clave:
+            return self._cache_cuerpo[1]
+
+        lado = CUERPO_LADO * self._ss
+        superficie = self._cache_cuerpo[1] if self._cache_cuerpo else \
+            cairo.ImageSurface(cairo.FORMAT_ARGB32, lado, lado)
+        ctx = cairo.Context(superficie)
+        ctx.save()
+        ctx.set_operator(cairo.OPERATOR_CLEAR)
+        ctx.paint()
+        ctx.restore()
+        ctx.scale(self._ss, self._ss)
+        ctx.translate(CUERPO_LADO / 2, CUERPO_LADO / 2)
+        self._pintar_cuerpo(ctx, color)
+        superficie.flush()
+        self._cache_cuerpo = (clave, superficie)
+        return superficie
+
+    def _pintar_cuerpo(self, cr, color):
         rx, ry = self.RX, self.RY
 
         # sombra de contacto del mochi sobre el estallido
@@ -779,12 +956,14 @@ class Creature(Gtk.DrawingArea):
         self._forma(cr, rx, ry)
         self._perfil(cr)
 
-        p = self.phase_motion("brillo")  # aro que se expande al celebrar
-        if p is not None:
-            cr.arc(0, -10, 62 + out_cubic(p) * 26, 0, math.tau)
-            cr.set_source_rgba(*_hex(color, (1 - p) * 0.55))
-            cr.set_line_width(3.5 * (1 - p))
-            cr.stroke()
+        # Pequeña insignia de luz: un detalle propio, legible incluso al 50 %.
+        cr.move_to(0, 22)
+        cr.curve_to(1, 25, 2, 26, 5, 27)
+        cr.curve_to(2, 28, 1, 29, 0, 32)
+        cr.curve_to(-1, 29, -2, 28, -5, 27)
+        cr.curve_to(-2, 26, -1, 25, 0, 22)
+        cr.set_source_rgba(*_hex(color, 0.72))
+        cr.fill()
 
     def _pies(self, cr):
         """Dos pies rechonchos que asoman bajo el mochi y alternan con el balanceo."""
@@ -889,8 +1068,9 @@ class Creature(Gtk.DrawingArea):
         for dx in (-13.5, 13.5):
             ex, ey = dx, -5
             if cerrado:                 # ojo cerrado: un arco tranquilo
+                curva = -5.8 if self.mood == "feliz" or risa is not None else 4.8
                 cr.move_to(ex - 7.5, ey)
-                cr.curve_to(ex - 2.4, ey + 4.8, ex + 2.4, ey + 4.8, ex + 7.5, ey)
+                cr.curve_to(ex - 2.4, ey + curva, ex + 2.4, ey + curva, ex + 7.5, ey)
                 cr.set_source_rgba(*TINTA, 0.92)
                 cr.set_line_width(2.8)
                 cr.set_line_cap(cairo.LINE_CAP_ROUND)
@@ -927,7 +1107,10 @@ class Creature(Gtk.DrawingArea):
             cr.scale(1.0, max(0.3, min(1.0, apertura * 1.05)))
             cr.arc(0, 0, iris_r, 0, math.tau)
             cr.restore()
-            cr.set_source_rgba(0.32, 0.22, 0.16, 1)
+            iris = cairo.LinearGradient(px, py - 6, px, py + 6)
+            iris.add_color_stop_rgb(0, 0.21, 0.14, 0.12)
+            iris.add_color_stop_rgb(1, 0.58, 0.38, 0.22)
+            cr.set_source(iris)
             cr.fill()
             cr.save()
             cr.translate(px, py)
@@ -1014,8 +1197,8 @@ class Creature(Gtk.DrawingArea):
         cr.set_source_rgba(*TINTA, 0.9)
         cr.set_line_width(2.7)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
-        if time.time() < self.hablando_hasta:      # habla: la boca se abre y cierra
-            a = 2.4 + abs(math.sin(self.t * 11)) * 4.6
+        if self.t < self.hablando_hasta:          # habla: la boca se abre y cierra
+            a = 3.0 if self.reduced_motion else 2.4 + abs(math.sin(self.t * 11)) * 4.6
             cr.save()
             cr.translate(0, my + 1)
             cr.scale(1.0, a / 6.8)
@@ -1255,6 +1438,8 @@ class Creature(Gtk.DrawingArea):
         energia = max(0.0, min(1.0, self.energy_mostrada))
         w_llena = max(alto, ancho * energia)
         cr.save()
+        cr.rectangle(x, y, ancho * energia, alto)
+        cr.clip()                        # cero energía debe dejar la pista vacía
         cr.new_sub_path()
         cr.arc(x + w_llena - r, y + r, r, -math.pi / 2, math.pi / 2)
         cr.arc(x + r, y + r, r, math.pi / 2, 1.5 * math.pi)
@@ -1263,7 +1448,7 @@ class Creature(Gtk.DrawingArea):
         cr.fill_preserve()
         cr.clip()
 
-        if energia > 0.05:              # un destello que recorre la barra llena
+        if energia > 0.05 and not self.reduced_motion:
             q = (self.t * 0.35) % 1.6
             if q < 1.0:
                 bx = x + q * w_llena
@@ -1323,7 +1508,8 @@ class PetWindow(Gtk.ApplicationWindow):
         self.set_resizable(False)
         self.add_css_class("as-pet")
 
-        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0,
+                       css_classes=["as-pet-layout"])
         self.set_child(root)
 
         self.creature = Creature(self.escala_guardada())
@@ -1335,7 +1521,7 @@ class PetWindow(Gtk.ApplicationWindow):
                 disp, self.card_css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 5)
         self.aplicar_escala_tarjeta()
 
-        handle = Gtk.WindowHandle()   # arrastrar la mascota mueve la ventana
+        handle = Gtk.WindowHandle(css_classes=["as-pet-handle"])
         handle.set_child(self.creature)
         # Pegada a la izquierda: así la criatura no se desplaza cuando el globo
         # ensancha la ventana.
@@ -1346,7 +1532,9 @@ class PetWindow(Gtk.ApplicationWindow):
         clic.connect("pressed", self.on_click)
         self.creature.add_controller(clic)
 
-        self.bubble = Gtk.Revealer(transition_type=Gtk.RevealerTransitionType.SLIDE_DOWN)
+        self.bubble = Gtk.Revealer(transition_type=Gtk.RevealerTransitionType.SLIDE_DOWN,
+                                   transition_duration=240,
+                                   css_classes=["as-pet-revealer"])
         self.bubble_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8,
                                   css_classes=["as-bubble"])
         self.bubble.set_child(self.bubble_box)
@@ -1361,9 +1549,6 @@ class PetWindow(Gtk.ApplicationWindow):
         self.menu.set_has_arrow(False)
 
         self.connect("map", self.on_map)
-        self.tick_last = time.time()
-        self.frame_ms = FRAME_ACTIVO
-        GLib.timeout_add(self.frame_ms, self.on_frame)
         GLib.timeout_add_seconds(CHECK_EVERY, self.on_check)
         GLib.timeout_add_seconds(30, self.save_position)
         self.refresh_stats()
@@ -1516,8 +1701,10 @@ class PetWindow(Gtk.ApplicationWindow):
         self.creature.mood = mood
         self.creature.energy = energia
         self.creature.abandono = 0.0 if mood == "dormido" else abandono
-        self.creature.reduced_motion = str(
+        self.creature.reduced_motion = (str(
             db.get_meta(self.con, "reduced_motion", "0")).lower() in ("1", "true")
+            or not self.get_settings().get_property("gtk-enable-animations"))
+        self.bubble.set_transition_duration(0 if self.creature.reduced_motion else 240)
         repasos = total_repasos(self.con)
         self.creature.accessory = accesorio_valido(
             str(db.get_meta(self.con, "pet_accessory", "ninguno")), repasos)
@@ -1633,20 +1820,10 @@ class PetWindow(Gtk.ApplicationWindow):
 
     # ------------------------------------------------------------------ bucles
 
-    def on_frame(self):
-        ahora = time.time()
-        self.creature.tick(ahora - self.tick_last)
-        self.tick_last = ahora
-        quiere = FRAME_ACTIVO if self.creature.ocupada() else FRAME_REPOSO
-        if quiere != self.frame_ms:
-            # Cambiar de cadencia es sustituir el temporizador por otro
-            self.frame_ms = quiere
-            GLib.timeout_add(quiere, self.on_frame)
-            return False
-        return True
-
     def on_check(self):
         self.refresh_stats()
+        if getattr(self, "_ventana_historial", None) is not None:
+            return True
         if self.dormida() or self.bubble.get_reveal_child():
             return True
         if not recordatorios.permitido(recordatorios.config(self.con)):
@@ -1780,6 +1957,12 @@ class PetWindow(Gtk.ApplicationWindow):
                              valign=Gtk.Align.CENTER, css_classes=["as-bubble-title"])
         fila.append(etiqueta)
 
+        recientes = Gtk.Button(icon_name="document-open-recent-symbolic",
+                                tooltip_text="Tarjetas recientes",
+                                css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
+        recientes.connect("clicked", self.abrir_historial)
+        fila.append(recientes)
+
         cerrar = Gtk.Button(icon_name="window-close-symbolic",
                             css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
         cerrar.connect("clicked", self.close_bubble)
@@ -1867,6 +2050,7 @@ class PetWindow(Gtk.ApplicationWindow):
             return
         self.reto = None
         self.shown_at = time.time()
+        historial.registrar(self.con, self.card["id"])
         self.render_card()
 
     def render_card(self):
@@ -2008,6 +2192,7 @@ class PetWindow(Gtk.ApplicationWindow):
             self.say("No me quedan tarjetas con las que retarte. Añade alguna 😊",
                      boton=("Abrir AppStudy", self.open_main))
             return
+        historial.registrar(self.con, self.card["id"])
         if not util.plain(self.card["back"]):
             # Una lección no se puede preguntar, así que se lee
             self.reto = None
@@ -2551,10 +2736,16 @@ class PetWindow(Gtk.ApplicationWindow):
         self.menu.set_pointing_to(rect)
         self.menu.popup()
 
+    def abrir_historial(self, *_):
+        # Salir del reto detiene su cuenta atrás: consultar no puede causar un fallo.
+        self.close_bubble()
+        historial.abrir(self, self.con)
+
     def build_menu(self):
         m = Gio.Menu()
         seccion = Gio.Menu()
         seccion.append("Enséñame algo", "win.teach")
+        seccion.append("Tarjetas recientes", "win.historial")
         seccion.append("Ponme a prueba", "win.quiz")
         seccion.append("Pregúntame algo", "win.ask")
         seccion.append("Modo chatbot", "win.chat")
@@ -2590,6 +2781,7 @@ class PetWindow(Gtk.ApplicationWindow):
         m.append_section(None, dormir)
         m.append("Salir", "win.quit")
         for nombre, cb in (("teach", lambda *_: (self.wake(), self.teach())),
+                           ("historial", self.abrir_historial),
                            ("quiz", lambda *_: (self.wake(), self.quiz())),
                            ("ask", lambda *_: (self.wake(), self.preguntar())),
                            ("chat", lambda *_: (self.wake(), self.abrir_chat())),

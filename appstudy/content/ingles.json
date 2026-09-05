@@ -1088,6 +1088,986 @@
    "tags": "vocabulary",
    "front": "How do you say «archivo adjunto» in English?",
    "back": "Attachment"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "Which preposition goes before a clock time: “___ 7 p.m.”?",
+   "back": "At: “at 7 p.m.”",
+   "tags": "arrangements"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "How can you politely suggest a different meeting time?",
+   "back": "“Can we meet at ten instead?” Give a specific alternative.",
+   "tags": "arrangements"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "What does “That works for me” mean when making a plan?",
+   "back": "The proposed arrangement is suitable for you.",
+   "tags": "arrangements"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "In “I’m meeting Ana tomorrow”, what does the present continuous express?",
+   "back": "A future arrangement.",
+   "tags": "arrangements"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "front": "Choose the correct arrangement.",
+   "choices": [
+    "In Monday on ten",
+    "On Monday at ten",
+    "At Monday in ten",
+    "On Monday in ten"
+   ],
+   "answer": 1,
+   "back": "Use on with a day and at with a clock time.",
+   "tags": "arrangements"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "front": "Let’s meet {{on}} Friday {{at}} six {{in}} the evening.",
+   "back": "On + day; at + clock time; in the evening.",
+   "tags": "arrangements"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "How do you check whether someone said 15 or 50?",
+   "back": "“Did you say fifteen or fifty?”",
+   "tags": "clarification"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "When should you ask “What do you mean by…?”",
+   "back": "When you heard the expression but need its meaning explained.",
+   "tags": "clarification"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "What is the purpose of “So, you need it by Thursday, right?”",
+   "back": "To confirm your understanding of the deadline.",
+   "tags": "clarification"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "What is a deadline?",
+   "back": "The latest time or date by which something should be completed.",
+   "tags": "clarification"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "You did not hear the end of a sentence. Choose the best request.",
+   "choices": [
+    "I agree with everything.",
+    "Could you repeat the last part?",
+    "What is your opinion?",
+    "I have already finished."
+   ],
+   "answer": 1,
+   "back": "Ask for repetition of the part you missed.",
+   "tags": "clarification"
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "front": "“Do you {{mean}} the office upstairs?” checks your interpretation.",
+   "back": "It offers a specific meaning for the other person to confirm or correct.",
+   "tags": "clarification"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "Complete: “We can start tomorrow, provided that the client ___ today.”",
+   "back": "Approves. In this future condition, use the present simple after provided that.",
+   "tags": "negotiation"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "What does “unless” mean in “We’ll be late unless we leave now”?",
+   "back": "Except if: we will be late if we do not leave now.",
+   "tags": "negotiation"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "How can you turn “I can’t finish both today” into a constructive offer?",
+   "back": "“I can finish the summary today if we move the full report to tomorrow.”",
+   "tags": "negotiation"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "What is a trade-off when negotiating a deadline?",
+   "back": "A choice in which gaining one benefit, such as earlier delivery, requires giving up another, such as broader scope.",
+   "tags": "negotiation"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "Which sentence sets a clear condition?",
+   "choices": [
+    "Maybe something will happen.",
+    "I can deliver Friday as long as I receive the data Thursday.",
+    "Everything is always possible.",
+    "I did it last week."
+   ],
+   "answer": 1,
+   "back": "It names both the commitment and what it depends on.",
+   "tags": "negotiation"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "front": "“Provided that” and “as long as” introduce a {{condition}}.",
+   "back": "For example: I can help as long as we finish before six.",
+   "tags": "negotiation"
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "front": "Does “consistent with an explanation” mean the explanation has been proved?",
+   "back": "No. It means the finding is compatible with that explanation; alternatives may remain.",
+   "tags": "synthesis"
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "front": "What distinguishes a synthesis from a source-by-source summary?",
+   "back": "A synthesis organises evidence around shared questions or claims and explains relationships between sources.",
+   "tags": "synthesis"
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "front": "Why might satisfaction and attendance findings differ without contradicting each other?",
+   "back": "They measure different outcomes; greater satisfaction does not necessarily imply higher attendance.",
+   "tags": "synthesis"
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "front": "How does “suggests” differ from “demonstrates” in academic reporting?",
+   "back": "Suggests signals a tentative interpretation; demonstrates makes a stronger evidential claim.",
+   "tags": "synthesis"
+  },
+  {
+   "kind": "quiz",
+   "level": 4,
+   "front": "A voluntary survey measures satisfaction. Which conclusion is best supported?",
+   "choices": [
+    "Everyone benefited objectively.",
+    "The change caused all later improvements.",
+    "Respondents reported higher satisfaction.",
+    "Attendance must have increased."
+   ],
+   "answer": 2,
+   "back": "The statement stays within the measured outcome and sampled population.",
+   "tags": "synthesis"
+  },
+  {
+   "kind": "cloze",
+   "level": 4,
+   "front": "A synthesis should distinguish observed findings from their {{interpretation}}.",
+   "back": "The same observation may fit more than one explanation.",
+   "tags": "synthesis"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "shopping-a2",
+   "front": "You are holding two shirts. Which price question is correct?",
+   "choices": [
+    "How much is these shirts?",
+    "How much are these shirts?",
+    "How many are this shirts?",
+    "How much are this shirt?"
+   ],
+   "answer": 1,
+   "back": "These shirts is plural, so use are. How much asks about price."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "shopping-a2",
+   "front": "What does a customer mean by “Can I try it on?”?",
+   "choices": [
+    "Can I repair it?",
+    "Can I pay tomorrow?",
+    "Can I wear it briefly to check the fit?",
+    "Can I leave it outside?"
+   ],
+   "answer": 2,
+   "back": "Try on is used for checking how clothing fits."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "shopping-a2",
+   "front": "Which phrase asks for a payment method?",
+   "choices": [
+    "Can I pay by card?",
+    "Can I try it on?",
+    "Is there a smaller size?",
+    "Where are the fitting rooms?"
+   ],
+   "answer": 0,
+   "back": "Pay by card describes how you pay."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "shopping-a2",
+   "front": "Choose the natural way to order bread.",
+   "choices": [
+    "Two breads of loaf, please.",
+    "Two bread, please.",
+    "Two loafs bread, please.",
+    "Two loaves of bread, please."
+   ],
+   "answer": 3,
+   "back": "Loaves is the plural of loaf. It supplies a countable unit for bread."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "shopping-a2",
+   "front": "How much {{are::be, plural}} these shoes?",
+   "back": "Shoes is plural, so the verb is are."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "shopping-a2",
+   "front": "Do you have this jacket in a {{smaller::comparative of small}} size?",
+   "back": "Smaller compares the requested size with the one you have."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "shopping-a2",
+   "front": "Can I try this coat {{on::phrasal-verb particle}}?",
+   "back": "Try on means put clothing on briefly to check its fit."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "shopping-a2",
+   "front": "I’d like two {{bottles::plural of bottle}} of water, please.",
+   "back": "Use a countable container to specify the quantity."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "shopping-a2",
+   "front": "WRITE: Ask the price of a jacket and request a larger size.",
+   "back": "One possible answer: “How much is this jacket? Do you have it in a larger size?” Check: singular is, a price question and a comparative size."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "shopping-a2",
+   "front": "REWRITE: Correct “How much is these shoes?”",
+   "back": "“How much are these shoes?” These shoes is plural."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "directions-a2",
+   "front": "A café is between a bank and a library. How many landmarks locate it?",
+   "choices": [
+    "None",
+    "One",
+    "Two",
+    "Four"
+   ],
+   "answer": 2,
+   "back": "Between relates the café to two reference points here."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "directions-a2",
+   "front": "What does “Go past the bank” tell you to do?",
+   "choices": [
+    "Enter the bank",
+    "Continue beyond the bank",
+    "Stop inside the bank",
+    "Turn around before the bank"
+   ],
+   "answer": 1,
+   "back": "Past describes movement beyond a place."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "directions-a2",
+   "front": "Which question asks for a route to the station?",
+   "choices": [
+    "What is the station called?",
+    "Who works at the station?",
+    "When did the station open?",
+    "How do I get to the station?"
+   ],
+   "answer": 3,
+   "back": "How do I get to…? requests directions."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "directions-a2",
+   "front": "The museum is opposite the park. Where is it?",
+   "choices": [
+    "Across from the park",
+    "Inside the park",
+    "Above the park",
+    "Beside the park on the same side"
+   ],
+   "answer": 0,
+   "back": "Opposite describes a position across from something."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "directions-a2",
+   "front": "Go straight {{ahead::forward}} until you reach the bridge.",
+   "back": "Straight ahead means forward without turning."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "directions-a2",
+   "front": "The café is {{between::with one landmark on each side}} the bank and the library.",
+   "back": "Between locates something relative to two reference points."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "directions-a2",
+   "front": "The museum is next {{to::preposition}} the station.",
+   "back": "Next to means beside."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "directions-a2",
+   "front": "Turn {{left::opposite of right}} at the traffic lights.",
+   "back": "Left and right are directions relative to the way you face."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "directions-a2",
+   "front": "WRITE: Give directions using a bridge as the turning point and a station as the final landmark.",
+   "back": "One possible answer: “Go straight ahead and turn right at the bridge. The museum is next to the station.” Check: actions in order and a clear final location."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "directions-a2",
+   "front": "EXPLAIN: How does “go past the café” differ from “go into the café”?",
+   "back": "Go past means continue beyond it. Go into means enter it."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "narratives-b1",
+   "front": "Choose the sentence with a background activity and an interruption.",
+   "choices": [
+    "I was cooking when the phone rang.",
+    "I cooking when the phone ring.",
+    "I cooked when the phone was ring.",
+    "I had cook when the phone ringing."
+   ],
+   "answer": 0,
+   "back": "Was cooking gives the activity in progress; rang introduces the event."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "narratives-b1",
+   "front": "In “I realised I had left my ticket at home”, what happened first?",
+   "choices": [
+    "Realising",
+    "Arriving tomorrow",
+    "Leaving the ticket",
+    "Both must happen simultaneously"
+   ],
+   "answer": 2,
+   "back": "Had left marks an event earlier than the past moment of realising."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "narratives-b1",
+   "front": "Which connector introduces a simultaneous event?",
+   "choices": [
+    "Eventually",
+    "Meanwhile",
+    "Afterwards",
+    "The next day"
+   ],
+   "answer": 1,
+   "back": "Meanwhile introduces something happening at the same time."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "narratives-b1",
+   "front": "Which verb phrase is past continuous?",
+   "choices": [
+    "Have waited",
+    "Had waited",
+    "Waited",
+    "Were waiting"
+   ],
+   "answer": 3,
+   "back": "Past continuous uses was/were + verb-ing."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "narratives-b1",
+   "front": "We {{were having::past continuous of have}} dinner when the lights went out.",
+   "back": "We takes were; having describes the activity in progress."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "narratives-b1",
+   "front": "I was reading when the phone {{rang::past simple of ring}}.",
+   "back": "Rang is the irregular past simple of ring."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "narratives-b1",
+   "front": "At the station, I realised I {{had left::past perfect of leave}} my ticket at home.",
+   "back": "The ticket was left behind before the moment of realising."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "narratives-b1",
+   "front": "Ana was looking for the bag. {{Meanwhile::at the same time}}, its owner was asking at the office.",
+   "back": "Meanwhile connects simultaneous parts of a story."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "narratives-b1",
+   "front": "WRITE: Tell a three-sentence story using was/were + -ing, when and eventually.",
+   "back": "Example: “I was walking home when it started to rain. I waited in a café. Eventually, the rain stopped.” Check: background activity, an event and a later outcome."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "narratives-b1",
+   "front": "REWRITE: Correct “They was waiting when the bus arrive.”",
+   "back": "“They were waiting when the bus arrived.” They takes were, and the completed event uses arrived."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "travel-b1",
+   "front": "Your train is delayed. What does that mean?",
+   "choices": [
+    "It arrived yesterday",
+    "It will run later than planned",
+    "It has definitely been cancelled",
+    "It is free"
+   ],
+   "answer": 1,
+   "back": "Delayed means later than scheduled; it does not by itself mean cancelled."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "travel-b1",
+   "front": "Choose the natural way to describe two suitcases collectively.",
+   "choices": [
+    "Two luggages",
+    "Two luggage",
+    "Two pieces of luggage",
+    "Two piece of luggages"
+   ],
+   "answer": 2,
+   "back": "Luggage is normally uncountable. Pieces supplies a countable unit."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "travel-b1",
+   "front": "Which question checks whether breakfast is part of the room price?",
+   "choices": [
+    "Is breakfast included?",
+    "Where does breakfast travel?",
+    "Has breakfast checked out?",
+    "Who reserved the train?"
+   ],
+   "answer": 0,
+   "back": "Included asks whether it is already part of the price or package."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "travel-b1",
+   "front": "A replacement bus has been arranged. Which question asks where to board?",
+   "choices": [
+    "How many rooms are available?",
+    "Is the room quiet?",
+    "What is the booking name?",
+    "Where does the replacement bus leave from?"
+   ],
+   "answer": 3,
+   "back": "This asks for the departure point of the replacement service."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "travel-b1",
+   "front": "I have a reservation {{under::preposition used with the booking name}} the name Morgan.",
+   "back": "Under the name identifies the name associated with the reservation."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "travel-b1",
+   "front": "Our flight is {{delayed::later than scheduled}}, but it has not been cancelled.",
+   "back": "The contrast makes clear that the service is late, not cancelled."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "travel-b1",
+   "front": "We have two pieces of {{luggage::uncountable word for bags and suitcases}}.",
+   "back": "Luggage is normally uncountable in standard English."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "travel-b1",
+   "front": "What time do we need to check {{out::leave the hotel and settle the stay}}?",
+   "back": "Check out is the verb phrase; check-out is the noun or adjective."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "travel-b1",
+   "front": "WRITE: Introduce yourself at a hotel using your booking name and ask about breakfast.",
+   "back": "Example: “Hello, I have a reservation under the name Morgan. Is breakfast included?” Check: booking name and a clear question about inclusion."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "travel-b1",
+   "front": "REWRITE: Correct “I have two luggages and my train is delay.”",
+   "back": "“I have two pieces of luggage and my train is delayed.” Use a countable unit and the adjective delayed."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "complaints-b2",
+   "front": "Which sentence reports a delivery problem without assuming intention?",
+   "choices": [
+    "You wanted us to fail.",
+    "Your staff deliberately hid everything.",
+    "The package contained one item rather than the three listed.",
+    "Nobody in your company cares."
+   ],
+   "answer": 2,
+   "back": "It describes the observable difference between the order and the delivery."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "complaints-b2",
+   "front": "Choose the grammatically correct contrast.",
+   "choices": [
+    "Despite the delay, we completed the task.",
+    "Despite the parcel was late, we completed the task.",
+    "Although the delay, we completed the task.",
+    "Despite of the delay, we completed the task."
+   ],
+   "answer": 0,
+   "back": "Despite takes a noun phrase here. Although would need a clause."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "complaints-b2",
+   "front": "Which request gives the recipient a clear next step?",
+   "choices": [
+    "This is unbelievable.",
+    "Everything is wrong.",
+    "I am very unhappy.",
+    "Please confirm when the missing items can be sent."
+   ],
+   "answer": 3,
+   "back": "The recipient knows what information to provide."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "complaints-b2",
+   "front": "Complete: “I would appreciate it if you ___ confirm the delivery date.”",
+   "choices": [
+    "must",
+    "could",
+    "will to",
+    "had to be"
+   ],
+   "answer": 1,
+   "back": "Could forms a polite request in this structure."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "complaints-b2",
+   "front": "{{Although::connector followed by a clause}} the parcel arrived late, its contents were undamaged.",
+   "back": "Although introduces the clause the parcel arrived late."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "complaints-b2",
+   "front": "{{Despite::one-word connector followed by a noun phrase}} the delay, the contents were undamaged.",
+   "back": "Despite is followed by the noun phrase the delay."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "complaints-b2",
+   "front": "I would appreciate {{it::required pronoun}} if you could confirm the next step.",
+   "back": "The usual construction is I would appreciate it if…"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "complaints-b2",
+   "front": "The materials were missing. As a {{result::noun meaning consequence}}, we postponed the activity.",
+   "back": "As a result introduces a consequence."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "complaints-b2",
+   "front": "WRITE: Write a three-sentence complaint with a fact, an impact and a request.",
+   "back": "Example: “Order 482 arrived with two notebooks missing. Two participants therefore had no materials. Please confirm when replacements can be sent.” Check: observable fact, consequence and actionable request."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "complaints-b2",
+   "front": "REWRITE: Correct “Despite the delivery was late, we accepted it.” in two ways.",
+   "back": "“Although the delivery was late, we accepted it.” Or: “Despite the late delivery, we accepted it.” Although takes a clause; despite takes a noun phrase here."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "options-b2",
+   "front": "Which phrase correctly strengthens a comparative?",
+   "choices": [
+    "Very cheaper",
+    "Much cheaper",
+    "More cheaper",
+    "Most cheaper than"
+   ],
+   "answer": 1,
+   "back": "Much can modify cheaper. Do not add more to this comparative form."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "options-b2",
+   "front": "A costs 40 and B costs 80. Which statement is correct?",
+   "choices": [
+    "A is twice as expensive as B.",
+    "B costs half as much as A.",
+    "B is twice as expensive as A.",
+    "Both cost the same."
+   ],
+   "answer": 2,
+   "back": "80 is two times 40."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "options-b2",
+   "front": "Choose the correct use of whereas.",
+   "choices": [
+    "Whereas the heavier bag.",
+    "Whereas of the weight, choose A.",
+    "Whereas lighter than B.",
+    "A is lighter, whereas B has more space."
+   ],
+   "answer": 3,
+   "back": "Whereas connects contrasting clauses."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "options-b2",
+   "front": "What does “A is not as spacious as B” mean?",
+   "choices": [
+    "A has less space than B.",
+    "A has more space than B.",
+    "A and B have identical space.",
+    "A has no space at all."
+   ],
+   "answer": 0,
+   "back": "Not as spacious expresses a lower degree of spaciousness."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "options-b2",
+   "front": "This bag is {{slightly::by a small amount}} lighter than the other one.",
+   "back": "Slightly describes a small difference."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "options-b2",
+   "front": "Room A is not {{as::comparison structure}} spacious as room B.",
+   "back": "The structure is not as + adjective + as."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "options-b2",
+   "front": "{{Unlike::in contrast to, followed by a noun phrase}} bag B, bag A has an outside pocket.",
+   "back": "Unlike is followed here by the noun phrase bag B."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "options-b2",
+   "front": "On {{balance::fixed phrase for an overall judgement}}, the lighter option suits this trip better.",
+   "back": "On balance introduces a judgement after considering different factors."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "options-b2",
+   "front": "WRITE: Compare two bags and recommend one for a walking trip using a stated criterion.",
+   "back": "Example: “A is lighter than B, although it holds less. I would choose A for this walking trip because low weight is our priority.” Check: comparison, trade-off and purpose."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "options-b2",
+   "front": "REWRITE: Correct “This room is very cheaper and more quieter.”",
+   "back": "“This room is much cheaper and quieter.” Use much with a comparative and avoid the double comparative more quieter."
+  },
+  {
+   "kind": "quiz",
+   "level": 4,
+   "tags": "argumentation-c1",
+   "front": "Which phrase introduces a concession?",
+   "choices": [
+    "Admittedly, the cost is substantial.",
+    "Therefore, the cost is zero.",
+    "For instance, the conclusion follows.",
+    "Consequently, I disagree with the premise."
+   ],
+   "answer": 0,
+   "back": "Admittedly explicitly acknowledges a point that may favour the other side."
+  },
+  {
+   "kind": "quiz",
+   "level": 4,
+   "tags": "argumentation-c1",
+   "front": "What does “Even if demand is low” do?",
+   "choices": [
+    "Asserts that demand is definitely low",
+    "Describes demand last year",
+    "Rules out low demand",
+    "Considers low demand as a hypothetical condition"
+   ],
+   "answer": 3,
+   "back": "Even if grants a possibility without asserting it as a fact."
+  },
+  {
+   "kind": "quiz",
+   "level": 4,
+   "tags": "argumentation-c1",
+   "front": "A small trial supports which appropriately limited conclusion?",
+   "choices": [
+    "The policy will succeed everywhere.",
+    "A limited experiment is justified.",
+    "All costs have disappeared.",
+    "No further evidence can be useful."
+   ],
+   "answer": 1,
+   "back": "The scope of the conclusion remains limited to the proposed trial."
+  },
+  {
+   "kind": "quiz",
+   "level": 4,
+   "tags": "argumentation-c1",
+   "front": "What is the role of nevertheless after a concession?",
+   "choices": [
+    "To introduce a quotation",
+    "To list unrelated examples",
+    "To introduce a point that still holds despite the concession",
+    "To show that both clauses have the same meaning"
+   ],
+   "answer": 2,
+   "back": "Nevertheless marks the continuing force of a contrasting consideration."
+  },
+  {
+   "kind": "cloze",
+   "level": 4,
+   "tags": "argumentation-c1",
+   "front": "{{Admittedly::sentence adverb acknowledging a drawback}}, the trial would require extra staff time.",
+   "back": "Admittedly introduces a concession."
+  },
+  {
+   "kind": "cloze",
+   "level": 4,
+   "tags": "argumentation-c1",
+   "front": "Even {{if::hypothetical condition}} attendance is low, the trial may provide useful information.",
+   "back": "Even if does not assert that attendance is actually low."
+  },
+  {
+   "kind": "cloze",
+   "level": 4,
+   "tags": "argumentation-c1",
+   "front": "Even {{though::factual concession}} attendance is low, the organisers have decided to continue.",
+   "back": "Even though presents low attendance as a fact in this sentence."
+  },
+  {
+   "kind": "cloze",
+   "level": 4,
+   "tags": "argumentation-c1",
+   "front": "The objection is valid {{insofar::one word meaning to the extent}} as it concerns the initial cost.",
+   "back": "Insofar as limits the extent to which a point is accepted."
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "argumentation-c1",
+   "front": "WRITE: Acknowledge the staffing objection to longer opening hours and propose a limited trial.",
+   "back": "Example: “Admittedly, longer hours would require additional staffing. Nevertheless, a four-week pilot on one evening could establish whether demand justifies expansion.” Check: meaningful concession, response and limited scope."
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "argumentation-c1",
+   "front": "REWRITE: Narrow “This short trial proves the policy will work everywhere.”",
+   "back": "“This short trial provides evidence about the policy in this setting; further evaluation would be needed before wider adoption.” The revision removes an unsupported universal claim."
+  },
+  {
+   "kind": "quiz",
+   "level": 4,
+   "tags": "precision-c1",
+   "front": "Why can “When Lina spoke to Sara, she was concerned” be ambiguous?",
+   "choices": [
+    "Concerned cannot describe people.",
+    "She may refer to Lina or Sara.",
+    "Spoke is not a past tense.",
+    "The sentence contains no subject."
+   ],
+   "answer": 1,
+   "back": "Both named people are possible referents for she without more context."
+  },
+  {
+   "kind": "quiz",
+   "level": 4,
+   "tags": "precision-c1",
+   "front": "What does “Only Omar edited the summary” restrict?",
+   "choices": [
+    "The time of editing",
+    "The length of the summary",
+    "The person who edited it",
+    "The number of documents Omar read"
+   ],
+   "answer": 2,
+   "back": "Only before Omar excludes other editors in the relevant context."
+  },
+  {
+   "kind": "quiz",
+   "level": 4,
+   "tags": "precision-c1",
+   "front": "Choose the parallel list.",
+   "choices": [
+    "The role involves planning, to review and feedback.",
+    "The role involves to plan, reviewing and give feedback.",
+    "The role involves planning, review and to give feedback.",
+    "The role involves planning, reviewing and giving feedback."
+   ],
+   "answer": 3,
+   "back": "The three coordinated activities use matching -ing forms."
+  },
+  {
+   "kind": "quiz",
+   "level": 4,
+   "tags": "precision-c1",
+   "front": "An ambiguous draft does not identify who made a request. What should an editor do?",
+   "choices": [
+    "Clarify the intended person before fixing the reference.",
+    "Choose the first person mentioned without checking.",
+    "Delete every name.",
+    "Assume all readers will infer the same meaning."
+   ],
+   "answer": 0,
+   "back": "Editing should preserve the intended meaning, not invent missing facts."
+  },
+  {
+   "kind": "cloze",
+   "level": 4,
+   "tags": "precision-c1",
+   "front": "The role involves planning lessons, {{reviewing::parallel -ing form of review}} exercises and giving feedback.",
+   "back": "Use matching -ing forms for the coordinated activities."
+  },
+  {
+   "kind": "cloze",
+   "level": 4,
+   "tags": "precision-c1",
+   "front": "Lina asked Sara to check the figures and {{review::parallel base form}} the appendix.",
+   "back": "To can be shared: to check…and review…"
+  },
+  {
+   "kind": "cloze",
+   "level": 4,
+   "tags": "precision-c1",
+   "front": "{{Only::restricts the person}} Omar edited the summary; nobody else did.",
+   "back": "Only is placed before the person being restricted."
+  },
+  {
+   "kind": "cloze",
+   "level": 4,
+   "tags": "precision-c1",
+   "front": "Omar edited {{only::restricts the object}} the summary, not the appendix.",
+   "back": "Only before the summary restricts what he edited."
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "precision-c1",
+   "front": "REWRITE: Make Ben the worried person in “When Omar emailed Ben, he was worried.”",
+   "back": "“Ben was worried when Omar emailed him.” Naming Ben as the subject of was worried removes the ambiguity."
+  },
+  {
+   "kind": "card",
+   "level": 4,
+   "tags": "precision-c1",
+   "front": "EXPLAIN: Contrast “Only Lina checked the figures” with “Lina checked only the figures”.",
+   "back": "The first restricts who checked: Lina and no one else in context. The second restricts what Lina checked: the figures and nothing else in context."
   }
  ]
 }

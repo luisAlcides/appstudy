@@ -555,6 +555,153 @@
    "tags": "cálculo",
    "front": "¿En qué unidad se mide la potencia eléctrica?",
    "back": "Vatios (W)"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "Entran 7 mA en un nodo y una rama saca 2 mA. ¿Cuánto sale por las demás en conjunto?",
+   "back": "5 mA, en régimen estacionario: 7 = 2 + 5.",
+   "tags": "kirchhoff"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "Fuente ideal de 9 V con 100 Ω y 200 Ω en serie: ¿qué corriente circula?",
+   "back": "30 mA: 9/300 = 0,03 A.",
+   "tags": "kirchhoff"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "En serie circulan 30 mA por 100 Ω y 200 Ω. ¿Cuáles son sus caídas?",
+   "back": "3 V y 6 V, respectivamente, aplicando V = I × R.",
+   "tags": "kirchhoff"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Qué significa obtener una corriente negativa al resolver un circuito?",
+   "back": "Que la corriente va en sentido contrario al supuesto al escribir las ecuaciones.",
+   "tags": "kirchhoff"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "front": "En una malla ideal de CC con fuente de 12 V y caídas de 4 V y 8 V, ¿qué balance es correcto?",
+   "choices": [
+    "12 + 4 + 8 = 0",
+    "12 − 4 − 8 = 0",
+    "12 − 4 + 8 = 0",
+    "4 − 12 − 8 = 0"
+   ],
+   "answer": 1,
+   "back": "La subida de la fuente se compensa con las dos caídas.",
+   "tags": "kirchhoff"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "front": "En un nodo estacionario, la suma de corrientes entrantes iguala la de corrientes {{salientes}}.",
+   "back": "Es una aplicación de la conservación de la carga.",
+   "tags": "kirchhoff"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Cuál es tau para 10 kΩ y 100 µF en un RC ideal?",
+   "back": "1 segundo: 10 000 Ω × 0,0001 F.",
+   "tags": "transitorios rc"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "Un RC se carga desde cero hacia 5 V. ¿Qué tensión tiene aproximadamente tras una tau?",
+   "back": "3,16 V, aproximadamente el 63,2 % de 5 V.",
+   "tags": "transitorios rc"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "Un condensador se descarga desde 10 V en un RC ideal. ¿Qué queda tras una tau?",
+   "back": "Aproximadamente 3,68 V: el 36,8 % del valor inicial.",
+   "tags": "transitorios rc"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Qué ocurre con tau si duplicas R y mantienes C en un RC ideal?",
+   "back": "Se duplica, porque tau = R × C.",
+   "tags": "transitorios rc"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "¿Cuál es tau con 2 kΩ y 220 µF?",
+   "choices": [
+    "440 s",
+    "0,44 s",
+    "4 400 s",
+    "0,00044 s"
+   ],
+   "answer": 1,
+   "back": "2 000 × 220 × 10⁻⁶ = 0,44 segundos.",
+   "tags": "transitorios rc"
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "front": "Tras cinco constantes de tiempo, una carga RC ideal alcanza aproximadamente el {{99,3}} % de su valor final.",
+   "back": "El 100 % solo se alcanza como límite matemático.",
+   "tags": "transitorios rc"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Cuántos códigos distintos tiene un ADC de 12 bits?",
+   "back": "4 096: 2 elevado a 12. Los códigos van de 0 a 4 095.",
+   "tags": "conversión adc"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "ADC ideal de 12 bits y rango 4,096 V: ¿tamaño nominal de un paso?",
+   "back": "1 mV: 4,096 V / 4 096.",
+   "tags": "conversión adc"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Más bits garantizan una medición más exacta?",
+   "back": "No. La exactitud también depende de referencia, ruido, calibración y otros errores.",
+   "tags": "conversión adc"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Promediar muestras elimina por sí solo un error sistemático de referencia?",
+   "back": "No. Puede reducir ruido aleatorio bajo ciertas condiciones, pero el sesgo de referencia permanece.",
+   "tags": "conversión adc"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "ADC ideal de 10 bits y rango 3,3 V: ¿paso nominal aproximado?",
+   "choices": [
+    "3,22 mV",
+    "0,33 V",
+    "33 mV",
+    "1 V"
+   ],
+   "answer": 0,
+   "back": "3,3/1 024 ≈ 0,00322 V.",
+   "tags": "conversión adc"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "front": "Un ADC saturado pierde información sobre cuánto la entrada {{excede}} el rango de medida.",
+   "back": "El código máximo no distingue por sí solo diferentes valores fuera de rango.",
+   "tags": "conversión adc"
   }
  ]
 }

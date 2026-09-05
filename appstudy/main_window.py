@@ -11,14 +11,156 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 
 from . import ayuda, buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: E402
-from . import hotkey, ia, importador, lecturas  # noqa: E402
+from . import historial, hotkey, ia, importador, lecturas  # noqa: E402
 from . import libros, logros, pet, recordatorios, respaldo, scheduler  # noqa: E402
 from . import nube, sincronizacion  # noqa: E402
 from . import sesiones, sonido, util  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
 
-MAX_FILAS = 120        # tarjetas que se pintan a la vez en el explorador
 from .reader import ChapterView, render_body  # noqa: E402
+
+PAGINA = 60            # tarjetas que trae y pinta cada grupo del explorador
+
+
+class ListaTarjetas(Adw.Bin):
+    """Lista paginada de tarjetas.
+
+    Dentro de un tema se desglosa por niveles; en los resultados de búsqueda,
+    que mezclan mazos, va plana.
+    """
+
+    def __init__(self, ventana, deck=None, texto=""):
+        super().__init__()
+        self.ventana = ventana
+        self.deck = deck
+        self.texto = texto
+        self.nivel = 0             # 0 = todos
+        self.visibles = PAGINA
+        self.total = 0
+        self.pie = None            # la fila con el botón «Ver más»
+        self.lista = None
+        self.nivel_pintado = None
+        scroll = Gtk.ScrolledWindow(vexpand=True)
+        self.clamp = Adw.Clamp(maximum_size=1000)
+        scroll.set_child(self.clamp)
+        self.set_child(scroll)
+        self.refrescar()
+
+    def filtrar(self, texto=None, nivel=None):
+        """Al cambiar búsqueda o nivel se empieza otra vez por el primer grupo."""
+        if texto is not None:
+            self.texto = texto
+        if nivel is not None:
+            self.nivel = nivel
+        self.visibles = PAGINA
+        self.refrescar()
+
+    @staticmethod
+    def _vacia():
+        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                            css_classes=["boxed-list"])
+        for lado in ("start", "end", "bottom"):
+            getattr(lista, f"set_margin_{lado}")(16)
+        return lista
+
+    def refrescar(self):
+        con = self.ventana.con
+        base = ("FROM cards c JOIN decks d ON d.id=c.deck_id "
+                "JOIN state s ON s.card_id=c.id")
+        args, cond = [], []
+        if self.deck:
+            cond.append("c.deck_id=?")
+            args.append(self.deck["id"])
+        if self.texto:
+            cond.append("(LOWER(c.front) LIKE ? OR LOWER(c.back) LIKE ? "
+                        "OR LOWER(c.tags) LIKE ?)")
+            args += [f"%{self.texto}%"] * 3
+        if self.nivel:
+            cond.append("c.level=?")
+            args.append(self.nivel)
+        if cond:
+            base += " WHERE " + " AND ".join(cond)
+
+        # La base de datos cuenta y recorta: a la ventana solo llega el grupo
+        # que se está viendo, no las 450 filas enteras.
+        self.consulta = (
+            "SELECT c.*, d.icon, d.name AS deck_name, d.levels AS deck_levels, "
+            f"s.due, s.reps, s.interval {base} "
+            "ORDER BY d.pos, c.level, c.id LIMIT ? OFFSET ?", args)
+        self.total = con.execute(f"SELECT COUNT(*) {base}", args).fetchone()[0]
+        filas = self.filas(0, self.visibles)
+
+        # Se arma una lista NUEVA fuera del árbol de widgets: si se le van
+        # añadiendo filas mientras está enchufada, GTK recoloca en cada una y la
+        # pestaña se congela más de un segundo.
+        nueva = self._vacia()
+        self.pie = None
+        self.nivel_pintado = None
+        if not filas:
+            self.visibles = PAGINA
+            nueva.append(Adw.ActionRow(
+                title="Sin resultados",
+                subtitle="Prueba otra búsqueda o crea una tarjeta nueva."))
+            self.lista = nueva
+            self.clamp.set_child(nueva)
+            return
+
+        # GTK tarda ~3,5 ms en medir y colocar cada fila: pintarlas todas de
+        # golpe congela la pestaña casi dos segundos. Se pinta un grupo y el
+        # resto se pide con el botón del pie, o se acota con los filtros.
+        self.pintar(nueva, filas)
+        self.visibles = len(filas)
+        if self.total > self.visibles:
+            nueva.append(self.fila_mas())
+        self.lista = nueva
+        self.clamp.set_child(nueva)
+
+    def filas(self, desde, cuantas):
+        sql, args = self.consulta
+        return self.ventana.con.execute(sql, [*args, cuantas, desde]).fetchall()
+
+    def pintar(self, lista, filas):
+        for f in filas:
+            if self.desglosada:
+                nombre = db.level_name(f["deck_levels"], f["level"])
+                if nombre != self.nivel_pintado:
+                    self.nivel_pintado = nombre
+                    cabecera = Adw.ActionRow(title=nombre.upper(),
+                                             css_classes=["as-level-header"])
+                    cabecera.set_activatable(False)
+                    lista.append(cabecera)
+            lista.append(self.ventana.card_row(f, escueta=bool(self.deck)))
+
+    @property
+    def desglosada(self):
+        """Con un solo tema y sin filtro de nivel tiene sentido separar niveles."""
+        return bool(self.deck) and not self.nivel
+
+    def fila_mas(self):
+        """Pie del explorador: por dónde va y un botón para traer el grupo siguiente."""
+        restantes = self.total - self.visibles
+        fila = Adw.ActionRow(
+            title=f"Viendo {self.visibles} de {self.total} tarjetas",
+            subtitle="Acótalas con la búsqueda o el nivel")
+        fila.add_prefix(Gtk.Image.new_from_icon_name("system-search-symbolic"))
+        boton = Gtk.Button(label=f"Ver {min(PAGINA, restantes)} más",
+                           valign=Gtk.Align.CENTER, css_classes=["flat"])
+        boton.connect("clicked", lambda *_: self.cargar_mas())
+        fila.add_suffix(boton)
+        fila.set_activatable_widget(boton)
+        self.pie = fila
+        return fila
+
+    def cargar_mas(self):
+        """Añade el grupo siguiente sin volver a pintar lo que ya está puesto."""
+        filas = self.filas(self.visibles, PAGINA)
+        if self.pie:
+            self.lista.remove(self.pie)
+            self.pie = None
+        self.pintar(self.lista, filas)
+        self.visibles += len(filas)
+        if filas and self.total > self.visibles:
+            self.lista.append(self.fila_mas())
 
 
 class MainWindow(Adw.ApplicationWindow):
@@ -70,6 +212,11 @@ class MainWindow(Adw.ApplicationWindow):
                             tooltip_text="Buscar en todo (Ctrl+K)")
         buscar.connect("clicked", lambda *_: self.buscador_global())
         header.pack_end(buscar)
+
+        recientes = Gtk.Button(icon_name="document-open-recent-symbolic",
+                                tooltip_text="Tarjetas recientes")
+        recientes.connect("clicked", lambda *_: historial.abrir(self, self.con))
+        header.pack_end(recientes)
 
         ayuda_btn = Gtk.Button(icon_name="help-browser-symbolic",
                                tooltip_text="Cómo se usa AppStudy (F1)")
@@ -221,6 +368,9 @@ class MainWindow(Adw.ApplicationWindow):
         self.stack.set_visible_child_name("leer")
         self.nav.pop_to_tag("biblioteca")   # por si había otro capítulo abierto
         hermanos = db.chapters(self.con, cap["deck_id"])
+        # El capítulo se apila sobre su tema: al volver se cae en el desglose
+        # por niveles, no en la lista de temas.
+        self.open_tema(cap["deck_id"])
         self.open_chapter(cap, hermanos, buscar)
 
     def saludo(self):
@@ -343,6 +493,7 @@ class MainWindow(Adw.ApplicationWindow):
         return self.nav
 
     def refresh_reader(self):
+        """La biblioteca enseña solo los temas; el desglose está un clic dentro."""
         box = self.library_box
         while (c := box.get_first_child()) is not None:
             box.remove(c)
@@ -384,36 +535,98 @@ class MainWindow(Adw.ApplicationWindow):
         for c in todos:
             por_mazo.setdefault(c["deck_id"], []).append(c)
 
+        box.append(self.section_title("Temas"))
+        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                            css_classes=["boxed-list"])
         for deck_id, capitulos in por_mazo.items():
-            primero = capitulos[0]
-            leidos = sum(1 for c in capitulos if c["leido"])
-            cabecera = Gtk.Box(spacing=10)
-            cabecera.set_margin_top(6)
-            cabecera.append(Gtk.Label(label=primero["deck_icon"],
-                                      css_classes=["as-deck-row-icon"]))
-            titulo = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=1, hexpand=True)
-            titulo.append(Gtk.Label(label=primero["deck_name"], xalign=0,
-                                    css_classes=["title-4"]))
-            titulo.append(Gtk.Label(
-                label=f"{leidos}/{len(capitulos)} capítulos · "
-                      f"{sum(c['minutes'] for c in capitulos)} min",
-                xalign=0, css_classes=["caption", "as-dim"]))
-            cabecera.append(titulo)
-            box.append(cabecera)
+            lista.append(self.tema_row(deck_id, capitulos))
+        box.append(lista)
 
-            lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
-                                css_classes=["boxed-list"])
-            nivel_actual = None
-            for cap in capitulos:
-                nombre_nivel = db.level_name(cap["deck_levels"], cap["level"])
-                if nombre_nivel != nivel_actual:
-                    nivel_actual = nombre_nivel
-                    encabezado = Adw.ActionRow(title=nombre_nivel.upper(),
-                                               css_classes=["as-level-header"])
-                    encabezado.set_activatable(False)
-                    lista.append(encabezado)
-                lista.append(self.chapter_row(cap, capitulos))
-            box.append(lista)
+    def tema_row(self, deck_id, capitulos):
+        """Una fila por tema: cuánto llevas y nada más, sin la lista entera."""
+        primero = capitulos[0]
+        leidos = sum(1 for c in capitulos if c["leido"])
+        niveles = len({c["level"] for c in capitulos})
+        row = Adw.ActionRow(title=primero["deck_name"])
+        row.set_subtitle(
+            f"{leidos}/{len(capitulos)} capítulos · "
+            f"{sum(c['minutes'] for c in capitulos)} min · "
+            f"{niveles} {'nivel' if niveles == 1 else 'niveles'}")
+        row.add_prefix(Gtk.Label(label=primero["deck_icon"],
+                                 css_classes=["as-deck-row-icon"]))
+        barra = self.progress_bar(leidos, len(capitulos))
+        barra.set_valign(Gtk.Align.CENTER)
+        barra.set_size_request(110, -1)
+        row.add_suffix(barra)
+        row.add_suffix(Gtk.Image.new_from_icon_name("go-next-symbolic"))
+        row.set_activatable(True)
+        row.connect("activated", lambda *_: self.open_tema(deck_id))
+        return row
+
+    def open_tema(self, deck_id):
+        """La página del tema: aquí sí está todo desglosado por niveles."""
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+        caja.set_margin_top(20)
+        caja.set_margin_bottom(32)
+        caja.set_margin_start(16)
+        caja.set_margin_end(16)
+        scroll = Gtk.ScrolledWindow(vexpand=True)
+        clamp = Adw.Clamp(maximum_size=860)
+        clamp.set_child(caja)
+        scroll.set_child(clamp)
+
+        capitulos = db.chapters(self.con, deck_id)
+        nombre = capitulos[0]["deck_name"] if capitulos else "Tema"
+        pagina = Adw.NavigationPage(title=nombre, tag=f"tema-{deck_id}")
+        tv = Adw.ToolbarView()
+        tv.add_top_bar(Adw.HeaderBar())
+        tv.set_content(scroll)
+        pagina.set_child(tv)
+        self.fill_tema(caja, deck_id)
+        self.nav.push(pagina)
+        # Después de empujarla: al volver de un capítulo hay que repintar
+        # (la marca de leído cambia), pero no otra vez recién pintada.
+        pagina.connect("showing", lambda *_: self.fill_tema(caja, deck_id))
+        return pagina
+
+    def fill_tema(self, caja, deck_id):
+        while (c := caja.get_first_child()) is not None:
+            caja.remove(c)
+        capitulos = db.chapters(self.con, deck_id)
+        if not capitulos:
+            caja.append(Adw.StatusPage(title="Este tema se quedó sin capítulos",
+                                       icon_name="view-paged-symbolic"))
+            return
+
+        primero = capitulos[0]
+        leidos = sum(1 for c in capitulos if c["leido"])
+        cabecera = Gtk.Box(spacing=10)
+        cabecera.append(Gtk.Label(label=primero["deck_icon"],
+                                  css_classes=["as-deck-row-icon"]))
+        titulo = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=1, hexpand=True)
+        titulo.append(Gtk.Label(label=primero["deck_name"], xalign=0,
+                                css_classes=["title-4"]))
+        titulo.append(Gtk.Label(
+            label=f"{leidos}/{len(capitulos)} capítulos · "
+                  f"{sum(c['minutes'] for c in capitulos)} min",
+            xalign=0, css_classes=["caption", "as-dim"]))
+        cabecera.append(titulo)
+        caja.append(cabecera)
+        caja.append(self.progress_bar(leidos, len(capitulos)))
+
+        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                            css_classes=["boxed-list"])
+        nivel_actual = None
+        for cap in capitulos:
+            nombre_nivel = db.level_name(cap["deck_levels"], cap["level"])
+            if nombre_nivel != nivel_actual:
+                nivel_actual = nombre_nivel
+                encabezado = Adw.ActionRow(title=nombre_nivel.upper(),
+                                           css_classes=["as-level-header"])
+                encabezado.set_activatable(False)
+                lista.append(encabezado)
+            lista.append(self.chapter_row(cap, capitulos))
+        caja.append(lista)
 
     def chapter_row(self, cap, hermanos):
         row = Adw.ActionRow(title=util.as_label(cap["title"]))
@@ -476,6 +689,10 @@ class MainWindow(Adw.ApplicationWindow):
     # -------------------------------------------------------------- explorador
 
     def build_browser(self):
+        """Explorador: primero los temas y, dentro de cada uno, los niveles."""
+        self.cards_nav = Adw.NavigationView()
+        self.tema_lista = None      # la ListaTarjetas del tema abierto, si lo hay
+
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         barra = Gtk.Box(spacing=10)
@@ -484,18 +701,10 @@ class MainWindow(Adw.ApplicationWindow):
         barra.set_margin_start(16)
         barra.set_margin_end(16)
 
-        self.search = Gtk.SearchEntry(placeholder_text="Buscar en las tarjetas…",
-                                      hexpand=True)
+        self.search = Gtk.SearchEntry(
+            placeholder_text="Buscar en todas las tarjetas…", hexpand=True)
         self.search.connect("search-changed", lambda *_: self.refresh_browser())
         barra.append(self.search)
-
-        self.deck_filter = Gtk.DropDown.new_from_strings(["Todos los mazos"])
-        self.deck_filter.connect("notify::selected", lambda *_: self.on_deck_filter())
-        barra.append(self.deck_filter)
-
-        self.level_filter = Gtk.DropDown.new_from_strings(["Todos los niveles"])
-        self.level_filter.connect("notify::selected", lambda *_: self.refresh_browser())
-        barra.append(self.level_filter)
 
         self.btn_ia = Gtk.Button(icon_name="starred-symbolic",
                                  tooltip_text="Generar tarjetas con la IA")
@@ -508,13 +717,15 @@ class MainWindow(Adw.ApplicationWindow):
         barra.append(importar)
         box.append(barra)
 
-        self.browser_list = self.lista_vacia()
-        scroll = Gtk.ScrolledWindow(vexpand=True)
-        self.browser_clamp = Adw.Clamp(maximum_size=1000)
-        self.browser_clamp.set_child(self.browser_list)
-        scroll.set_child(self.browser_clamp)
-        box.append(scroll)
-        return box
+        self.browser_hueco = Adw.Bin(vexpand=True)
+        box.append(self.browser_hueco)
+
+        pagina = Adw.NavigationPage(title="Tarjetas", tag="temas")
+        tv = Adw.ToolbarView()
+        tv.set_content(box)
+        pagina.set_child(tv)
+        self.cards_nav.add(pagina)
+        return self.cards_nav
 
     @staticmethod
     def lista_vacia():
@@ -524,90 +735,96 @@ class MainWindow(Adw.ApplicationWindow):
             getattr(lista, f"set_margin_{lado}")(16)
         return lista
 
-    def on_deck_filter(self):
-        self.level_filter.set_selected(0)
-        self.refresh_browser()
-
     def refresh_browser(self):
         self.btn_ia.set_visible(ia.config(self.con)["activa"])
-        decks = db.deck_stats(self.con)
-        etiquetas = ["Todos los mazos"] + [f"{d['icon']} {d['name']}" for d in decks]
-        modelo = self.deck_filter.get_model()
-        if [modelo.get_string(i) for i in range(modelo.get_n_items())] != etiquetas:
-            sel = self.deck_filter.get_selected()
-            self.deck_filter.set_model(Gtk.StringList.new(etiquetas))
-            self.deck_filter.set_selected(min(sel, len(etiquetas) - 1))
-
-        idx = self.deck_filter.get_selected()
-        deck = decks[idx - 1] if 0 < idx <= len(decks) else None
-        deck_id = deck["id"] if deck else None
         texto = self.search.get_text().strip().lower()
+        # Buscando se enseñan las tarjetas de todos los temas mezcladas; sin
+        # buscar, solo los temas, y el desglose queda dentro de cada uno.
+        self.browser_hueco.set_child(ListaTarjetas(self, texto=texto) if texto
+                                     else self.lista_temas())
+        if self.tema_lista is not None:
+            self.tema_lista.filtrar()
+
+    def lista_temas(self):
+        lista = self.lista_vacia()
+        lista.set_margin_top(4)
+        decks = [d for d in db.deck_stats(self.con) if d["total"]]
+        if not decks:
+            lista.append(Adw.ActionRow(
+                title="Todavía no hay tarjetas",
+                subtitle="Créalas con «Nueva tarjeta», impórtalas o pídeselas a la IA."))
+        for d in decks:
+            lista.append(self.tema_tarjetas_row(d))
+        clamp = Adw.Clamp(maximum_size=1000)
+        clamp.set_child(lista)
+        scroll = Gtk.ScrolledWindow(vexpand=True)
+        scroll.set_child(clamp)
+        return scroll
+
+    def tema_tarjetas_row(self, d):
+        """Una fila por tema: cuántas hay y cómo van, sin listarlas."""
+        niveles = len(json.loads(d["levels"] or "[]"))
+        row = Adw.ActionRow(title=d["name"])
+        pie = (f"{d['total']} tarjetas · {d['pendientes'] or 0} pendientes · "
+               f"{d['nuevas'] or 0} sin ver")
+        if niveles:
+            pie += f" · {niveles} {'nivel' if niveles == 1 else 'niveles'}"
+        row.set_subtitle(pie)
+        row.add_prefix(Gtk.Label(label=d["icon"], css_classes=["as-deck-row-icon"]))
+        row.add_suffix(Gtk.Image.new_from_icon_name("go-next-symbolic"))
+        row.set_activatable(True)
+        row.connect("activated", lambda *_: self.open_tema_tarjetas(d))
+        return row
+
+    def open_tema_tarjetas(self, deck):
+        """La página del tema: las tarjetas, desglosadas por niveles."""
+        lista = ListaTarjetas(self, deck=deck)
+        self.tema_lista = lista
+
+        barra = Gtk.Box(spacing=10)
+        barra.set_margin_top(12)
+        barra.set_margin_bottom(8)
+        barra.set_margin_start(16)
+        barra.set_margin_end(16)
+        buscar = Gtk.SearchEntry(placeholder_text=f"Buscar en {deck['name']}…",
+                                 hexpand=True)
+        buscar.connect("search-changed",
+                       lambda e: lista.filtrar(texto=e.get_text().strip().lower()))
+        barra.append(buscar)
 
         # El filtro de nivel solo tiene sentido con un mazo elegido: cada mazo
         # tiene sus propios nombres de nivel (Básico… o A2…).
-        etiquetas_nivel = ["Todos los niveles"]
-        if deck:
-            etiquetas_nivel += json.loads(deck["levels"] or "[]")
-        modelo_n = self.level_filter.get_model()
-        if [modelo_n.get_string(i) for i in range(modelo_n.get_n_items())] != etiquetas_nivel:
-            self.level_filter.set_model(Gtk.StringList.new(etiquetas_nivel))
-            self.level_filter.set_selected(0)
-        self.level_filter.set_sensitive(len(etiquetas_nivel) > 1)
-        nivel = self.level_filter.get_selected()
+        etiquetas = ["Todos los niveles"] + json.loads(deck["levels"] or "[]")
+        if len(etiquetas) > 1:
+            filtro = Gtk.DropDown.new_from_strings(etiquetas)
+            filtro.connect("notify::selected",
+                           lambda dd, *_: lista.filtrar(nivel=dd.get_selected()))
+            barra.append(filtro)
 
-        sql = """SELECT c.*, d.icon, d.name AS deck_name, d.levels AS deck_levels,
-                        s.due, s.reps, s.interval
-                 FROM cards c JOIN decks d ON d.id=c.deck_id JOIN state s ON s.card_id=c.id"""
-        args, cond = [], []
-        if deck_id:
-            cond.append("c.deck_id=?")
-            args.append(deck_id)
-        if texto:
-            cond.append("(LOWER(c.front) LIKE ? OR LOWER(c.back) LIKE ? OR LOWER(c.tags) LIKE ?)")
-            args += [f"%{texto}%"] * 3
-        if nivel:
-            cond.append("c.level=?")
-            args.append(nivel)
-        if cond:
-            sql += " WHERE " + " AND ".join(cond)
-        sql += " ORDER BY d.pos, c.level, c.id LIMIT 501"
-        filas = self.con.execute(sql, args).fetchall()
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box.append(barra)
+        box.append(lista)
 
-        # Se arma una lista NUEVA fuera del árbol de widgets: si se le van
-        # añadiendo filas mientras está enchufada, GTK recoloca en cada una y la
-        # pestaña se congela más de un segundo.
-        nueva = self.lista_vacia()
-        if not filas:
-            nueva.append(Adw.ActionRow(
-                title="Sin resultados",
-                subtitle="Prueba otra búsqueda o crea una tarjeta nueva."))
-            self.browser_list = nueva
-            self.browser_clamp.set_child(nueva)
-            return
+        pagina = Adw.NavigationPage(title=deck["name"], tag=f"tarjetas-{deck['id']}")
+        tv = Adw.ToolbarView()
+        tv.add_top_bar(Adw.HeaderBar())
+        tv.set_content(box)
+        pagina.set_child(tv)
+        pagina.connect("hidden", lambda *_: setattr(self, "tema_lista", None))
+        self.cards_nav.push(pagina)
 
-        # GTK tarda ~3,5 ms en medir y colocar cada fila: con las 450 tarjetas
-        # de golpe son casi dos segundos de pestaña congelada. Se enseñan las
-        # primeras y el resto se encuentra buscando, que es como se usa.
-        for f in filas[:MAX_FILAS]:
-            nueva.append(self.card_row(f))
-        if len(filas) > MAX_FILAS:
-            resto = Adw.ActionRow(
-                title=f"…y {len(filas) - MAX_FILAS} tarjetas más",
-                subtitle="Búscalas por texto, o filtra por mazo y nivel")
-            resto.add_prefix(Gtk.Image.new_from_icon_name("system-search-symbolic"))
-            nueva.append(resto)
-        self.browser_list = nueva
-        self.browser_clamp.set_child(nueva)
-
-    def card_row(self, f):
+    def card_row(self, f, escueta=False):
         row = Adw.ActionRow(title=util.as_label(f["front"])[:140])
         row.set_title_lines(2)
         estado = ("✨ sin ver" if f["reps"] == 0
                   else f"🔄 repaso en {scheduler.due_label(f['due'])}")
         tipo = {"quiz": "⚡ Reto", "lesson": "📖 Lección"}.get(f["kind"], "📝 Tarjeta")
-        row.set_subtitle(f"{f['icon']} {f['deck_name']} · "
-                         f"{db.level_name(f['deck_levels'], f['level'])} · "
-                         f"{tipo} · {estado}")
+        # Dentro de un tema el mazo es el título de la página y el nivel es el
+        # encabezado del grupo: repetirlos en cada fila solo estorba.
+        pie = f"{tipo} · {estado}" if escueta else (
+            f"{f['icon']} {f['deck_name']} · "
+            f"{db.level_name(f['deck_levels'], f['level'])} · {tipo} · {estado}")
+        row.set_subtitle(pie)
         row.set_activatable(True)
         row.connect("activated", lambda _r, cid=f["id"]: self.card_editor(cid))
 
@@ -797,8 +1014,13 @@ class MainWindow(Adw.ApplicationWindow):
         deck = Adw.ComboRow(
             title="Mazo",
             model=Gtk.StringList.new([f"{d['icon']} {d['name']}" for d in decks]))
-        seleccionado = self.deck_filter.get_selected() if hasattr(self, "deck_filter") else 0
-        deck.set_selected(max(0, seleccionado - 1))
+        # Si vienes de un tema, ese mazo va ya elegido.
+        abierto = getattr(self, "tema_lista", None)
+        if abierto is not None and abierto.deck:
+            for i, d in enumerate(decks):
+                if d["id"] == abierto.deck["id"]:
+                    deck.set_selected(i)
+                    break
         grupo.add(deck)
         page.add(grupo)
 

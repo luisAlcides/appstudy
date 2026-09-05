@@ -50,8 +50,8 @@ TEMAS = (
                   "misma base: <b>leer</b> capítulos de corrido, <b>repasar</b> en un "
                   "popup que sale con un atajo, y <b>Bit</b>, la mascota que te saca "
                   "una tarjeta en el escritorio cuando llevas rato sin aparecer."},
-            {"key": "No hay que configurar nada para empezar: vienen 864 tarjetas y "
-                    "101 capítulos de fábrica, ordenados de básico a avanzado."},
+            {"key": "No hay que configurar nada para empezar: vienen 1.195 tarjetas y "
+                    "145 capítulos de fábrica, ordenados de básico a avanzado."},
             {"h": "Tu primer día"},
             {"steps": [
                 "Abre la pestaña <b>Leer</b> y lee un capítulo entero del tema que te "
@@ -304,7 +304,7 @@ TEMAS = (
         "claves": ("leer", "lectura", "capitulo", "markdown", "escribir", "fuente"),
         "ver": ("tarjetas", "biblioteca", "ia"),
         "body": [
-            {"p": "La pestaña <b>Leer</b> tiene 101 capítulos que se leen de corrido, "
+            {"p": "La pestaña <b>Leer</b> tiene 145 capítulos que se leen de corrido, "
                   "ordenados por mazo y nivel. Un capítulo se marca como leído al "
                   "llegar al final, o a mano con su botón."},
             {"h": "Lo que enlaza leer con repasar"},

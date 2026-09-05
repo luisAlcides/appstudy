@@ -7,7 +7,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib, Gdk, Gio, Gtk  # noqa: E402
 
-from . import cloze, db, logros, scheduler, sesiones, sonido, util  # noqa: E402
+from . import cloze, db, historial, logros, scheduler, sesiones, sonido, util  # noqa: E402
 
 RATINGS = [
     (scheduler.AGAIN, "Otra vez", "1", "as-rate-again"),
@@ -66,6 +66,11 @@ class PopupWindow(Adw.Window):
                           tooltip_text="Otra tarjeta (N)")
         skip.connect("clicked", lambda *_: self.load_card())
         header.pack_start(skip)
+
+        recientes = Gtk.Button(icon_name="document-open-recent-symbolic",
+                                tooltip_text="Tarjetas recientes")
+        recientes.connect("clicked", lambda *_: historial.abrir(self, self.con))
+        header.pack_start(recientes)
 
         # Botones para cambiar tamaño de la tarjeta
         zoom_box = Gtk.Box(spacing=2)
@@ -249,6 +254,8 @@ class PopupWindow(Adw.Window):
         self.hueco = (cloze.elegir(self.card["front"])
                       if self.card and self.es_cloze() else None)
         self.shown_at = time.time()
+        if self.card:
+            historial.registrar(self.con, self.card["id"])
         self.render()
 
     def es_cloze(self) -> bool:

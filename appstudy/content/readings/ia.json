@@ -489,6 +489,498 @@
      "key": "La regla de oro para desplegar IA: <b>debes ser capaz de auditar y explicar cualquier decisión generada por el sistema</b> ante una queja de usuario o requerimiento legal."
     }
    ]
+  },
+  {
+   "level": 1,
+   "minutes": 4,
+   "title": "De una petición vaga a una respuesta comprobable",
+   "subtitle": "criterios de aceptación · Decidir qué significa que una respuesta esté bien.",
+   "tags": "criterios de aceptación",
+   "body": [
+    {
+     "p": "«Haz un buen resumen» deja abiertas muchas decisiones: extensión, público, contenido imprescindible y posibilidad de añadir información. Antes de pedir una tarea a una IA, describe cómo reconocerías una respuesta útil. Esto no garantiza que acierte, pero convierte una impresión subjetiva en comprobaciones concretas que también puedes aplicar sin IA."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Separa requisitos de contenido y de presentación. «Incluye la fecha y las tres decisiones» trata del contenido; «usa cinco viñetas» trata del formato. Una respuesta puede cumplir uno y fallar el otro. Añade qué hacer si falta un dato: indicar que no aparece en la fuente resulta más comprobable que inventar un valor para completar una plantilla."
+    },
+    {
+     "steps": [
+      "Define el material de entrada y quién usará el resultado.",
+      "Escribe dos o tres criterios observables y una regla para información ausente.",
+      "Revisa la respuesta contra la fuente, comprobando hechos y formato por separado."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Petición: «Resume esta reunión en un máximo de cinco viñetas. Incluye decisiones, responsables y fechas que aparezcan en el texto. Si falta un responsable, escribe ‘sin asignar’. No agregues acuerdos». Si el acta dice que Ana enviará un borrador, convertirlo en «Ana aprobó la versión final» falla el criterio de fidelidad aunque el resumen sea breve."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Redacta dos criterios para extraer tareas de un correo. Después decide si «suena profesional» basta para comprobar que no se inventaron fechas."
+    },
+    {
+     "note": "Solución: Posibles criterios: cada tarea debe aparecer en el correo y cada fecha debe conservar el valor del original o marcarse como ausente. Sonar profesional no demuestra fidelidad; hay que comparar los datos."
+    },
+    {
+     "key": "Una petición mejora cuando puedes señalar qué evidencia demuestra que se cumplió."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 4,
+   "title": "Extraer datos con IA: validar significado además de estructura",
+   "subtitle": "extracción validada · Campos, valores ausentes y reglas de coherencia.",
+   "tags": "extracción validada",
+   "body": [
+    {
+     "p": "Extraer datos consiste en convertir información de una fuente a campos definidos. Por ejemplo, un correo puede contener un nombre de producto, una cantidad y una fecha solicitada. Un objeto estructurado facilita que otro programa lo procese, pero tener las claves correctas no demuestra que los valores sean verdaderos. Hay que validar también su relación con el original."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "El contrato de extracción define nombres de campos, tipos, unidades y valores ausentes. Distingue una cantidad cero de una cantidad no mencionada. En fechas ambiguas, como 04/05 sin convención conocida, el sistema debe conservar la ambigüedad o pedir aclaración. Además de validar tipos, comprueba reglas del dominio y guarda el fragmento que respalda cada dato cuando sea útil para revisarlo."
+    },
+    {
+     "steps": [
+      "Define los campos y permite un estado explícito para información desconocida.",
+      "Valida tipos, valores permitidos y relaciones entre campos mediante código.",
+      "Contrasta los valores con la fuente y deriva los casos ambiguos a revisión."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "El correo dice: «Solicito 12 cajas del producto A; confirmar fecha de entrega». Una extracción razonable es producto A, cantidad 12, unidad cajas y fecha desconocida. Escribir cantidad 12 unidades pierde la unidad; asignar la fecha de hoy inventa información. Incluso un objeto que supera todas las comprobaciones de tipos puede cometer ambos errores."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Una nota dice «entre 8 y 10 paquetes, según disponibilidad». Tu esquema solo acepta una cantidad entera. ¿Qué cambiarías? ¿Es correcto guardar 9 sin avisar?"
+    },
+    {
+     "note": "Solución: Representa un intervalo o envía el caso a revisión según el contrato. Guardar 9 como cantidad exacta oculta una decisión que la fuente no tomó; si calculas un valor derivado, identifícalo como tal."
+    },
+    {
+     "key": "Estructura válida, coherencia de negocio y fidelidad a la fuente son comprobaciones distintas."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 4,
+   "title": "Evaluaciones pareadas y abstención: medir mejoras con criterio",
+   "subtitle": "evaluación pareada · Comparar versiones sin esconder los casos difíciles.",
+   "tags": "evaluación pareada",
+   "body": [
+    {
+     "p": "Si cambias una instrucción y pruebas la nueva versión con preguntas más fáciles, la mejora aparente puede venir del conjunto de prueba. Una comparación pareada evalúa ambas versiones sobre los mismos casos. Guarda resultados individuales para saber dónde mejoran, empeoran o empatan. El promedio por sí solo puede ocultar regresiones en tareas importantes."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Define de antemano una rúbrica y separa los casos usados para ajustar de los reservados para evaluar. Si el sistema puede abstenerse, mide tanto la cobertura —fracción de casos respondidos— como la calidad entre los respondidos. Un asistente que contesta solo una pregunta fácil puede tener una precisión alta y ser poco útil. La confianza escrita por el propio modelo no es, por sí sola, una probabilidad calibrada."
+    },
+    {
+     "steps": [
+      "Ejecuta ambas versiones con los mismos casos y condiciones comparables.",
+      "Examina errores por tipo de tarea y conserva un conjunto de evaluación reservado.",
+      "Reporta cobertura, aciertos y fallos, incluyendo qué ocurre cuando el sistema se abstiene."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "En veinte preguntas, A acierta catorce y responde todas. B responde diez y acierta nueve. A tiene 70 % de aciertos sobre sus respuestas y 100 % de cobertura; B, 90 % y 50 %. No hay un ganador universal: depende de cuánto importe responder, equivocarse o derivar a otra persona. La comparación debe hacer visibles las dos dimensiones."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Un sistema responde 80 de 100 casos y acierta 72. Calcula cobertura, precisión entre respondidos y proporción de aciertos sobre todos los casos. ¿Son la misma métrica?"
+    },
+    {
+     "note": "Solución: Cobertura 80 %; precisión entre respondidos 72/80 = 90 %; aciertos sobre el total 72 %. No son intercambiables: cada denominador responde a una pregunta distinta."
+    },
+    {
+     "key": "Compara los mismos casos y muestra los denominadores; abstenerse cambia la cobertura además del error."
+    },
+    {
+     "note": "Referencia: NIST, medición y evaluación de IA: https://www.nist.gov/ai-measurement-and-evaluation"
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 9,
+   "tags": "práctica,criterio,ética,verificación",
+   "title": "Usarla sin que te la cuelen",
+   "subtitle": "Verificar respuestas, proteger lo que pegas en el chat y reconocer una suplantación.",
+   "body": [
+    {
+     "p": "Un modelo de lenguaje es una herramienta extraordinaria y un testigo pésimo. Escribe con la misma seguridad cuando sabe y cuando no, porque su objetivo no es decir la verdad sino producir el texto más plausible. Todo lo que sigue nace de esa única característica: no hay que desconfiar del modelo por costumbre, hay que <b>saber en qué casos su seguridad no significa nada</b>."
+    },
+    {
+     "key": "La pregunta útil no es «¿me está mintiendo?», sino «¿qué me costaría comprobarlo, y qué me costaría si estuviera mal?». Cuando comprobar es barato y equivocarse es caro, se comprueba siempre."
+    },
+    {
+     "h": "Qué se verifica y qué no"
+    },
+    {
+     "p": "No todo necesita el mismo cuidado. Reescribir un correo, ordenar unas ideas o explicarte un concepto que ya vas a contrastar en clase no requiere verificación formal: si el resultado no te sirve, lo notas al leerlo. El peligro está en lo que <b>no se nota al leerlo</b>."
+    },
+    {
+     "list": [
+      "<b>Cifras, fechas y referencias</b>: números de repuesto, códigos de error, artículos de una ley, precios, dosis. El modelo genera algo con la forma correcta aunque el valor sea falso.",
+      "<b>Citas y fuentes</b>: es capaz de inventar un libro, un autor y hasta un número de página perfectamente verosímiles. Si no puedes abrir la fuente, no existe.",
+      "<b>Instrucciones con consecuencias físicas o legales</b>: procedimientos de mantenimiento, conexiones eléctricas, trámites. Contrástalos con el manual del fabricante o la norma.",
+      "<b>Cualquier cosa sobre ti o tu entorno</b>: no conoce tu empresa, tu máquina ni tus datos salvo que se los des en el mismo mensaje."
+     ]
+    },
+    {
+     "note": "Un truco que cuesta cinco segundos: pídele que responda «no aparece en el texto» cuando el dato no esté en lo que le diste. Un modelo con permiso explícito para abstenerse inventa mucho menos que uno al que solo se le pide la respuesta."
+    },
+    {
+     "h": "Lo que no debe salir de tu equipo"
+    },
+    {
+     "p": "Todo lo que escribes en un chat viaja a un servidor ajeno y, según el servicio y el plan, puede quedar almacenado un tiempo o usarse para mejorar el producto. Eso no lo convierte en algo prohibido: lo convierte en una decisión que conviene tomar despierto."
+    },
+    {
+     "steps": [
+      "<b>Nunca</b>: contraseñas, claves de API, tokens, números completos de tarjeta. Si se te escapa una, cámbiala; no basta con borrar el mensaje.",
+      "<b>Con cuidado</b>: datos personales de otras personas (cédula, expediente médico, nómina, dirección) y documentos bajo acuerdo de confidencialidad.",
+      "<b>La técnica del marcador</b>: sustituye lo identificable antes de pegar —«CLIENTE_1», «MÁQUINA_A», «FECHA_1»— y devuelve los valores reales tú mismo al recibir la respuesta. El modelo hace igual de bien su trabajo sin saber de quién se trata.",
+      "<b>Comprueba tu cuenta</b>: en muchos servicios se puede desactivar el uso de tus conversaciones para entrenamiento, y las cuentas corporativas suelen traerlo desactivado por contrato."
+     ]
+    },
+    {
+     "h": "Suplantaciones: por qué mirar más no ayuda"
+    },
+    {
+     "p": "Generar la voz de una persona conocida a partir de unos segundos de audio está al alcance de cualquiera. La estafa habitual no es técnica sino de guion: una llamada urgente de alguien con autoridad, una transferencia que no puede esperar, una instrucción explícita de no consultarlo con nadie."
+    },
+    {
+     "warn": "Las señales visuales clásicas —manos deformes, parpadeo raro, labios desincronizados— ya no son fiables, y buscarlas da una falsa sensación de control. La defensa que sigue funcionando es de procedimiento, no de vista: cortar y volver a llamar tú al número de siempre, o confirmar por un canal distinto del que llegó la petición."
+    },
+    {
+     "p": "La misma lógica sirve para lo que lees. Una imagen no es prueba de nada por sí sola; lo que le da valor es de dónde viene. Antes de reenviar algo que te indigna o te alarma, busca la noticia en un medio que responda por ella: si nadie más la cuenta, la explicación más probable no es que tú lo hayas descubierto primero."
+    },
+    {
+     "h": "Los detectores de «texto escrito por IA»"
+    },
+    {
+     "p": "Existen y se usan, sobre todo en el ámbito educativo, pero su fiabilidad es baja: marcan como artificial texto humano escrito de forma sencilla o por personas que no escriben en su lengua materna. No hay una marca oculta que separe un texto de otro, así que su veredicto es un indicio débil y nunca una prueba. Si tienes que evaluar honestidad, pesa mucho más el proceso —borradores, preguntas, capacidad de defender lo escrito— que el porcentaje de una herramienta."
+    },
+    {
+     "key": "Resumen operativo: verifica lo que tiene forma de dato, no pegues lo que no puedes permitirte perder, confirma por otro canal cualquier urgencia que llegue con voz conocida, y desconfía de las herramientas que prometen detectar la mentira por ti."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "razonamiento,parámetros,costes,criterio",
+   "title": "Modelos de razonamiento: cuándo pensar más compensa",
+   "subtitle": "Qué cambia cuando el modelo escribe antes de responder, y por qué no siempre conviene.",
+   "body": [
+    {
+     "p": "Durante años, la única forma de mejorar un modelo fue hacerlo más grande y entrenarlo con más datos. Los <b>modelos de razonamiento</b> abren otra vía: dejar que el modelo gaste tokens <i>pensando</i> antes de contestar. En lugar de producir la respuesta de un tirón, genera primero un desarrollo interno —explora caminos, verifica pasos, se corrige— y solo después redacta lo que ve el usuario."
+    },
+    {
+     "key": "Es la diferencia entre responder de memoria y responder con papel y lápiz. El modelo no se ha vuelto más listo: se le ha dado sitio para trabajar antes de comprometerse con una respuesta."
+    },
+    {
+     "h": "Dónde se nota y dónde no"
+    },
+    {
+     "p": "La mejora no es uniforme. Aparece con fuerza en tareas donde un error temprano arruina el resultado y donde existe una forma de comprobar el propio trabajo."
+    },
+    {
+     "list": [
+      "<b>Gana mucho</b>: problemas matemáticos de varios pasos, depuración de código, planificación con restricciones, análisis de un contrato buscando contradicciones, decidir el orden de un diagnóstico técnico.",
+      "<b>Gana poco o nada</b>: reescribir un correo, traducir, clasificar textos en categorías fijas, extraer campos de un documento, responder preguntas de conocimiento directo.",
+      "<b>Puede empeorar</b>: tareas creativas o de estilo, donde el exceso de deliberación produce texto acartonado; y tareas de latencia crítica, donde la espera cuesta más que el error."
+     ]
+    },
+    {
+     "h": "Lo que pagas por pensar"
+    },
+    {
+     "p": "Los tokens de razonamiento se facturan como tokens de salida aunque no los veas, y son los más caros. Una pregunta que costaría 300 tokens de respuesta puede consumir varios miles de razonamiento. La latencia sube en la misma proporción: es normal pasar de dos segundos a treinta o más."
+    },
+    {
+     "p": "Por eso los proveedores exponen un <b>presupuesto de razonamiento</b> (o niveles de esfuerzo: bajo, medio, alto). No es un interruptor de calidad, es un mando de compromiso: cuánto estás dispuesto a pagar y a esperar por cada punto de acierto adicional."
+    },
+    {
+     "steps": [
+      "Empieza por el nivel más bajo o directamente por un modelo normal.",
+      "Mide con tu conjunto de evaluación cuántos casos falla.",
+      "Sube el esfuerzo un escalón y vuelve a medir, anotando también coste y latencia.",
+      "Quédate en el escalón donde la curva se aplana: a partir de ahí pagas mucho por muy poco."
+     ]
+    },
+    {
+     "h": "Cómo se le habla a un modelo que razona"
+    },
+    {
+     "p": "Buena parte de las técnicas de prompting clásicas se vuelven redundantes o contraproducentes. Pedir «piensa paso a paso» es innecesario: ya lo hace, y la instrucción puede interferir con su propio procedimiento. Los ejemplos largos de razonamiento (<i>few-shot</i> con cadena de pensamiento) tampoco aportan lo que aportaban."
+    },
+    {
+     "list": [
+      "Describe <b>qué</b> quieres y con qué criterios se juzga un buen resultado, no <b>cómo</b> debe pensarlo.",
+      "Sé explícito con las restricciones y los casos límite: es ahí donde el razonamiento se emplea a fondo.",
+      "Pide la respuesta final en un formato claro y separado del desarrollo.",
+      "No mezcles el borrador de razonamiento con la salida que consume tu programa: trátalo como información de depuración, no como contrato."
+     ]
+    },
+    {
+     "note": "El razonamiento que muestran algunos productos es un resumen del proceso, no una transcripción literal ni una explicación garantizada de por qué salió esa respuesta. Sirve para orientarte cuando algo falla; no sirve como justificación ante un cliente o un auditor."
+    },
+    {
+     "h": "Un patrón que funciona bien"
+    },
+    {
+     "p": "En sistemas reales rara vez conviene un solo modelo para todo. El patrón más rentable es <b>enrutar</b>: un modelo rápido y barato atiende el grueso de las peticiones, y solo las que cumplen ciertas condiciones —el usuario pide un análisis, la pregunta tiene varias partes, el primer intento se abstuvo o quedó por debajo del umbral de confianza— se reenvían al modelo de razonamiento. Se conserva casi toda la calidad a una fracción del coste medio."
+    },
+    {
+     "key": "Regla práctica: usa razonamiento cuando el error sea caro y el tiempo barato. Cuando el tiempo sea caro y el error barato, no lo uses."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "arquitectura,mcp,herramientas,producción",
+   "title": "MCP y salidas estructuradas: conectar el modelo sin pegamento a medida",
+   "subtitle": "Cómo se enchufa un modelo a tus datos y tus acciones sin escribir una integración por aplicación.",
+   "body": [
+    {
+     "p": "Un modelo aislado solo sabe convertir texto en texto. Todo lo que hace útil a un asistente —consultar el inventario, leer un manual, abrir un ticket— ocurre en el borde: en cómo se le entrega información y cómo se le deja actuar. Ese borde se resuelve hoy con dos piezas complementarias: <b>salidas estructuradas</b> para que lo que devuelve encaje en tu programa, y <b>herramientas</b> para que pueda pedir que se ejecute algo."
+    },
+    {
+     "h": "Salida estructurada: el contrato de datos"
+    },
+    {
+     "p": "Pedir «devuélvemelo en JSON» dentro del prompt funciona casi siempre, y ese «casi» es el problema: un día antepone «Claro, aquí tienes:», otro cierra mal una llave y tu programa revienta en producción. La salida estructurada resuelve esto en el propio decodificador: se le pasa un esquema y el modelo <b>solo puede emitir tokens que lo respeten</b>."
+    },
+    {
+     "code": {
+      "lang": "json",
+      "text": "{\n  \"type\": \"object\",\n  \"required\": [\"codigo_falla\", \"gravedad\", \"cita\"],\n  \"properties\": {\n    \"codigo_falla\":  { \"type\": \"string\", \"pattern\": \"^[A-Z][0-9]{4}$\" },\n    \"gravedad\":      { \"type\": \"string\", \"enum\": [\"baja\", \"media\", \"alta\"] },\n    \"cita\":          { \"type\": \"string\" },\n    \"horas_maquina\": { \"type\": [\"number\", \"null\"] }\n  }\n}"
+     }
+    },
+    {
+     "key": "Un esquema garantiza la <b>forma</b>, nunca la <b>verdad</b>. «P0420» encaja con el patrón aunque el manual dijera otra cosa. Por eso el campo <code>cita</code> es tan importante como los demás: es lo que permite comprobar de dónde salió cada valor."
+    },
+    {
+     "p": "Dos decisiones de diseño que ahorran disgustos: permitir explícitamente el valor nulo en todo lo que puede faltar (si no, el modelo se ve forzado a inventar un número), y preferir enumeraciones cerradas a texto libre siempre que las categorías estén definidas."
+    },
+    {
+     "h": "Herramientas: cuando el modelo necesita actuar"
+    },
+    {
+     "p": "Con llamada a herramientas el modelo no ejecuta nada: <b>propone</b> una llamada con sus argumentos, tu código decide si la ejecuta y le devuelve el resultado para que continúe. Toda la seguridad vive en ese intermedio, no en el modelo."
+    },
+    {
+     "list": [
+      "<b>Describe la herramienta para quien no conoce tu sistema</b>: el nombre y la descripción son la documentación que lee el modelo. «buscar_repuesto(referencia)» con una explicación clara se usa bien; «q(x)» no.",
+      "<b>Pocas y bien separadas</b>: con veinte herramientas parecidas, la elección se degrada. Agrupa por intención, no por endpoint.",
+      "<b>Devuelve errores que se puedan corregir</b>: «no existe la referencia AB-12, ¿quisiste decir AB-21?» permite reintentar; «error 500» solo permite rendirse.",
+      "<b>Idempotencia</b>: los reintentos son la norma, no la excepción. Cada acción con efecto debe llevar clave de idempotencia."
+     ]
+    },
+    {
+     "warn": "El límite entre lectura y escritura es donde se concentra el riesgo. Una herramienta que solo consulta puede ejecutarse libremente; una que gasta dinero, envía mensajes o borra datos debe pasar por confirmación humana o por permisos acotados. Un agente que lee páginas web y además puede escribir es, por construcción, un canal de inyección indirecta."
+    },
+    {
+     "h": "MCP: la misma integración para todas las aplicaciones"
+    },
+    {
+     "p": "Cada aplicación de IA definía sus herramientas a su manera, así que conectar cinco asistentes a cuatro sistemas internos significaba veinte integraciones distintas. El <b>Model Context Protocol</b> (MCP) es un protocolo abierto que estandariza ese contrato: escribes un <b>servidor MCP</b> para tu sistema y cualquier cliente compatible lo descubre y lo usa."
+    },
+    {
+     "p": "Un servidor MCP expone tres tipos de cosas, y distinguirlas bien es la mitad del diseño:"
+    },
+    {
+     "steps": [
+      "<b>Herramientas</b> (<i>tools</i>): acciones que el modelo puede solicitar —consultar existencias, crear una orden de trabajo—. Son lo que <i>hace</i>.",
+      "<b>Recursos</b> (<i>resources</i>): contenido que se puede leer e incorporar al contexto —un manual, una tabla de referencias, el historial de una máquina—. Es lo que <i>sabe</i>.",
+      "<b>Prompts</b>: plantillas reutilizables que el usuario puede invocar, con los parámetros que necesiten. Es lo que <i>ya sabes que se va a pedir</i>."
+     ]
+    },
+    {
+     "note": "Ventaja práctica menos evidente: al vivir la integración en un servidor propio, las reglas de acceso, los registros y los límites de uso se aplican en un solo sitio y valen para todos los clientes. Es mucho más fácil de auditar que la misma lógica repetida en cinco aplicaciones."
+    },
+    {
+     "h": "El orden en que conviene construir"
+    },
+    {
+     "p": "Empieza por la salida estructurada, que es barata y elimina toda una clase de fallos. Añade herramientas de <b>solo lectura</b> y comprueba que el modelo las elige bien antes de darle ninguna capacidad de escritura. Cuando esa parte esté estable y tengas más de un cliente o más de un sistema que conectar, mueve las herramientas a un servidor MCP. Al revés —empezar por el protocolo antes de saber qué herramientas necesitas— suele producir una abstracción elegante alrededor de un problema que aún no existe."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 12,
+   "tags": "producción,inferencia,latencia,arquitectura",
+   "title": "Qué ocurre dentro de una inferencia: prefill, caché KV y latencia",
+   "subtitle": "Por qué el primer token cuesta distinto que el resto, y qué se puede tocar de verdad para ir más rápido.",
+   "body": [
+    {
+     "p": "Cuando un asistente «tarda seis segundos», la reacción habitual es buscar un modelo más pequeño. Casi siempre es la palanca equivocada, porque esos seis segundos no son una masa homogénea: son dos fases con causas distintas y remedios distintos."
+    },
+    {
+     "h": "Prefill y decode"
+    },
+    {
+     "p": "El <b>prefill</b> procesa todo el prompt de una vez. Como los tokens de entrada ya se conocen, la GPU los pasa en paralelo por todas las capas: es una fase limitada por <i>cómputo</i>, y su coste crece con la longitud del prompt. Al terminar, produce el primer token."
+    },
+    {
+     "p": "El <b>decode</b> genera el resto, un token cada vez, porque cada uno depende del anterior. Aquí la GPU está casi ociosa esperando datos: hay que leer los miles de millones de parámetros del modelo desde la memoria para producir <i>un solo</i> token. Es una fase limitada por <b>ancho de banda de memoria</b>, no por cálculo."
+    },
+    {
+     "key": "De esa asimetría sale todo lo demás. El <b>TTFT</b> (tiempo hasta el primer token) lo domina el tamaño del prompt y la cola del servidor; los <b>tokens por segundo</b> los domina la memoria del hardware. Optimizar uno no mejora el otro."
+    },
+    {
+     "h": "La caché KV"
+    },
+    {
+     "p": "En el mecanismo de atención, cada token genera una clave y un valor que los tokens posteriores consultan. Si se recalcularan en cada paso, generar la respuesta sería cuadráticamente caro. En su lugar se guardan: eso es la <b>caché KV</b>, y es lo que permite que el decode avance a ritmo casi constante."
+    },
+    {
+     "p": "Su tamaño no es despreciable. Para un contexto de <i>n</i> tokens crece de forma lineal, con un factor que depende de las capas, las cabezas y la precisión:"
+    },
+    {
+     "math": "\\text{memoria}_{KV} \\approx 2 \\cdot n_{\\text{capas}} \\cdot n_{\\text{cabezas}} \\cdot d_{\\text{cabeza}} \\cdot n_{\\text{tokens}} \\cdot \\text{bytes}"
+    },
+    {
+     "p": "En la práctica, unas pocas conversaciones largas simultáneas pueden ocupar más memoria de GPU que el propio modelo. Esa es la razón real de que un servicio limite el contexto o baje el número de peticiones concurrentes: no es tacañería, es que la caché no cabe. Técnicas como <i>grouped-query attention</i>, <i>PagedAttention</i> o la cuantización de la caché atacan justamente ese cuello de botella."
+    },
+    {
+     "h": "Por qué repetir el mismo prefijo sale casi gratis"
+    },
+    {
+     "p": "Si dos peticiones empiezan igual —las mismas instrucciones de sistema, el mismo manual pegado— el prefill de esa parte común es idéntico. El <b>prompt caching</b> guarda ese trozo de caché KV y lo reutiliza, cobrando esos tokens a una fracción del precio y eliminando su tiempo de prefill."
+    },
+    {
+     "steps": [
+      "Pon lo <b>estable</b> al principio: instrucciones de sistema, definiciones de herramientas, documentos fijos.",
+      "Pon lo <b>variable</b> al final: la pregunta del usuario, la fecha, el identificador de sesión.",
+      "No metas un <i>timestamp</i> ni un número aleatorio en la cabecera del prompt: invalida la caché entera y pagas el prefill completo cada vez.",
+      "Recuerda que la caché caduca en minutos: ayuda en ráfagas de peticiones, no en tráfico disperso."
+     ]
+    },
+    {
+     "h": "Cuantización y decodificado especulativo"
+    },
+    {
+     "p": "Como el decode está limitado por memoria, reducir los <b>bytes por parámetro</b> lo acelera casi directamente. Pasar de 16 a 8 bits suele ser inocuo; a 4 bits el modelo sigue siendo utilizable pero se degrada primero en lo que menos se mide: instrucciones largas, tareas de varios pasos, idiomas minoritarios. Cuantizar y no reevaluar es la forma más silenciosa de empeorar un sistema."
+    },
+    {
+     "p": "El <b>decodificado especulativo</b> ataca el mismo cuello desde otro ángulo: un modelo pequeño propone varios tokens y el grande los verifica en una sola pasada, aceptando los que coinciden con lo que él habría generado. Como el criterio de aceptación conserva la distribución original, la salida es estadísticamente la misma; la ganancia depende de cuánto acierte el borrador."
+    },
+    {
+     "h": "Qué mirar cuando alguien dice que va lento"
+    },
+    {
+     "list": [
+      "<b>Mide por separado</b> TTFT, tokens por segundo y tiempo total; y en agentes, además, el número de llamadas encadenadas.",
+      "<b>Mira percentiles, no medias</b>: el p95 es lo que la gente recuerda.",
+      "<b>Si el TTFT es alto</b>: recorta el prompt, reordénalo para aprovechar caché, revisa la cola del proveedor.",
+      "<b>Si los tokens por segundo son bajos</b>: es hardware o tamaño de modelo; ahí sí toca cambiar de modelo o de servidor.",
+      "<b>Si el total es alto pero las dos métricas están bien</b>: el problema es de arquitectura —demasiados pasos secuenciales que podrían ir en paralelo."
+     ]
+    },
+    {
+     "note": "Antes de nada, activa <b>streaming</b>. No reduce ni un milisegundo el tiempo total, pero convierte una espera en blanco en una respuesta que avanza, y eso cambia por completo la percepción de velocidad. Es la optimización con mejor relación esfuerzo/resultado que existe."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "producción,evaluación,mantenimiento,criterio",
+   "title": "Mantenerlo vivo: cambios de modelo, deriva y regresiones",
+   "subtitle": "Lo que pasa después de que el sistema funcione, que es cuando empiezan los problemas difíciles.",
+   "body": [
+    {
+     "p": "Un sistema con LLM no se degrada como el software normal. El código no cambia, no salta ninguna excepción, los registros están limpios y aun así las respuestas son peores que hace tres meses. Es un modo de fallo silencioso, y por eso el mantenimiento tiene que ser activo: si nadie mide, nadie se entera hasta que se queja un cliente."
+    },
+    {
+     "h": "Las tres fuentes de degradación"
+    },
+    {
+     "list": [
+      "<b>Cambia el modelo</b>: el proveedor actualiza una versión, deprecia la que usabas o ajusta sus filtros. Tus prompts estaban afinados para las manías de la versión anterior.",
+      "<b>Cambian los datos</b>: se actualizan los manuales, entran documentos nuevos, alguien reorganiza el repositorio y el troceado deja de respetar las secciones.",
+      "<b>Cambian las preguntas</b>: los usuarios aprenden a usarlo y empiezan a pedir cosas para las que nunca se diseñó. Este es el caso más frecuente y el que menos se anticipa."
+     ]
+    },
+    {
+     "key": "Ninguna de las tres produce un error. Las tres producen respuestas peores con el mismo aspecto que las buenas."
+    },
+    {
+     "h": "Vigilancia sin etiquetas"
+    },
+    {
+     "p": "Etiquetar respuestas a mano de forma continua no se sostiene. Lo que sí se puede vigilar en producción son señales indirectas que se mueven antes de que la calidad caiga del todo:"
+    },
+    {
+     "list": [
+      "<b>Tasa de abstención</b>: si sube, el sistema está recibiendo preguntas que no cubre o dejó de recuperar bien.",
+      "<b>Puntuación de recuperación</b>: la similitud media del mejor fragmento, y qué proporción de consultas no recupera nada por encima del umbral.",
+      "<b>Longitud y forma de las respuestas</b>: un salto brusco en la media suele indicar que cambió el modelo por debajo.",
+      "<b>Comportamiento del usuario</b>: repreguntas inmediatas, reformulaciones, conversaciones abandonadas, pulgares abajo. Es la señal más honesta y la que menos se instrumenta.",
+      "<b>Distribución de temas</b>: agrupa las consultas por semana; ver aparecer un tema nuevo es ver llegar el problema antes que la queja."
+     ]
+    },
+    {
+     "p": "Cuando una señal se mueve, se etiqueta a mano una muestra de cincuenta casos de esa franja y se confirma o se descarta. La vigilancia automática no sustituye al juicio: solo dice dónde mirar."
+    },
+    {
+     "h": "Cambiar de modelo con red"
+    },
+    {
+     "p": "Los promedios públicos de un modelo nuevo no dicen nada sobre tu tarea. Es perfectamente habitual que un modelo mejor en general rinda peor en un caso concreto, sobre todo si tus prompts llevaban meses ajustados al anterior."
+    },
+    {
+     "steps": [
+      "Pasa tu conjunto de evaluación con ambos modelos, sobre <b>los mismos casos</b>, y compara caso por caso en vez de mirar el promedio.",
+      "Revisa a mano todo lo que cambió de resultado, en las dos direcciones: lo que empeoró explica el riesgo y lo que mejoró explica la ganancia.",
+      "Despliega en <b>canario</b>: un porcentaje pequeño del tráfico real durante unos días, con las señales de arriba vigiladas.",
+      "Ten preparada la vuelta atrás y mantén la versión antigua accesible hasta que el canario esté limpio.",
+      "Solo entonces reajusta los prompts al modelo nuevo, y vuelve a evaluar."
+     ]
+    },
+    {
+     "note": "Fija siempre la versión exacta del modelo en tu configuración, nunca un alias que apunte a «la última». Un alias convierte una actualización del proveedor en un cambio no anunciado en tu producción, y con él pierdes lo único que hace depurable el sistema: saber qué cambió y cuándo."
+    },
+    {
+     "h": "El conjunto de evaluación como memoria del equipo"
+    },
+    {
+     "p": "La disciplina que más rendimiento da a largo plazo es sencilla: <b>cada fallo real se convierte en un caso de evaluación</b>. No se arregla el prompt y se cierra el ticket; se añade el caso, se comprueba que falla, se arregla y se comprueba que pasa."
+    },
+    {
+     "p": "Al cabo de un año, ese conjunto vale más que la documentación: contiene todas las formas en que el sistema se rompió alguna vez y todo lo que el equipo aprendió al arreglarlo. Es también lo que permite que alguien nuevo toque un prompt sin miedo, y lo que convierte «creo que ha mejorado» en una afirmación comprobable."
+    },
+    {
+     "key": "Un sistema de IA en producción no se termina: se cuida. La diferencia entre uno que aguanta dos años y uno que hay que rehacer no está en el modelo elegido, sino en si alguien estuvo midiendo mientras el mundo cambiaba alrededor."
+    }
+   ]
   }
  ]
 }

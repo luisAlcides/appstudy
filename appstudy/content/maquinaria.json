@@ -683,6 +683,153 @@
    "tags": "diagnóstico,hidráulica",
    "front": "Leer una máquina por sus presiones",
    "back": "Un manómetro conectado en el punto correcto resuelve en minutos lo que la inspección visual no ve nunca. La clave es saber <b>qué presión buscar y en qué condición</b>.\n\n<b>Presión de espera (standby)</b> — con los mandos en neutro y una bomba de caudal variable, debe quedarse baja (típicamente 25-40 bar). Alta en neutro = la bomba no destalona, y estás quemando potencia y calentando aceite todo el turno.\n\n<b>Presión de trabajo</b> — con el movimiento a fondo contra tope mecánico, debe alcanzar el valor de alivio de la placa. Si se queda corta: alivio mal tarado, bomba gastada o fuga interna. Si la alcanza pero la máquina no tiene fuerza, el problema es <b>caudal</b>, no presión.\n\n<b>Presión piloto</b> — 30-40 bar estables. Sin ella, las válvulas no conmutan y la máquina parece muerta aunque la bomba principal esté perfecta. Es de los fallos que más tiempo se pierde buscando en el sitio equivocado.\n\n<b>Contrapresión de retorno</b> — debería ser baja. Alta significa filtro de retorno o enfriador obstruidos, y se manifiesta como calentamiento general y movimientos perezosos.\n\n<b>El método:</b> anota estos cuatro valores <b>cuando la máquina está sana</b>, con el aceite a temperatura de trabajo, y guárdalos en la ficha. Ese registro convierte el diagnóstico futuro en una comparación de números en lugar de una discusión de sensaciones."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "Horómetro de 1 250,4 a 1 256,9: ¿cuánto aumentó?",
+   "back": "6,5 horas, equivalentes a seis horas y treinta minutos.",
+   "tags": "parte de turno"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Cuántos minutos son 0,8 horas?",
+   "back": "48 minutos: 0,8 × 60.",
+   "tags": "parte de turno"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Por qué las horas del turno pueden diferir del incremento del horómetro?",
+   "back": "Porque el horómetro registra actividad según su diseño y la máquina puede permanecer apagada parte del turno.",
+   "tags": "parte de turno"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Permite el horómetro calcular por sí solo las toneladas producidas?",
+   "back": "No. Hace falta medir producción o carga; horas y toneladas no son la misma magnitud.",
+   "tags": "parte de turno"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "front": "¿Cuál es el parte más informativo?",
+   "choices": [
+    "Todo normal",
+    "Trabajó mucho",
+    "12 ciclos y 20 minutos de espera por falta de camión",
+    "La máquina estuvo ahí"
+   ],
+   "answer": 2,
+   "back": "Incluye actividad cuantificada y causa observable de espera.",
+   "tags": "parte de turno"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "front": "Para convertir la parte decimal de horas a minutos, multiplícala por {{60}}.",
+   "back": "Por ejemplo, 0,5 horas son treinta minutos, no cincuenta.",
+   "tags": "parte de turno"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "Un ciclo completo tarda 5 minutos. ¿Cuántos ciclos teóricos caben en una hora?",
+   "back": "12 ciclos: 60/5, sin esperas adicionales.",
+   "tags": "productividad de ciclos"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "Doce ciclos por hora con 8 t por ciclo: ¿producción teórica?",
+   "back": "96 t/h, bajo esos supuestos de carga y continuidad.",
+   "tags": "productividad de ciclos"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "Con ciclos de 5 min y solo 45 min efectivos por hora, ¿cuántos ciclos estimas?",
+   "back": "9 ciclos por hora de turno: 45/5.",
+   "tags": "productividad de ciclos"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "Capacidades de 80, 65 y 90 t/h en etapas consecutivas: ¿cuál limita el modelo estable?",
+   "back": "La etapa de 65 t/h, si las capacidades son comparables y no hay otros condicionantes.",
+   "tags": "productividad de ciclos"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "¿Qué puede pasar al acelerar una etapa que no es el cuello de botella?",
+   "choices": [
+    "Siempre se duplica la producción",
+    "Puede aumentar la espera sin mejorar la salida total",
+    "Desaparecen todas las paradas",
+    "Ya no importa la capacidad de descarga"
+   ],
+   "answer": 1,
+   "back": "La etapa limitante sigue restringiendo la capacidad de la cadena.",
+   "tags": "productividad de ciclos"
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "front": "Para comparar etapas de una operación, expresa sus capacidades en la misma {{unidad}}.",
+   "back": "Por ejemplo, toneladas por hora; viajes por hora requiere conocer carga por viaje.",
+   "tags": "productividad de ciclos"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "Con 8 h programadas y 6 disponibles, ¿disponibilidad según disponibles/programadas?",
+   "back": "75 %: 6/8.",
+   "tags": "indicadores de flota"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "Con 6 h disponibles y 4 productivas, ¿utilización según productivas/disponibles?",
+   "back": "Aproximadamente 66,7 %: 4/6.",
+   "tags": "indicadores de flota"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Qué da el producto de disponibilidad y utilización con los denominadores de este capítulo?",
+   "back": "Horas productivas / horas programadas, si las categorías son coherentes y no se solapan.",
+   "tags": "indicadores de flota"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Por qué dos porcentajes llamados «utilización» pueden no ser comparables?",
+   "back": "Porque pueden usar denominadores distintos, como horas disponibles u horas programadas.",
+   "tags": "indicadores de flota"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "10 h programadas, 8 disponibles y 6 productivas: ¿fracción productiva del turno?",
+   "choices": [
+    "80 %",
+    "75 %",
+    "60 %",
+    "20 %"
+   ],
+   "answer": 2,
+   "back": "6/10 = 60 %. Es distinta de disponibilidad y de utilización sobre horas disponibles.",
+   "tags": "indicadores de flota"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "front": "Para interpretar un indicador de flota, documenta siempre su {{denominador}}.",
+   "back": "El mismo número de horas productivas produce porcentajes distintos según la base elegida.",
+   "tags": "indicadores de flota"
   }
  ],
  "levels": [

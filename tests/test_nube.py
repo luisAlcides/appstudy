@@ -8,9 +8,11 @@ sesión sobreviva a cerrar la aplicación.
 import json
 import os
 import sqlite3
+import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from appstudy import db, nube, sincronizacion
 from tests.apoyo import BaseTemporal
@@ -47,6 +49,12 @@ class AjustesTest(unittest.TestCase):
         for clave in ("SUPABASE_URL", "SUPABASE_ANON_KEY", "db_database"):
             os.environ.pop(clave, None)
             os.environ.pop(clave.upper(), None)
+        # Sin esto, el `.env` de quien desarrolla se cuela en las pruebas y
+        # "no hay clave" deja de ser cierto en su equipo pero sí en el de al lado.
+        vacio = Path(tempfile.mkdtemp()) / ".env"
+        parche = mock.patch.object(nube, "_archivos_env", lambda: [vacio])
+        parche.start()
+        self.addCleanup(parche.stop)
         self.addCleanup(self._limpiar)
 
     def _limpiar(self):

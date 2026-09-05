@@ -486,6 +486,138 @@
      "key": "En alta tensión automotriz la seguridad no es un procedimiento administrativo: es la diferencia entre una reparación segura y un accidente fatal."
     }
    ]
+  },
+  {
+   "level": 1,
+   "minutes": 4,
+   "title": "Una bitácora útil: registrar síntomas sin adivinar averías",
+   "subtitle": "bitácora del vehículo · Separar observaciones de interpretaciones.",
+   "tags": "bitácora del vehículo",
+   "body": [
+    {
+     "p": "Una descripción precisa ayuda más que una lista de piezas sospechosas. «Hace ruido» deja muchas posibilidades abiertas. «Aparece un zumbido después de veinte minutos, solo con el aire acondicionado encendido» describe condiciones que un técnico puede investigar. La bitácora no sustituye una inspección: organiza lo que ya observaste para no depender de la memoria."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Separa hechos e hipótesis. Un testigo encendido, una fecha y un kilometraje son observaciones; «falló el sensor» es una interpretación que necesita evidencia. Registra también cambios recientes y si el síntoma desapareció, sin dar por demostrada la causa. No intentes provocar fallas peligrosas ni escribir mientras conduces: anota después de detenerte en un lugar seguro."
+    },
+    {
+     "steps": [
+      "Anota fecha, kilometraje y condiciones de aparición: frío o caliente, carga y duración.",
+      "Describe lo observado con palabras concretas y conserva los mensajes o códigos exactos disponibles.",
+      "Distingue lo confirmado, lo sospechado y lo que aún falta comprobar."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Registro útil: «Día 12, 84 200 km. Al primer arranque de la mañana tardó más de lo habitual; por la tarde arrancó normalmente. No se hicieron reparaciones. Pendiente de revisión». El registro no declara que la batería esté dañada. Esa prudencia permite comparar días y evita que una suposición se convierta en un hecho al pasar la información al taller."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Reescribe «la transmisión está mala» como una observación si lo único que sabes es que hubo un tirón al cambiar de marcha una vez con el motor frío. ¿Qué dato adicional sería útil?"
+    },
+    {
+     "note": "Solución: «Se sintió un tirón durante un cambio de marcha con el motor frío; ocurrió una vez». Añade kilometraje, fecha y si volvió a ocurrir en uso normal. El síntoma aislado no identifica la pieza responsable."
+    },
+    {
+     "key": "Una buena bitácora conserva condiciones y hechos; deja el diagnóstico abierto hasta tener pruebas."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 4,
+   "title": "Consumo de combustible: medir y comparar con denominadores correctos",
+   "subtitle": "consumo medido · Litros por distancia y comparación entre periodos.",
+   "tags": "consumo medido",
+   "body": [
+    {
+     "p": "El consumo depende de la distancia recorrida y del combustible utilizado. En litros por cada cien kilómetros, un número menor indica menos combustible por distancia; en kilómetros por litro, uno mayor indica más recorrido por combustible. Las dos medidas son recíprocas con un factor de cien. No compares cifras sin comprobar primero sus unidades."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Para estimar consumo entre repostajes completos comparables, relaciona los litros repuestos con los kilómetros desde el repostaje anterior. Un repostaje parcial aislado no permite saber cuánto se consumió en ese tramo. Registra los datos sin seguir llenando después del corte automático del surtidor. Ruta, tráfico, carga y uso del vehículo pueden cambiar el resultado; una sola cifra no diagnostica una avería."
+    },
+    {
+     "steps": [
+      "Calcula distancia como diferencia entre lecturas del odómetro.",
+      "Para L/100 km, divide litros entre kilómetros y multiplica por cien.",
+      "Al reunir periodos, suma litros y distancias antes de calcular la tasa total."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Si recorres 600 km y repones 42 L en condiciones comparables, el consumo estimado es 42/600 × 100 = 7 L/100 km; su equivalente es 600/42 ≈ 14,29 km/L. Otro periodo de 200 km y 18 L da 9 L/100 km. Juntos son 60 L en 800 km: 7,5 L/100 km, no el promedio simple de 7 y 9."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "En un periodo recorres 300 km con 24 L y en otro 100 km con 10 L. Calcula el consumo conjunto. ¿Demuestra el segundo periodo una falla mecánica?"
+    },
+    {
+     "note": "Solución: 34/400 × 100 = 8,5 L/100 km. El segundo periodo por sí solo no prueba una falla: hay que comparar condiciones y tendencias, además de cualquier síntoma."
+    },
+    {
+     "key": "Para combinar consumos, suma combustible y distancia; el promedio simple de tasas puede engañar."
+    },
+    {
+     "note": "Referencia: FuelEconomy.gov, cálculo entre repostajes: https://www.fueleconomy.gov/mpg/MPG.do?action=calcMPG"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 4,
+   "title": "Pruebas que discriminan: comparar hipótesis antes de cambiar piezas",
+   "subtitle": "evidencia diagnóstica · Interpretar resultados positivos y negativos.",
+   "tags": "evidencia diagnóstica",
+   "body": [
+    {
+     "p": "Un mismo síntoma puede tener varias causas y una misma avería puede producir síntomas diferentes. El diagnóstico gana fuerza cuando una prueba distingue entre explicaciones posibles. Antes de medir, escribe qué resultado esperarías si cada hipótesis fuera cierta. Este capítulo trata de interpretar registros y pruebas realizadas según el procedimiento del fabricante por personal capacitado, sin proponer intervenciones invasivas."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Un resultado negativo solo descarta una hipótesis en la medida en que la prueba podía detectarla bajo esas condiciones. Si una falla aparece en caliente, una comprobación normal en frío no basta para excluirla. Además, una herramienta puede informar una consecuencia en vez de la causa inicial. Compara señales relacionadas, condiciones y secuencia temporal sin atribuir certeza a una lectura aislada."
+    },
+    {
+     "steps": [
+      "Enumera pocas hipótesis plausibles y la evidencia que apoyaría o debilitaría cada una.",
+      "Escoge una comprobación con resultados diferentes entre hipótesis y anota sus límites.",
+      "Tras una reparación, verifica la condición original mediante un procedimiento seguro y documentado."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Un registro muestra que varios módulos notificaron errores durante una caída de alimentación. Esto justifica investigar una causa común antes de asumir fallas independientes en todos los módulos; todavía no demuestra cuál componente originó la caída. Si otro registro muestra un único canal anómalo y los demás estables, la investigación puede concentrarse en ese canal y sus conexiones."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Una queja ocurre después de treinta minutos, pero una prueba de dos minutos en frío resulta normal. ¿Puedes cerrar el caso como «sin falla»? ¿Qué debería incluir el informe?"
+    },
+    {
+     "note": "Solución: No has reproducido la condición informada. Documenta la duración y temperatura de la prueba, el resultado normal y la limitación: el comportamiento en caliente sigue sin comprobarse. No inventes una confirmación que la prueba no ofrece."
+    },
+    {
+     "key": "Una prueba informa sobre las condiciones que cubrió; el diagnóstico exige conectar resultados, límites e hipótesis."
+    }
+   ]
   }
  ]
 }

@@ -2020,6 +2020,153 @@
    "tags": "criterio,sistemas-complejos",
    "front": "La humildad del científico de datos ante los sistemas dinámicos",
    "back": "Cuanto más poderoso es tu algoritmo, más fácil es engañarse creyendo que dominas el fenómeno.\nRecuerda siempre tres principios de la ciencia de sistemas complejos:\n\n<b>1. Los sistemas vivos se adaptan a tus modelos</b>: la Ley de Goodhart establece que en cuanto una métrica se convierte en un objetivo, deja de ser una buena métrica.\n\n<b>2. La no linealidad amplifica el error</b>: en sistemas caóticos (clima, tráfico, mercados), pequeñas incertidumbres iniciales crecen exponencialmente con el horizonte temporal.\n\n<b>3. La tecnología cambia, la física y la lógica permanecen</b>: dominar la probabilidad bayesiana, la optimización convexa, el diseño experimental y la inferencia causal te mantendrá vigente cuando las librerías de moda de hoy hayan sido reemplazadas.\n\nEl mejor científico de datos no es el que aplica el modelo más complejo, sino el que entiende los límites exactos de lo que los datos pueden y no pueden responder."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "Una tabla tiene 3 líneas de artículos pertenecientes a 2 pedidos. ¿Cuántos pedidos hay?",
+   "back": "Dos. Contar las tres filas mediría líneas, no pedidos.",
+   "tags": "granularidad"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Qué es la granularidad de una tabla de datos?",
+   "back": "El nivel de detalle: qué representa exactamente cada fila.",
+   "tags": "granularidad"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "En una tabla con una lectura por sensor y hora, ¿qué clave candidata usarías?",
+   "back": "La combinación sensor_id y hora.",
+   "tags": "granularidad"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Por qué quitar importes repetidos no arregla totales duplicados de pedidos?",
+   "back": "Porque dos pedidos distintos pueden tener el mismo importe; hay que trabajar con la identidad del pedido.",
+   "tags": "granularidad"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "front": "¿Qué debería documentar una columna temperatura?",
+   "choices": [
+    "Solo su color en el gráfico",
+    "Unidad, definición temporal y significado de faltantes",
+    "Solo el nombre del archivo",
+    "Solo cuántas letras tiene"
+   ],
+   "answer": 1,
+   "back": "La interpretación depende de las unidades y de cómo se obtuvo el dato.",
+   "tags": "granularidad"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "front": "Antes de contar filas, define la {{unidad de observación}} de la tabla.",
+   "back": "Puede ser un cliente, un pedido, una línea o una lectura por hora.",
+   "tags": "granularidad"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "Dos pedidos y tres contactos del mismo cliente: ¿cuántas parejas produce un JOIN por cliente?",
+   "back": "Seis: cada uno de los dos pedidos coincide con los tres contactos.",
+   "tags": "cardinalidad"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Un LEFT JOIN impide que una fila de la izquierda se multiplique?",
+   "back": "No. Conserva las filas sin coincidencia, pero genera una pareja por cada coincidencia existente.",
+   "tags": "cardinalidad"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Qué comprobarías antes de una unión muchos a uno?",
+   "back": "Que la clave del lado «uno» sea única bajo la condición de unión.",
+   "tags": "cardinalidad"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Por qué SUM(DISTINCT importe) no corrige de forma general un JOIN duplicado?",
+   "back": "Porque registros legítimos distintos pueden tener el mismo importe y quedarían descontados.",
+   "tags": "cardinalidad"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "Cuatro ventas coinciden con dos filas de catálogo cada una. ¿Cuántas filas salen?",
+   "choices": [
+    "2",
+    "4",
+    "6",
+    "8"
+   ],
+   "answer": 3,
+   "back": "4 × 2 = 8 parejas. Hay que comprobar qué versión del catálogo corresponde.",
+   "tags": "cardinalidad"
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "front": "Antes y después de un JOIN, compara filas, claves distintas y {{sumas}} de control.",
+   "back": "Un recuento por sí solo no detecta todos los cambios incorrectos.",
+   "tags": "cardinalidad"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "Un evento del lunes llega el miércoles. ¿Puede usarse en una predicción histórica del martes?",
+   "back": "No: el sistema todavía no lo tenía disponible.",
+   "tags": "disponibilidad temporal"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Qué dos tiempos conviene distinguir para evitar filtración temporal?",
+   "back": "El momento del evento y el momento en que el dato estuvo disponible para el sistema.",
+   "tags": "disponibilidad temporal"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Separar entrenamiento y prueba por fecha elimina toda filtración temporal?",
+   "back": "No. Las variables aún pueden contener revisiones o datos que llegaron después de la decisión.",
+   "tags": "disponibilidad temporal"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "Un saldo se publica el día 3 y se corrige el 8. ¿Qué versión corresponde a una decisión del día 5?",
+   "back": "La publicada el día 3, suponiendo que ya estaba disponible; la corrección del día 8 sería información futura.",
+   "tags": "disponibilidad temporal"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "¿Qué dato es elegible para una predicción del miércoles?",
+   "choices": [
+    "Evento del martes recibido el jueves",
+    "Evento del jueves recibido el jueves",
+    "Evento del lunes recibido el martes",
+    "Revisión publicada el viernes"
+   ],
+   "answer": 2,
+   "back": "Ocurrió y estuvo disponible antes del instante de predicción.",
+   "tags": "disponibilidad temporal"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "front": "Una evaluación histórica debe reconstruir lo que el sistema {{sabía}} en el instante de decisión.",
+   "back": "Esto exige controlar disponibilidad y versiones, además de fechas de eventos.",
+   "tags": "disponibilidad temporal"
   }
  ],
  "levels": [

@@ -676,6 +676,153 @@
    "tags": "diagnóstico,práctica",
    "front": "El árbol de decisión que evita cambiar piezas a ciegas",
    "back": "El diagnóstico caro casi nunca falla por falta de herramienta: falla por saltarse el orden.\n\n<b>1. Verifica la queja.</b> Conduce el vehículo con el cliente si hace falta. «Hace un ruido raro» y «vibra a 90 km/h en aceleración» son dos trabajos distintos.\n\n<b>2. Inspección visual completa.</b> Diez minutos con linterna resuelven un porcentaje incómodamente alto de las averías: un tubo suelto, un conector verde de corrosión, un mazo rozando.\n\n<b>3. Lee TODOS los códigos, de todos los módulos.</b> Y anótalos antes de borrar nada, junto con el freeze frame.\n\n<b>4. Investiga antes de probar.</b> Boletines técnicos del fabricante y foros especializados: si el modelo tiene un fallo conocido, alguien ya pagó por descubrirlo.\n\n<b>5. Prueba, no supongas.</b> Cada hipótesis debe tener una medición que la confirme o la descarte. Si no se te ocurre cómo medirla, no es una hipótesis: es una corazonada.\n\n<b>6. Repara la causa, no el síntoma.</b>\n\n<b>7. Verifica con el vehículo en condiciones reales</b>, y comprueba que los <b>monitores OBD</b> completan su ciclo.\n\nLa regla que resume todo: <b>si vas a cambiar una pieza, deberías poder explicar qué medición te llevó hasta ella</b>."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Qué diferencia hay entre «se oyó un zumbido» y «falló el rodamiento»?",
+   "back": "La primera es una observación; la segunda es un diagnóstico que necesita evidencia.",
+   "tags": "bitácora del vehículo"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Qué tres datos básicos acompañan un síntoma en la bitácora del vehículo?",
+   "back": "Fecha, kilometraje y condiciones en que apareció.",
+   "tags": "bitácora del vehículo"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Por qué conservar el texto exacto de un mensaje del tablero?",
+   "back": "Porque resumirlo de memoria puede perder información útil para la revisión.",
+   "tags": "bitácora del vehículo"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Desaparecer un síntoma demuestra que una avería quedó reparada?",
+   "back": "No necesariamente. Puede ser intermitente o no haberse repetido la condición que lo activa.",
+   "tags": "bitácora del vehículo"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "front": "¿Cuál es la descripción más útil para el taller?",
+   "choices": [
+    "Está fatal",
+    "Seguro es la caja",
+    "Un tirón al cambiar de marcha en frío, una vez, a 84 200 km",
+    "Hay que cambiar todo"
+   ],
+   "answer": 2,
+   "back": "Describe el síntoma y sus condiciones sin convertir una sospecha en diagnóstico.",
+   "tags": "bitácora del vehículo"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "front": "En una bitácora, separa los hechos observados de las {{hipótesis}}.",
+   "back": "Las hipótesis guían las pruebas, pero no sustituyen sus resultados.",
+   "tags": "bitácora del vehículo"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "Recorres 600 km y consumes 42 L. ¿Cuánto es en L/100 km?",
+   "back": "7 L/100 km: 42/600 × 100.",
+   "tags": "consumo medido"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿A cuántos km/L equivalen 7 L/100 km?",
+   "back": "Aproximadamente 14,29 km/L: 100/7.",
+   "tags": "consumo medido"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "Periodos de 600 km con 42 L y 200 km con 18 L: ¿consumo conjunto?",
+   "back": "7,5 L/100 km: (42 + 18)/(600 + 200) × 100.",
+   "tags": "consumo medido"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Un repostaje parcial aislado permite calcular el consumo exacto desde el anterior?",
+   "back": "No. Falta saber cuánto combustible quedaba; necesita integrarse en un intervalo con niveles inicial y final comparables.",
+   "tags": "consumo medido"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "¿Qué cifra significa menor consumo por distancia?",
+   "choices": [
+    "10 L/100 km",
+    "8 L/100 km",
+    "12 L/100 km",
+    "15 L/100 km"
+   ],
+   "answer": 1,
+   "back": "En L/100 km, menos es mejor para la misma distancia.",
+   "tags": "consumo medido"
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "front": "Para combinar varios periodos, divide los litros {{totales}} entre los kilómetros {{totales}}.",
+   "back": "Después multiplica por cien si quieres L/100 km.",
+   "tags": "consumo medido"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "Una falla aparece en caliente y la prueba en frío es normal. ¿Queda descartada?",
+   "back": "No. La prueba no cubrió la condición en la que se reporta la falla.",
+   "tags": "evidencia diagnóstica"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Qué hace útil una prueba para distinguir dos hipótesis mecánicas?",
+   "back": "Que las hipótesis predigan resultados diferentes y que la prueba pueda observar esa diferencia.",
+   "tags": "evidencia diagnóstica"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Por qué varios errores simultáneos pueden justificar buscar una causa común?",
+   "back": "Porque una perturbación compartida, como una caída de alimentación, puede afectar varios módulos a la vez.",
+   "tags": "evidencia diagnóstica"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Un código o lectura anómala identifica siempre la pieza que originó el problema?",
+   "back": "No. Puede registrar una consecuencia; necesita contexto y comprobaciones.",
+   "tags": "evidencia diagnóstica"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "Una prueba no reprodujo las condiciones de la queja. ¿Qué informe es más preciso?",
+   "choices": [
+    "Avería descartada para siempre",
+    "Todo el vehículo está perfecto",
+    "Resultado normal en frío; comportamiento en caliente pendiente",
+    "Cambiar cualquier pieza"
+   ],
+   "answer": 2,
+   "back": "Expresa lo observado y el alcance real de la prueba.",
+   "tags": "evidencia diagnóstica"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "front": "Antes de una prueba, escribe qué resultado {{esperarías}} bajo cada hipótesis.",
+   "back": "Así puedes interpretar el resultado sin adaptar la explicación después de verlo.",
+   "tags": "evidencia diagnóstica"
   }
  ],
  "levels": [

@@ -669,6 +669,475 @@
    "tags": "criterio,producción",
    "front": "El orden correcto para mejorar un sistema de IA",
    "back": "Cuando algo no funciona, la tentación es cambiar de modelo. Casi nunca es lo primero que hay que tocar. El orden por relación mejora/esfuerzo es bastante estable:\n\n<b>1. Mide.</b> Sin un conjunto de evaluación, cualquier cambio posterior es fe. Veinte casos reales bastan para empezar.\n\n<b>2. Arregla el prompt.</b> Instrucciones concretas, un par de ejemplos, permiso explícito para decir «no sé», formato de salida definido. Es gratis y suele ser lo que más mueve la aguja.\n\n<b>3. Arregla el contexto.</b> Si el modelo no tiene la información, ningún prompt lo salvará. Aquí entran RAG, troceado, búsqueda híbrida y reranking.\n\n<b>4. Añade estructura.</b> Descomponer una tarea grande en pasos verificables gana más que pedirlo todo de una vez.\n\n<b>5. Cambia de modelo.</b> Ahora sí: con una evaluación montada, la comparación es un número, no una impresión.\n\n<b>6. Ajusta el modelo (fine-tuning).</b> El último recurso: caro, difícil de mantener y hay que rehacerlo con cada versión nueva. Compensa para formato y estilo muy específicos, casi nunca para añadir conocimiento — para eso está el paso 3."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Qué diferencia hay entre un criterio de contenido y uno de formato al pedir un resumen?",
+   "back": "Contenido: qué hechos debe conservar. Formato: cómo debe presentarlos, por ejemplo en cinco viñetas.",
+   "tags": "criterios de aceptación"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "Si una fuente no asigna responsable, ¿qué regla de extracción evita inventarlo?",
+   "back": "Marcarlo como ausente o «sin asignar», según el contrato de la tarea.",
+   "tags": "criterios de aceptación"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "¿Por qué «suena profesional» no comprueba la calidad factual de un resumen?",
+   "back": "Porque el estilo no demuestra que los hechos coincidan con la fuente.",
+   "tags": "criterios de aceptación"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "front": "Un acta dice «enviará un borrador» y el resumen dice «aprobó la versión final». ¿Qué falla?",
+   "back": "La fidelidad: cambia una acción futura por una aprobación que la fuente no afirma.",
+   "tags": "criterios de aceptación"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "front": "¿Cuál es un criterio de aceptación verificable?",
+   "choices": [
+    "Que sea brillante",
+    "Que parezca inteligente",
+    "Que conserve todas las fechas del texto sin inventar otras",
+    "Que impresione"
+   ],
+   "answer": 2,
+   "back": "Puede comprobarse comparando la respuesta con la fuente.",
+   "tags": "criterios de aceptación"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "front": "Comprueba por separado la fidelidad del {{contenido}} y el cumplimiento del {{formato}}.",
+   "back": "Un formato correcto puede contener hechos equivocados.",
+   "tags": "criterios de aceptación"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "Un extractor devuelve JSON válido. ¿Eso demuestra que los valores son correctos?",
+   "back": "No. Hay que validar coherencia y contrastar los valores con la fuente.",
+   "tags": "extracción validada"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Por qué no debes convertir automáticamente una cantidad ausente en cero?",
+   "back": "Porque cero es una cantidad conocida y ausente significa que no se dispone del dato.",
+   "tags": "extracción validada"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "La fuente dice «12 cajas». ¿Qué se pierde al guardar «12 unidades»?",
+   "back": "La unidad original y posiblemente el significado de la cantidad.",
+   "tags": "extracción validada"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "front": "¿Qué hacer con una fecha 04/05 si no se conoce la convención?",
+   "back": "Preservar la ambigüedad o pedir aclaración; no elegir silenciosamente mes y día.",
+   "tags": "extracción validada"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "front": "La fuente pide entre 8 y 10 paquetes. ¿Qué representación conserva mejor la información?",
+   "choices": [
+    "Exactamente 9",
+    "Exactamente 10",
+    "Un intervalo de 8 a 10",
+    "Cantidad cero"
+   ],
+   "answer": 2,
+   "back": "El intervalo conserva el rango; escoger una cifra añade una decisión.",
+   "tags": "extracción validada"
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "front": "Guardar el fragmento de origen permite revisar la {{trazabilidad}} de un dato extraído.",
+   "back": "Ayuda a comprobar qué parte del documento respalda cada campo.",
+   "tags": "extracción validada"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Qué hace pareada una evaluación de dos versiones de IA?",
+   "back": "Evaluar ambas sobre los mismos casos y comparar sus resultados por caso.",
+   "tags": "evaluación pareada"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "Un sistema responde 80 de 100 preguntas. ¿Cuál es su cobertura?",
+   "back": "80 %: casos respondidos divididos entre casos evaluados.",
+   "tags": "evaluación pareada"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "Un sistema acierta 72 de las 80 preguntas que responde. ¿Precisión entre respondidas?",
+   "back": "90 %: 72/80. No debe confundirse con 72 % de aciertos sobre 100 casos totales.",
+   "tags": "evaluación pareada"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "front": "¿Por qué conservar casos de evaluación que no se usen para ajustar instrucciones?",
+   "back": "Para reducir el sobreajuste de las decisiones al conjunto con el que se mide la mejora.",
+   "tags": "evaluación pareada"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "front": "Una IA responde un único caso fácil y acierta. ¿Qué falta junto al 100 % de precisión?",
+   "choices": [
+    "El color de la interfaz",
+    "La cobertura sobre todos los casos",
+    "El número de letras de su nombre",
+    "Una respuesta más larga"
+   ],
+   "answer": 1,
+   "back": "Puede tener precisión alta y cubrir muy pocas necesidades.",
+   "tags": "evaluación pareada"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "front": "La confianza que un modelo expresa en palabras no equivale automáticamente a una probabilidad {{calibrada}}.",
+   "back": "La calibración requiere comprobar cómo se relacionan probabilidades y resultados observados.",
+   "tags": "evaluación pareada"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "fundamentos",
+   "front": "¿Qué diferencia hay entre el modelo y la aplicación que lo usa?",
+   "back": "El <b>modelo</b> solo recibe texto y devuelve texto. La <b>aplicación</b> (ChatGPT, Claude, Copilot) le añade alrededor el <i>system prompt</i>, el historial, las herramientas, la búsqueda web y los filtros.\nPor eso la misma pregunta responde distinto en la app y en la API: no es otro modelo, es otro andamiaje."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "ética,práctica",
+   "front": "¿Qué no deberías pegar nunca en un chat de IA?",
+   "back": "Contraseñas y claves de API, datos personales de terceros (cédula, expediente médico, nómina), documentos bajo acuerdo de confidencialidad y código con secretos dentro.\n<b>Truco práctico</b>: sustituye lo identificable por marcadores («CLIENTE_1», «MÁQUINA_A») antes de pegar, y devuelve los nombres reales tú mismo al final.\nSi tu empresa tiene una cuenta corporativa con acuerdo de no entrenamiento, la regla se relaja; la de las contraseñas, nunca."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "criterio,práctica",
+   "front": "Necesitas la cifra exacta que facturó el taller el mes pasado. ¿Cuál es el uso correcto de un LLM?",
+   "choices": [
+    "Darle el archivo de facturas y pedirle que extraiga y sume las cifras citando cada línea, y comprobar la suma",
+    "Preguntarle directamente cuánto facturó tu taller el mes pasado",
+    "Pedirle que estime la cifra a partir de talleres parecidos",
+    "Pedirle la cifra y aceptarla si suena razonable"
+   ],
+   "answer": 0,
+   "back": "El modelo no conoce tus datos: si no se los das, los inventa. Y aunque se los des, la suma aritmética es justo lo que peor hace.\nLo correcto es usarlo para <b>localizar y transcribir</b> los números, y verificar el total con una calculadora o una hoja de cálculo."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "fundamentos",
+   "front": "¿Qué es un «modelo de razonamiento»?",
+   "back": "Un modelo entrenado para <b>escribir su razonamiento antes de responder</b>, en lugar de contestar de un tirón. Ese borrador interno consume tokens y tiempo, pero mejora mucho matemáticas, lógica, planificación y depuración de código.\nNo compensa siempre: para reescribir un correo o clasificar un texto es más lento y más caro sin ganar nada."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "parámetros",
+   "front": "¿Qué es el límite de salida (<i>max tokens</i>) y cómo se nota que lo alcanzaste?",
+   "back": "Es el tope de tokens que el modelo puede <b>generar</b> en una respuesta, distinto del límite de contexto (lo que puede <b>leer</b>).\nSe nota porque la respuesta <b>se corta a media frase</b>, sin cierre ni conclusión. No es que el modelo se haya confundido: se quedó sin cupo.\nSolución: subir el límite, pedir la respuesta por partes o pedir menos texto."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "prompting,práctica",
+   "front": "¿Cómo consigues que la salida tenga exactamente el formato que necesitas?",
+   "back": "No lo describas: <b>enséñalo</b>.\n• Pega una plantilla vacía con las columnas o campos exactos.\n• Di qué poner cuando falte un dato («escribe <code>N/D</code>, no lo inventes»).\n• Prohíbe lo que sobra: «sin introducción ni comentarios finales».\nUn ejemplo del formato deseado ahorra tres párrafos de instrucciones."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "fundamentos,límites",
+   "front": "¿Por qué la misma pregunta da respuestas distintas cada vez?",
+   "back": "Porque el modelo no elige el token más probable, lo <b>sortea</b> entre los candidatos. Ese sorteo es el que da variedad y naturalidad.\nCon temperatura 0 la variación baja mucho, pero <b>no queda garantizada</b>: el orden en que el servidor agrupa peticiones y la aritmética en coma flotante de la GPU introducen diferencias mínimas que a veces cambian la respuesta."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "práctica,prompting",
+   "front": "La respuesta es correcta pero larga y genérica. ¿Cómo la aprietas?",
+   "back": "• Pon un <b>límite duro</b>: «máximo 80 palabras» o «cinco viñetas».\n• Di para <b>quién</b> es: «para un técnico que ya sabe de hidráulica».\n• Prohíbe el relleno: nada de «es importante señalar que…» ni de resumir la pregunta.\n• Pide <b>solo lo que cambia</b>: «dime únicamente qué corregir, no lo que ya está bien»."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "fundamentos",
+   "front": "¿Qué significa que un modelo tenga «pesos abiertos» (<i>open weights</i>)?",
+   "choices": [
+    "Que puedes descargar sus parámetros y ejecutarlo en tu propio equipo",
+    "Que su código de entrenamiento y sus datos son públicos",
+    "Que es gratuito para cualquier uso, incluido el comercial",
+    "Que cualquiera puede modificar el servicio del proveedor"
+   ],
+   "answer": 0,
+   "back": "Pesos abiertos = los parámetros se pueden descargar y ejecutar en local o en tu servidor.\nNo implica que los <b>datos</b> de entrenamiento sean públicos (casi nunca lo son) ni que la <b>licencia</b> permita cualquier uso: muchas ponen límites comerciales."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "aplicación,práctica",
+   "front": "¿Cómo se usa la IA para estudiar de verdad y no solo para copiar?",
+   "back": "Cambia el papel: en vez de pedirle la respuesta, pídele que te <b>examine</b>.\n• «Hazme cinco preguntas sobre este tema y corrígeme una a una.»\n• «Aquí está mi respuesta: dime qué falta, sin dármela hecha.»\n• «Explícame por qué mi razonamiento falla.»\nLeer una respuesta correcta no deja huella; equivocarse y corregir, sí."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "límites,criterio",
+   "front": "¿Sirven los detectores de «texto escrito por IA»?",
+   "back": "Poco, y conviene saberlo. Tienen <b>falsos positivos altos</b> y castigan especialmente a quien escribe de forma sencilla o en un idioma que no es el suyo.\nNo hay una marca fiable en el texto: cualquier veredicto de esas herramientas es un indicio débil, nunca una prueba. Para evaluar, pesa más el proceso (borradores, preguntas, defensa oral) que el veredicto de un detector."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "ética,criterio",
+   "front": "¿Qué es un <i>deepfake</i> y qué defensa funciona hoy?",
+   "back": "Voz, foto o vídeo sintéticos que imitan a una persona real. La estafa típica: una llamada con la voz de tu jefe pidiendo una transferencia urgente.\nLas señales visuales (manos raras, parpadeo) <b>ya no son fiables</b>. Lo que sí funciona es la <b>verificación por otro canal</b>: cuelga y llama tú al número de siempre.\nUna urgencia que prohíbe comprobar es, por sí sola, la señal de alarma."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "prompting,práctica",
+   "front": "¿Por qué hay que darle permiso explícito al modelo para decir «no sé»?",
+   "back": "Porque por defecto está entrenado para <b>ser útil</b>, y una respuesta inventada le parece más útil que un silencio.\nAñadir «si el documento no lo dice, responde: <i>no aparece en el texto</i>» cambia el comportamiento de forma medible: es la instrucción más barata contra las alucinaciones."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "práctica,criterio",
+   "front": "Antes de usar un dato que te dio un modelo, {{verifícalo}} en la fuente original.",
+   "back": "La fluidez de la respuesta no dice nada sobre si el dato es cierto."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "arquitectura,agentes",
+   "front": "¿Qué es MCP (<i>Model Context Protocol</i>)?",
+   "back": "Un protocolo abierto para conectar modelos con herramientas y datos. Un <b>servidor MCP</b> expone tres cosas —herramientas que se pueden ejecutar, recursos que se pueden leer y prompts reutilizables— y cualquier cliente compatible las descubre solo.\n<b>Por qué importa</b>: sin él, cada aplicación necesita su propio pegamento para cada sistema (N×M integraciones). Con él, escribes el servidor una vez y lo usan todas."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "arquitectura,producción",
+   "front": "¿Qué diferencia hay entre salida estructurada y llamada a herramientas?",
+   "back": "<b>Salida estructurada</b>: obligas a que la <i>respuesta</i> cumpla un esquema JSON. El modelo termina ahí.\n<b>Llamada a herramientas</b>: el modelo pide <i>ejecutar</i> algo («consulta_stock(pieza)»), tu código lo ejecuta y le devuelve el resultado para que siga.\nLa primera sirve para extraer y clasificar; la segunda, para actuar. Muchos sistemas usan las dos."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "producción",
+   "front": "¿Cómo estimas el gasto mensual de un asistente antes de construirlo?",
+   "back": "Tokens de entrada × precio de entrada + tokens de salida × precio de salida, por petición; multiplica por peticiones al mes.\n<b>Dos correcciones que casi todos olvidan</b>:\n• El contexto que repites en <i>cada</i> llamada (instrucciones, documentos, historial) suele dominar la factura, no la respuesta.\n• Súmale reintentos, evaluaciones y pruebas: entre un 20 % y un 50 % extra.\nHaz la cuenta con 20 peticiones reales antes de prometer un presupuesto."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "arquitectura,criterio",
+   "front": "Tienes 5.000 manuales y unas pocas consultas al día. ¿RAG o meterlo todo en el contexto?",
+   "choices": [
+    "RAG: 5.000 manuales no caben, y aunque cupieran pagarías todo el corpus en cada pregunta",
+    "Todo en el contexto: los modelos actuales tienen ventanas enormes",
+    "Fine-tuning con los manuales, que es lo más preciso",
+    "Da igual, el resultado es equivalente"
+   ],
+   "answer": 0,
+   "back": "Un corpus así son millones de tokens: no cabe, y si cupiera pagarías por leerlo entero en cada consulta y la precisión caería por dilución.\nMeter el documento entero en el contexto sí es buena idea en el caso contrario: <b>pocos documentos</b> y preguntas que cruzan todo el texto."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "aplicación,práctica",
+   "front": "¿Cómo se aprovecha un modelo multimodal con fotos de una máquina o de un manual?",
+   "back": "Funciona bien para <b>transcribir</b>: placas de datos, códigos de error en pantalla, tablas de un manual fotografiado, estado visible de una pieza.\n<b>Reglas</b>: pide transcripción <i>literal</i>, exige que marque como ilegible lo que no se lea (en vez de completarlo), y toma la foto de frente y con luz.\nUn dígito mal leído en una referencia de repuesto cuesta un pedido entero."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "evaluación",
+   "front": "¿Qué es un <i>golden set</i> y de dónde salen sus casos?",
+   "back": "Un conjunto pequeño y fijo de casos con la respuesta esperada, que se pasa entero antes de cada cambio.\n<b>De dónde salen</b>: de preguntas reales de usuarios, no inventadas. Y sobre todo, cada fallo que descubras se convierte en un caso nuevo: así el sistema no puede volver a romperse por lo mismo.\nCon 20-50 casos bien elegidos ya se detectan las regresiones grandes."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "producción",
+   "front": "¿Qué es el procesamiento por lotes (<i>batch</i>) y cuándo compensa?",
+   "back": "Mandas miles de peticiones en un solo trabajo y el proveedor las procesa cuando tiene hueco, dentro de un plazo (típicamente horas), a <b>mitad de precio</b>.\nCompensa en todo lo que no mira nadie en ese momento: clasificar el archivo histórico, generar resúmenes nocturnos, pasar una evaluación grande.\nNo sirve para nada interactivo."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "seguridad,ética",
+   "front": "¿Cómo se protege información personal antes de mandarla a un proveedor?",
+   "back": "<b>1. Minimiza</b>: manda solo el campo que la tarea necesita.\n<b>2. Seudonimiza</b>: sustituye nombres, cédulas y teléfonos por identificadores, guarda la tabla de equivalencias en tu lado y restituye al recibir la respuesta.\n<b>3. Comprueba el contrato</b>: retención de los datos, si se usan para entrenar, en qué país se procesan.\nLo que nunca sale del edificio no puede filtrarse."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "agentes,producción",
+   "front": "¿Por qué las herramientas de un agente deben ser idempotentes?",
+   "back": "Porque un agente <b>reintenta</b>: se corta la red, expira el tiempo, el modelo repite un paso porque no vio el resultado. Si «crear_pedido» no es idempotente, acabas con tres pedidos iguales.\n<b>Solución</b>: que cada acción lleve una clave de idempotencia; si llega repetida, el sistema devuelve el resultado anterior en vez de ejecutarla otra vez."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "producción",
+   "front": "El proveedor empieza a devolver error 429 en las horas punta. ¿Qué haces?",
+   "choices": [
+    "Reintentar con espera exponencial y algo de aleatoriedad, y encolar lo que no sea urgente",
+    "Reintentar de inmediato en bucle hasta que pase",
+    "Abrir más conexiones en paralelo para colar más peticiones",
+    "Mostrar el error al usuario y no reintentar nunca"
+   ],
+   "answer": 0,
+   "back": "429 es «vas demasiado rápido». Reintentar al instante o abrir más hilos empeora la congestión y puede llevar a un bloqueo mayor.\nLa <b>espera exponencial con jitter</b> reparte los reintentos en el tiempo; el <i>jitter</i> evita que todos los clientes vuelvan a la vez. Lo que no sea interactivo, a una cola."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "prompting,producción",
+   "front": "¿Por qué conviene versionar los prompts como si fueran código?",
+   "back": "Porque un prompt <b>es</b> lógica de la aplicación: cambiar una frase puede alterar el comportamiento tanto como cambiar una función.\nGuárdalos en el repositorio (no incrustados a mano en varios sitios), con número de versión, y anota junto a cada cambio el resultado de la evaluación.\nSin eso, dentro de tres meses nadie sabrá por qué dice «responde en tono formal» ni si se puede quitar."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "evaluación,criterio",
+   "front": "Cuando el sistema ya funciona, ¿qué revisa una persona?",
+   "back": "No todo: eso no se sostiene. Se revisa <b>por riesgo</b>.\n• Siempre: lo irreversible o caro (pagos, borrados, comunicaciones a clientes).\n• Por muestreo: un porcentaje fijo del resto, para vigilar la calidad.\n• Siempre: los casos donde el sistema se abstuvo o tuvo poca confianza.\nY que revisar sea fácil: enseñar la respuesta junto a la fuente citada, no a secas."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "arquitectura,criterio",
+   "front": "¿Cuándo conviene un clasificador clásico en vez de un LLM?",
+   "back": "Cuando las etiquetas son <b>fijas</b>, el volumen es <b>alto</b> y tienes datos etiquetados: un clasificador entrenado es cientos de veces más barato y rápido, y su precisión se mide sin ambigüedad.\nEl LLM gana en el <b>arranque en frío</b> (aún no hay datos), con etiquetas que cambian, o con matices que requieren entender el texto.\nCombinación habitual: el LLM etiqueta los primeros miles de ejemplos, y con ellos entrenas el clasificador que se queda en producción."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "producción",
+   "front": "Una llamada se cobra por separado los tokens de {{entrada}} y los de {{salida}}, y estos últimos suelen ser más caros.",
+   "back": "Por eso una respuesta breve sobre un contexto largo cuesta distinto que lo contrario."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "arquitectura,producción",
+   "front": "¿Qué es la caché KV y por qué el primer token cuesta más que los siguientes?",
+   "back": "La generación tiene dos fases. En el <b>prefill</b> el modelo procesa todo el prompt de golpe y guarda, por cada token, las claves y valores de la atención: eso es la <b>caché KV</b>. En el <b>decode</b> cada token nuevo solo se compara contra esa caché, sin recalcular el pasado.\nDe ahí que el primer token tarde en proporción al prompt y los siguientes salgan a ritmo casi constante.\n<b>Coste</b>: la caché crece con el contexto y ocupa memoria de GPU; es lo que limita cuántas conversaciones largas caben a la vez en un servidor."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "producción,evaluación",
+   "front": "¿Qué miden el TTFT y los tokens por segundo, y cuál notan más los usuarios?",
+   "back": "<b>TTFT</b> (<i>time to first token</i>): cuánto tarda en aparecer la primera palabra; depende sobre todo del tamaño del prompt y de la cola del servidor.\n<b>Tokens por segundo</b>: a qué velocidad sale el resto.\nCon respuesta en streaming, lo que se percibe como «lento» es casi siempre el <b>TTFT</b>: un segundo de espera en blanco molesta más que veinte segundos de texto fluyendo. Optimiza primero el prompt y la caché, no el modelo."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "arquitectura",
+   "front": "¿Qué es un índice HNSW y qué se sacrifica al usarlo?",
+   "back": "Un grafo por capas para buscar vecinos <b>aproximados</b>: en vez de comparar la consulta con todos los vectores, salta por el grafo y llega a los más cercanos en tiempo casi logarítmico.\nLo que se sacrifica es el <b>recall</b>: puede perderse algún vecino verdadero. Los parámetros (<code>M</code>, <code>efConstruction</code>, <code>efSearch</code>) mueven el compromiso entre recall, latencia y memoria.\nCon pocos miles de vectores no hace falta: la búsqueda exacta va sobrada."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "arquitectura,prompting",
+   "front": "¿Qué son la reescritura de consulta y el HyDE en un RAG?",
+   "back": "Atacan el mismo problema: la pregunta del usuario no se parece al texto que hay que encontrar.\n<b>Reescritura</b>: un modelo convierte «¿y eso cómo se arregla?» en una consulta autónoma con el contexto de la conversación, o la abre en varias consultas.\n<b>HyDE</b>: el modelo <i>redacta una respuesta hipotética</i> y busca con el embedding de esa respuesta, porque una respuesta se parece más a un fragmento del manual que una pregunta.\nCuestan una llamada extra; en corpus técnicos suelen pagarla con creces."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "entrenamiento,fundamentos",
+   "front": "¿Qué es un tokenizador BPE y por qué el español gasta más tokens que el inglés?",
+   "back": "<b>BPE</b> (<i>byte pair encoding</i>) parte de bytes y va fusionando los pares más frecuentes del corpus hasta formar un vocabulario fijo. Las secuencias comunes acaban siendo un solo token; las raras se trocean.\nComo los corpus de entrenamiento están dominados por el inglés, sus palabras caben en un token y las españolas —con tildes, ñ y sufijos largos— se parten en varios. El mismo texto traducido puede costar entre un 20 % y un 50 % más de tokens.\nEs también la raíz de que el modelo no «vea» letras sueltas dentro de una palabra."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "arquitectura",
+   "front": "¿Qué es RoPE y qué tiene que ver con alargar la ventana de contexto?",
+   "back": "<b>RoPE</b> (<i>rotary positional embedding</i>) codifica la posición <b>rotando</b> los vectores de consulta y clave un ángulo proporcional al índice del token. Así la atención depende de la distancia relativa entre tokens, no de su posición absoluta.\nEso permite <b>extender</b> el contexto sin reentrenar desde cero, interpolando o cambiando la base de las frecuencias. Pero estirar mucho más allá de lo entrenado degrada la precisión: la ventana anunciada y la ventana <i>útil</i> no son lo mismo."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "producción,evaluación",
+   "front": "El proveedor saca un modelo nuevo, mejor y más barato. ¿Qué haces antes de cambiar?",
+   "choices": [
+    "Pasar tu conjunto de evaluación con los dos modelos y comparar caso por caso",
+    "Cambiar y vigilar las quejas de los usuarios",
+    "Cambiar: si el proveedor dice que es mejor en sus pruebas, lo será en la tuya",
+    "Esperar seis meses a que se estabilice"
+   ],
+   "answer": 0,
+   "back": "Los promedios públicos no dicen nada sobre <i>tu</i> tarea. Es habitual que un modelo mejor en general rinda peor en un caso concreto, porque tus prompts estaban afinados para las manías del anterior.\nUna evaluación pareada tarda una tarde y te dice exactamente qué se rompió; también permite volver atrás con criterio."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "producción,evaluación",
+   "front": "¿Qué es la deriva (<i>drift</i>) y cómo se detecta sin tener respuestas etiquetadas?",
+   "back": "El sistema no cambia, pero el mundo sí: llegan preguntas de otro tipo, los manuales se actualizan, el proveedor mueve el modelo. La calidad baja sin que salte ningún error.\n<b>Señales que se vigilan sin etiquetas</b>: tasa de abstención, longitud media de las respuestas, puntuación de similitud de lo recuperado, proporción de preguntas sin ningún fragmento relevante, pulgares abajo y repreguntas del usuario.\nCuando una se mueve, se etiqueta una muestra a mano y se confirma."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "seguridad",
+   "front": "¿En qué se diferencia un <i>jailbreak</i> de una inyección de prompt?",
+   "back": "En quién ataca.\n<b>Jailbreak</b>: el <i>usuario</i> intenta saltarse las reglas del propio modelo. El daño se lo hace a sí mismo o al proveedor.\n<b>Inyección</b>: un <i>tercero</i> esconde instrucciones en contenido que el sistema leerá (una página web, un PDF, un correo, un ticket) para que actúe contra el usuario legítimo.\nSon defensas distintas: la primera se mitiga en el modelo, la segunda en la <b>arquitectura</b> —separar datos de instrucciones, limitar permisos, confirmar acciones."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "seguridad,arquitectura",
+   "front": "¿Qué es el envenenamiento de datos y por qué te afecta aunque no entrenes modelos?",
+   "back": "Consiste en colar contenido malicioso en los datos que un sistema absorbe. En entrenamiento es un ataque caro y raro; en tu <b>índice de RAG</b> es barato y realista.\nSi cualquier empleado o proveedor puede subir un documento al corpus, puede escribir en el contexto del modelo: instrucciones ocultas, precios falsos, un procedimiento alterado.\n<b>Defensa</b>: control de quién indexa qué, revisión de fuentes externas, y trazabilidad —que cada respuesta cite el documento del que salió, para poder auditar hacia atrás."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "evaluación",
+   "front": "Tu evaluación mejora del 82 % al 84 %. ¿Puedes decir que el cambio funcionó?",
+   "back": "Con 50 casos, no: esa diferencia es un caso de más. El ruido del muestreo del propio modelo puede producirla sin que nada haya cambiado.\n<b>Qué hacer</b>: comparar <i>pareado</i> (los mismos casos, y mirar en cuáles cambió el resultado, no solo el promedio), repetir la ejecución varias veces para ver la dispersión, y ampliar el conjunto si decides cosas caras con él.\nRegla práctica: si no puedes señalar <b>qué casos</b> mejoraron y por qué, no has medido una mejora."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "arquitectura,producción",
+   "front": "¿Qué es el decodificado especulativo y por qué acelera sin cambiar la respuesta?",
+   "back": "Un modelo pequeño y rápido propone varios tokens por adelantado; el modelo grande los <b>verifica de una pasada</b> en lugar de generarlos uno a uno. Los que coinciden con lo que él habría dicho se aceptan; en el primero que discrepa se corrige y se sigue.\nComo el criterio de aceptación conserva la distribución del modelo grande, la salida es estadísticamente la misma: solo cambia la velocidad (típicamente 2-3×).\nLa ganancia depende de cuánto acierte el borrador."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "arquitectura,producción",
+   "front": "Si cambias el modelo de {{embeddings}}, hay que {{reindexar}} todo el corpus: los vectores viejos y los nuevos no son comparables.",
+   "back": "Cada modelo define su propio espacio vectorial; mezclarlos devuelve resultados sin sentido."
   }
  ],
  "levels": [

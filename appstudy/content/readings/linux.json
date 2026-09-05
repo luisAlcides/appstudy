@@ -1030,6 +1030,526 @@
      "key": "Para salir del entorno chroot simplemente escribe <code>exit</code>, desmonta las particiones con <code>sudo umount -R /mnt</code> y reinicia normalmente el equipo."
     }
    ]
+  },
+  {
+   "level": 1,
+   "minutes": 4,
+   "title": "Texto, bytes y nombres de archivo sin sorpresas",
+   "subtitle": "texto y codificación · Entender lo que guardas antes de transformarlo.",
+   "tags": "texto y codificación",
+   "body": [
+    {
+     "p": "Un archivo de texto guarda bytes que un programa interpreta mediante una codificación. UTF-8 permite representar letras de muchos idiomas, pero no todos los caracteres ocupan un solo byte. Por eso el tamaño de un archivo no coincide necesariamente con la cantidad de letras que ves. Cambiar la extensión de .txt a .csv tampoco transforma los datos: solo cambia el nombre."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Los finales de línea también se representan con bytes. LF es habitual en Unix y CRLF en archivos de Windows. Algunas herramientas los aceptan indistintamente y otras muestran un carácter extra. Antes de convertir un archivo, conserva el original y averigua qué formato espera el programa de destino. Los espacios en una ruta son válidos; el shell necesita comillas para tratar esa ruta como un argumento."
+    },
+    {
+     "steps": [
+      "Distingue el nombre, el contenido y la interpretación que hace la aplicación.",
+      "Usa comillas al escribir rutas con espacios: <code>cat \"notas del curso.txt\"</code>.",
+      "Si aparecen caracteres extraños, investiga la codificación antes de reemplazar letras a mano."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "En UTF-8, el texto «año» ocupa cuatro bytes: uno para a, dos para ñ y uno para o, sin contar un posible salto de línea final. <code>wc -c</code> cuenta bytes; <code>wc -m</code> cuenta caracteres según la configuración regional. Un carácter contado así tampoco equivale siempre a un símbolo visual: algunos se forman combinando varios caracteres."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Un archivo contiene únicamente «sol» en UTF-8, sin salto de línea. ¿Cuántos bytes tiene? ¿Cómo abrirías con cat un archivo llamado «mi lista.txt»?"
+    },
+    {
+     "note": "Solución: Tiene tres bytes. El comando es <code>cat \"mi lista.txt\"</code>. Sin comillas, el shell pasaría normalmente dos argumentos separados: mi y lista.txt."
+    },
+    {
+     "key": "Nombre, bytes y texto interpretado son tres capas diferentes; comprueba cuál está causando el problema."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 4,
+   "title": "Inodos y enlaces: cuándo dos nombres son el mismo archivo",
+   "subtitle": "inodos · Identidad, enlaces duros y rutas simbólicas.",
+   "tags": "inodos",
+   "body": [
+    {
+     "p": "Una carpeta relaciona nombres con archivos. En los sistemas de archivos Unix habituales, el inodo identifica el objeto y guarda sus metadatos; el nombre está en la entrada de directorio. Un enlace duro añade otro nombre al mismo objeto. Una copia crea otro objeto con contenido inicialmente parecido. Esta diferencia explica por qué editar mediante un nombre puede cambiar lo que ves mediante otro."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "Un enlace simbólico es un archivo especial que contiene una ruta. Puede apuntar a otra partición e incluso a una ruta inexistente. Un enlace duro a un archivo ordinario debe permanecer en el mismo sistema de archivos. Para identificar un objeto no basta con comparar el número de inodo entre discos distintos: necesitas también la identidad del sistema de archivos."
+    },
+    {
+     "steps": [
+      "Consulta <code>ls -li</code> para ver inodos y el número de enlaces duros.",
+      "Distingue editar el mismo objeto de reemplazar el nombre por un archivo nuevo.",
+      "Si un enlace simbólico falla, comprueba su ruta objetivo y desde dónde se interpreta si es relativa."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "En una carpeta de práctica, <code>ln original.txt segundo.txt</code> crea otro nombre del mismo archivo. Modificar el contenido existente a través de uno se ve por el otro. Pero un editor que guarda escribiendo un temporal y reemplazando original.txt puede hacer que ese nombre pase a otro inodo; segundo.txt seguirá apuntando al objeto anterior."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Tienes un enlace simbólico a informe.txt y cambias el nombre de informe.txt a final.txt. ¿Qué ocurre? ¿Una copia independiente cambiaría al editar el original?"
+    },
+    {
+     "note": "Solución: El enlace sigue conteniendo la ruta informe.txt y queda roto si ya no existe. Una copia independiente no cambia por editar el original. Los nombres parecidos no implican identidad compartida."
+    },
+    {
+     "key": "Un enlace duro comparte un objeto; un enlace simbólico guarda una ruta; una copia tiene identidad propia."
+    },
+    {
+     "note": "Referencia: GNU Coreutils, enlaces: https://www.gnu.org/software/coreutils/manual/html_node/ln-invocation.html"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 4,
+   "title": "Publicar archivos completos: reemplazo atómico y durabilidad",
+   "subtitle": "escritura atómica · Evitar que un lector encuentre contenido a medias.",
+   "tags": "escritura atómica",
+   "body": [
+    {
+     "p": "Imagina que un proceso escribe un archivo de estado mientras otro lo lee. Si el escritor vacía el archivo y lo reconstruye en el mismo lugar, el lector puede encontrar una versión incompleta. Un patrón útil consiste en preparar el contenido en un archivo temporal del mismo directorio y reemplazar el nombre final solo cuando esté listo."
+    },
+    {
+     "h": "Cómo funciona"
+    },
+    {
+     "p": "En Linux, un renombrado que reemplaza un archivo dentro del mismo sistema de archivos permite cambiar la entrada de directorio de forma atómica: quien abre el nombre verá el objeto anterior o el nuevo. Eso no equivale a garantizar persistencia tras un corte de energía. La durabilidad exige sincronizar datos y metadatos según el sistema de archivos. Tampoco coordina por sí sola a dos escritores: uno puede reemplazar el resultado del otro."
+    },
+    {
+     "steps": [
+      "Crea un temporal con nombre único en el directorio de destino y escribe el contenido completo.",
+      "Valida el contenido y ajusta los permisos necesarios antes de publicarlo.",
+      "Reemplaza el destino mediante renombrado; trata aparte la durabilidad y la exclusión entre escritores."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Un indicador lee estado.json cada segundo. El productor prepara un JSON válido en un temporal vecino y después reemplaza estado.json. El lector que ya tenía abierto el archivo anterior puede seguir leyéndolo; una apertura posterior obtiene el nuevo. Si el temporal está en otro disco, una herramienta puede copiar y borrar en vez de renombrar, perdiendo esta propiedad."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Dos procesos publican al mismo tiempo sus propios contadores mediante reemplazos atómicos. ¿Se conservarán necesariamente ambos incrementos? ¿Y queda garantizado el archivo tras un apagón?"
+    },
+    {
+     "note": "Solución: No. Un escritor puede sobrescribir el cálculo del otro: hace falta coordinación o una transacción. Tampoco la atomicidad del nombre garantiza durabilidad tras un apagón; son propiedades diferentes."
+    },
+    {
+     "key": "Atomicidad evita estados intermedios visibles; coordinación evita actualizaciones perdidas; durabilidad protege frente a fallos."
+    },
+    {
+     "note": "Referencias: Linux man-pages, rename(2): https://www.man7.org/linux/man-pages/man2/rename.2.html y fsync(2): https://www.man7.org/linux/man-pages/man2/fsync.2.html"
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 8,
+   "tags": "rutas y globbing",
+   "title": "Rutas, comodines y comillas: lo que el shell escribe por ti",
+   "subtitle": "Por qué el programa nunca ve el asterisco que tú escribiste.",
+   "body": [
+    {
+     "p": "Cuando escribes <code>rm *.log</code>, el programa <code>rm</code> no recibe un asterisco: recibe la lista de nombres que había en la carpeta. El shell <b>expande</b> la línea antes de ejecutar nada. Entender qué expande y cuándo es la diferencia entre un comando que hace lo que querías y uno que borra lo que no era."
+    },
+    {
+     "h": "Rutas: absolutas y relativas"
+    },
+    {
+     "p": "Una ruta que empieza por <code>/</code> es absoluta: se lee desde la raíz y significa lo mismo desde cualquier carpeta. Cualquier otra es relativa a tu directorio actual. <code>.</code> es la carpeta actual, <code>..</code> la de encima, y <code>~</code> tu carpeta personal. Ojo: <code>~</code> lo sustituye el shell, no el programa, así que dentro de comillas simples no se expande."
+    },
+    {
+     "code": "cd /var/log        # absoluta: siempre el mismo sitio\ncd ../tmp          # relativa: depende de dónde estés\nls ~/Descargas     # el shell lo convierte en /home/tu-usuario/Descargas\nls '~/Descargas'   # NO se expande: busca una carpeta llamada ~"
+    },
+    {
+     "h": "Comodines: qué casa cada uno"
+    },
+    {
+     "list": [
+      "<code>*</code> cualquier cantidad de caracteres, pero no cruza el <code>/</code> ni incluye los archivos ocultos (los que empiezan por punto).",
+      "<code>?</code> exactamente un carácter.",
+      "<code>[abc]</code> uno de esos caracteres; <code>[0-9]</code> un dígito.",
+      "<code>{rojo,azul}</code> no es un comodín: es expansión de llaves y se expande aunque no exista ningún archivo así."
+     ]
+    },
+    {
+     "p": "La diferencia de la última línea importa. Un comodín consulta el disco; si no casa con nada, bash deja el texto tal cual y el programa recibe un nombre literal con asterisco. Las llaves nunca miran el disco: siempre generan las combinaciones."
+    },
+    {
+     "code": "ls *.txt           # si no hay ningún .txt, ls se queja de «*.txt»\ntouch {a,b,c}.txt  # crea a.txt, b.txt y c.txt aunque no existieran\nls .*              # los ocultos hay que pedirlos aparte"
+    },
+    {
+     "h": "Comillas: el error clásico"
+    },
+    {
+     "p": "Sin comillas, los espacios separan argumentos. Con comillas <b>dobles</b> el texto viaja entero y las variables siguen expandiéndose. Con comillas <b>simples</b> el texto viaja entero y nada se expande: ni variables ni <code>~</code>."
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Tienes un archivo llamado <code>informe final.txt</code> y escribes <code>rm informe final.txt</code>. El shell divide por el espacio y <code>rm</code> recibe dos argumentos: intenta borrar <code>informe</code> y <code>final.txt</code>, dos archivos que no son el tuyo. Lo correcto es <code>rm \"informe final.txt\"</code> o escapar el espacio con <code>rm informe\\ final.txt</code>."
+    },
+    {
+     "warn": "Un archivo cuyo nombre empieza por guión se confunde con una opción. Sepáralo con <code>rm -- -informe</code> o dale una ruta: <code>rm ./-informe</code>."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "¿Por qué <code>ls *.txt</code> no lista <code>.notas.txt</code>? Y si en la carpeta no hay ningún <code>.txt</code>, ¿qué recibe exactamente <code>ls</code>?"
+    },
+    {
+     "note": "Solución: <code>*</code> no incluye los nombres que empiezan por punto, así que <code>.notas.txt</code> queda fuera; hay que pedirlo con <code>.*</code> o con <code>ls -a</code>. Si no casa nada, bash pasa el texto literal <code>*.txt</code> y <code>ls</code> responde que no existe ese archivo."
+    },
+    {
+     "key": "El shell expande primero y ejecuta después: el programa solo ve la lista final de palabras."
+    },
+    {
+     "note": "Referencia: Bash Reference Manual, expansión de nombres de archivo: https://www.gnu.org/software/bash/manual/html_node/Filename-Expansion.html"
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 8,
+   "tags": "empaquetado y copias",
+   "title": "Empaquetar, comprimir y copiar sin perder nada",
+   "subtitle": "tar, gzip y rsync: qué conserva cada uno y qué se queda por el camino.",
+   "body": [
+    {
+     "p": "Mover un proyecto entero a otra máquina parece un problema de compresión, pero casi siempre lo que se rompe son los <b>metadatos</b>: permisos, fechas, enlaces simbólicos. Cada herramienta conserva unas cosas y descarta otras, y elegir mal se nota cuando el script del destino ya no es ejecutable."
+    },
+    {
+     "h": "Empaquetar no es comprimir"
+    },
+    {
+     "p": "<code>tar</code> empaqueta: mete muchos archivos en uno solo y guarda la estructura de carpetas junto con permisos, fechas y propietario. <code>gzip</code> comprime un flujo de bytes. Un <code>.tar.gz</code> es las dos cosas en ese orden: primero el paquete, después la compresión."
+    },
+    {
+     "code": "tar -czf copia.tar.gz proyecto/   # c crear, z gzip, f archivo\ntar -tzf copia.tar.gz             # t listar: mira ANTES de extraer\ntar -xzf copia.tar.gz             # x extraer\ntar -xzf copia.tar.gz -C /destino # extraer en otra carpeta"
+    },
+    {
+     "note": "Listar antes de extraer evita el paquete que «explota»: si dentro no hay una carpeta raíz, te llena el directorio actual de archivos sueltos."
+    },
+    {
+     "p": "<code>zip</code> se entiende con Windows sin instalar nada, pero guarda peor los permisos y la propiedad de Unix. Para respaldos de un sistema Linux, <code>tar</code>."
+    },
+    {
+     "h": "Copiar: la barra final de rsync"
+    },
+    {
+     "p": "<code>cp -a</code> copia preservando permisos, fechas y enlaces. <code>rsync</code> hace lo mismo pero solo transfiere lo que cambió, sirve por SSH y puede reanudar. Su detalle famoso es la barra del origen."
+    },
+    {
+     "code": "rsync -a origen/ destino/   # copia el CONTENIDO de origen dentro de destino\nrsync -a origen  destino/   # crea destino/origen\nrsync -a --dry-run --delete origen/ destino/   # ensayo: no toca nada"
+    },
+    {
+     "warn": "<code>--delete</code> borra en el destino lo que ya no está en el origen. Ejecútalo antes con <code>--dry-run</code> y lee la lista."
+    },
+    {
+     "h": "Comprobar que llegó igual"
+    },
+    {
+     "p": "<code>sha256sum archivo</code> imprime una huella del contenido; <code>sha256sum -c huellas.txt</code> verifica una lista. Eso demuestra <b>integridad</b>: que los bytes son los mismos. No demuestra autenticidad: si alguien pudo cambiar el archivo, también pudo cambiar la huella publicada al lado. Para eso hace falta una firma."
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Quieres llevar <code>~/proyecto</code> a un servidor conservando permisos. <code>rsync -a ~/proyecto/ servidor:/srv/proyecto/</code> copia el contenido y mantiene los modos de ejecución. Si en su lugar comprimes en zip y descomprimes allí, es probable que tengas que volver a poner los <code>chmod +x</code> a mano."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "¿Qué diferencia hay entre <code>rsync -a datos/ copia/</code> y <code>rsync -a datos copia/</code>? ¿Y qué te dice —y qué no— un <code>sha256sum</code> que coincide?"
+    },
+    {
+     "note": "Solución: con la barra copias el contenido de datos dentro de copia; sin ella acabas con copia/datos. Un sha256 que coincide dice que el contenido es idéntico al que generó esa huella; no dice quién lo hizo ni que la huella sea de confianza."
+    },
+    {
+     "key": "tar conserva la estructura y los permisos; rsync sincroniza incrementalmente; el hash comprueba integridad, no procedencia."
+    },
+    {
+     "note": "Referencia: GNU tar: https://www.gnu.org/software/tar/manual/ y rsync(1): https://www.man7.org/linux/man-pages/man1/rsync.1.html"
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 8,
+   "tags": "redirección",
+   "title": "Redirección: salidas, errores y código de salida",
+   "subtitle": "Los tres descriptores, el orden que importa y qué significa que algo «funcionó».",
+   "body": [
+    {
+     "p": "Un proceso arranca con tres canales abiertos: la entrada (<b>0</b>), la salida normal (<b>1</b>) y la salida de errores (<b>2</b>). Están separados a propósito: así puedes guardar el resultado en un archivo y seguir viendo los avisos en pantalla. Casi todos los problemas de «no aparece nada en el log» salen de mezclarlos mal."
+    },
+    {
+     "h": "Lo básico"
+    },
+    {
+     "code": "cmd > salida.txt        # 1 al archivo, truncando lo que hubiera\ncmd >> salida.txt       # 1 al archivo, añadiendo al final\ncmd 2> errores.txt      # solo los errores\ncmd > todo.txt 2>&1     # los dos al mismo archivo\ncmd 2>/dev/null         # tirar los errores\ncmd | tee salida.txt    # ver EN PANTALLA y guardar a la vez"
+    },
+    {
+     "h": "El orden no es decorativo"
+    },
+    {
+     "p": "<code>2>&1</code> significa «que el 2 apunte a donde apunta el 1 <b>ahora mismo</b>». Por eso <code>cmd > f 2>&1</code> manda los dos al archivo, pero <code>cmd 2>&1 > f</code> no: cuando se copia el destino, el 1 todavía era la terminal, así que los errores se quedan en pantalla y solo la salida normal acaba en el archivo."
+    },
+    {
+     "h": "Documentos aquí"
+    },
+    {
+     "p": "Un <i>here-doc</i> alimenta la entrada con un texto escrito en la propia línea de comandos. Si el delimitador va entre comillas, el texto viaja literal; si no, el shell expande las variables dentro."
+    },
+    {
+     "code": "cat > nota.txt <<'EOF'\nEsto sale tal cual: $HOME no se expande\nEOF"
+    },
+    {
+     "h": "¿Funcionó? El código de salida"
+    },
+    {
+     "p": "Cada comando termina con un número: <b>0</b> es éxito y cualquier otro es un fallo. Lo consultas en <code>$?</code> y lo usan <code>&&</code> (sigue si fue bien) y <code>||</code> (sigue si fue mal). En una tubería, <code>$?</code> es el del <b>último</b> comando: si el primero falla y el último no, la tubería parece correcta. Para que no ocurra, <code>set -o pipefail</code>."
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Escribes <code>sudo comando > /root/salida.txt</code> y responde «permiso denegado» aunque el comando sí necesitaba sudo. La razón: la redirección la hace <b>tu shell</b>, con tus permisos, antes de que sudo entre en escena. La solución es redirigir dentro del proceso privilegiado: <code>comando | sudo tee /root/salida.txt</code>."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Quieres guardar en <code>registro.txt</code> tanto la salida como los errores de un comando, sin perder lo que ya había en el archivo. ¿Cómo se escribe? ¿Y por qué <code>false | true</code> parece haber ido bien?"
+    },
+    {
+     "note": "Solución: <code>cmd >> registro.txt 2>&1</code>: primero se abre el archivo en modo añadir y después el 2 copia ese destino. <code>false | true</code> devuelve 0 porque el estado es el del último comando de la tubería; con <code>set -o pipefail</code> pasaría a devolver el fallo."
+    },
+    {
+     "key": "Redirigir es reasignar descriptores en el orden en que aparecen, y el código de salida es la única señal fiable de que algo salió bien."
+    },
+    {
+     "note": "Referencia: Bash Reference Manual, redirecciones: https://www.gnu.org/software/bash/manual/html_node/Redirections.html"
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 8,
+   "tags": "entorno y PATH",
+   "title": "El entorno: PATH, variables y qué se lee al iniciar sesión",
+   "subtitle": "Por qué un comando funciona en tu terminal y falla en cron.",
+   "body": [
+    {
+     "p": "«En mi terminal funciona» casi siempre significa que el entorno de tu terminal no es el del proceso que falla. El entorno es una lista de variables que cada proceso <b>hereda</b> de quien lo lanzó, y las reglas de herencia explican la mayoría de estas sorpresas."
+    },
+    {
+     "h": "Variable de shell y variable de entorno"
+    },
+    {
+     "p": "<code>VAR=valor</code> crea una variable que solo existe en tu shell. <code>export VAR=valor</code> la marca para que la hereden los procesos hijos. Como la herencia va en un solo sentido, un script que hace <code>export</code> no cambia el entorno de quien lo llamó: al terminar, su copia desaparece. Por eso los archivos de configuración se cargan con <code>source</code> (o su abreviatura <code>.</code>), que los ejecuta en tu shell actual en lugar de en uno nuevo."
+    },
+    {
+     "code": "VAR=hola          # solo aquí\nexport VAR=hola   # también en los hijos\nsource entorno.sh # se ejecuta en ESTE shell: sus export sí te llegan\n./entorno.sh      # proceso hijo: al terminar no queda nada"
+    },
+    {
+     "h": "PATH: quién gana"
+    },
+    {
+     "p": "<code>PATH</code> es una lista de carpetas separadas por <code>:</code>. El shell busca el ejecutable en ese orden y se queda con el primero que encuentra, así que si tienes dos versiones instaladas manda la del directorio que aparezca antes. Para saber qué se ejecuta de verdad, <code>type -a comando</code>: a diferencia de <code>which</code>, también te enseña alias y funciones."
+    },
+    {
+     "code": "echo $PATH\ntype -a python3        # todas las coincidencias, en orden\ncommand -v python3     # solo la que se usaría"
+    },
+    {
+     "warn": "No añadas <code>.</code> al PATH. Bastaría con entrar en una carpeta ajena y escribir <code>ls</code> para ejecutar el <code>ls</code> que alguien dejó allí."
+    },
+    {
+     "h": "Qué se lee al arrancar"
+    },
+    {
+     "p": "En bash, un shell de <b>login</b> lee <code>/etc/profile</code> y el primero que exista de <code>~/.bash_profile</code>, <code>~/.bash_login</code> o <code>~/.profile</code>. Un shell interactivo que no es de login lee <code>~/.bashrc</code>. Y un shell no interactivo —el que usa un script, cron o un servicio— normalmente no lee ninguno de los dos. De ahí la regla práctica: en cron y en las unidades de systemd, rutas absolutas y variables declaradas explícitamente."
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Instalas una herramienta en <code>~/.local/bin</code> y el shell responde «orden no encontrada». La carpeta no está en el PATH de esa sesión. Añades <code>export PATH=\"$HOME/.local/bin:$PATH\"</code> a <code>~/.bashrc</code> y lo aplicas con <code>source ~/.bashrc</code>. Si además la vas a llamar desde cron, allí escribe la ruta completa: cron no lee tu <code>.bashrc</code>."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Un script tuyo termina con <code>export API_URL=...</code> y al volver al shell la variable no está. ¿Por qué, y cómo se arregla? ¿Y por qué ese mismo script funciona a mano pero no desde cron?"
+    },
+    {
+     "note": "Solución: el script corre en un proceso hijo y su entorno muere con él; ejecútalo con <code>source script.sh</code>. Desde cron falla porque el entorno es mínimo y no se leen tus archivos de inicio: usa rutas absolutas y define allí las variables que necesites."
+    },
+    {
+     "key": "El entorno se hereda hacia abajo y nunca hacia arriba; lo que no está exportado o escrito con ruta absoluta no viaja."
+    },
+    {
+     "note": "Referencia: Bash Reference Manual, archivos de inicio: https://www.gnu.org/software/bash/manual/html_node/Bash-Startup-Files.html"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 8,
+   "tags": "señales",
+   "title": "Señales, códigos de salida y procesos que no se van",
+   "subtitle": "Qué hace kill de verdad, por qué el 9 es el último recurso y qué es un zombi.",
+   "body": [
+    {
+     "p": "Una señal es un aviso asíncrono que el kernel entrega a un proceso. <code>kill</code> no mata: <b>envía una señal</b>, y lo que ocurra después depende de si el proceso la captura, la ignora o deja que actúe el comportamiento por defecto. Esa distinción es toda la diferencia entre cerrar un servicio y corromper sus datos."
+    },
+    {
+     "h": "Las que se usan a diario"
+    },
+    {
+     "list": [
+      "<b>SIGTERM (15)</b>: la que envía <code>kill</code> por defecto. Es una petición: el proceso puede capturarla, cerrar archivos, terminar la transacción y salir.",
+      "<b>SIGINT (2)</b>: la de Ctrl+C, dirigida al grupo de procesos en primer plano.",
+      "<b>SIGHUP (1)</b>: «se cerró la terminal». Muchos demonios la reinterpretan como «recarga tu configuración».",
+      "<b>SIGKILL (9)</b> y <b>SIGSTOP</b>: no se pueden capturar ni ignorar. El proceso se detiene sin ejecutar ni una línea más de limpieza."
+     ]
+    },
+    {
+     "code": "kill 1234          # SIGTERM: petición ordenada\nkill -HUP 1234     # recargar configuración, en muchos demonios\nkill -9 1234       # SIGKILL: sin despedida, y sin limpieza\npkill -f 'python.*api'   # por patrón de línea de comandos"
+    },
+    {
+     "warn": "El <code>-9</code> es el último recurso: no da tiempo a vaciar buffers, borrar archivos temporales ni soltar bloqueos. Primero SIGTERM, espera unos segundos, y solo entonces SIGKILL."
+    },
+    {
+     "h": "Los que parecen inmortales"
+    },
+    {
+     "p": "Un proceso en estado <b>D</b> (espera ininterrumpible de E/S) no responde ni a SIGKILL: no puede atender nada hasta que la operación de disco o de red termine. Aparece con un disco enfermo o un NFS caído, y el problema está en el almacenamiento, no en el proceso."
+    },
+    {
+     "p": "Un <b>zombi</b> (estado Z) ya terminó: solo queda su entrada en la tabla de procesos esperando a que el padre lea su estado de salida. No consume CPU ni memoria, así que matarlo no tiene sentido —ya está muerto—: se resuelve actuando sobre el padre, que es quien no está recogiéndolo."
+    },
+    {
+     "h": "Que no se lo lleve la terminal"
+    },
+    {
+     "p": "Al cerrar la terminal, sus procesos reciben SIGHUP. Para que un trabajo largo sobreviva: <code>nohup</code>, <code>setsid</code>, una sesión de <code>tmux</code> o, mejor en un servidor, <code>systemd-run --user</code>, que lo deja bajo el gestor de servicios con sus registros."
+    },
+    {
+     "h": "El código de salida cuenta la historia"
+    },
+    {
+     "p": "Si un proceso termina por la señal <i>n</i>, el shell informa de <code>128 + n</code>. Un <b>130</b> es un Ctrl+C (128+2) y un <b>137</b> es un SIGKILL (128+9), que en un servidor suele venir del gestor de memoria del kernel. En un script, <code>trap 'rm -f \"$TMP\"' EXIT</code> ejecuta la limpieza salga como salga... salvo con SIGKILL, que no da esa oportunidad."
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Un servicio no responde. Envías <code>kill 1234</code> y esperas cinco segundos: si cerró, hizo su limpieza. Si sigue ahí, miras su estado en <code>ps -o stat= -p 1234</code>: una <b>D</b> apunta al almacenamiento y matarlo no servirá; con cualquier otro estado, <code>kill -9 1234</code> asumiendo que puede dejar temporales o bloqueos atrás."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Un contenedor termina con código 137 y no hay ningún error en su registro. ¿Qué pasó? Y en la tabla de procesos hay treinta zombis: ¿a quién hay que mirar?"
+    },
+    {
+     "note": "Solución: 137 es 128+9, es decir SIGKILL; en un contenedor con límite de memoria lo habitual es que el kernel lo matara por exceder ese límite, y por eso no hay traza en el registro de la aplicación. Los zombis se resuelven en el proceso padre, que no está recogiendo el estado de sus hijos."
+    },
+    {
+     "key": "Enviar una señal es pedir algo; solo SIGKILL y SIGSTOP no admiten negociación, y a cambio no dejan limpiar nada."
+    },
+    {
+     "note": "Referencia: Linux man-pages, signal(7): https://www.man7.org/linux/man-pages/man7/signal.7.html"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 8,
+   "tags": "rendimiento",
+   "title": "Rendimiento: carga, memoria y espera de disco",
+   "subtitle": "Decidir si el cuello es CPU, memoria o E/S antes de tocar nada.",
+   "body": [
+    {
+     "p": "«El servidor va lento» no es un diagnóstico. Antes de cambiar nada hay que decidir cuál de los tres recursos está limitando: CPU, memoria o entrada/salida. Cada uno tiene su síntoma, y las cifras que más se citan —la carga y la memoria libre— son justo las que más se malinterpretan."
+    },
+    {
+     "h": "El promedio de carga no es un porcentaje"
+    },
+    {
+     "p": "Los tres números de <code>uptime</code> son el promedio de procesos <b>ejecutables</b> y, en Linux a diferencia de otros Unix, también los que están en espera ininterrumpible de E/S, en 1, 5 y 15 minutos. Se interpretan comparándolos con el número de CPU que da <code>nproc</code>: una carga de 8 en una máquina de 8 núcleos es plena ocupación; la misma cifra con la CPU casi ociosa significa que hay procesos esperando disco o red."
+    },
+    {
+     "code": "nproc                 # cuántas CPU hay\nuptime                # carga a 1, 5 y 15 minutos\nvmstat 1              # r (ejecutables), b (bloqueados), si/so (swap)\niostat -x 1           # utilización y espera por dispositivo (paquete sysstat)"
+    },
+    {
+     "h": "La memoria libre no es la que sobra"
+    },
+    {
+     "p": "En <code>free -h</code> la columna que importa es <b>available</b>, no <b>free</b>. Linux usa la memoria que no hace falta como caché de disco (<code>buff/cache</code>) y la devuelve en cuanto un programa la pide. Un sistema sano casi no tiene memoria libre: la tiene trabajando."
+    },
+    {
+     "p": "Tener swap ocupada tampoco es una alarma: páginas que no se usan pueden llevar meses ahí sin coste. Lo que duele es el <b>trasiego</b> constante, que se ve como <code>si</code> y <code>so</code> altos y sostenidos en <code>vmstat 1</code>. Y cuando ni con swap alcanza, el kernel elige un proceso y lo mata; queda registrado en <code>dmesg</code> o <code>journalctl -k</code>, no en el registro de la aplicación."
+    },
+    {
+     "h": "La espera de disco"
+    },
+    {
+     "p": "En <code>top</code>, <code>%wa</code> es tiempo de CPU ociosa mientras hay E/S pendiente. Alto y sostenido, el cuello está en el almacenamiento: confírmalo con <code>iostat -x 1</code> mirando la utilización y las latencias por dispositivo, y localiza al culpable con <code>pidstat -d 1</code> o <code>iotop</code>."
+    },
+    {
+     "note": "Mide en el tiempo, no en una foto. La primera línea de <code>vmstat</code> e <code>iostat</code> es un promedio desde el arranque: la útil es la segunda en adelante."
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Carga 12 en una máquina de 4 CPU. <code>top</code> muestra la CPU al 15 % y <code>%wa</code> al 60 %; <code>free -h</code> da poca memoria libre pero varios GB en <b>available</b> y sin trasiego de swap. La memoria no es el problema y la CPU tampoco: el cuello es la E/S. El siguiente paso es <code>iostat -x 1</code> para ver qué dispositivo está saturado y <code>pidstat -d 1</code> para saber quién lo está usando."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Un compañero avisa de que solo quedan 200 MB libres de 16 GB y quiere reiniciar. ¿Qué le preguntas antes? ¿Y dónde comprobarías si el kernel mató algún proceso esta madrugada?"
+    },
+    {
+     "note": "Solución: pregúntale por la columna <b>available</b> y por el trasiego de swap: la memoria en caché se libera sola cuando hace falta, así que poca «free» es normal. Si el kernel mató algo por falta de memoria, aparece en <code>dmesg -T</code> o en <code>journalctl -k</code>, no en el registro de la aplicación."
+    },
+    {
+     "key": "Primero decide el recurso limitante con medidas en el tiempo; la carga se compara con el número de CPU y la memoria se lee en available."
+    },
+    {
+     "note": "Referencia: Linux man-pages, proc(5) y uptime(1): https://www.man7.org/linux/man-pages/man5/proc.5.html"
+    }
+   ]
   }
  ]
 }
