@@ -1030,6 +1030,91 @@
      "key": "Supervisa el tren de rodaje con ultrasonidos, identifica eslabones secos con pirómetro láser y programa el giro de pasadores y bujes al 75% de desgaste para maximizar la rentabilidad de las orugas."
     }
    ]
+  },
+  {
+   "level": 2,
+   "minutes": 3,
+   "title": "Del cucharón a la tolva: volumen, densidad y carga útil",
+   "subtitle": "Calcular una carga estimada y distinguirla de la capacidad autorizada.",
+   "tags": "implementos,volquete,carga",
+   "body": [
+    {
+     "p": "Un cucharón y una tolva tienen volumen, pero la carga se controla también por masa. Para estimar masa multiplicamos el volumen efectivo por la densidad aparente del material. Estos ejercicios usan datos hipotéticos; la operación real depende de las capacidades y condiciones indicadas para cada equipo."
+    },
+    {
+     "h": "Conceptos para aplicar"
+    },
+    {
+     "list": [
+      "Volumen efectivo = volumen nominal × factor de llenado del ejercicio.",
+      "Masa estimada = volumen efectivo × densidad aparente. Mantén unidades compatibles.",
+      "Selecciona el cucharón según la máquina, la aplicación y la densidad del material.",
+      "Contrasta la estimación con pesaje y límites aplicables antes de decidir una carga."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Un cucharón de 2 m³, con llenado del 80 %, lleva aproximadamente 1,6 m³. Si la densidad aparente es 1,5 t/m³, cada cucharada representa 2,4 t. Cuatro cucharadas suman 9,6 t estimadas. El cálculo no demuestra que el camión o el cargador tengan capacidad para ello."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Con los mismos 1,6 m³, la densidad del material pasa a 1,8 t/m³. ¿La masa por cucharada permanece igual?"
+    },
+    {
+     "note": "No. 1,6 × 1,8 = 2,88 t. El mismo volumen puede representar una masa distinta."
+    },
+    {
+     "key": "Volumen disponible y masa admisible son datos diferentes."
+    },
+    {
+     "note": "Referencia: Caterpillar, selección de cucharones: https://www.cat.com/en_US/articles/ci-articles/wl-bucket-guide.html"
+    }
+   ]
+  },
+  {
+   "level": 1,
+   "minutes": 3,
+   "title": "Comprobantes de báscula y recepción de material del volquete",
+   "subtitle": "Tara, bruto, neto y revisión de registros.",
+   "tags": "volquete,pesaje",
+   "body": [
+    {
+     "p": "El comprobante de báscula conecta un viaje con una cantidad de material. Leerlo bien exige verificar a qué vehículo corresponde y qué masas se están restando. La resta puede ser correcta y el resultado poco fiable si la tara pertenece a otra unidad o a condiciones diferentes."
+    },
+    {
+     "h": "Conceptos para aplicar"
+    },
+    {
+     "list": [
+      "Identifica vehículo, fecha y comprobante del viaje.",
+      "Distingue peso bruto, tara y carga neta.",
+      "Confirma si las cifras están en kilogramos o toneladas.",
+      "Conserva diferencias y correcciones para evitar contar dos veces un viaje."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Un bruto de 24 600 kg y una tara comparable de 10 200 kg dan 14 400 kg netos, equivalentes a 14,4 t. Si un resumen ya incluye ese comprobante, volver a agregarlo duplica la carga contabilizada."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Un comprobante indica 22,8 t de bruto y 9,7 t de tara. ¿Cuánto material registra? ¿Qué verificarías si la matrícula no coincide?"
+    },
+    {
+     "note": "Registra 13,1 t netas. Si la identificación no coincide, hay que aclarar a qué vehículo pertenece antes de atribuir el viaje."
+    },
+    {
+     "key": "Un pesaje útil necesita cálculo correcto e identificación correcta."
+    }
+   ]
   }
  ]
 }

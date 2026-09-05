@@ -823,6 +823,102 @@
    "front": "Antes de una prueba, escribe qué resultado {{esperarías}} bajo cada hipótesis.",
    "back": "Así puedes interpretar el resultado sin adaptar la explicación después de verlo.",
    "tags": "evidencia diagnóstica"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "mantenimiento,documentación",
+   "front": "¿Por qué identificar motor y año antes de buscar un repuesto automotriz?",
+   "back": "Un mismo nombre comercial puede incluir motores y sistemas diferentes. Confirma la variante y la referencia aplicable con el catálogo y la identificación del vehículo."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "mantenimiento,documentación",
+   "front": "¿Qué datos debe conservar el historial de un cambio de aceite?",
+   "back": "Fecha, kilometraje, especificación y cantidad aplicada según el manual, referencia del filtro y responsable. «Se cambió aceite» no permite comprobar qué producto se utilizó."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "diagnóstico,recepción",
+   "front": "¿Qué diferencia hay entre «el motor no gira» y «gira pero no arranca»?",
+   "back": "En el primer caso no se observa el giro de arranque; en el segundo sí gira, pero no mantiene combustión. Son descripciones distintas que orientan la investigación sin identificar todavía una pieza dañada."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "mantenimiento,planificación",
+   "front": "¿Cómo organizas un servicio indicado por kilometraje o tiempo?",
+   "back": "Registra ambas referencias y aplica el criterio del manual, por ejemplo «lo que ocurra primero» cuando así se especifique. Poco kilometraje no elimina automáticamente el mantenimiento por tiempo."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "diagnóstico,OBD2",
+   "front": "¿Qué es el freeze frame o cuadro congelado del diagnóstico OBD?",
+   "back": "Un conjunto de datos de funcionamiento guardados en relación con una falla. Ayuda a conocer las condiciones del registro; no es una grabación continua de todo el recorrido."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "diagnóstico,OBD2",
+   "front": "¿Por qué guardar el informe del escáner antes de borrar códigos?",
+   "back": "El borrado puede eliminar datos útiles asociados a la falla. Conserva códigos, estados y cuadros congelados disponibles antes de cualquier borrado autorizado dentro del diagnóstico."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "diagnóstico,medición",
+   "front": "¿Por qué anotar las unidades junto a una lectura del escáner?",
+   "back": "Un número sin unidad puede interpretarse mal: temperatura, presión y velocidad admiten distintas escalas. Conserva nombre del parámetro, unidad y condición de medición."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "diagnóstico,OBD2",
+   "front": "¿Qué distingue los datos en vivo de un cuadro congelado?",
+   "back": "Los datos en vivo muestran valores durante la consulta. El cuadro congelado conserva valores asociados a un evento anterior. No tienen por qué coincidir si las condiciones cambiaron."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "diagnóstico,comparación",
+   "front": "¿Por qué cambiar varias piezas a la vez dificulta aprender de una reparación?",
+   "back": "Si el síntoma desaparece, no queda claro qué intervención fue determinante. Una secuencia documentada de hipótesis y comprobaciones permite atribuir mejor los resultados."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "diagnóstico,trazabilidad",
+   "front": "¿Qué significa «falla no reproducida» en un informe de taller?",
+   "back": "Que el síntoma no apareció durante las condiciones comprobadas. El informe debe describir esas condiciones y sus límites; no equivale a demostrar que el vehículo nunca falla."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "diagnóstico,OBD2",
+   "front": "Borras un código y el testigo se apaga. ¿Qué puedes concluir?",
+   "back": "El borrado no repara la causa. Se necesita verificar el comportamiento y las condiciones de diagnóstico pertinentes.",
+   "choices": [
+    "Que la pieza se reparó sola",
+    "Que el motor está perfecto",
+    "Que el código fue borrado; falta verificar la causa"
+   ],
+   "answer": 2
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "diagnóstico,medición",
+   "front": "Dos lecturas difieren, una en frío y otra en caliente. ¿Qué revisas antes de compararlas?",
+   "back": "Compara el mismo parámetro, unidades y condiciones equivalentes. Una diferencia de condiciones puede explicar parte del cambio.",
+   "choices": [
+    "Condiciones, unidades y parámetro medido",
+    "Solo el número mayor",
+    "El color del escáner"
+   ],
+   "answer": 0
   }
  ],
  "levels": [

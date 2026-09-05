@@ -1278,6 +1278,102 @@
    "front": "¿Por qué se debe esperar varios minutos tras apagar el motor antes de desconectar la batería en máquinas con sistema SCR de DEF/AdBlue?",
    "back": "Al apagar la máquina, la bomba de inyección de urea invierte el giro para <b>purgar el DEF remanente en las líneas hacia el tanque</b>. Si cortas el mástil de batería de inmediato, el DEF (que se congela a -11 °C y cristaliza) queda atrapado en el inyector y tuberías, cristalizando y destruyendo el inyector por taponamiento.",
    "tags": "motor,emisiones,mantenimiento"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "implementos",
+   "front": "¿Por qué un cucharón más grande no siempre mejora la producción?",
+   "back": "Su volumen debe corresponder a la máquina y al material. Un material más denso aumenta la masa por cucharada; el tamaño por sí solo no demuestra compatibilidad."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "implementos",
+   "front": "¿Qué datos comparas antes de elegir un cucharón para un cargador?",
+   "back": "Modelo de máquina, aplicación, densidad del material y compatibilidad del implemento según el fabricante. La selección incluye el borde de ataque y la protección contra desgaste."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "volquete,carga",
+   "front": "¿Qué diferencia hay entre volumen de tolva y carga útil?",
+   "back": "El volumen indica cuánto espacio hay, en m³. La carga útil indica la masa admitida, en kg o t. Tener espacio libre no significa que aún se pueda agregar peso."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "volquete,pesaje",
+   "front": "¿Qué son tara, peso bruto y peso neto en un comprobante de báscula?",
+   "back": "<b>Tara</b>: masa del vehículo sin la carga que se desea medir. <b>Bruto</b>: vehículo más carga. <b>Neto</b>: bruto menos tara; las condiciones de pesaje deben ser comparables."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "volquete,carga",
+   "front": "Un material ocupa 6 m³ y su densidad aparente es 1,5 t/m³. ¿Qué masa estimas?",
+   "back": "6 × 1,5 = <b>9 t</b>. Es una estimación con la densidad indicada, no una autorización para cargar esa masa."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "volquete,pesaje",
+   "front": "Un volquete pesa 24,6 t cargado y su tara comparable es 10,2 t. ¿Cuánto material lleva?",
+   "back": "24,6 − 10,2 = <b>14,4 t</b> de carga neta."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "implementos,carga",
+   "front": "Un cucharón nominal de 2 m³ se llena al 80 %. ¿Qué volumen estimado lleva?",
+   "back": "2 × 0,80 = <b>1,6 m³</b>. El factor de llenado relaciona el volumen efectivo con el nominal en este modelo de cálculo."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "volquete,carga",
+   "front": "Con 1,6 m³ efectivos por cucharada y 1,5 t/m³, ¿qué masa estimas por cucharada?",
+   "back": "1,6 × 1,5 = <b>2,4 t</b>. Para una operación real se verifican las capacidades de máquina, implemento y camión."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "mantenimiento,planificación",
+   "front": "¿Qué contiene una orden de mantenimiento que permite preparar el trabajo?",
+   "back": "Identificación y horómetro del equipo, síntoma, tarea prevista, referencia del manual, repuestos, herramientas, responsable y criterio de aceptación. Registrar estos datos ayuda a evitar trabajos incompletos."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "mantenimiento,trazabilidad",
+   "front": "¿Por qué registrar el número de serie además del modelo de la máquina?",
+   "back": "Dentro de un mismo modelo puede haber variantes de componentes y procedimientos. El número de serie permite consultar la documentación y los repuestos correspondientes al equipo concreto."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "volquete,pesaje",
+   "front": "La tara registrada corresponde a otro volquete. ¿Sirve para calcular con precisión la carga neta?",
+   "back": "No: necesitas una tara correspondiente al vehículo y condiciones de pesaje comparables. Restar una tara ajena introduce un error.",
+   "choices": [
+    "Sí, si ambos tienen el mismo color",
+    "No, hay que verificar la tara del vehículo",
+    "Sí, cualquier tara de camión sirve"
+   ],
+   "answer": 1
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "mantenimiento,diagnóstico",
+   "front": "Después de una intervención, ¿qué registro permite evaluar el resultado?",
+   "back": "Documenta qué se hizo y compara el síntoma inicial con el resultado de una verificación adecuada. Una pieza nueva no demuestra por sí sola que el problema se resolvió.",
+   "choices": [
+    "Solo el precio del repuesto",
+    "Solo el nombre del mecánico",
+    "Trabajo realizado, condiciones de verificación y resultado"
+   ],
+   "answer": 2
   }
  ],
  "levels": [

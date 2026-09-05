@@ -618,6 +618,90 @@
      "key": "Una prueba informa sobre las condiciones que cubrió; el diagnóstico exige conectar resultados, límites e hipótesis."
     }
    ]
+  },
+  {
+   "level": 2,
+   "minutes": 3,
+   "title": "Cuadro congelado y datos en vivo: conservar la evidencia OBD",
+   "subtitle": "Interpretar el momento de una falla sin confundirlo con el estado actual.",
+   "tags": "diagnóstico,OBD2",
+   "body": [
+    {
+     "p": "El cuadro congelado conserva datos asociados a una falla; los datos en vivo muestran lo que se consulta ahora. Su disponibilidad depende del vehículo y del equipo de diagnóstico. Guardar el informe antes del borrado permite conservar información que podría perderse."
+    },
+    {
+     "h": "Conceptos para aplicar"
+    },
+    {
+     "list": [
+      "Registra el código exacto y los datos asociados que estén disponibles.",
+      "Distingue el evento guardado de la lectura actual.",
+      "Borrar un código no corrige por sí mismo la causa."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "Un cuadro congelado registra una temperatura distinta de la lectura actual. No hay contradicción automática: pueden corresponder a momentos distintos."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Después de borrar un código se apaga el testigo. ¿Eso basta para entregar el vehículo como reparado?"
+    },
+    {
+     "note": "No. Falta verificar la causa y el resultado de la intervención."
+    },
+    {
+     "key": "El escáner aporta evidencia que necesita interpretación."
+    },
+    {
+     "note": "Referencia: Bosch, manual OBD 100: https://mediathek-bosch-automotive.com/files/bosch_wa/0000/569648_en.pdf"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 3,
+   "title": "Cerrar una orden de taller con evidencia de la reparación",
+   "subtitle": "Relacionar la queja, las comprobaciones y el resultado final.",
+   "tags": "diagnóstico,mantenimiento,trazabilidad",
+   "body": [
+    {
+     "p": "Una orden de taller útil cuenta qué ocurrió y qué se comprobó. El cierre no consiste únicamente en enumerar repuestos: debe conectar la queja inicial con los hallazgos y la verificación posterior. Esta disciplina sirve tanto en un automóvil como en el motor de un equipo de obra."
+    },
+    {
+     "h": "Conceptos para aplicar"
+    },
+    {
+     "list": [
+      "Describe el síntoma con sus condiciones conocidas.",
+      "Separa hallazgos medidos de causas todavía sospechadas.",
+      "Registra intervención, referencias utilizadas y resultado de la comprobación.",
+      "Si la falla no apareció, informa el alcance de la prueba sin afirmar una reparación no demostrada."
+     ]
+    },
+    {
+     "h": "Ejemplo resuelto"
+    },
+    {
+     "p": "La queja dice «tarda en arrancar por la mañana». El taller solo comprobó un arranque con el motor caliente. El informe puede registrar ese arranque normal, pero debe dejar pendiente la condición en frío en vez de declarar resuelto el problema."
+    },
+    {
+     "h": "Practica antes de seguir"
+    },
+    {
+     "p": "Reescribe «todo bien, se cambió un sensor» si solo sabes que se sustituyó la pieza y no se verificó el síntoma original."
+    },
+    {
+     "note": "«Se sustituyó el sensor indicado en la orden. La verificación de la condición original está pendiente». Completa identificación de pieza y pruebas cuando existan; no inventes resultados."
+    },
+    {
+     "key": "Una reparación queda respaldada por una verificación documentada, no solo por una factura de piezas."
+    }
+   ]
   }
  ]
 }
