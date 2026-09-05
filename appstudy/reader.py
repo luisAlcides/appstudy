@@ -188,6 +188,7 @@ class ChapterView(Gtk.Box):
         self.diana = None                  # el bloque que lo explica
         self.on_navigate = None            # lo fija la ventana principal
         self.on_back = None
+        self.on_cards = None               # generar tarjetas desde este capítulo
 
         self.scroll = Gtk.ScrolledWindow(vexpand=True,
                                          hscrollbar_policy=Gtk.PolicyType.NEVER)
@@ -276,6 +277,9 @@ class ChapterView(Gtk.Box):
                                css_classes=["suggested-action", "pill"])
         practicar.connect("clicked", lambda *_: self.practicar())
         acciones.append(practicar)
+        tarjetas = Gtk.Button(label="✦ Sacar tarjetas", css_classes=["pill"])
+        tarjetas.connect("clicked", lambda *_: self.generar_tarjetas())
+        acciones.append(tarjetas)
         caja.append(acciones)
 
         anterior, siguiente = self.vecinos()
@@ -361,6 +365,10 @@ class ChapterView(Gtk.Box):
     def practicar(self):
         self.app.show_popup(self.ch["deck_key"], level=self.ch["level"],
                             tags=self.ch["tags"] or None)
+
+    def generar_tarjetas(self):
+        if self.on_cards:
+            self.on_cards(self.ch)
 
     def on_key(self, _c, keyval, _code, _state):
         k = Gdk.keyval_name(keyval)

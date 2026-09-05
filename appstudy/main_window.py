@@ -10,15 +10,15 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 
-from . import buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: E402
+from . import ayuda, buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: E402
 from . import hotkey, ia, importador, lecturas  # noqa: E402
 from . import libros, logros, pet, recordatorios, respaldo, scheduler  # noqa: E402
-from . import sincronizacion  # noqa: E402
+from . import nube, sincronizacion  # noqa: E402
 from . import sesiones, sonido, util  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
 
 MAX_FILAS = 120        # tarjetas que se pintan a la vez en el explorador
-from .reader import ChapterView  # noqa: E402
+from .reader import ChapterView, render_body  # noqa: E402
 
 
 class MainWindow(Adw.ApplicationWindow):
@@ -70,6 +70,11 @@ class MainWindow(Adw.ApplicationWindow):
                             tooltip_text="Buscar en todo (Ctrl+K)")
         buscar.connect("clicked", lambda *_: self.buscador_global())
         header.pack_end(buscar)
+
+        ayuda_btn = Gtk.Button(icon_name="help-browser-symbolic",
+                               tooltip_text="Cómo se usa AppStudy (F1)")
+        ayuda_btn.connect("clicked", lambda *_: self.abrir_ayuda())
+        header.pack_end(ayuda_btn)
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box.append(header)
@@ -442,6 +447,7 @@ class MainWindow(Adw.ApplicationWindow):
         vista.on_navigate = lambda c: (self.nav.pop(), self.open_chapter(c, hermanos))
 
         vista.on_back = lambda: self.nav.pop()
+        vista.on_cards = self.generar_desde_capitulo
 
         pagina = Adw.NavigationPage(title=util.plain(cap["title"])[:60])
         cabecera = Adw.HeaderBar()
@@ -449,6 +455,10 @@ class MainWindow(Adw.ApplicationWindow):
                                tooltip_text="Practicar este capítulo")
         practicar.connect("clicked", lambda *_: vista.practicar())
         cabecera.pack_end(practicar)
+        tarjetas = Gtk.Button(label="✦ Tarjetas",
+                              tooltip_text="Generar tarjetas de este capítulo")
+        tarjetas.connect("clicked", lambda *_: vista.generar_tarjetas())
+        cabecera.pack_end(tarjetas)
         tv = Adw.ToolbarView()
         tv.add_top_bar(cabecera)
         tv.set_content(vista)
@@ -647,6 +657,9 @@ class MainWindow(Adw.ApplicationWindow):
             "hint": f"{util.plain(libro['nombre'])[:70]} · pág. {nota['pagina']}",
             "tags": etiquetas,
             "nota_id": nota["id"],
+            "source": {"kind": "book", "ruta": nota["ruta"],
+                       "page_start": nota["pagina"], "page_end": nota["pagina"],
+                       "title": util.plain(libro["nombre"])},
         })
 
     def card_editor(self, card_id=None, inicial=None):
@@ -747,7 +760,7 @@ class MainWindow(Adw.ApplicationWindow):
             dlg, card, decks[deck_dd.get_selected()], kinds[kind_dd.get_selected()],
             front_view, back_view, hint.get_text(), tags.get_text(),
             [o.get_text() for o in opciones], int(correcta.get_value()) - 1,
-            nivel_dd.get_selected() + 1, inicial.get("nota_id")))
+            nivel_dd.get_selected() + 1, inicial.get("nota_id"), inicial.get("source")))
 
         header = Adw.HeaderBar()
         header.pack_end(guardar)
@@ -843,7 +856,7 @@ class MainWindow(Adw.ApplicationWindow):
         return b.get_text(b.get_start_iter(), b.get_end_iter(), False).strip()
 
     def save_card(self, dlg, card, deck, kind, front_view, back_view, hint, tags,
-                  opciones, correcta, nivel, nota_id=None):
+                  opciones, correcta, nivel, nota_id=None, source=None):
         front = self.buffer_text(front_view)
         back = self.buffer_text(back_view)
         if not front:
@@ -874,10 +887,12 @@ class MainWindow(Adw.ApplicationWindow):
             cid, _ = db.add_card(self.con, deck["id"], deck["key"], kind, front, back,
                                  hint, choices, correcta if kind == "quiz" else -1,
                                  tags, level=nivel)
-            self.con.commit()
             if nota_id:
                 # Queda apuntado de qué subrayado salió, por si vuelves a él
                 db.nota_editar(self.con, nota_id, card_id=cid)
+            if source:
+                db.set_card_source(self.con, cid, source)
+            self.con.commit()
         dlg.close()
         self.notify_user("Tarjeta guardada")
         self.refresh()
@@ -1117,6 +1132,62 @@ class MainWindow(Adw.ApplicationWindow):
         gmeta.add(self.objetivo_estado)
         page.add(gmeta)
 
+        gnube = Adw.PreferencesGroup(
+            title="Cuenta en la nube",
+            description="Tu progreso se guarda en Supabase y te sigue a cualquier "
+                        "equipo donde entres. Se entra una sola vez: la sesión queda "
+                        "guardada y se renueva sola al abrir.")
+
+        self.nube_falta_row = Adw.ActionRow(title="Falta configurar el proyecto")
+        self.nube_falta_row.set_subtitle_lines(3)
+        self.nube_falta_row.set_subtitle_selectable(True)
+        gnube.add(self.nube_falta_row)
+
+        self.nube_email = Adw.EntryRow(title="Correo")
+        self.nube_email.set_input_purpose(Gtk.InputPurpose.EMAIL)
+        gnube.add(self.nube_email)
+        self.nube_pass = Adw.PasswordEntryRow(title="Contraseña")
+        self.nube_pass.connect("entry-activated", lambda *_: self.nube_entrar())
+        gnube.add(self.nube_pass)
+
+        self.nube_entrar_row = Adw.ActionRow(
+            title="Entrar", subtitle="Si aún no tienes cuenta, créala con ese correo")
+        self.nube_entrar_row.set_subtitle_lines(2)
+        self.nube_crear_btn = Gtk.Button(label="Crear cuenta", valign=Gtk.Align.CENTER)
+        self.nube_crear_btn.connect("clicked", lambda *_: self.nube_entrar(crear=True))
+        self.nube_entrar_row.add_suffix(self.nube_crear_btn)
+        self.nube_entrar_btn = Gtk.Button(label="Entrar", valign=Gtk.Align.CENTER,
+                                          css_classes=["suggested-action"])
+        self.nube_entrar_btn.connect("clicked", lambda *_: self.nube_entrar())
+        self.nube_entrar_row.add_suffix(self.nube_entrar_btn)
+        gnube.add(self.nube_entrar_row)
+
+        self.nube_cuenta_row = Adw.ActionRow(title="Sesión iniciada")
+        self.nube_cuenta_row.set_subtitle_selectable(True)
+        salir_btn = Gtk.Button(label="Salir", valign=Gtk.Align.CENTER)
+        salir_btn.connect("clicked", lambda *_: self.nube_salir())
+        self.nube_cuenta_row.add_suffix(salir_btn)
+        gnube.add(self.nube_cuenta_row)
+
+        self.nube_sync_row = Adw.ActionRow(
+            title="Sincronizar con la nube",
+            subtitle="Baja lo de tus otros equipos, lo fusiona y sube lo de este")
+        self.nube_sync_row.set_subtitle_lines(2)
+        self.nube_sync_btn = Gtk.Button(label="Sincronizar", valign=Gtk.Align.CENTER,
+                                        css_classes=["suggested-action"])
+        self.nube_sync_btn.connect("clicked", lambda *_: self.sincronizar_nube_ahora())
+        self.nube_sync_row.add_suffix(self.nube_sync_btn)
+        gnube.add(self.nube_sync_row)
+
+        self.nube_auto = Adw.SwitchRow(
+            title="Sincronizar sola al abrir y al cerrar",
+            subtitle="Para no tener que acordarte antes de cambiar de equipo")
+        self.nube_auto.connect("notify::active", self.on_nube_auto)
+        gnube.add(self.nube_auto)
+        page.add(gnube)
+        # Deja a la vista solo lo que toca ya, sin esperar al primer refresco
+        self.pintar_nube()
+
         gsync = Adw.PreferencesGroup(
             title="Sincronización entre equipos",
             description="Fusiona progreso y contenido propio mediante una carpeta "
@@ -1190,10 +1261,21 @@ class MainWindow(Adw.ApplicationWindow):
         recargar.add_suffix(rb)
         g2.add(recargar)
 
-        self.db_row = Adw.ActionRow(title="Base de datos", subtitle=str(db.DB_PATH))
+        self.db_row = Adw.ActionRow(title="Base de datos", subtitle=str(db.ruta_db()))
         self.db_row.set_subtitle_selectable(True)
         g2.add(self.db_row)
         page.add(g2)
+
+        gay = Adw.PreferencesGroup(title="Ayuda")
+        guia = Adw.ActionRow(
+            title="Guía de uso",
+            subtitle="Cómo se usa cada parte, con buscador · también con F1")
+        gb = Gtk.Button(label="Abrir", valign=Gtk.Align.CENTER)
+        gb.connect("clicked", lambda *_: self.abrir_ayuda())
+        guia.add_suffix(gb)
+        guia.set_activatable_widget(gb)
+        gay.add(guia)
+        page.add(gay)
 
         g3 = Adw.PreferencesGroup(title="Atajos dentro del popup")
         for tecla, desc in (("Ctrl+R", "Recargar el contenido (también F5)"),
@@ -1450,7 +1532,7 @@ class MainWindow(Adw.ApplicationWindow):
                 lambda e: (self.notify_user(f"No pude generar: {e}"),
                            ia.hilo(lambda: ia.descargar(cfg))))
 
-    def revisar_generadas(self, tarjetas, mazo, tema, etiquetas="ia"):
+    def revisar_generadas(self, tarjetas, mazo, tema, etiquetas="ia", fuente=None):
         """Enseña lo que propuso el modelo con una casilla por tarjeta."""
         dlg = Adw.AlertDialog(
             heading=f"{len(tarjetas)} tarjetas sobre «{tema}»",
@@ -1475,10 +1557,12 @@ class MainWindow(Adw.ApplicationWindow):
         dlg.add_response("cancel", "Descartar")
         dlg.add_response("save", "Guardar las marcadas")
         dlg.set_response_appearance("save", Adw.ResponseAppearance.SUGGESTED)
-        dlg.connect("response", self.on_guardar_generadas, casillas, mazo, etiquetas)
+        dlg.connect("response", self.on_guardar_generadas, casillas, mazo,
+                    etiquetas, fuente)
         dlg.present(self)
 
-    def on_guardar_generadas(self, _d, respuesta, casillas, mazo, etiquetas="ia"):
+    def on_guardar_generadas(self, _d, respuesta, casillas, mazo, etiquetas="ia",
+                             fuente=None):
         cfg = ia.config(self.con)
         ia.hilo(lambda: ia.descargar(cfg))
         if respuesta != "save":
@@ -1487,13 +1571,44 @@ class MainWindow(Adw.ApplicationWindow):
         for marca, t in casillas:
             if not marca.get_active():
                 continue
-            db.add_card(self.con, mazo["id"], mazo["key"], "card", t["front"], t["back"],
-                        tags=etiquetas, level=2)
+            cid, _ = db.add_card(
+                self.con, mazo["id"], mazo["key"], "card", t["front"], t["back"],
+                hint=db.source_label(fuente), tags=etiquetas, level=2)
+            if fuente:
+                db.set_card_source(self.con, cid, fuente)
             n += 1
         self.con.commit()
         self.notify_user(f"{n} tarjetas guardadas en {mazo['name']}" if n
                          else "No marcaste ninguna")
         self.refresh()
+
+    def generar_desde_capitulo(self, capitulo):
+        """Propone tarjetas ancladas explícitamente al capítulo abierto."""
+        if not ia.config(self.con)["activa"]:
+            self.notify_user("Activa la IA en Ajustes para sacar tarjetas")
+            return
+        texto = libros.limpiar_texto(db._texto_body(capitulo["body"]), 9000)
+        if len(texto) < 250:
+            self.notify_user("Este capítulo casi no tiene texto para sacar tarjetas")
+            return
+        cfg = ia.config(self.con)
+        titulo = util.plain(capitulo["title"])
+        fuente = {"kind": "chapter", "chapter_uid": capitulo["uid"],
+                  "title": titulo}
+        etiquetas = ",".join(filter(None, [capitulo.get("tags", ""), "lectura", "ia"]))
+        mazo = next((d for d in db.deck_stats(self.con)
+                     if d["id"] == capitulo["deck_id"]), None)
+        if not mazo:
+            self.notify_user("El mazo de este capítulo ya no existe")
+            return
+        self.notify_user(f"Leyendo «{titulo[:45]}»…")
+        ia.hilo(
+            lambda: ia.generar_desde_texto(cfg, texto, titulo, 5),
+            lambda tarjetas: (self.revisar_generadas(
+                tarjetas, mazo, titulo, etiquetas=etiquetas, fuente=fuente),
+                ia.hilo(lambda: ia.descargar(cfg))),
+            lambda e: (self.notify_user(f"No pude sacar tarjetas: {e}"),
+                       ia.hilo(lambda: ia.descargar(cfg))))
 
     def confirm_undo_today(self):
         n = db.totals(self.con)["hoy"]
@@ -1763,6 +1878,135 @@ echo hola
                 self.biblioteca.abrir_en_pagina(libro, r.get("pagina", 1))
             else:
                 self.biblioteca.abrir(libro)
+
+    # ----------------------------------------------------------------- ayuda
+
+    def abrir_ayuda(self, key=None):
+        """F1: la guía de uso, escrita con los bloques de una lectura."""
+        dlg = Adw.Dialog(title="Ayuda")
+        dlg.set_content_width(780)
+        dlg.set_content_height(640)
+        nav = Adw.NavigationView()
+        dlg.set_child(nav)
+        nav.push(self.ayuda_indice(nav))
+        elegido = ayuda.tema(key) if key else None
+        if elegido:
+            nav.push(self.ayuda_tema(nav, elegido))
+        dlg.present(self)
+
+    def ayuda_indice(self, nav):
+        """La portada de la ayuda: una caja para buscar y los temas por bloques."""
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        entrada = Gtk.SearchEntry(placeholder_text="¿Qué quieres hacer?", hexpand=True)
+        entrada.set_margin_top(12)
+        entrada.set_margin_bottom(4)
+        entrada.set_margin_start(14)
+        entrada.set_margin_end(14)
+        caja.append(entrada)
+
+        scroll = Gtk.ScrolledWindow(vexpand=True)
+        lista = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10,
+                        margin_top=8, margin_bottom=16,
+                        margin_start=14, margin_end=14)
+        scroll.set_child(Adw.Clamp(maximum_size=680, child=lista))
+        caja.append(scroll)
+
+        def fila(t):
+            r = Adw.ActionRow(title=util.as_label(t["titulo"]),
+                              subtitle=util.as_label(t["resumen"]))
+            r.add_prefix(Gtk.Label(label=t["icono"], valign=Gtk.Align.CENTER))
+            r.set_subtitle_lines(2)
+            r.set_activatable(True)
+            r.connect("activated", lambda *_: nav.push(self.ayuda_tema(nav, t)))
+            return r
+
+        def pintar(*_):
+            while (hijo := lista.get_first_child()) is not None:
+                lista.remove(hijo)
+            texto = entrada.get_text().strip()
+            if texto:
+                encontrados = ayuda.buscar(texto)
+                if not encontrados:
+                    lista.append(Adw.StatusPage(
+                        title="Nada sobre eso",
+                        description="Prueba con otra palabra: «atajo», «sincronizar», "
+                                    "«subrayar», «IA»…",
+                        icon_name="system-search-symbolic", vexpand=True))
+                    return
+                grupo = Adw.PreferencesGroup(title=f"{len(encontrados)} temas")
+                for t in encontrados:
+                    grupo.add(fila(t))
+                lista.append(grupo)
+                return
+            for seccion, temas in ayuda.por_seccion():
+                grupo = Adw.PreferencesGroup(title=seccion)
+                for t in temas:
+                    grupo.add(fila(t))
+                lista.append(grupo)
+
+        entrada.connect("search-changed", pintar)
+        pintar()
+
+        tv = Adw.ToolbarView()
+        tv.add_top_bar(Adw.HeaderBar())
+        tv.set_content(caja)
+        return Adw.NavigationPage(title="Ayuda", child=tv, tag="ayuda")
+
+    def ayuda_tema(self, nav, t):
+        """Un tema, pintado con el mismo renderizador que los capítulos."""
+        col = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0,
+                      margin_top=10, margin_bottom=28,
+                      margin_start=18, margin_end=18)
+        col.append(Gtk.Label(label=f"{t['icono']}  {util.as_label(t['titulo'])}",
+                             use_markup=True, xalign=0, wrap=True,
+                             css_classes=["as-read-h1"]))
+        cuerpo, _diana = render_body(t["body"])
+        col.append(cuerpo)
+
+        relacionados = [x for x in (ayuda.tema(k) for k in t.get("ver", ())) if x]
+        if relacionados:
+            grupo = Adw.PreferencesGroup(title="Ver también", margin_top=22)
+            for otro in relacionados:
+                r = Adw.ActionRow(title=util.as_label(otro["titulo"]),
+                                  subtitle=util.as_label(otro["resumen"]))
+                r.add_prefix(Gtk.Label(label=otro["icono"], valign=Gtk.Align.CENTER))
+                r.set_subtitle_lines(2)
+                r.set_activatable(True)
+                r.connect("activated", lambda _f, o=otro: nav.push(self.ayuda_tema(nav, o)))
+                grupo.add(r)
+            col.append(grupo)
+
+        scroll = Gtk.ScrolledWindow(vexpand=True)
+        scroll.set_child(Adw.Clamp(maximum_size=680, child=col))
+        tv = Adw.ToolbarView()
+        tv.add_top_bar(Adw.HeaderBar())
+        tv.set_content(scroll)
+        return Adw.NavigationPage(title=util.plain(t["titulo"])[:60], child=tv)
+
+    def abrir_fuente_tarjeta(self, card) -> bool:
+        """Vuelve al capítulo o página exactos de donde nació una tarjeta."""
+        fuente = db.source_for_card(self.con, card["id"])
+        if fuente and fuente["kind"] == "chapter" and fuente.get("chapter_id"):
+            cap = db.chapter_by_id(self.con, fuente["chapter_id"])
+            if cap:
+                self.abrir_lectura(cap, buscar=f"{card['front']} {card['back']}")
+                return True
+        if fuente and fuente["kind"] == "book" and fuente.get("ruta"):
+            ruta = fuente["ruta"]
+            guardado = db.book(self.con, ruta)
+            libro = {"ruta": ruta,
+                     "nombre": (guardado["titulo"] if guardado else fuente["title"]),
+                     "tema": guardado["tema"] if guardado else "",
+                     "ext": Path(ruta).suffix.lower().lstrip(".")}
+            self.stack.set_visible_child_name("biblioteca")
+            self.biblioteca.abrir_en_pagina(libro, fuente.get("page_start") or 1)
+            return True
+        cap = db.chapter_for_card(self.con, card)
+        if cap:
+            self.abrir_lectura(cap, buscar=f"{card['front']} {card['back']}")
+            return True
+        self.stack.set_visible_child_name("leer")
+        return False
 
     # ------------------------------------------------------------ estadísticas
 
@@ -2117,6 +2361,110 @@ echo hola
         self.sync_now_row.set_subtitle("Revisa que la carpeta siga disponible")
         self.notify_user(f"No pude sincronizar: {error}")
 
+    # ------------------------------------------------------------------- nube
+
+    def pintar_nube(self):
+        """Enseña solo las filas que tocan: configurar, entrar, o ya estás dentro."""
+        listo = nube.configurada()
+        quien = nube.usuario() if listo else None
+        self.nube_falta_row.set_visible(not listo)
+        if not listo:
+            self.nube_falta_row.set_subtitle(nube.que_falta())
+        for fila in (self.nube_email, self.nube_pass, self.nube_entrar_row):
+            fila.set_visible(listo and quien is None)
+        for fila in (self.nube_cuenta_row, self.nube_sync_row, self.nube_auto):
+            fila.set_visible(quien is not None)
+        if not quien:
+            return
+        self.nube_cuenta_row.set_subtitle(quien["email"] or quien["user_id"])
+        self.nube_auto.handler_block_by_func(self.on_nube_auto)
+        self.nube_auto.set_active(nube.auto(self.con))
+        self.nube_auto.handler_unblock_by_func(self.on_nube_auto)
+        ultimo = float(db.get_meta(self.con, "nube_last", 0) or 0)
+        if ultimo and self.nube_sync_btn.get_sensitive():
+            self.nube_sync_row.set_subtitle(
+                f"Última sincronización: {respaldo.cuando(ultimo)}")
+
+    def on_nube_auto(self, fila, _p):
+        db.set_meta(self.con, "nube_auto", int(fila.get_active()))
+
+    def nube_ocupada(self, ocupada: bool, aviso: str = ""):
+        for boton in (self.nube_entrar_btn, self.nube_crear_btn, self.nube_sync_btn):
+            boton.set_sensitive(not ocupada)
+        if aviso:
+            self.nube_entrar_row.set_subtitle(aviso)
+
+    def nube_entrar(self, crear: bool = False):
+        correo = self.nube_email.get_text().strip()
+        clave = self.nube_pass.get_text()
+        self.nube_ocupada(True, "Creando la cuenta…" if crear else "Entrando…")
+        accion = nube.registrar if crear else nube.entrar
+        util.hilo(lambda: accion(correo, clave),
+                  al_terminar=self.nube_dentro, al_fallar=self.nube_fallo, largo=True)
+
+    def nube_dentro(self, datos):
+        """Ya hay sesión: se apunta la base local a esa cuenta y se sincroniza."""
+        self.nube_ocupada(False)
+        self.nube_pass.set_text("")
+        if datos is None:            # el proyecto exige confirmar el correo
+            self.nube_entrar_row.set_subtitle(
+                "Cuenta creada · confirma el correo que te acaba de llegar y entra")
+            self.notify_user("Te mandé un correo de confirmación")
+            return
+        self.nube_entrar_row.set_subtitle(
+            "Si aún no tienes cuenta, créala con ese correo")
+        ventana = self.get_application().cambiar_cuenta(datos["user_id"])
+        ventana.notify_user(f"Dentro como {datos['email']}")
+        ventana.sincronizar_nube_ahora()
+
+    def nube_fallo(self, error):
+        self.nube_ocupada(False)
+        self.nube_entrar_row.set_subtitle(str(error))
+        self.notify_user(str(error))
+
+    def nube_salir(self):
+        """Cierra la sesión. El progreso de la cuenta se queda en este equipo."""
+        # Olvidar la sesión es lo que hace que salgas: ocurre ya, aquí mismo.
+        # Avisar al servidor va aparte, porque no debe hacerte esperar.
+        ses = nube.sesion() or {}
+        nube.olvidar_sesion()
+        util.hilo(lambda: nube.revocar(ses.get("access_token")), largo=True)
+        ventana = self.get_application().cambiar_cuenta("")
+        ventana.notify_user("Sesión cerrada · tu progreso sigue aquí")
+
+    def sincronizar_nube_ahora(self):
+        if not nube.usuario():
+            return
+        self.nube_sync_btn.set_sensitive(False)
+        self.nube_sync_row.set_subtitle("Hablando con Supabase sin bloquear la ventana…")
+
+        def trabajo():
+            otra = db.connect()           # una conexión de SQLite es de su hilo
+            try:
+                return sincronizacion.sincronizar_nube(otra)
+            finally:
+                otra.close()
+
+        util.hilo(trabajo, self.on_nube_lista, self.on_nube_error, largo=True)
+
+    def on_nube_lista(self, resultado):
+        self.nube_sync_btn.set_sensitive(True)
+        db.set_meta(self.con, "nube_last", int(time.time()))
+        cambios = (resultado["tarjetas"] + resultado["capitulos"]
+                   + resultado["repasos"] + resultado["lecturas"]
+                   + resultado["borrados"])
+        self.nube_sync_row.set_subtitle(
+            f"{resultado['equipos']} equipos · {resultado['repasos']} repasos · "
+            f"{resultado['tarjetas']} tarjetas · {resultado['capitulos']} capítulos · "
+            f"{resultado['lecturas']} avances")
+        self.notify_user(f"Nube al día · {cambios} cambios recibidos")
+        self.refresh()
+
+    def on_nube_error(self, error):
+        self.nube_sync_btn.set_sensitive(True)
+        self.nube_sync_row.set_subtitle(str(error))
+        self.notify_user(f"No pude sincronizar con la nube: {error}")
+
     # ---------------------------------------------------------------- respaldo
 
     def hacer_respaldo(self):
@@ -2402,6 +2750,7 @@ echo hola
                 "Sin objetivo · " + " ".join(str(d["n"]) for d in semana)
                 + " tarjetas en los últimos siete días")
 
+        self.pintar_nube()
         carpeta_sync = str(db.get_meta(self.con, "sync_dir", "")).strip()
         self.sync_folder_row.set_subtitle(carpeta_sync or "Todavía no elegida")
         self.sync_btn.set_sensitive(bool(carpeta_sync))

@@ -112,6 +112,18 @@ class SincronizacionTest(BaseTemporal):
         sincronizacion.sincronizar(recuperada, self.compartida, EQUIPO_A)
         self.assertEqual(recuperada.execute("SELECT COUNT(*) FROM cards").fetchone()[0], 1)
 
+    def test_la_fuente_de_una_tarjeta_viaja_con_ella(self):
+        cid = self.tarjeta_a()
+        db.set_card_source(self.con, cid, {
+            "kind": "book", "ruta": "/libros/manual.pdf", "page_start": 12,
+            "page_end": 14, "title": "Manual"})
+        self.con.commit()
+        self.sync_a(); self.sync_b()
+        card_b = self.otra.execute("SELECT id FROM cards").fetchone()[0]
+        fuente = db.source_for_card(self.otra, card_b)
+        self.assertEqual((fuente["ruta"], fuente["page_start"], fuente["page_end"]),
+                         ("/libros/manual.pdf", 12, 14))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -480,12 +480,14 @@ class PopupWindow(Adw.Window):
                              xalign=0, css_classes=["as-back"], selectable=True))
 
         # Enlace a lectura si existe capítulo asociado
+        fuente = db.source_for_card(self.con, self.card["id"]) if self.card else None
         cap = db.chapter_for_card(self.con, self.card) if self.card else None
-        if cap:
+        if fuente or cap:
             btn_link = Gtk.Button(css_classes=["as-chapter-link", "flat"],
                                   halign=Gtk.Align.START)
             btn_box = Gtk.Box(spacing=6)
-            btn_box.append(Gtk.Label(label=f"📖 Leer en «{cap['title']}» →"))
+            titulo = db.source_label(fuente) if fuente else cap["title"]
+            btn_box.append(Gtk.Label(label=f"📖 Volver a «{titulo}» →"))
             btn_link.set_child(btn_box)
             btn_link.connect("clicked", lambda *_: self.open_chapter_for_card(cap))
             box.append(btn_link)
@@ -497,7 +499,7 @@ class PopupWindow(Adw.Window):
         if hasattr(app, "show_reading_for_card") and self.card:
             app.show_reading_for_card(self.card["id"])
             self.close()
-        elif hasattr(app, "show_main_window"):
+        elif cap and hasattr(app, "show_main_window"):
             app.show_main_window()
             if hasattr(app, "main_window"):
                 app.main_window.abrir_lectura(cap, buscar=f"{self.card['front']} {self.card['back']}")

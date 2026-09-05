@@ -18,8 +18,9 @@ Y encima de todo, un **indicador en la barra superior de GNOME** con lo que llev
 y lo que te falta, siempre a la vista.
 
 Los dos primeros se conectan: al terminar un capítulo, **«Practicar este capítulo»** abre el popup
-con las tarjetas de ese tema y ese nivel; y desde cualquier tarjeta, **«Sesión completa →»**
-abre el capítulo que la explica, en el párrafo exacto.
+con las tarjetas de ese tema y ese nivel; **«✦ Sacar tarjetas»** propone tarjetas
+del texto con la IA local; y desde una tarjeta, **«Volver a la fuente →»** abre
+el capítulo o página exactos de donde salió.
 
 Las fórmulas se escriben en **LaTeX** y el código sale **coloreado**; los detalles,
 en [Fórmulas y código](#fórmulas-y-código).
@@ -101,6 +102,7 @@ solo volver a abrir lo que estuviera corriendo.
 | Popup de repaso | el atajo global, desde cualquier aplicación |
 | Capturar una tarjeta | `appstudy --capture` o `Super` + `Shift` + `N` |
 | Ventana completa | `appstudy`, o «AppStudy» en el menú de aplicaciones |
+| Abrir la guía de uso | **F1**, el botón **?** de la cabecera o `appstudy --ayuda` |
 | Ver tu progreso en gráficas | pestaña **Progreso** |
 | Buscar en todo a la vez | **Ctrl+K** desde cualquier ventana |
 | Escribir un capítulo tuyo | pestaña **Leer** → «Escribir un capítulo» |
@@ -138,6 +140,30 @@ Un capítulo se marca como leído solo cuando llegas al final, o a mano con el b
 | `N` | saltar a otra tarjeta |
 | `A` | abrir la ventana completa |
 | `Esc` | cerrar |
+
+## La guía, dentro de la aplicación
+
+Con **F1**, el botón **?** de la cabecera o `appstudy --ayuda` se abre la **guía de
+uso**: trece temas cortos —los primeros diez minutos, los atajos, cómo se
+califica, cuándo vuelve cada tarjeta, las tarjetas, importar de Anki, los
+capítulos, la biblioteca, Bit, la IA local, el progreso, sincronizar y respaldar,
+y qué hacer si algo no va— agrupados en cinco bloques, con un buscador arriba y
+un «ver también» al final de cada uno. Bit también la abre desde su menú, en
+**Cómo se usa**.
+
+El buscador es el mismo criterio que el de Ctrl+K: se exigen **todas** las
+palabras y no distingue acentos ni mayúsculas, así que «sincronizacion» encuentra
+«Sincronizar y respaldar» y «teclas» lleva a los atajos. Cada tema trae además
+unas cuantas palabras por las que uno lo buscaría aunque no salgan en el texto
+(«portátil», «nextcloud», «no funciona»).
+
+Los temas viven en `appstudy/ayuda.py`, **sin nada de GTK**, y se escriben con los
+mismos bloques que un capítulo (`p`, `list`, `steps`, `code`, `note`, `warn`,
+`key`…). Los pinta `reader.render_body`, el renderizador del modo lectura: la
+ayuda se lee con la misma tipografía que lo demás y no hay una segunda forma de
+maquetar que mantener. Añadir un tema es añadir un diccionario a `TEMAS`; las
+pruebas avisan si le falta un campo, si usa un bloque que nadie sabe pintar o si
+un «ver también» apunta a un tema que no existe.
 
 ## Bit, la mascota
 
@@ -271,14 +297,18 @@ se eligen con cuidado: del mismo mazo y nivel parecido, ni calcadas a la buena
 el reto se adivinaría a ojo). Está todo en `appstudy/reto.py`, sin nada de GTK,
 para poder probarlo sin abrir una ventana.
 
-### «Sesión completa →» lleva a la lectura
+### «Volver a la fuente →» lleva a la lectura
 
-El pie del globo abre el capítulo que **explica esa tarjeta**, y no por el
-principio: se desplaza hasta el párrafo concreto y lo marca como con rotulador.
-El capítulo se elige por las etiquetas que comparte con la tarjeta, el nivel y
-las palabras en común (`db.chapter_for_card`); el párrafo, por las palabras que
-comparte con la pregunta y la respuesta (`reader._mejor_bloque`). Si no hay
-ningún capítulo que encaje, el botón abre el popup de estudio como antes.
+Las tarjetas creadas desde un capítulo, un PDF, un EPUB o un subrayado guardan
+un vínculo explícito con su origen. El pie del globo de Bit y la respuesta del
+popup vuelven a esa lectura: al párrafo del capítulo, a la página del PDF o al
+capítulo numerado del EPUB. El vínculo también viaja con la sincronización.
+
+Para las tarjetas antiguas que no tienen vínculo, se conserva la búsqueda por
+las etiquetas, el nivel y las palabras en común (`db.chapter_for_card`); el
+párrafo se elige por lo que comparte con la pregunta y la respuesta
+(`reader._mejor_bloque`). Una fuente explícita siempre gana a ese parecido para
+no mandar a un capítulo casual.
 
 Por dentro es `appstudy --read-card <id>`: la mascota vive en otro proceso, así
 que se lo pide a la aplicación principal por la línea de órdenes.
@@ -568,7 +598,8 @@ queda su ruta, la página y los minutos leídos.
 - **Modo noche**: invierte la página *en la GPU* (mezcla por diferencia), sin
   reprocesar la imagen ni gastar memoria.
 - **Copiar el texto de la página** y **✦ Tarjetas** de las páginas que tienes
-  delante, desde el mismo menú.
+  delante, desde el mismo menú. Las generadas recuerdan este libro y el tramo de
+  páginas para poder volver después.
 
 **Subrayar y anotar**
 
@@ -611,8 +642,8 @@ orden lo manda el *spine* del libro y los títulos salen de su índice.
 
 El índice completo está en el botón de la cabecera, el modo noche se aplica **sin
 recargar** (no parpadea ni pierdes por dónde ibas) y **✦ Tarjetas** saca tarjetas
-del capítulo que tienes delante. Los enlaces internos del libro se siguen dentro;
-los que apuntan fuera se abren en tu navegador.
+del capítulo que tienes delante y conserva ese capítulo como fuente. Los enlaces
+internos del libro se siguen dentro; los que apuntan fuera se abren en tu navegador.
 
 **El progreso se guarda solo**, en cada cambio de página: cierras el libro,
 vuelves mañana y sigues en la 77. Al salir también se anotan los minutos leídos.
@@ -701,6 +732,7 @@ gemma que encuentre y te lo dice.
 | En una tarjeta → **🧠 Explícamelo mejor** | te la explica con otras palabras y un ejemplo |
 | En una tarjeta → **💬 Modo chatbot** | abre una conversación nueva y sigue el hilo |
 | Tarjetas → botón ✦ | genera tarjetas sobre un tema, **tú marcas cuáles se guardan** |
+| Capítulo/PDF/EPUB → **✦ Tarjetas** | genera solo desde ese texto, deja revisarlas y conserva la fuente exacta |
 
 ### Modo chatbot
 
@@ -904,7 +936,92 @@ Cuando lo pones, aparece en tres sitios:
   una por día de la semana, en verde los días que cumpliste.
 - En **Ajustes**, cuántos de los últimos siete días cumpliste, en un vistazo.
 
+## Cuenta en la nube
+
+Tu progreso vive en **Supabase** y te sigue a cualquier equipo donde entres. Se
+entra **una sola vez por equipo**: la sesión queda guardada y se renueva sola al
+abrir, así que no vuelves a escribir la contraseña.
+
+### Ponerlo en marcha
+
+1. Abre [`supabase/esquema.sql`](supabase/esquema.sql), **copia su contenido**
+   (no la ruta del archivo) y pégalo en el panel de Supabase, en **SQL Editor →
+   New query → Run**. Crea la tabla `sync_snapshots`, su política RLS y su
+   trigger. Se puede repetir cuantas veces quieras: solo crea lo que falte.
+2. En **Project Settings → API Keys**, copia la clave **pública** —la que
+   empieza por `sb_publishable_`, o la JWT etiquetada `anon / public` si tu
+   proyecto usa las claves antiguas— y ponla en el `.env` de la raíz:
+
+   ```ini
+   db_database='postgresql://postgres:…@db.<referencia>.supabase.co:5432/postgres'
+   SUPABASE_ANON_KEY='eyJhbGciOi…'
+   ```
+
+   **No uses la clave secreta** (`sb_secret_…`, antes `service_role`): se salta
+   las políticas RLS, así que con ella cualquiera que tenga el archivo vería los
+   datos de todos los usuarios. Están juntas en el panel y confundirlas es fácil,
+   por eso AppStudy la reconoce, se niega a mandar una sola petición con ella y
+   te lo dice en Ajustes.
+
+   La URL del proyecto se deduce sola del URI de arriba; si prefieres darla
+   aparte, `SUPABASE_URL` manda sobre lo deducido. El `.env` no entra en el
+   repositorio, y también se busca en `~/.config/appstudy/.env` para una copia
+   instalada.
+3. En **Ajustes → Cuenta en la nube**, escribe tu correo y contraseña y pulsa
+   **Crear cuenta** la primera vez, **Entrar** las siguientes.
+
+Mientras falte algo, esa sección dice exactamente qué variable poner y dónde.
+
+### Cada usuario, sus datos
+
+La separación la impone Postgres, no la aplicación: las políticas RLS de
+`sync_snapshots` atan cada fila a `auth.uid()`, así que dos personas pueden
+compartir el mismo proyecto de Supabase sin verse nada. En local pasa lo mismo,
+cada cuenta tiene su propio archivo:
+
+```
+~/.local/share/appstudy/appstudy.db                    sin cuenta
+~/.local/share/appstudy/cuentas/<uuid>/appstudy.db     con cuenta
+```
+
+Al entrar por primera vez en un equipo que ya usabas sin cuenta, tus meses de
+repasos pasan a ser los de esa cuenta y suben a la nube: no te encuentras una
+base vacía. Solo hereda la **primera** cuenta del equipo; quien se siente
+después arranca limpio. Cambiar de cuenta cierra y vuelve a abrir la ventana,
+porque las ventanas guardan la conexión con la que nacieron.
+
+**Salir** solo cierra la sesión: el progreso de esa cuenta se queda en el
+equipo, y al volver a entrar sigue ahí.
+
+### Qué sube y cuándo
+
+Sube lo mismo que la carpeta compartida —mazos, tarjetas y capítulos propios,
+estado FSRS, historial de repasos, avance de lectura y el origen de cada
+tarjeta— porque es el mismo snapshot y la misma fusión. Cada equipo guarda **una**
+fila con su snapshot; nadie escribe la del otro.
+
+Con **Sincronizar sola al abrir y al cerrar** puesto (de fábrica lo está), se
+fusiona al arrancar y se sube al cerrar, para que no tengas que acordarte antes
+de cambiar de equipo. Al cerrar solo sube —una petición, sin bajar nada— para no
+retrasar la salida. Si no hay red no pasa nada: se estudia igual y se sube en el
+próximo arranque. El botón **Sincronizar** hace la fusión completa cuando tú
+quieras.
+
+Todo esto habla por HTTPS con `urllib` de la biblioteca estándar: **no añade
+dependencias** ni hace falta un driver de Postgres. La conexión directa a
+Postgres del `.env` no se usa —ese host solo resuelve por IPv6 y esa contraseña
+es la del superusuario, que se salta RLS—, y la clave `anon` es pública por
+diseño: sin haber entrado no da acceso a nada.
+
+Los snapshots viajan por TLS pero se guardan en claro en tu propio proyecto, y
+hay un límite de 8 MB por equipo; una biblioteca más grande que eso va por la
+carpeta compartida, que no tiene ese tope.
+
 ## Sincronización entre equipos
+
+La alternativa a la cuenta en la nube, sin registrarte en ningún sitio y sin que
+tus tarjetas salgan de tus discos. Las dos usan la misma fusión y pueden
+convivir.
 
 En **Ajustes → Sincronización entre equipos** eliges una carpeta compartida por
 Nextcloud, Syncthing, Dropbox o una memoria y pulsas **Sincronizar**. AppStudy
@@ -927,7 +1044,9 @@ sensibles.
 ## Respaldo
 
 Todo tu progreso —tarjetas, repasos, racha, libros y por dónde ibas— vive en un
-solo archivo SQLite: `~/.local/share/appstudy/appstudy.db`.
+solo archivo SQLite: `~/.local/share/appstudy/appstudy.db`, o el de tu cuenta si
+entraste con una (ver «Cuenta en la nube»). **Ajustes → Contenido** enseña la
+ruta exacta de la que estás usando.
 
 En **Ajustes → Respaldo**:
 
@@ -961,12 +1080,13 @@ los de «antes de restaurar» no se borran nunca.
 ./pruebas.sh scheduler    # solo las del planificador
 ```
 
-455 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
+474 pruebas sobre lo que no lleva interfaz: el modelo de memoria FSRS y su
 calibración, el planificador, las sanguijuelas, el deshacer, el objetivo diario,
 las tarjetas de huecos, las series de la pestaña Progreso, los logros, los seis
 formatos de reto, las fórmulas en LaTeX, los subrayados, la lectura de EPUB, el
 Markdown de tus capítulos, la búsqueda global, los recordatorios, la
-sincronización, el respaldo y la validez del contenido incluido. No hace falta
+sincronización, el respaldo, la guía de uso y la validez del contenido
+incluido. No hace falta
 instalar nada más — son
 `unittest` de la biblioteca estándar — y ninguna toca tu progreso real: cada
 caso arranca con una base vacía en un directorio temporal. Los detalles, en

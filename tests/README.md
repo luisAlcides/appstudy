@@ -19,6 +19,7 @@ también las corre (`pytest tests/`), porque reconoce las clases de `unittest`.
 | `test_hotkey.py` | El formato y la separación entre los atajos globales de repaso y captura rápida |
 | `test_recordatorios.py` | Los días permitidos, las franjas normales y nocturnas, los límites y el guardado atómico de recordatorios |
 | `test_sincronizacion.py` | La fusión entre dos bases sin IDs compartidos, los conflictos, borrados, repasos duplicados, avances y archivos corruptos |
+| `test_nube.py` | La cuenta en la nube: cómo se leen los ajustes del `.env`, que la sesión guardada sobreviva y se renueve sola, que un fallo de red no te eche, que cada cuenta tenga su base y que dos equipos converjan por Supabase |
 | `test_progreso.py` | Las sanguijuelas, el deshacer de un solo repaso, el objetivo diario y la migración desde el SM-2 anterior |
 | `test_cloze.py` | Las tarjetas de huecos: tapar y destapar sin perder nada, las pistas, y el texto completo tal como se escribió |
 | `test_reto.py` | Los seis formatos de reto, y sobre todo que las opciones falsas no se adivinen a ojo ni sean calcadas a la buena |
@@ -29,6 +30,8 @@ también las corre (`pytest tests/`), porque reconoce las clases de `unittest`.
 | `test_lecturas.py` | El Markdown de tus capítulos: que cada cosa acabe en su bloque, la ida y vuelta sin pérdidas, y que recargar lo de fábrica no borre lo tuyo |
 | `test_buscador.py` | La búsqueda de Ctrl+K: conceptos y flexiones locales, exigencia de todos los términos, acentos y orden por relevancia literal antes que relacionada |
 | `test_notas.py` | Los subrayados (coordenadas relativas, colores, notas) y la lectura de EPUB, incluido que un ZIP con rutas de escape no escriba fuera de su carpeta |
+| `test_fuentes.py` | El vínculo explícito de una tarjeta con un capítulo o páginas de libro, su etiqueta, prioridad sobre parecidos y borrado en cascada |
+| `test_ayuda.py` | La guía de uso: que ningún tema quede a medias ni use un bloque que el lector no sabe pintar, que los «ver también» existan y que se encuentre por como lo diría uno |
 | `test_contenido.py` | Que los JSON de fábrica sean importables: niveles en rango, enunciados sin repetir, retos con respuesta correcta, huecos con hueco |
 
 Varias pruebas de `test_fsrs.py` comprueban **propiedades**, no números

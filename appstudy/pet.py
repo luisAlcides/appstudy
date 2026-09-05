@@ -1308,7 +1308,7 @@ class PetWindow(Gtk.ApplicationWindow):
         self.stats = {}
         self.ultimas_citas = []     # para no repetir la misma frase seguida
 
-        # Retos: el que está en marcha, su cuenta atrás y el capítulo que explica
+        # Retos: el que está en marcha, su cuenta atrás y la fuente que explica
         # la tarjeta (se calcula una vez y se guarda, que mirar la base cuesta).
         self.reto = None
         self.reto_timer = None
@@ -2484,25 +2484,30 @@ class PetWindow(Gtk.ApplicationWindow):
 
     # --------------------------------------------------------- leer sobre esto
 
-    def capitulo_de(self, card):
-        """El capítulo que explica la tarjeta, calculado una sola vez por tarjeta."""
+    def fuente_de(self, card):
+        """Capítulo o libro de origen, calculado una sola vez por tarjeta."""
         if not card:
             return None
         if self.cap_cache[0] != card["id"]:
-            self.cap_cache = (card["id"], db.chapter_for_card(self.con, card))
+            fuente = db.source_for_card(self.con, card["id"])
+            if not fuente:
+                cap = db.chapter_for_card(self.con, card)
+                fuente = ({"kind": "chapter", "title": cap["title"], "chapter": cap}
+                          if cap else None)
+            self.cap_cache = (card["id"], fuente)
         return self.cap_cache[1]
 
     def pie_leer(self):
         """El pie del globo: abre la lectura justo donde se explica esto."""
-        cap = self.capitulo_de(self.card)
+        fuente = self.fuente_de(self.card)
         b = Gtk.Button(css_classes=["flat", "as-bubble-link"])
-        if cap is None:
+        if fuente is None:
             b.set_label("Sesión completa →")
             b.connect("clicked", lambda *_: self.study())
             return b
-        titulo = util.plain(cap["title"])
-        b.set_label(f"Sesión completa → {titulo[:26]}{'…' if len(titulo) > 26 else ''}")
-        b.set_tooltip_text(f"Abre «{titulo}» en Leer, donde se explica esto")
+        titulo = util.plain(db.source_label(fuente))
+        b.set_label(f"Volver a la fuente → {titulo[:26]}{'…' if len(titulo) > 26 else ''}")
+        b.set_tooltip_text(f"Abre «{titulo}», de donde salió esta tarjeta")
         b.connect("clicked", lambda *_: self.leer_sobre_esto())
         return b
 
@@ -2557,6 +2562,7 @@ class PetWindow(Gtk.ApplicationWindow):
         seccion.append("Cómo va la semana", "win.diario")
         seccion.append("Sesión de estudio", "win.study")
         seccion.append("Abrir AppStudy", "win.open")
+        seccion.append("Cómo se usa", "win.ayuda")
         m.append_section(None, seccion)
 
         tamano = Gio.Menu()
@@ -2591,6 +2597,7 @@ class PetWindow(Gtk.ApplicationWindow):
                            ("diario", lambda *_: (self.wake(), self.diario())),
                            ("study", lambda *_: self.study()),
                            ("open", lambda *_: self.open_main()),
+                           ("ayuda", lambda *_: self.abrir_ayuda()),
                            ("mute", lambda *_: self.alternar_sonido()),
                            ("card_bigger", lambda *_: self.cambiar_tamano_tarjeta(0.15)),
                            ("card_smaller", lambda *_: self.cambiar_tamano_tarjeta(-0.15)),
@@ -2634,6 +2641,11 @@ class PetWindow(Gtk.ApplicationWindow):
     def open_main(self):
         self.close_bubble()
         self.spawn()
+
+    def abrir_ayuda(self):
+        """La guía de uso vive en la ventana principal, que es otro proceso."""
+        self.close_bubble()
+        self.spawn("--ayuda")
 
 
 # ------------------------------------------------------------------- autostart

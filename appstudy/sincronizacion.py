@@ -16,7 +16,7 @@ import time
 import uuid
 from pathlib import Path
 
-from . import db
+from . import db, nube
 
 FORMATO = 1
 MAX_ARCHIVOS = 32
@@ -98,10 +98,14 @@ def snapshot(con, equipo: str | None = None, ahora: float | None = None) -> dict
            JOIN chapters c ON c.id=r.chapter_id WHERE r.ts>0 OR r.avance>0""")
     changes = _filas(con,
         "SELECT entity,uid,modified,deleted FROM sync_changes")
+    sources = _filas(con,
+        """SELECT c.uid AS card_uid,s.kind,s.chapter_uid,s.ruta,s.page_start,
+                  s.page_end,s.title FROM card_sources s
+           JOIN cards c ON c.id=s.card_id WHERE c.builtin=0""")
     return {"format": FORMATO, "device": equipo, "generated": ahora,
             "decks": decks, "cards": cards, "chapters": chapters,
             "states": states, "logs": logs, "reading": reading,
-            "changes": changes}
+            "changes": changes, "sources": sources}
 
 
 def _guardar_snapshot(datos: dict, carpeta: Path) -> Path:
@@ -127,11 +131,17 @@ def _guardar_snapshot(datos: dict, carpeta: Path) -> Path:
 def _leer(ruta: Path) -> dict:
     if not ruta.is_file() or ruta.stat().st_size > MAX_BYTES:
         raise ValueError("archivo demasiado grande o no regular")
-    datos = json.loads(ruta.read_text(encoding="utf-8"))
+    return validar(json.loads(ruta.read_text(encoding="utf-8")))
+
+
+def validar(datos) -> dict:
+    """Comprueba un snapshot venga de donde venga: de la carpeta o de la nube."""
     if (not isinstance(datos, dict) or datos.get("format") != FORMATO
             or not _DISPOSITIVO.fullmatch(str(datos.get("device", "")))):
         raise ValueError("formato de sincronización no válido")
-    for clave in ("decks", "cards", "chapters", "states", "logs", "reading", "changes"):
+    datos.setdefault("sources", [])       # compatible con los primeros archivos v1
+    for clave in ("decks", "cards", "chapters", "states", "logs", "reading",
+                  "changes", "sources"):
         if not isinstance(datos.get(clave), list) or len(datos[clave]) > MAX_ELEMENTOS:
             raise ValueError(f"sección {clave} no válida")
     return datos
@@ -207,37 +217,24 @@ def _aplicar_chapter(con, item: dict, mazo: dict | None):
     con.execute("INSERT OR IGNORE INTO reading(chapter_id) VALUES(?)", (cid,))
 
 
-def sincronizar(con, carpeta, equipo: str | None = None) -> dict:
-    """Fusiona la carpeta con `con` y devuelve contadores para la interfaz."""
-    carpeta = Path(carpeta)
-    equipo = equipo or dispositivo()
+def fusionar(con, remotos: list[dict], equipo: str) -> dict:
+    """Mete en `con` lo que traigan esos snapshots y devuelve los contadores.
+
+    No toca ni disco ni red: es la parte común de la carpeta compartida y de la
+    nube, y por eso se puede probar sin ninguna de las dos. El criterio no
+    cambia según de dónde vengan los datos: gana el reloj más reciente por
+    elemento, los repasos se suman como eventos y nada se sobrescribe a ciegas.
+    """
     if not _DISPOSITIVO.fullmatch(equipo):
         raise ValueError("Identificador de equipo no válido")
-    carpeta.mkdir(parents=True, exist_ok=True)
-    ahora = time.time()
-    _versiones_iniciales(con, ahora)
+    _versiones_iniciales(con, time.time())
     con.commit()
-
-    candidatas, ignorados = [], 0
-    for ruta in carpeta.glob("appstudy-*.sync.json"):
-        try:
-            candidatas.append((ruta.stat().st_mtime, ruta))
-        except OSError:
-            ignorados += 1
-    rutas = [r for _mtime, r in sorted(
-        candidatas, key=lambda x: x[0], reverse=True)[:MAX_ARCHIVOS]]
-    remotos = []
-    for ruta in rutas:
-        try:
-            remotos.append(_leer(ruta))
-        except (OSError, ValueError, TypeError, json.JSONDecodeError):
-            ignorados += 1
 
     otros_equipos = len({r["device"] for r in remotos if r["device"] != equipo})
     resultado = {"equipos": otros_equipos, "tarjetas": 0, "capitulos": 0,
-                 "borrados": 0, "repasos": 0, "lecturas": 0,
-                 "ignorados": ignorados}
-    candidatos: dict[tuple[str, str], tuple[float, float, bool, dict | None, dict]] = {}
+                 "borrados": 0, "repasos": 0, "lecturas": 0}
+    candidatos: dict[tuple[str, str], tuple[float, float, bool, dict | None,
+                                            dict, dict | None]] = {}
     estados: dict[str, tuple[float, float, dict]] = {}
     lecturas: dict[str, tuple[float, float, dict]] = {}
 
@@ -245,6 +242,8 @@ def sincronizar(con, carpeta, equipo: str | None = None) -> dict:
         generado = float(remoto.get("generated") or 0)
         cards = {str(x.get("uid")): x for x in remoto["cards"] if x.get("uid")}
         chapters = {str(x.get("uid")): x for x in remoto["chapters"] if x.get("uid")}
+        sources = {str(x.get("card_uid")): x for x in remoto["sources"]
+                   if x.get("card_uid")}
         mazos = _mazos(remoto["decks"])
         for cambio in remoto["changes"]:
             entity, uid = str(cambio.get("entity", "")), str(cambio.get("uid", ""))
@@ -256,8 +255,11 @@ def sincronizar(con, carpeta, equipo: str | None = None) -> dict:
             if not borrado and item is None:
                 continue
             clave = (entity, uid)
-            if (mod, generado) > candidatos.get(clave, (-1, -1, False, None, {}))[:2]:
-                candidatos[clave] = (mod, generado, borrado, item, mazos)
+            if (mod, generado) > candidatos.get(
+                    clave, (-1, -1, False, None, {}, None))[:2]:
+                candidatos[clave] = (
+                    mod, generado, borrado, item, mazos,
+                    sources.get(uid) if entity == "card" else None)
         for st in remoto["states"]:
             uid = str(st.get("uid", "")); last = float(st.get("last") or 0)
             if uid and (last, generado) > estados.get(uid, (-1, -1, {}))[:2]:
@@ -269,7 +271,7 @@ def sincronizar(con, carpeta, equipo: str | None = None) -> dict:
 
     try:
         con.execute("BEGIN IMMEDIATE")
-        for (entity, uid), (mod, _gen, borrado, item, mazos) in candidatos.items():
+        for (entity, uid), (mod, _gen, borrado, item, mazos, source) in candidatos.items():
             local_mod, _local_borrado = _version_local(con, entity, uid)
             if mod <= local_mod:
                 continue
@@ -279,6 +281,9 @@ def sincronizar(con, carpeta, equipo: str | None = None) -> dict:
                 resultado["borrados"] += 1
             elif entity == "card":
                 _aplicar_card(con, item, mazos.get(str(item.get("deck_key"))))
+                if source:
+                    cid = con.execute("SELECT id FROM cards WHERE uid=?", (uid,)).fetchone()["id"]
+                    db.set_card_source(con, cid, source, touch=False)
                 resultado["tarjetas"] += 1
             else:
                 _aplicar_chapter(con, item, mazos.get(str(item.get("deck_key"))))
@@ -340,8 +345,81 @@ def sincronizar(con, carpeta, equipo: str | None = None) -> dict:
     except Exception:
         con.rollback()
         raise
+    return resultado
 
-    datos = snapshot(con, equipo)
-    resultado["ruta"] = _guardar_snapshot(datos, carpeta)
+
+def sincronizar(con, carpeta, equipo: str | None = None) -> dict:
+    """Fusiona la carpeta compartida con `con` y publica el estado resultante."""
+    carpeta = Path(carpeta)
+    equipo = equipo or dispositivo()
+    if not _DISPOSITIVO.fullmatch(equipo):
+        raise ValueError("Identificador de equipo no válido")
+    carpeta.mkdir(parents=True, exist_ok=True)
+
+    candidatas, ignorados = [], 0
+    for ruta in carpeta.glob("appstudy-*.sync.json"):
+        try:
+            candidatas.append((ruta.stat().st_mtime, ruta))
+        except OSError:
+            ignorados += 1
+    rutas = [r for _mtime, r in sorted(
+        candidatas, key=lambda x: x[0], reverse=True)[:MAX_ARCHIVOS]]
+    remotos = []
+    for ruta in rutas:
+        try:
+            remotos.append(_leer(ruta))
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            ignorados += 1
+
+    resultado = fusionar(con, remotos, equipo)
+    resultado["ignorados"] = ignorados
+    resultado["ruta"] = _guardar_snapshot(snapshot(con, equipo), carpeta)
     con.commit()
     return resultado
+
+
+def sincronizar_nube(con, equipo: str | None = None) -> dict:
+    """Lo mismo que `sincronizar`, pero contra tu cuenta de Supabase.
+
+    Baja los snapshots de tus otros equipos, los fusiona con la misma lógica de
+    siempre y vuelve a subir el de este. Como la fusión no reemplaza nada, dos
+    equipos que sincronizan a destiempo acaban igual: por eso da igual el orden
+    en que enciendas cada uno.
+    """
+    equipo = equipo or dispositivo()
+    if not _DISPOSITIVO.fullmatch(equipo):
+        raise ValueError("Identificador de equipo no válido")
+
+    remotos, ignorados = [], 0
+    for datos in nube.descargar_snapshots():
+        try:
+            remotos.append(validar(datos))
+        except (ValueError, TypeError):
+            ignorados += 1                 # de una versión más nueva del formato
+
+    resultado = fusionar(con, remotos, equipo)
+    resultado["ignorados"] = ignorados
+    nube.subir_snapshot(snapshot(con, equipo))
+    con.commit()
+    return resultado
+
+
+def publicar_nube(con, equipo: str | None = None,
+                  limite: float = nube.LIMITE_CIERRE):
+    """Sube el estado de este equipo sin bajar nada. Es lo que se hace al cerrar.
+
+    Fusionar al salir tardaría demasiado para una ventana que se está cerrando;
+    subir es una sola petición y basta para que lo estudiado hoy esté ya en la
+    nube cuando enciendas el otro equipo.
+
+    `limite` es el presupuesto para *todo* esto, renovar el token incluido: con
+    la red caída, cerrar la aplicación tarda eso y no una espera por petición.
+    """
+    equipo = equipo or dispositivo()
+    if not _DISPOSITIVO.fullmatch(equipo):
+        raise ValueError("Identificador de equipo no válido")
+    fin = time.monotonic() + limite
+    queda = lambda: max(1.0, fin - time.monotonic())      # noqa: E731
+    acceso = nube.token(espera=queda())
+    nube.subir_snapshot(snapshot(con, equipo), espera=queda(), acceso=acceso)
+    con.commit()

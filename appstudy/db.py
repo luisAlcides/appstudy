@@ -10,6 +10,9 @@ from pathlib import Path
 DATA_DIR = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "appstudy"
 DB_PATH = DATA_DIR / "appstudy.db"
 
+# Identificador de la cuenta de Supabase cuyos datos se están usando. Un UUID.
+_CUENTA = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS decks (
     id      INTEGER PRIMARY KEY,
@@ -127,6 +130,18 @@ CREATE TABLE IF NOT EXISTS sync_changes (
     PRIMARY KEY(entity, uid)
 );
 
+-- Origen explícito de una tarjeta creada desde una lectura. Se guarda el UID
+-- del capítulo (portable entre equipos) o la ruta y páginas del libro local.
+CREATE TABLE IF NOT EXISTS card_sources (
+    card_id     INTEGER PRIMARY KEY REFERENCES cards(id) ON DELETE CASCADE,
+    kind        TEXT NOT NULL,
+    chapter_uid TEXT NOT NULL DEFAULT '',
+    ruta        TEXT NOT NULL DEFAULT '',
+    page_start  INTEGER NOT NULL DEFAULT 0,
+    page_end    INTEGER NOT NULL DEFAULT 0,
+    title       TEXT NOT NULL DEFAULT ''
+);
+
 """
 
 INDEXES = """
@@ -138,6 +153,7 @@ CREATE INDEX IF NOT EXISTS idx_log_ts      ON log(ts);
 CREATE INDEX IF NOT EXISTS idx_chap_deck   ON chapters(deck_id, level, pos);
 CREATE INDEX IF NOT EXISTS idx_books_abierto ON books(abierto DESC);
 CREATE INDEX IF NOT EXISTS idx_notas_libro  ON notas(ruta, pagina);
+CREATE INDEX IF NOT EXISTS idx_sources_chapter ON card_sources(chapter_uid);
 """
 
 
@@ -145,12 +161,83 @@ def uid_for(deck_key: str, front: str) -> str:
     return hashlib.sha1(f"{deck_key}\x00{front.strip()}".encode()).hexdigest()[:16]
 
 
+def _archivo_cuenta() -> Path:
+    return DATA_DIR / "cuenta-activa"
+
+
+def cuenta_activa() -> str:
+    """UID de la cuenta que está usando este equipo; vacío si estudias sin cuenta."""
+    try:
+        valor = _archivo_cuenta().read_text(encoding="ascii").strip().lower()
+    except (OSError, ValueError):      # no está, o no es ni texto ascii
+        return ""
+    return valor if _CUENTA.fullmatch(valor) else ""
+
+
+def usar_cuenta(uid: str):
+    """Apunta la base local a la de esa cuenta. Cadena vacía vuelve a la de nadie.
+
+    Cada cuenta tiene su propio archivo, así que dos personas que compartan el
+    equipo no se ven el progreso ni se lo pisan. El cambio solo surte efecto en
+    la siguiente `connect()`: quien la llama tiene que reconectar.
+    """
+    ruta = _archivo_cuenta()
+    uid = (uid or "").strip().lower()
+    if uid and not _CUENTA.fullmatch(uid):
+        raise ValueError("Identificador de cuenta no válido")
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    if uid:
+        ruta.write_text(uid + "\n", encoding="ascii")
+    else:
+        ruta.unlink(missing_ok=True)
+
+
+def ruta_db() -> Path:
+    """El archivo de la cuenta activa, o el de siempre si no hay ninguna."""
+    uid = cuenta_activa()
+    return DB_PATH if not uid else DATA_DIR / "cuentas" / uid / "appstudy.db"
+
+
+def adoptar_cuenta(uid: str) -> bool:
+    """Entrega a esa cuenta el progreso que ya había en el equipo sin dueño.
+
+    Al entrar por primera vez en un equipo que llevabas usando sin cuenta, lo
+    lógico es que tus meses de repasos pasen a ser los de tu cuenta y suban a
+    la nube, no que te encuentres una base vacía. Solo ocurre con la primera
+    cuenta del equipo: a partir de ahí cada una arranca limpia, que es lo que
+    espera quien se sienta después en la misma computadora.
+
+    Devuelve True si hubo algo que adoptar.
+    """
+    if not _CUENTA.fullmatch((uid or "").strip().lower()):
+        raise ValueError("Identificador de cuenta no válido")
+    cuentas = DATA_DIR / "cuentas"
+    if cuentas.exists() or not DB_PATH.exists():
+        return False
+    destino = cuentas / uid / "appstudy.db"
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    # Se copia con el backup de SQLite, no con `cp`: así entra también lo que
+    # todavía viva en el WAL y la copia queda consistente.
+    origen = sqlite3.connect(DB_PATH)
+    otra = sqlite3.connect(destino)
+    try:
+        origen.backup(otra)
+    finally:
+        otra.close()
+        origen.close()
+    return True
+
+
 def connect() -> sqlite3.Connection:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(DB_PATH)
+    ruta = ruta_db()
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    con = sqlite3.connect(ruta)
     con.row_factory = sqlite3.Row
     con.execute("PRAGMA foreign_keys = ON")
     con.execute("PRAGMA journal_mode = WAL")
+    # La sincronización escribe desde otro hilo con su propia conexión: mejor
+    # esperar unos segundos a que el otro suelte la base que fallar al momento.
+    con.execute("PRAGMA busy_timeout = 5000")
     con.executescript(SCHEMA)
     migrate(con)
     con.executescript(INDEXES)
@@ -332,6 +419,17 @@ def chapters(con, deck_id=None):
     return [dict(r) for r in con.execute(sql, args)]
 
 
+def chapter_by_id(con, chapter_id: int) -> dict | None:
+    """Un solo capítulo con su mazo; evita recorrer toda la biblioteca al volver."""
+    fila = con.execute(
+        """SELECT c.*,d.key AS deck_key,d.name AS deck_name,d.icon AS deck_icon,
+                  d.color AS deck_color,d.levels AS deck_levels,r.leido,r.avance
+           FROM chapters c JOIN decks d ON d.id=c.deck_id
+           LEFT JOIN reading r ON r.chapter_id=c.id WHERE c.id=?""",
+        (chapter_id,)).fetchone()
+    return dict(fila) if fila else None
+
+
 # Para emparejar una tarjeta con el capítulo que la explica: se comparan
 # palabras de cuatro letras o más, que son las que llevan el significado.
 _ETIQUETA = re.compile(r"<[^>]+>")
@@ -383,6 +481,11 @@ def chapter_for_card(con, card):
     """
     if not card:
         return None
+    fuente = source_for_card(con, card["id"])
+    if fuente and fuente["kind"] == "chapter" and fuente.get("chapter_id"):
+        return chapter_by_id(con, fuente["chapter_id"])
+    if fuente:
+        return None                    # un libro explícito gana al parecido casual
     etiquetas = {t.strip().lower() for t in (card["tags"] or "").split(",") if t.strip()}
     busca = _palabras(f"{card['front']} {card['back']}")
     mejor, mejor_puntos = None, 0.0
@@ -398,6 +501,47 @@ def chapter_for_card(con, card):
             mejor, mejor_puntos = cap, puntos
     # Por debajo de esto el parecido es casualidad y más vale no prometer nada
     return mejor if mejor_puntos >= 1.5 else None
+
+
+def set_card_source(con, card_id: int, source: dict, touch: bool = True):
+    """Asocia una tarjeta a su capítulo o tramo de libro, sin commit propio."""
+    kind = "chapter" if source.get("kind") == "chapter" else "book"
+    con.execute(
+        """INSERT INTO card_sources(card_id,kind,chapter_uid,ruta,page_start,page_end,title)
+           VALUES(?,?,?,?,?,?,?)
+           ON CONFLICT(card_id) DO UPDATE SET kind=excluded.kind,
+             chapter_uid=excluded.chapter_uid,ruta=excluded.ruta,
+             page_start=excluded.page_start,page_end=excluded.page_end,title=excluded.title""",
+        (card_id, kind, str(source.get("chapter_uid") or ""),
+         str(source.get("ruta") or ""), max(0, int(source.get("page_start") or 0)),
+         max(0, int(source.get("page_end") or source.get("page_start") or 0)),
+         str(source.get("title") or "")))
+    if touch:
+        fila = con.execute("SELECT uid,builtin FROM cards WHERE id=?", (card_id,)).fetchone()
+        if fila and not fila["builtin"]:
+            touch_sync(con, "card", fila["uid"])
+
+
+def source_for_card(con, card_id: int) -> dict | None:
+    fila = con.execute(
+        """SELECT s.*,ch.id AS chapter_id FROM card_sources s
+           LEFT JOIN chapters ch ON ch.uid=s.chapter_uid WHERE s.card_id=?""",
+        (card_id,)).fetchone()
+    return dict(fila) if fila else None
+
+
+def source_label(source: dict | None) -> str:
+    if not source:
+        return ""
+    titulo = str(source.get("title") or "Lectura")
+    if source.get("kind") == "chapter":
+        return titulo
+    inicio, fin = int(source.get("page_start") or 0), int(source.get("page_end") or 0)
+    if inicio and fin and fin != inicio:
+        return f"{titulo} · págs. {inicio}–{fin}"
+    if inicio:
+        return f"{titulo} · pág. {inicio}"
+    return titulo
 
 
 def mark_read(con, chapter_id, leido=True):

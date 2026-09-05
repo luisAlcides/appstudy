@@ -317,9 +317,18 @@ class Biblioteca(Adw.Bin):
                                  "puedo sacar tarjetas, pero no pasarte las hojas")
 
     def abrir_en_pagina(self, libro, pagina):
-        """Abre el libro directamente en una página: es a donde lleva un subrayado."""
+        """Abre un PDF en su página o un EPUB en su capítulo numerado."""
         if libro["ext"] == "pdf":
             lector = Lector(self, libro)
+            self.nav.push(lector.pagina)
+            GLib.idle_add(lector.ir, pagina)
+            return
+        if libro["ext"] == "epub" and HAY_WEBKIT:
+            try:
+                lector = LectorEpub(self, libro)
+            except libros.LibroError as e:
+                self.ventana.notify_user(str(e))
+                return
             self.nav.push(lector.pagina)
             GLib.idle_add(lector.ir, pagina)
             return
@@ -582,13 +591,17 @@ class LectorEpub:
             return
         cfg = ia.config(self.con)
         libro, titulo = self.libro, cap["titulo"]
+        fuente = {"kind": "book", "ruta": libro["ruta"],
+                  "page_start": self.n, "page_end": self.n,
+                  "title": libro["nombre"]}
         self.bib.ventana.notify_user(f"Leyendo «{titulo[:40]}»…")
 
         util.hilo(
             lambda: ia.generar_desde_texto(cfg, texto, f"{libro['nombre']} · {titulo}", 5),
             lambda tarjetas: (self.bib.ventana.revisar_generadas(
                 tarjetas, libros.mazo_para(self.con, libro),
-                f"{libro['nombre']} · {titulo}", etiquetas="libro,ia"),
+                f"{libro['nombre']} · {titulo}", etiquetas="libro,ia",
+                fuente=fuente),
                 ia.hilo(lambda: ia.descargar(cfg))),
             lambda e: (self.bib.ventana.notify_user(f"No pude: {e}"),
                        ia.hilo(lambda: ia.descargar(cfg))),
@@ -1436,7 +1449,10 @@ class Lector:
         util.hilo(trabajo,
                   lambda tarjetas: (self.bib.ventana.revisar_generadas(
                       tarjetas, libros.mazo_para(self.con, libro),
-                      f"{libro['nombre']} · págs. {desde}–{hasta}", etiquetas="libro,ia"),
+                      f"{libro['nombre']} · págs. {desde}–{hasta}", etiquetas="libro,ia",
+                      fuente={"kind": "book", "ruta": libro["ruta"],
+                              "page_start": desde, "page_end": hasta,
+                              "title": libro["nombre"]}),
                       ia.hilo(lambda: ia.descargar(cfg))),
                   lambda e: (self.bib.ventana.notify_user(f"No pude: {e}"),
                              ia.hilo(lambda: ia.descargar(cfg))),
