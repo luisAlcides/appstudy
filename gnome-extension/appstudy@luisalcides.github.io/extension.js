@@ -209,6 +209,7 @@ class Indicador extends PanelMenu.Button {
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
         this._accion('Estudiar ahora', () => lanzar(['--popup']));
         this._accion('Abrir AppStudy', () => lanzar([]));
+        this._accion('Reiniciar', () => this.reiniciar());
 
         this._mascota = new PopupMenu.PopupSwitchMenuItem('Bit en el escritorio', false);
         this._mascota.connect('toggled', (_i, activo) => {
@@ -223,6 +224,22 @@ class Indicador extends PanelMenu.Button {
             });
         });
         this.menu.addMenuItem(this._mascota);
+    }
+
+    reiniciar() {
+        consultar(['--status'], estado => {
+            const teniaMascota = estado && !!estado.mascota;
+            consultar(['--reload'], () => {
+                consultar(['--pet-off'], () => {
+                    if (teniaMascota)
+                        lanzar(['--pet']);
+                    GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 1, () => {
+                        this.refrescar();
+                        return GLib.SOURCE_REMOVE;
+                    });
+                });
+            });
+        });
     }
 
     _accion(texto, cb) {

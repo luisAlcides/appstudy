@@ -28,8 +28,9 @@ from . import historial, recordatorios, scheduler, sonido, util, voz  # noqa: E4
 PET_APP_ID = "io.github.appstudy.AppStudy.Pet"
 NOMBRE = "Bit"
 
-# Los gestos siguen el reloj de fotogramas de GTK; en reposo limitamos el dibujo.
-FRAME_REPOSO = 50
+# Los gestos siguen el reloj de fotogramas de GTK; acotamos los FPS activos y de reposo.
+FRAME_ACTIVO = 16   # ~60 FPS máximo en pantallas de alta tasa de refresco (144Hz/165Hz+)
+FRAME_REPOSO = 50   # 20 FPS en reposo
 
 # El estallido de once rayos costaba la mitad del fotograma —dos trazos anchos de
 # halo sobre un contorno de once puntas—, así que se pinta una vez en una imagen
@@ -295,8 +296,8 @@ class Creature(Gtk.DrawingArea):
             self._frame_time = ahora
             return GLib.SOURCE_CONTINUE
         dt = (ahora - self._frame_time) / 1_000_000
-        intervalo = 0.1 if self.reduced_motion else FRAME_REPOSO / 1000
-        if (self.reduced_motion or not self.ocupada()) and dt < intervalo:
+        intervalo = 0.1 if self.reduced_motion else (FRAME_REPOSO / 1000 if not self.ocupada() else FRAME_ACTIVO / 1000)
+        if dt < intervalo:
             return GLib.SOURCE_CONTINUE
         self._frame_time = ahora
         self.tick(dt)
@@ -791,7 +792,7 @@ class Creature(Gtk.DrawingArea):
         los mismos, el fotograma siguiente reutiliza este dibujo tal cual.
         """
         clave = (tuple(round(c, 2) for c in color[:3]), round(r, 1),
-                 round(inercia, 2), round(fase, 2), self.reduced_motion,
+                 round(inercia, 1), round(fase, 2), self.reduced_motion,
                  round(self.abandono, 2))
         if self._cache_estrella and self._cache_estrella[0] == clave:
             return self._cache_estrella[1]
@@ -3226,7 +3227,11 @@ def run_pet(argv) -> int:
             # pintaría un fondo opaco y la mascota dejaría de recortarse.
             Gtk.StyleContext.add_provider_for_display(
                 display, css, Gtk.STYLE_PROVIDER_PRIORITY_USER + 1)
-        PetWindow(a, con).present()
-
+    import signal
+    try:
+        signal.signal(signal.SIGTERM, lambda *_: app.quit())
+        signal.signal(signal.SIGINT, lambda *_: app.quit())
+    except Exception:
+        pass
     app.connect("activate", activate)
     return app.run([argv[0]])

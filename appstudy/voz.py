@@ -234,15 +234,6 @@ class ReproductorVoz:
                 except OSError:
                     pass
                 self._proc = None
-            if self._spd_cmd:
-                try:
-                    subprocess.Popen(
-                        [self._spd_cmd, "-S"],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                    )
-                except Exception:
-                    pass
 
     def reproducir(self, texto: str, cfg: dict, duracion: float, on_done=None):
         self.detener()

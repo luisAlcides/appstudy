@@ -51,7 +51,17 @@ def run_status(argv) -> int:
     if "--pet-off" in argv:
         pid = pet_pid(con)
         if pid:
-            os.kill(pid, signal.SIGTERM)
+            try:
+                os.kill(pid, signal.SIGTERM)
+                time.sleep(0.15)
+                if os.path.exists(f"/proc/{pid}"):
+                    os.kill(pid, signal.SIGKILL)
+            except OSError:
+                pass
+            try:
+                db.set_meta(con, "pet_pid", 0)
+            except Exception:
+                pass
         print(json.dumps({"mascota": False}))
         return 0
     json.dump(snapshot(con), sys.stdout, ensure_ascii=False)
