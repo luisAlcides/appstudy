@@ -1,0 +1,217 @@
+{
+ "deck": "python",
+ "chapters": [
+  {
+   "level": 1,
+   "minutes": 9,
+   "tags": "fundamentos,sintaxis,control_flujo",
+   "title": "Fundamentos de Python y Computación Científica",
+   "subtitle": "Estructuras de control, tipos de datos, funciones y el zen de la programación en Python.",
+   "body": [
+    {
+     "p": "Python es el estándar de facto en ciencia de datos, inteligencia artificial y computación científica. El currículo de <b>freeCodeCamp</b> (<i>Scientific Computing with Python</i>) enfatiza dos virtudes centrales: la legibilidad sintáctica y la potencia de sus estructuras de datos integradas."
+    },
+    {
+     "key": "Python combina tipado dinámico con tipado fuerte: una variable puede cambiar el tipo de dato al que apunta en cualquier instante, pero el intérprete nunca forzará conversiones implícitas incompatibles (por ejemplo, sumar un entero y una cadena provocará siempre un TypeError)."
+    },
+    {
+     "h": "Tipos mutables e inmutables: el origen de los errores silenciosos"
+    },
+    {
+     "p": "Todo en Python es un objeto. Cuando asignas <code>b = a</code>, no estás clonando el valor: estás creando una segunda referencia al mismo bloque de memoria. Comprender la <b>mutabilidad</b> es esencial para evitar bugs críticos:"
+    },
+    {
+     "list": [
+      "<b>Inmutables</b>: <code>int</code>, <code>float</code>, <code>str</code>, <code>tuple</code>, <code>frozenset</code>. Cualquier operación que parezca modificarlos genera en realidad un nuevo objeto.",
+      "<b>Mutables</b>: <code>list</code>, <code>dict</code>, <code>set</code>. Los métodos como <code>.append()</code> o <code>.update()</code> alteran el objeto original in-place sin cambiar su <code>id()</code>."
+     ]
+    },
+    {
+     "warn": "Nunca utilices un objeto mutable (como una lista vacía <code>[]</code>) como valor por defecto en los argumentos de una función. Dicha lista se crea una sola vez durante la definición del módulo y se compartirá entre todas las llamadas sucesivas."
+    },
+    {
+     "h": "Estructuras funcionales y comprensiones"
+    },
+    {
+     "p": "Las <b>list comprehensions</b> son más rápidas que los bucles <code>for</code> tradicionales porque se ejecutan en código C optimizado a nivel de bytecode:"
+    },
+    {
+     "code": "# Filtrado y transformación en una sola línea idiomática\ncuadrados_pares = [x ** 2 for x in range(10) if x % 2 == 0]\n\n# Comprensión de diccionario para mapeos rápidos\npaises = ['ES', 'MX', 'AR']\ncodigos = {pais: i for i, pais in enumerate(paises, start=1)}"
+    },
+    {
+     "p": "Cuando trabajes con volúmenes masivos de datos que no caben en memoria RAM, sustituye los corchetes por paréntesis para crear una <b>expresión generadora</b> (<code>(x for x in data)</code>), consumiendo los datos bajo demanda elemento por elemento."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "numpy,vectorizacion,broadcasting",
+   "title": "Computación Numérica Vectorizada con NumPy",
+   "subtitle": "Arrays multidimensionales, broadcasting, operaciones por ejes y rendimiento en memoria.",
+   "body": [
+    {
+     "p": "Una lista de Python ordinaria es un array de punteros a objetos genéricos dispersos por la memoria. En cambio, un <code>ndarray</code> de <b>NumPy</b> es un bloque contiguo de memoria homogénea en C. Esta diferencia arquitectónica permite procesar millones de operaciones aritméticas en milisegundos gracias a la vectorización y las instrucciones SIMD del procesador."
+    },
+    {
+     "h": "Anatomía de un ndarray y dimensiones"
+    },
+    {
+     "p": "Cada array posee tres propiedades descriptoras clave:"
+    },
+    {
+     "list": [
+      "<b>ndim</b>: el número de ejes o dimensiones (1 para vector, 2 para matriz, 3+ para tensores).",
+      "<b>shape</b>: tupla con el tamaño exacto en cada eje (ej. <code>(filas, columnas)</code>).",
+      "<b>dtype</b>: tipo atómico de los elementos (<code>int32</code>, <code>float64</code>, <code>bool_</code>)."
+     ]
+    },
+    {
+     "h": "La regla de oro de los ejes (Axis)"
+    },
+    {
+     "p": "Una de las mayores fuentes de confusión en cálculo numérico es la interpretación del parámetro <code>axis</code>. En NumPy y Pandas, <b>el eje que especificas es el eje que se reduce o colapsa</b>:"
+    },
+    {
+     "code": "import numpy as np\n\nmatriz = np.array([[1, 2, 3],\n                   [4, 5, 6]])\n\n# axis=0 colapsa las filas: opera verticalmente sumando cada columna\nprint(matriz.sum(axis=0))  # Resultado: [5, 7, 9]\n\n# axis=1 colapsa las columnas: opera horizontalmente sumando cada fila\nprint(matriz.sum(axis=1))  # Resultado: [6, 15]"
+    },
+    {
+     "h": "Broadcasting: operar sin duplicar memoria"
+    },
+    {
+     "p": "El <b>Broadcasting</b> describe cómo NumPy gestiona operaciones entre arrays de formas distintas. Al alinear dimensiones de derecha a izquierda, dos ejes son compatibles si son idénticos o si uno de ellos vale 1. Un array de forma <code>(4, 1)</code> puede sumarse limpiamente a uno de <code>(4, 3)</code> porque la columna única se 'estira' virtualmente a lo largo de las 3 columnas sin asignar memoria adicional."
+    },
+    {
+     "note": "Al hacer slicing sobre un array de NumPy (ej. <code>sub = arr[0:5]</code>), obtienes una vista en memoria compartida. Si modificas <code>sub</code>, estarás modificando <code>arr</code>. Usa siempre <code>arr[0:5].copy()</code> cuando necesites aislar los datos."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "pandas,dataframes,limpieza",
+   "title": "Manipulación y Limpieza de Datos con Pandas",
+   "subtitle": "Series, DataFrames, selección con .loc/.iloc, tratamiento de nulos y agregaciones con groupby.",
+   "body": [
+    {
+     "p": "<b>Pandas</b> añade la capa de análisis tabular sobre el motor numérico de NumPy. Introduce dos estructuras indispensables: la <code>Series</code> (columna indexada 1D) y el <code>DataFrame</code> (tabla 2D compuesta por Series que comparten un mismo índice)."
+    },
+    {
+     "h": "Acceso a datos: .loc vs .iloc"
+    },
+    {
+     "p": "Para evitar ambigüedades, nunca utilices la indexación encadenada tipo <code>df['col'][0]</code>. Emplea los métodos indexadores formales:"
+    },
+    {
+     "list": [
+      "<b>.loc[filas, columnas]</b>: indexación basada en <b>etiquetas</b>. Respeta los nombres de índice y de columnas. Crucial: en rangos con slicing por etiquetas, <i>el extremo superior se incluye siempre</i>.",
+      "<b>.iloc[filas, columnas]</b>: indexación basada en <b>posiciones enteras</b> (estilo Python convencional de 0 a N-1). <i>El extremo superior se excluye</i>."
+     ]
+    },
+    {
+     "h": "El ciclo de vida de la limpieza de datos"
+    },
+    {
+     "steps": [
+      "<b>Exploración inicial</b>: inspecciona los tipos y la distribución con <code>df.info()</code>, <code>df.describe()</code> y <code>df.head()</code>.",
+      "<b>Auditoría de valores nulos</b>: cuantifica los nulos por columna con <code>df.isna().sum()</code>.",
+      "<b>Toma de decisiones</b>: descarta filas irrelevantes con <code>df.dropna(subset=['clave'])</code> o imputa valores realistas usando <code>df['edad'].fillna(df['edad'].median())</code>.",
+      "<b>Limpieza de texto</b>: estandariza strings vectorialmente mediante el accesor <code>df['pais'].str.strip().str.upper()</code>.",
+      "<b>Eliminación de duplicados</b>: identifica registros repetidos con <code>df.duplicated()</code> y depura con <code>df.drop_duplicates()</code>."
+     ]
+    },
+    {
+     "h": "Agrupación (Split-Apply-Combine)"
+    },
+    {
+     "p": "El paradigma <code>groupby()</code> permite partir el conjunto de datos por una o más dimensiones categóricas, aplicar funciones de reducción y recombinar los resultados:"
+    },
+    {
+     "code": "# Agregación multivariable con nombres explícitos de columna\nresumen = df.groupby(['region', 'segmento']).agg(\n    ventas_totales=('importe', 'sum'),\n    ticket_medio=('importe', 'mean'),\n    clientes_unicos=('cliente_id', 'nunique')\n).reset_index()"
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "visualizacion,matplotlib,seaborn",
+   "title": "Visualización de Datos con Matplotlib y Seaborn",
+   "subtitle": "Diseño orientado a objetos, gráficos estadísticos, mapas de calor y personalización profesional.",
+   "body": [
+    {
+     "p": "La visualización es la interfaz directa entre el análisis cuantitativo y la toma de decisiones. El currículo de freeCodeCamp profundiza en dos librerías complementarias: <b>Matplotlib</b> (motor base de bajo nivel con control total pixel a pixel) y <b>Seaborn</b> (capa estadística de alto nivel diseñada para interactuar con DataFrames de Pandas)."
+    },
+    {
+     "h": "La arquitectura orientada a objetos de Matplotlib"
+    },
+    {
+     "p": "Evita el uso de la interfaz imperativa global <code>plt.plot()</code> para proyectos serios. Utiliza siempre la API orientada a objetos basada en figuras y ejes:"
+    },
+    {
+     "code": "import matplotlib.pyplot as plt\n\n# Crea la figura (lienzo) y la cuadrícula de ejes (subgráficos)\nfig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12, 5))\n\nax1.hist(df['edad'], bins=20, color='skyblue', edgecolor='black')\nax1.set_title('Distribución de Edades')\nax1.set_xlabel('Años')\n\nax2.scatter(df['edad'], df['salario'], alpha=0.5, c='orange')\nax2.set_title('Relación Edad vs Salario')\nax2.set_xlabel('Años')\nax2.set_ylabel('Salario Anual ($)')\n\nplt.tight_layout()  # Ajusta márgenes automáticamente"
+    },
+    {
+     "h": "Gráficos estadísticos con Seaborn"
+    },
+    {
+     "list": [
+      "<b>sns.histplot(kde=True)</b>: combina el histograma de frecuencias con una estimación de densidad por kernel.",
+      "<b>sns.boxplot()</b>: sintetiza la distribución indicando la mediana, cuartiles y puntos aislados que representan valores atípicos (outliers).",
+      "<b>sns.catplot()</b>: genera figuras multifaceta (subplots por categorías) a partir de DataFrames en formato largo.",
+      "<b>sns.heatmap()</b>: indispensable para visualizar matrices de correlación (<code>df.corr()</code>)."
+     ]
+    },
+    {
+     "note": "Al graficar una matriz de correlación en proyectos científicos, es habitual enmascarar el triángulo superior para no duplicar información simétrica, utilizando <code>mask = np.triu(np.ones_like(corr, dtype=bool))</code>."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 12,
+   "tags": "fcc_proyectos,certificacion,practica",
+   "title": "Los 5 Proyectos de Certificación de freeCodeCamp",
+   "subtitle": "Guía técnica paso a paso para superar los 5 retos obligatorios de Data Analysis with Python.",
+   "body": [
+    {
+     "p": "Para obtener la certificación oficial de <b>Data Analysis with Python</b> de freeCodeCamp es obligatorio resolver y validar con tests unitarios automatizados 5 proyectos prácticos independientes. A continuación se desglosan sus requerimientos técnicos y trampas habituales:"
+    },
+    {
+     "h": "1. Mean-Variance-Standard Deviation Calculator"
+    },
+    {
+     "p": "Convierte una lista plana de 9 números en una matriz de 3x3 con NumPy. Valida rigurosamente que la longitud sea 9 (lanzando <code>ValueError(\"List must contain nine numbers.\")</code> si no se cumple). Devuelve un diccionario calculando media, varianza, desviación estándar, máx, mín y suma para <code>axis=0</code> (columnas), <code>axis=1</code> (filas) y <code>flattened</code>."
+    },
+    {
+     "h": "2. Demographic Data Analyzer"
+    },
+    {
+     "p": "Responde una batería de preguntas demográficas sobre el censo de EE. UU. empleando filtrado con Pandas: calcular la proporción de titulados superiores, la media de horas trabajadas a la semana por los salarios más altos, y el porcentaje de personas ricas (>50K) por país usando <code>idxmax()</code>."
+    },
+    {
+     "h": "3. Medical Data Visualizer"
+    },
+    {
+     "steps": [
+      "Crea la columna <code>overweight</code> evaluando si el IMC es > 25 (asignando 1 o 0).",
+      "Normaliza el colesterol y la glucosa: si vale 1 pasa a 0 (normal); si es mayor que 1 pasa a 1 (alto).",
+      "Convierte la tabla a formato largo con <code>pd.melt()</code> y dibuja un <code>sns.catplot()</code> agrupado por estado cardiovascular.",
+      "Limpia datos anómalos de presión arterial y percentiles de altura/peso, generando un <code>sns.heatmap()</code> con máscara triangular superior <code>np.triu()</code>."
+     ]
+    },
+    {
+     "h": "4. Page View Time Series Visualizer"
+    },
+    {
+     "p": "Analiza las visitas diarias al foro de freeCodeCamp. Limpia los datos descartando los días en el 2.5% superior e inferior usando <code>df['value'].quantile([0.025, 0.975])</code>. Genera un gráfico de líneas continuo, un gráfico de barras mensual agrupado por año, y un panel de dos boxplots (uno para la tendencia anual y otro para la estacionalidad mensual)."
+    },
+    {
+     "h": "5. Sea Level Predictor"
+    },
+    {
+     "p": "Utiliza <code>scipy.stats.linregress</code> para ajustar una recta de regresión sobre el histórico de nivel del mar desde 1880 y proyectar el ascenso estimado hasta el año 2050. Posteriormente, ajusta una segunda línea considerando únicamente los datos recientes a partir del año 2000, evidenciando la aceleración de la tendencia."
+    }
+   ]
+  }
+ ]
+}

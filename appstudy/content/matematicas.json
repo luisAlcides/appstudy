@@ -856,6 +856,201 @@
    "front": "Para sucesos que pueden coincidir: P(A o B) = P(A) + P(B) − {{P(A y B)}}.",
    "back": "Restar la intersección evita contar dos veces los resultados compartidos.",
    "tags": "probabilidad"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "álgebra lineal,vectores,geometría",
+   "front": "Producto escalar (dot product): fórmula, propiedades y significado geométrico",
+   "back": "$$\\mathbf{u} \\cdot \\mathbf{v} = \\sum_{i=1}^n u_i v_i = |\\mathbf{u}| |\\mathbf{v}| \\cos \\theta$$\n\n- Si $\\mathbf{u} \\cdot \\mathbf{v} = 0$, los vectores son <b>ortogonales (perpendiculares a 90°)</b>.\n- Si es positivo, apuntan en el mismo semiplano (ángulo agudo < 90°).\n- Representa la <b>magnitud de la proyección</b> de un vector a lo largo de la dirección del otro multiplicada por su longitud."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "álgebra lineal,vectores,geometría",
+   "front": "Producto vectorial (cross product): definición y propiedades en $\\mathbb{R}^3$",
+   "back": "$$\\mathbf{u} \\times \\mathbf{v} = \\begin{vmatrix} \\mathbf{i} & \\mathbf{j} & \\mathbf{k} \\\\ u_x & u_y & u_z \\\\ v_x & v_y & v_z \\end{vmatrix}$$\n\n- Da como resultado un vector <b>perpendicular</b> a ambos vectores originales (según la regla de la mano derecha).\n- Su módulo $|\\mathbf{u} \\times \\mathbf{v}| = |\\mathbf{u}||\\mathbf{v}|\\sin\\theta$ es exactamente el <b>área del paralelogramo</b> formado por ambos vectores."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "álgebra lineal,matrices",
+   "front": "Si multiplicamos una matriz $A$ de dimensión $3 \\times 4$ por una matriz $B$ de dimensión $4 \\times 2$, ¿cuál es la dimensión de la matriz resultante $C = A B$?",
+   "choices": [
+    "$3 \\times 2$",
+    "$4 \\times 4$",
+    "$3 \\times 4$",
+    "No se pueden multiplicar"
+   ],
+   "answer": 0,
+   "back": "Para multiplicar matrices, el número de columnas de la primera (4) debe coincidir con el de filas de la segunda (4). La dimensión resultante toma las filas de la primera y las columnas de la segunda: $3 \\times 2$."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "álgebra lineal,matrices,determinantes",
+   "front": "Determinante de una matriz: ¿qué significa geométricamente?",
+   "back": "El determinante mide el <b>factor de escala de área o volumen</b> que sufre el espacio tras la transformación lineal:\n- En 2D: factor de transformación del área.\n- En 3D: factor de transformación del volumen.\n- Si $\\det(A) = 0$: el espacio colapsa a una dimensión menor (no tiene inversa / es singular).\n- Si $\\det(A) < 0$: la transformación <b>invierte la orientación</b> del espacio (como un reflejo en un espejo)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "cálculo,optimización,multivariable",
+   "front": "Gradiente ($\\nabla f$): definición matemática y propiedad fundamental",
+   "back": "$$\\nabla f(x_1, \\dots, x_n) = \\left[ \\frac{\\partial f}{\\partial x_1}, \\frac{\\partial f}{\\partial x_2}, \\dots, \\frac{\\partial f}{\\partial x_n} \\right]^T$$\n\n<b>Propiedad fundamental</b>: el gradiente es un vector que apunta exactamente en la <b>dirección de máximo crecimiento (mayor pendiente ascendente)</b> de la función, y su módulo es la tasa de cambio en esa dirección. Es perpendicular a las curvas o superficies de nivel."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "cálculo,optimización",
+   "front": "En el algoritmo de Descenso de Gradiente, la actualización de parámetros se realiza en dirección opuesta al gradiente: $x_{t+1} = x_t - {{ \\alpha ::tasa de aprendizaje}} \\nabla f(x_t)$."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "probabilidad,estadística,bayes",
+   "front": "Teorema de Bayes: fórmula y significado de cada término",
+   "back": "$$P(A|B) = \\frac{P(B|A) \\cdot P(A)}{P(B)}$$\n\n- $P(A)$: <b>Probabilidad a priori</b> (lo que creías antes de ver la evidencia).\n- $P(B|A)$: <b>Verosimilitud (Likelihood)</b> (probabilidad de observar la evidencia $B$ si la hipótesis $A$ es cierta).\n- $P(B)$: <b>Evidencia marginal</b> (probabilidad total de observar $B$).\n- $P(A|B)$: <b>Probabilidad a posteriori</b> (tu creencia actualizada tras observar la evidencia)."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "cálculo rápido,finanzas,estimación",
+   "front": "Según la regla del 72, si una inversión rinde un 8 % anual compuesto, ¿aproximadamente cuántos años tarda en duplicarse?",
+   "choices": [
+    "≈ 9 años",
+    "≈ 12 años",
+    "≈ 6 años",
+    "≈ 15 años"
+   ],
+   "answer": 0,
+   "back": "Tiempo de duplicación $\\approx \\frac{72}{\\text{tasa}} = \\frac{72}{8} = 9$ años. (El valor exacto $\\frac{\\ln(2)}{\\ln(1.08)} = 9.006$ años, con un error insignificante)."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "cálculo mental,atajos,aritmética",
+   "front": "¿Cómo elevar al cuadrado mentalmente cualquier número de dos dígitos terminado en 5?",
+   "back": "Multiplica la cifra de las decenas por su número consecutivo superior y añade <b>25</b> al final:\n\n- $35^2 \\rightarrow (3 \\times 4) = 12 \\rightarrow \\mathbf{1225}$\n- $65^2 \\rightarrow (6 \\times 7) = 42 \\rightarrow \\mathbf{4225}$\n- $95^2 \\rightarrow (9 \\times 10) = 90 \\rightarrow \\mathbf{9025}$\n\nExplicación algebraica: $(10n + 5)^2 = 100n(n+1) + 25$."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "probabilidad,distribuciones,estadística",
+   "front": "Distribución de Poisson: ¿cuándo se aplica y cuál es su propiedad clave?",
+   "back": "Modela el número de eventos que ocurren en un intervalo fijo de tiempo o espacio cuando suceden con una tasa media constante $\\lambda$ de forma independiente:\n$$P(X = k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}$$\n\n<b>Propiedad única</b>: la <b>media y la varianza son idénticas</b>:\n$$\\mathbb{E}[X] = \\text{Var}(X) = \\lambda$$\nEjemplos: llamadas recibidas por hora en una centralita, fallos de un servidor por mes, baches por kilómetro de carretera."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "estadística,teoremas,fundamentos",
+   "front": "Teorema Central del Límite: ¿por qué la distribución Normal aparece en todas partes?",
+   "back": "Establece que la suma (o promedio) de un número grande $n$ de variables aleatorias independientes e idénticamente distribuidas <b>converge siempre a una distribución Normal (Gaussiana)</b>, sin importar la distribución original de las variables individuales (sean uniformes, exponenciales, etc.).\n\nPor eso los errores de medición, estaturas y promedios muestrales siguen campanas de Gauss."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "números complejos,euler,fórmulas",
+   "front": "Fórmula de Euler e Identidad de Euler: conexión entre trigonometría y exponentes",
+   "back": "<b>Fórmula de Euler</b>:\n$$e^{i \\theta} = \\cos \\theta + i \\sin \\theta$$\n\n<b>Identidad de Euler</b> (cuando $\\theta = \\pi$):\n$$e^{i \\pi} + 1 = 0$$\nUnifica en una sola ecuación los cinco números más importantes de las matemáticas ($e$, $i$, $\\pi$, $1$, $0$) y las tres operaciones básicas (suma, multiplicación, exponenciación)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "fourier,análisis,frecuencia",
+   "front": "Transformada de Fourier: ¿qué transformación realiza conceptualmente?",
+   "back": "Descompone cualquier función o señal que varía en el <b>dominio del tiempo</b> $f(t)$ en una suma continua de ondas sinusoidales en el <b>dominio de la frecuencia</b> $\\hat{f}(\\omega)$:\n$$\\hat{f}(\\omega) = \\int_{-\\infty}^{\\infty} f(t) e^{-i \\omega t} dt$$\n\nPermite ver 'de qué notas musicales está compuesto un acorde' (aislar frecuencias, diseñar ecualizadores, comprimir audio MP3 o imágenes JPEG)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "estadística,paradojas,análisis",
+   "front": "¿Qué es la Paradoja de Simpson en análisis de datos?",
+   "back": "Fenómeno estadístico en el que una tendencia o correlación que aparece claramente en varios grupos de datos <b>se invierte o desaparece por completo</b> cuando los grupos se combinan en un solo conjunto.\n\nOcurre cuando existe una <b>variable de confusión (confounding variable)</b> oculta que influye desigualmente en el tamaño de las subpoblaciones."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "colas,rendimiento,sistemas",
+   "front": "Ley de Little: relación entre concurrencia, tasa de llegada y tiempo de respuesta",
+   "back": "En cualquier sistema de colas en estado estacionario:\n$$L = \\lambda \\times W$$\n- $L$: número medio de elementos o peticiones en el sistema (concurrencia).\n- $\\lambda$: tasa media de llegada de peticiones por segundo (throughput).\n- $W$: tiempo medio que una petición permanece en el sistema (latencia).\n\nSi tu API atiende 200 req/s con una latencia de 50 ms (0.05 s), tienes de media $L = 200 \\times 0.05 = 10$ peticiones procesándose concurrentemente."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "álgebra lineal,svd,factorización",
+   "front": "Descomposición en Valores Singulares (SVD): fórmula e interpretación",
+   "back": "Toda matriz real $A \\in \\mathbb{R}^{m \\times n}$ puede factorizarse como:\n$$A = U \\Sigma V^T$$\n- $U \\in \\mathbb{R}^{m \\times m}$: matriz ortogonal de autovectores por la izquierda ($A A^T$).\n- $\\Sigma \\in \\mathbb{R}^{m \\times n}$: matriz diagonal con los <b>valores singulares</b> $\\sigma_1 \\ge \\sigma_2 \\ge \\dots \\ge 0$ (factores de estiramiento).\n- $V \\in \\mathbb{R}^{n \\times n}$: matriz ortogonal de autovectores por la derecha ($A^T A$).\n\nEs la base matemática de la compresión de imágenes, PCA (Análisis de Componentes Principales) y sistemas de recomendación."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "optimización,lagrange,cálculo",
+   "front": "Multiplicadores de Lagrange: ¿cómo optimizar una función sujeta a una restricción?",
+   "back": "Para maximizar o minimizar $f(\\mathbf{x})$ sujeta a la restricción $g(\\mathbf{x}) = 0$, en el punto óptimo el gradiente de la función debe ser paralelo al gradiente de la restricción:\n$$\\nabla f(\\mathbf{x}) = \\lambda \\nabla g(\\mathbf{x})$$\nSe define la función Lagrangiana $\\mathcal{L}(\\mathbf{x}, \\lambda) = f(\\mathbf{x}) - \\lambda g(\\mathbf{x})$ y se igualan a cero todas sus derivadas parciales respecto a $\\mathbf{x}$ y a $\\lambda$."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "teoría de la información,shannon,entropía",
+   "front": "Entropía de Shannon: fórmula y significado",
+   "back": "Mide el grado medio de incertidumbre o sorpresa de una variable aleatoria discreta $X$:\n$$H(X) = - \\sum_{i=1}^n p(x_i) \\log_2 p(x_i)$$\n- Se mide en <b>bits</b> (cuando la base del logaritmo es 2).\n- Un evento 100 % seguro tiene entropía 0 (no aporta información).\n- La distribución uniforme tiene la máxima entropía posible (máxima incertidumbre).\n- Es el límite teórico infranqueable para la compresión de datos sin pérdida (Teorema de codificación de Shannon)."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "cálculo mental,atajos,aritmética",
+   "front": "¿Cómo multiplicar mentalmente cualquier número de dos dígitos por 11?",
+   "back": "Suma los dos dígitos y coloca el resultado en medio:\n\n- $35 \\times 11 \\rightarrow 3 \\quad (3+5) \\quad 5 \\rightarrow \\mathbf{385}$\n- $52 \\times 11 \\rightarrow 5 \\quad (5+2) \\quad 2 \\rightarrow \\mathbf{572}$\n- Si la suma supera 9, suma 1 a las centenas: $78 \\times 11 \\rightarrow (7+1) \\quad (15-10) \\quad 8 \\rightarrow \\mathbf{858}$."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "ecuaciones diferenciales,cálculo",
+   "front": "Dada la ecuación diferencial de crecimiento $\\frac{dy}{dt} = k y$ con condición inicial $y(0) = y_0$, ¿cuál es su solución exacta?",
+   "choices": [
+    "$y(t) = y_0 e^{kt}$",
+    "$y(t) = y_0 + k t^2$",
+    "$y(t) = y_0 \\ln(kt)$",
+    "$y(t) = k y_0 \\cos(t)$"
+   ],
+   "answer": 0,
+   "back": "Separando variables $\\frac{dy}{y} = k dt$ e integrando a ambos lados: $\\ln|y| = kt + C \\implies y(t) = y_0 e^{kt}$. Modela crecimiento bacteriano, interés compuesto continuo y desintegración radiactiva ($k < 0$)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "álgebra lineal,geometría,rotaciones",
+   "front": "Matriz de rotación 2D en sentido antihorario por un ángulo $\\theta$",
+   "back": "$$R(\\theta) = \\begin{pmatrix} \\cos\\theta & -\\sin\\theta \\\\ \\sin\\theta & \\cos\\theta \\end{pmatrix}$$\n\nPropiedades fundamentales:\n1. <b>Matriz ortogonal</b>: $R^{-1} = R^T$ (la inversa es simplemente su transpuesta, equivalente a rotar $-\\theta$).\n2. <b>Determinante $+1$</b>: $\\det(R) = \\cos^2\\theta + \\sin^2\\theta = 1$ (conserva longitudes, áreas y la orientación del espacio sin deformarlo)."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "cuaterniones,3d,gráficos",
+   "front": "¿Por qué se usan cuaterniones en lugar de ángulos de Euler para rotaciones 3D?",
+   "back": "1. <b>Evitan el bloqueo de cardán (Gimbal Lock)</b>: la pérdida de un grado de libertad cuando dos ejes de rotación de Euler se alinean.\n2. <b>Interpolación suave</b>: permiten realizar interpolación esférica (SLERP) suave y a velocidad angular constante entre dos orientaciones tridimensionales.\n3. <b>Eficiencia computacional</b>: componer dos rotaciones con cuaterniones requiere menos operaciones y menor acumulación de error de redondeo que multiplicar matrices de $3 \\times 3$."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "convolución,señales,transformadas",
+   "front": "Teorema de Convolución: conexión entre convolución temporal y multiplicación espectral",
+   "back": "Establece que la <b>convolución</b> de dos señales en el dominio del tiempo equivale a una <b>multiplicación punto a punto</b> en el dominio de la frecuencia:\n$$\\mathcal{F}\\{f * g\\} = \\mathcal{F}\\{f\\} \\cdot \\mathcal{F}\\{g\\}$$\n\nEsto permite aplicar filtros digitales pesados convirtiendo la señal al dominio frecuencial mediante FFT, multiplicando por la respuesta del filtro y volviendo con IFFT con coste $O(N \\log N)$ en lugar de $O(N^2)$."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "métodos numéricos,raíces,cálculo",
+   "front": "Método de Newton-Raphson: fórmula de iteración y orden de convergencia",
+   "back": "Para encontrar una raíz $f(x) = 0$, aproxima la curva por su recta tangente en el punto actual:\n$$x_{n+1} = x_n - \\frac{f(x_n)}{f'(x_n)}$$\n\nPosee <b>convergencia cuadrática</b> cerca de la raíz simple (el número de dígitos decimales correctos se duplica en cada iteración)."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "cálculo mental,porcentajes,atajos",
+   "front": "Propiedad reversible de los porcentajes: $x\\,\\%$ de $y = y\\,\\%$ de $x$",
+   "back": "Dado que el porcentaje es una multiplicación conmutativa ($x \\times y / 100$):\n$$\\mathbf{x\\,\\% \\text{ de } y = y\\,\\% \\text{ de } x}$$\n\nEjemplos mentales instantáneos:\n- ¿El $16\\,\\%$ de $75$? $\\rightarrow$ Calcula el $75\\,\\%$ de $16 = \\frac{3}{4} \\times 16 = \\mathbf{12}$.\n- ¿El $18\\,\\%$ de $50$? $\\rightarrow$ Calcula el $50\\,\\%$ de $18 = \\mathbf{9}$."
   }
  ]
 }

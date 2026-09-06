@@ -471,6 +471,120 @@
      "key": "Antes de multiplicar probabilidades, justifica la independencia o utiliza una probabilidad condicionada."
     }
    ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "álgebra lineal,vectores,geometría,matrices",
+   "title": "Geometría vectorial y matrices: el espacio y sus transformaciones",
+   "subtitle": "La intuición física del producto escalar, vectorial y determinantes.",
+   "body": [
+    {
+     "p": "Los vectores no son solo listas de números en una hoja: son flechas con magnitud y dirección que describen el mundo físico y las dimensiones de los datos."
+    },
+    {
+     "h": "El producto escalar: alineación y proyecciones"
+    },
+    {
+     "p": "El producto punto $\\mathbf{u} \\cdot \\mathbf{v}$ mide cuánto apuntan dos vectores en la misma dirección:"
+    },
+    {
+     "math": "\\mathbf{u} \\cdot \\mathbf{v} = u_x v_x + u_y v_y + u_z v_z = |\\mathbf{u}| |\\mathbf{v}| \\cos \\theta"
+    },
+    {
+     "key": "Si dos vectores tienen producto escalar igual a 0, forman un ángulo de 90° exactos: son <b>ortogonales</b>. Si es positivo van hacia el mismo lado; si es negativo, en direcciones opuestas."
+    },
+    {
+     "h": "El producto vectorial: áreas y perpendicularidad"
+    },
+    {
+     "p": "A diferencia del producto escalar (que da un número), el producto cruz $\\mathbf{u} \\times \\mathbf{v}$ en 3D genera un <b>nuevo vector</b> perpendicular al plano que forman los dos primeros, con una magnitud igual al área del paralelogramo que encierran."
+    },
+    {
+     "h": "Determinantes: factores de volumen"
+    },
+    {
+     "p": "Una matriz cuadrada transforma el espacio. El <b>determinante</b> indica exactamente por cuánto se multiplica el área o volumen de cualquier figura al aplicarle esa transformación. Si el determinante vale cero, el espacio se aplasta a una línea o un plano, perdiendo información."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "probabilidad,bayes,estadística,toma de decisiones",
+   "title": "Pensamiento bayesiano y probabilidad aplicada",
+   "subtitle": "Cómo actualizar creencias con rigor cuando llega nueva evidencia.",
+   "body": [
+    {
+     "p": "La mente humana evalúa mal la probabilidad condicional por intuición. El Teorema de Bayes ofrece la regla matemática exacta para corregir nuestras estimaciones ante nuevos datos."
+    },
+    {
+     "math": "P(\\text{Hipótesis} | \\text{Evidencia}) = \\frac{P(\\text{Evidencia} | \\text{Hipótesis}) \\cdot P(\\text{Hipótesis})}{P(\\text{Evidencia})}"
+    },
+    {
+     "h": "La paradoja del falso positivo"
+    },
+    {
+     "p": "Imagina una enfermedad rara que afecta a 1 de cada 1.000 personas ($P(E) = 0.001$). Se realiza un test médico con un 99 % de precisión ($1\\,\\%$ de falsos positivos). Si una persona al azar da positivo, ¿cuál es la probabilidad real de que esté enferma?"
+    },
+    {
+     "p": "La intuición dice «99 %», pero Bayes demuestra que es de apenas el <b>9 %</b>: en una población de 100.000 personas habrá 100 enfermos reales (99 darán positivo) pero 99.900 personas sanas generarán ~999 falsos positivos. ¡Hay diez veces más falsos positivos que enfermos reales!"
+    },
+    {
+     "note": "Nunca juzgues una prueba o métrica sin tener en cuenta la <b>probabilidad a priori (frecuencia base)</b> del evento."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 12,
+   "tags": "álgebra lineal,svd,pca,compresión",
+   "title": "Descomposición en Valores Singulares (SVD) y reducción dimensional",
+   "subtitle": "La factorización matricial más potente de las matemáticas aplicadas.",
+   "body": [
+    {
+     "p": "El teorema espectral solo sirve para matrices cuadradas y simétricas. La Descomposición en Valores Singulares (SVD) es la generalización universal que funciona sobre <b>cualquier matriz rectangular</b> $A \\in \\mathbb{R}^{m \\times n}$."
+    },
+    {
+     "math": "A = U \\Sigma V^T = \\sum_{i=1}^r \\sigma_i \\mathbf{u}_i \\mathbf{v}_i^T"
+    },
+    {
+     "h": "Compresión y aproximación de bajo rango"
+    },
+    {
+     "p": "El Teorema de Eckart-Young demuestra que truncar la suma SVD a los primeros $k$ valores singulares produce la <b>mejor aproximación posible de rango $k$</b> en norma de Frobenius."
+    },
+    {
+     "note": "Esto permite comprimir una imagen de $1000 \\times 1000$ píxeles conservando solo los 50 valores singulares más grandes, reduciendo el tamaño en un 90 % con una pérdida visual imperceptible."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "rotaciones,cuaterniones,3d,geometría",
+   "title": "Rotaciones 3D: de matrices de Euler a los cuaterniones",
+   "subtitle": "Por qué la robótica y los videojuegos representan orientaciones espaciales con cuatro números.",
+   "body": [
+    {
+     "p": "Describir una orientación en el espacio tridimensional mediante tres ángulos sucesivos (Roll, Pitch, Yaw de Euler) es intuitivo, pero matemáticamente problemático."
+    },
+    {
+     "h": "El bloqueo de cardán (Gimbal Lock)"
+    },
+    {
+     "p": "Cuando el ángulo central (Pitch) gira 90°, el primer y tercer eje de rotación se superponen exactamente en el mismo plano, perdiendo un grado de libertad y provocando saltos violentos o discontinuidades en simulaciones."
+    },
+    {
+     "h": "Los cuaterniones: la solución no conmutativa"
+    },
+    {
+     "p": "Descubiertos por William Rowan Hamilton en 1843, un cuaternión unitario $q = w + x\\mathbf{i} + y\\mathbf{j} + z\\mathbf{k}$ representa una rotación continua alrededor de un eje arbitrario sin singularidades."
+    },
+    {
+     "note": "Permiten la <b>interpolación esférica (SLERP)</b>, que garantiza una animación cinematográfica suave entre dos cámaras o articulaciones robóticas a velocidad angular rigurosamente constante."
+    }
+   ]
   }
  ]
 }

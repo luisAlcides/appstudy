@@ -37,6 +37,7 @@ Temas incluidos (**1.245 tarjetas** de fábrica, ordenadas **de básico a avanza
 | 🔧 Mecánica Automotriz (100) | Básico · Intermedio · Avanzado | motor, frenos, eléctrico, OBD2, common rail, híbridos, bitácora, consumo y evidencia diagnóstica |
 | 🧮 Matemáticas y Cálculo Rápido (95) | Básico · Intermedio · Avanzado | cálculo mental, porcentajes, cuadrados, fracciones, ecuaciones y probabilidad |
 | ⚡ Electricidad y Electrónica (86) | Básico · Intermedio · Avanzado | Ohm, medición, componentes, motores, Kirchhoff, circuitos RC y conversión ADC |
+| 🐍 Python y Análisis de Datos (84) | Básico · Intermedio · Avanzado | currículo freeCodeCamp: sintaxis, NumPy, Pandas, visualización (Matplotlib, Seaborn) y los 5 proyectos de certificación |
 
 La ampliación general incorpora **25 lecturas y 150 tarjetas**: una lectura y seis tarjetas
 por nivel en cada mazo (cuatro niveles en inglés y tres en los demás). Cada lectura
@@ -502,6 +503,7 @@ memoria de una repasada tres veces seguidas.
 | 🔧 Automotriz (11 · 99 min) | Sistemas y diagnóstico; nuevas lecturas de bitácora, consumo y pruebas que discriminan hipótesis |
 | ⚡ Electricidad (6 · 43 min) | Magnitudes, componentes y alterna; nuevas lecturas de nodos y mallas, transitorios RC y ADC |
 | 🧮 Matemáticas (9 · 72 min) | Cálculo mental y verificación; nuevas lecturas de fracciones, ecuaciones y probabilidad compuesta |
+| 🐍 Python (5 · 52 min) | Computación científica y análisis con NumPy, Pandas, Matplotlib, Seaborn y guía de proyectos de certificación freeCodeCamp |
 
 Los capítulos viven en `appstudy/content/readings/*.json`. Cada uno tiene `level`,
 `minutes`, `tags` (define qué tarjetas se practican al final) y un `body` de bloques:
@@ -850,6 +852,21 @@ CPU y toca bajar de tamaño.
 El nombre del modelo no tiene por qué ser un gemma: en Ajustes puedes escribir
 cualquiera que tengas descargado. La familia gemma solo es la preferida cuando el
 que pediste no está y AppStudy tiene que elegir por ti (`elegir_modelo()`).
+
+### Integración con freeCodeCamp y generación de tarjetas con IA
+
+AppStudy se conecta con [freeCodeCamp.org](https://www.freecodecamp.org/) a través de Internet
+para descargar lecciones, desafíos y cursos completos, transformándolos automáticamente en tarjetas de estudio con la IA local:
+
+- **Desde la interfaz gráfica:** en la pestaña **Tarjetas**, junto al botón de IA y el de importar, pulsa el botón del globo terráqueo 🌐 (*Generar tarjetas desde freeCodeCamp con IA*). Puedes elegir directamente una certificación de la lista o pegar cualquier URL de freeCodeCamp (`https://www.freecodecamp.org/learn/...`). La IA procesará la lección y te presentará una previsualización interactiva con casillas para elegir qué tarjetas guardar en tu mazo.
+- **Por terminal:**
+  ```bash
+  # Ver certificaciones soportadas
+  appstudy --fcc-certs
+
+  # Descargar lección y generar tarjetas con IA automáticamente
+  appstudy --fcc "https://www.freecodecamp.org/learn/scientific-computing-with-python/learn-string-manipulation-by-building-a-cipher/step-1"
+  ```
 
 ## Empezar de cero
 

@@ -3227,6 +3227,8 @@ def run_pet(argv) -> int:
             # pintaría un fondo opaco y la mascota dejaría de recortarse.
             Gtk.StyleContext.add_provider_for_display(
                 display, css, Gtk.STYLE_PROVIDER_PRIORITY_USER + 1)
+        PetWindow(a, con).present()
+
     import signal
     try:
         signal.signal(signal.SIGTERM, lambda *_: app.quit())

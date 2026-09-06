@@ -981,6 +981,122 @@
      "key": "Un sistema de IA en producción no se termina: se cuida. La diferencia entre uno que aguanta dos años y uno que hay que rehacer no está en el modelo elegido, sino en si alguien estuvo midiendo mientras el mundo cambiaba alrededor."
     }
    ]
+  },
+  {
+   "level": 2,
+   "minutes": 12,
+   "tags": "transformers,atención,deep learning,llm",
+   "title": "La arquitectura Transformer y la atención por dentro",
+   "subtitle": "Cómo funcionan Query, Key y Value para entender el contexto global de una frase.",
+   "body": [
+    {
+     "p": "Antes de 2017 las redes recurrentes (RNN y LSTM) procesaban el texto palabra a palabra en serie, olvidando el principio de párrafos largos. El Transformer cambió todo permitiendo que cada palabra 'preste atención' a todas las demás en paralelo."
+    },
+    {
+     "h": "La metáfora de la biblioteca (Q, K, V)"
+    },
+    {
+     "p": "Para cada token se proyectan tres vectores:"
+    },
+    {
+     "list": [
+      "<b>Query (Q)</b>: lo que el token está buscando.",
+      "<b>Key (K)</b>: la etiqueta o tema que el token ofrece.",
+      "<b>Value (V)</b>: la información de contenido que transmite si hay coincidencia."
+     ]
+    },
+    {
+     "math": "\\text{Attention}(Q, K, V) = \\text{softmax}\\left(\\frac{QK^T}{\\sqrt{d_k}}\\right) V"
+    },
+    {
+     "h": "Multi-Head Attention"
+    },
+    {
+     "p": "Un solo mecanismo de atención solo puede rastrear un tipo de relación (por ejemplo, sujeto-verbo). La atención multicabeza (Multi-Head) divide las dimensiones para que 8, 32 o más cabezas rastreben simultáneamente sintaxis, concordancia de género, referencias anafóricas y tono emocional."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "rag,embeddings,búsqueda,recuperación",
+   "title": "RAG avanzado y búsqueda híbrida en producción",
+   "subtitle": "Estrategias de chunking, búsqueda densa + dispersa (BM25) y re-ranking.",
+   "body": [
+    {
+     "p": "El RAG ingenuo (hacer embeddings de párrafos fijos y buscar por similitud de coseno) falla frecuentemente en producción al perder números de pieza, términos técnicos o contexto jerárquico."
+    },
+    {
+     "h": "Chunking inteligente"
+    },
+    {
+     "p": "El texto debe fragmentarse con solapamiento (overlap) respetando fronteras sintácticas (encabezados markdown, funciones de código o párrafos semánticos) para evitar cortar definiciones a la mitad."
+    },
+    {
+     "h": "Búsqueda híbrida y Reciprocal Rank Fusion"
+    },
+    {
+     "p": "Los mejores sistemas de recuperación combinan dos motores:"
+    },
+    {
+     "steps": [
+      "<b>Búsqueda vectorial (Dense)</b>: recupera documentos relevantes conceptualmente aunque usen palabras distintas.",
+      "<b>Búsqueda BM25 (Sparse)</b>: asegura la coincidencia exacta de identificadores, códigos y nombres propios.",
+      "<b>Cross-Encoder Re-ranker</b>: una red neuronal compacta reevalúa los mejores 30 resultados antes de inyectarlos en el prompt del LLM."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 12,
+   "tags": "agentes,react,herramientas,razonamiento",
+   "title": "Agentes autónomos de IA y el patrón ReAct",
+   "subtitle": "Cómo los modelos de lenguaje razonan, eligen herramientas y ejecutan bucles iterativos.",
+   "body": [
+    {
+     "p": "Un LLM aislado solo puede generar texto estático basado en sus pesos congelados. Un <b>agente</b> conecta al modelo con el entorno exterior mediante un bucle de toma de decisiones."
+    },
+    {
+     "h": "El ciclo Pensar → Actuar → Observar"
+    },
+    {
+     "steps": [
+      "<b>Razonamiento (Thought)</b>: el modelo descompone el problema general en subtareas y decide qué herramienta invocar.",
+      "<b>Acción (Action)</b>: genera una llamada con parámetros estructurados (JSON/código).",
+      "<b>Ejecución y Observación (Observation)</b>: el runtime ejecuta la herramienta (consulta SQL, búsqueda web, cálculo) y devuelve la salida al contexto.",
+      "<b>Síntesis</b>: el modelo evalúa si la respuesta es suficiente o si requiere ejecutar una nueva acción."
+     ]
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "tokenización,bpe,sampling,temperatura",
+   "title": "Tokenización BPE y estrategias de muestreo (Sampling)",
+   "subtitle": "Cómo los LLMs convierten texto en números y controlan la creatividad de salida.",
+   "body": [
+    {
+     "p": "Las redes neuronales no leen letras ni palabras completas: procesan identificadores enteros correspondientes a fragmentos de subpalabras (*tokens*)."
+    },
+    {
+     "h": "Byte Pair Encoding (BPE)"
+    },
+    {
+     "p": "El vocabulario se genera por compresión estadística: los pares de bytes más comunes se fusionan sucesivamente en un único token. Esto explica por qué los modelos tokenizan el inglés de forma más compacta que otros idiomas o código."
+    },
+    {
+     "h": "El control de la distribución de salida"
+    },
+    {
+     "list": [
+      "<b>Temperatura</b>: escala las probabilidades; acerca a 0 para tareas de lógica determinista o código, y a 0.7–0.9 para redacción creativa.",
+      "<b>Top-p (Nucleus)</b>: descarta la cola de baja probabilidad dinámica sumando hasta el percentil deseado.",
+      "<b>Min-p</b>: la técnica moderna que fija un suelo de probabilidad proporcional a la confianza del token líder."
+     ]
+    }
+   ]
   }
  ]
 }

@@ -1550,6 +1550,35 @@
      "note": "Referencia: Linux man-pages, proc(5) y uptime(1): https://www.man7.org/linux/man-pages/man5/proc.5.html"
     }
    ]
+  },
+  {
+   "level": 2,
+   "minutes": 12,
+   "tags": "contenedores,kernel,namespaces,cgroups",
+   "title": "Namespaces y Cgroups: la anatomía de un contenedor Linux",
+   "subtitle": "Cómo Docker y systemd aíslan procesos sin virtualizar hardware.",
+   "body": [
+    {
+     "p": "En Linux, un contenedor no es un hipervisor que simula una placa base: es simplemente un proceso ordinario que corre directamente sobre el kernel anfitrión, pero con una 'vista' restringida del sistema."
+    },
+    {
+     "h": "Namespaces: las paredes de cristal"
+    },
+    {
+     "list": [
+      "<b>PID</b>: el proceso cree que es el PID 1 dentro de su contenedor, aunque en el host sea el PID 14820.",
+      "<b>NET</b>: dispone de su propia tabla de rutas, loopback y pares de interfaces virtuales (veth).",
+      "<b>MNT</b>: tiene su propio árbol de montaje raíz independiente (mediante pivot_root y capas OverlayFS).",
+      "<b>UTS, IPC, USER</b>: aíslan hostname, colas de memoria compartida y mapeo de IDs de usuario."
+     ]
+    },
+    {
+     "h": "Cgroups v2: el presupuesto de recursos"
+    },
+    {
+     "p": "Los <i>Control Groups</i> limitan y miden el consumo. Si un contenedor supera su límite de memoria en `memory.max`, el kernel activa el OOM Killer exclusivamente dentro de ese cgroup sin tirar el resto del servidor."
+    }
+   ]
   }
  ]
 }

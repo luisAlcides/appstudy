@@ -1,0 +1,775 @@
+{
+ "key": "python",
+ "name": "Python y Análisis de Datos (freeCodeCamp)",
+ "icon": "🐍",
+ "color": "#3776ab",
+ "pos": 9,
+ "levels": [
+  "Básico",
+  "Intermedio",
+  "Avanzado"
+ ],
+ "cards": [
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "tipos,mutabilidad",
+   "front": "¿Qué tipos de datos básicos en Python son inmutables y cuáles son mutables?",
+   "back": "<b>Inmutables</b> (no se pueden modificar in-place):\n• <code>int</code>, <code>float</code>, <code>bool</code>\n• <code>str</code>\n• <code>tuple</code>, <code>frozenset</code>\n\n<b>Mutables</b> (se modifican sin cambiar de identidad):\n• <code>list</code>\n• <code>dict</code>\n• <code>set</code>",
+   "hint": "Recuerda qué pasa al intentar reasignar una posición de un string vs una lista."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "operadores",
+   "front": "¿Cuál es la diferencia exacta entre el operador <code>==</code> y el operador <code>is</code> en Python?",
+   "back": "• <code>==</code> evalúa <b>igualdad de valor</b> (compara el contenido de dos objetos).\n• <code>is</code> evalúa <b>identidad de objeto</b> (comprueba si ambas variables apuntan a la misma dirección de memoria: <code>id(a) == id(b)</code>).\n\n<i>Ejemplo:</i> <code>[1, 2] == [1, 2]</code> es <code>True</code>, pero <code>[1, 2] is [1, 2]</code> es <code>False</code>.",
+   "reverse": true,
+   "hint": "Valor vs referencia en memoria"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "operadores,aritmética",
+   "front": "¿Qué diferencia hay entre los operadores <code>/</code> y <code>//</code> en Python 3?",
+   "back": "• <code>/</code> realiza <b>división flotante estándar</b>, devolviendo siempre un <code>float</code> (ej. <code>7 / 2 = 3.5</code>).\n• <code>//</code> realiza <b>división entera (floor division)</b>, redondeando hacia abajo al entero más cercano (ej. <code>7 // 2 = 3</code>, y con negativos <code>-7 // 2 = -4</code>).",
+   "hint": "Uno siempre devuelve float, el otro redondea al suelo"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "cadenas,formato",
+   "front": "¿Cómo formateas con f-strings un número flotante <code>pi = 3.141592</code> para mostrar solo 2 decimales?",
+   "choices": [
+    "f\"{pi:.2f}\"",
+    "f\"{pi:2d}\"",
+    "f\"{round(pi, 2):format}\"",
+    "f\"{pi % 2}\""
+   ],
+   "answer": 0,
+   "back": "La sintaxis <code>f\"{variable:.2f}\"</code> especifica un formato de coma flotante (<code>f</code>) con precisión de 2 decimales."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "cadenas,slicing",
+   "front": "¿Cómo inviertes una cadena o lista en Python usando únicamente la sintaxis de slicing?",
+   "back": "Usando un paso negativo de -1:\n<code>invertido = secuencia[::-1]</code>\n\nEl slicing tiene la forma <code>[inicio:fin:paso]</code>; al omitir inicio y fin con paso -1, recorre la secuencia en orden inverso de principio a fin.",
+   "hint": "[inicio:fin:paso]"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "listas,métodos",
+   "front": "¿Cuál es la diferencia entre <code>lista.append(x)</code> y <code>lista.extend(x)</code>?",
+   "back": "• <code>append(x)</code> inserta el objeto <code>x</code> como un <b>único elemento</b> al final de la lista (si <code>x</code> es una lista, crea una lista anidada).\n• <code>extend(iterable)</code> itera sobre el argumento y añade cada uno de sus elementos de forma individual al final de la lista.",
+   "hint": "Un único elemento vs desempaquetar elementos de un iterable"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "listas,métodos",
+   "front": "¿Qué diferencia hay entre <code>lista.sort()</code> y la función integrada <code>sorted(lista)</code>?",
+   "back": "• <code>lista.sort()</code> ordena la lista <b>in-place</b> (modifica la lista original) y devuelve <code>None</code>.\n• <code>sorted(iterable)</code> no modifica el iterable original; crea y devuelve una <b>nueva lista ordenada</b>.",
+   "hint": "Modificación in-place vs creación de nueva lista"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "listas,métodos",
+   "front": "¿Qué método elimina y devuelve el último elemento de una lista (o el del índice indicado)?",
+   "choices": [
+    "pop()",
+    "remove()",
+    "del()",
+    "discard()"
+   ],
+   "answer": 0,
+   "back": "<code>lista.pop([indice])</code> extrae y retorna el elemento (por defecto el último). <code>remove(valor)</code> busca por valor, no devuelve nada y falla si no existe."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "diccionarios,métodos",
+   "front": "Para obtener el valor de una clave en un diccionario sin riesgo de lanzar KeyError si no existe, se utiliza el método {{get(clave, valor_por_defecto)}}.",
+   "back": "Si la clave existe devuelve su valor; si no existe, devuelve el valor por defecto indicado (o <code>None</code> si se omite)."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "diccionarios,iteración",
+   "front": "¿Cómo iteras simultáneamente sobre las claves y los valores de un diccionario?",
+   "back": "Usando el método <code>.items()</code>:\n<pre><code>for clave, valor in diccionario.items():\n    print(clave, valor)</code></pre>\nPara solo claves se usa <code>.keys()</code> (o el iterador directo del dict) y para solo valores <code>.values()</code>.",
+   "hint": "Método que devuelve pares (clave, valor)"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "tuplas,desempaquetado",
+   "front": "¿Cómo funciona el operador <code>*</code> en el desempaquetado de secuencias (extended unpacking)?",
+   "back": "Permite capturar múltiples elementos sobrantes en una lista:\n<pre><code>primero, *medio, ultimo = [10, 20, 30, 40, 50]\n# primero = 10\n# medio = [20, 30, 40]\n# ultimo = 50</code></pre>",
+   "hint": "Permite recoger el residuo variable en una lista"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "conjuntos,operaciones",
+   "front": "¿Qué operador realiza la intersección entre dos conjuntos (set) en Python?",
+   "choices": [
+    "&",
+    "|",
+    "^",
+    "-"
+   ],
+   "answer": 0,
+   "back": "• <code>&</code>: intersección (elementos en ambos)\n• <code>|</code>: unión\n• <code>-</code>: diferencia\n• <code>^</code>: diferencia simétrica"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "bucles,iterables",
+   "front": "¿Para qué sirve la función integrada <code>enumerate(iterable, start=0)</code>?",
+   "back": "Devuelve un iterador de tuplas con un <b>contador</b> y el elemento correspondiente en cada iteración:\n<pre><code>for i, fruta in enumerate(['manzana', 'pera'], start=1):\n    print(f\"{i}: {fruta}\")</code></pre>\nEvita tener que gestionar índices manuales con contadores externos.",
+   "hint": "Genera pares (índice, elemento)"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "bucles,iterables",
+   "front": "¿Qué hace la función <code>zip(*iterables)</code> y qué ocurre si tienen distinta longitud?",
+   "back": "Empareja los elementos correspondientes de múltiples iterables tupla a tupla.\nPor defecto en Python 3 se detiene en cuanto se agota el iterable más corto (comportamiento truncado). Para rellenar con un valor nulo hasta el más largo se usa <code>itertools.zip_longest()</code>.",
+   "hint": "Combina iterables en paralelo hasta agotar el más corto"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "bucles,control",
+   "front": "¿Cuándo se ejecuta el bloque <code>else</code> asociado a un bucle <code>for</code> o <code>while</code>?",
+   "back": "Se ejecuta <b>únicamente si el bucle termina con normalidad</b> (completó todas sus iteraciones o la condición del while se hizo falsa).\n<b>NO se ejecuta</b> si el bucle se interrumpió prematuramente con una instrucción <code>break</code>.",
+   "hint": "Se ejecuta solo cuando no se usó break"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "funciones,argumentos",
+   "front": "¿Qué representan <code>*args</code> y <code>**kwargs</code> en la definición de una función?",
+   "back": "• <code>*args</code>: recoge un número variable de <b>argumentos posicionales</b> no nombrados en forma de una <code>tuple</code>.\n• <code>**kwargs</code>: recoge un número variable de <b>argumentos por palabra clave</b> (keyword arguments) en forma de un <code>dict</code>.",
+   "hint": "Tupla de argumentos posicionales y diccionario de argumentos clave-valor"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "funciones,trampas",
+   "front": "¿Por qué es un grave error usar un objeto mutable como valor por defecto de un argumento en una función?",
+   "back": "<pre><code>def agregar(elem, lista=[]):\n    lista.append(elem)\n    return lista</code></pre>\nLos argumentos por defecto se evalúan <b>una sola vez cuando la función se define</b>, no en cada invocación. Todas las llamadas compartirán la misma lista en memoria.\n\n<i>Solución canónica:</i> Usar <code>lista=None</code> y dentro hacer <code>if lista is None: lista = []</code>.",
+   "hint": "Se evalúa al definir la función, no al llamarla"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "funciones,lambda",
+   "front": "Una función anónima inline en Python se define mediante la palabra clave {{lambda}}, que admite múltiples argumentos pero una sola expresión de retorno.",
+   "back": "Ejemplo: <code>cuadrado = lambda x: x ** 2</code>."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "comprensiones",
+   "front": "¿Qué produce la siguiente comprensión: <code>[x for x in range(6) if x % 2 == 0]</code>?",
+   "choices": [
+    "[0, 2, 4]",
+    "[0, 2, 4, 6]",
+    "[2, 4]",
+    "[1, 3, 5]"
+   ],
+   "answer": 0,
+   "back": "<code>range(6)</code> genera los enteros del 0 al 5 inclusive. Los que cumplen <code>x % 2 == 0</code> son 0, 2 y 4."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "generadores,memoria",
+   "front": "¿Cuál es la ventaja de una expresión generadora <code>(x for x in data)</code> frente a una comprensión de lista <code>[x for x in data]</code>?",
+   "back": "• La comprensión de lista crea y almacena la lista completa en memoria de inmediato (evaluación voraz / eager).\n• La expresión generadora produce los elementos <b>uno a uno bajo demanda</b> (evaluación perezosa / lazy) mediante el protocolo iterador, consumiendo una cantidad mínima y constante de memoria.",
+   "hint": "Consumo de memoria constante mediante evaluación lazy"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "excepciones",
+   "front": "¿Cuál es la función del bloque <code>else</code> y del bloque <code>finally</code> en una estructura <code>try-except</code>?",
+   "back": "• <code>else</code>: se ejecuta únicamente si el bloque <code>try</code> finalizó <b>sin que ocurriese ninguna excepción</b>.\n• <code>finally</code>: se ejecuta <b>siempre</b>, haya ocurrido o no una excepción e incluso si hubo un <code>return</code> previo (ideal para liberar recursos, cerrar conexiones, etc.).",
+   "hint": "Uno corre si no hubo error, el otro corre pase lo que pase"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "archivos,context_managers",
+   "front": "La sentencia {{with open('datos.txt', 'r', encoding='utf-8') as f:}} implementa el protocolo de Context Manager garantizando el cierre automático del archivo.",
+   "back": "El context manager invoca <code>__enter__</code> y <code>__exit__</code>, asegurando que <code>f.close()</code> se ejecute siempre, incluso ante excepciones."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "poo,clases",
+   "front": "¿Para qué sirve el parámetro <code>self</code> en los métodos de una clase en Python?",
+   "back": "Representa la <b>instancia concreta del objeto</b> sobre el que se está invocando el método. Permite acceder a los atributos y métodos de dicha instancia (ej. <code>self.nombre = nombre</code>).\nAl llamar <code>objeto.metodo()</code>, Python pasa automáticamente la instancia como primer argumento.",
+   "hint": "Referencia explícita a la instancia actual"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "poo,métodos_mágicos",
+   "front": "¿Cuál es la diferencia entre los métodos especiales <code>__str__</code> y <code>__repr__</code>?",
+   "back": "• <code>__str__</code>: representación legible orientada al <b>usuario final</b> (invocada por <code>print(obj)</code> o <code>str(obj)</code>).\n• <code>__repr__</code>: representación inequívoca orientada al <b>desarrollador</b> o depuración (invocada por la consola interactiva o <code>repr(obj)</code>). Idealmente debería permitir recrear el objeto con <code>eval()</code>.",
+   "hint": "Legible para usuario vs inequívoco para desarrolladores/debugging"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "poo,herencia",
+   "front": "¿Para qué se utiliza la función <code>super()</code> en una clase hija?",
+   "back": "Permite acceder y llamar a métodos de la <b>clase padre (superclase)</b> respetando el Orden de Resolución de Métodos (MRO).\nSu uso más habitual es delegar la inicialización en el constructor del padre: <code>super().__init__(*args)</code>.",
+   "hint": "Invoca métodos de la clase base respetando el MRO"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "builtins,booleanos",
+   "front": "¿Cuál de los siguientes valores evalúa como <code>True</code> en un contexto booleano en Python?",
+   "choices": [
+    "\"0\"",
+    "\"\"",
+    "[]",
+    "None"
+   ],
+   "answer": 0,
+   "back": "Cualquier cadena de texto no vacía (incluso conteniendo el carácter <code>\"0\"</code> o un espacio <code>\" \"</code>) es <i>truthy</i>. Cadenas vacías, listas vacías, el número 0 y <code>None</code> son <i>falsy</i>."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "iterables,any_all",
+   "front": "¿Cómo funcionan las funciones integradas <code>any()</code> y <code>all()</code>?",
+   "back": "• <code>any(iterable)</code>: devuelve <code>True</code> si <b>al menos un elemento</b> es verdadero. Hace cortocircuito al primer elemento truthy.\n• <code>all(iterable)</code>: devuelve <code>True</code> solo si <b>todos los elementos</b> son verdaderos. Hace cortocircuito al primer elemento falsy (devuelve <code>True</code> para un iterable vacío).",
+   "hint": "Al menos uno vs todos verdaderos con cortocircuito"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "cadenas,métodos",
+   "front": "Para unir una lista de cadenas con un separador se utiliza {{', '.join(lista)}}, invocando el método sobre la cadena separadora.",
+   "back": "Es mucho más eficiente que concatenar strings con <code>+</code> en un bucle, ya que calcula el buffer de memoria en un solo paso."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "excepciones,raise",
+   "front": "¿Cómo lanzas manualmente una excepción con un mensaje personalizado en Python?",
+   "back": "Usando la palabra clave <code>raise</code> seguida de la instancia o tipo de la excepción:\n<pre><code>if edad < 0:\n    raise ValueError(\"La edad no puede ser negativa\")</code></pre>",
+   "hint": "raise TipoDeError('mensaje')"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "modulos,import",
+   "front": "¿Qué significa la expresión <code>if __name__ == '__main__':</code>?",
+   "back": "Evalúa si el script está siendo <b>ejecutado directamente</b> (en cuyo caso Python asigna <code>__name__ = '__main__'</code>) o si está siendo <b>importado como módulo</b> desde otro script (en cuyo caso <code>__name__</code> toma el nombre del archivo).\nEvita que código ejecutable corra inadvertidamente al importar el módulo.",
+   "hint": "Distingue ejecución directa de importación como módulo"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "regex,texto",
+   "front": "¿Cuál es la diferencia entre <code>re.search()</code> y <code>re.match()</code> en el módulo <code>re</code> de Python?",
+   "back": "• <code>re.match()</code> busca coincidencias <b>únicamente al principio</b> de la cadena de texto (desde el índice 0).\n• <code>re.search()</code> escanea <b>toda la cadena</b> buscando la primera posición donde el patrón coincide.",
+   "hint": "Solo al inicio del string vs en cualquier parte"
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "json,archivos",
+   "front": "¿Qué función de Python convierte una cadena con formato JSON en un diccionario u objeto de Python?",
+   "choices": [
+    "json.loads()",
+    "json.dumps()",
+    "json.load()",
+    "json.parse()"
+   ],
+   "answer": 0,
+   "back": "<code>json.loads(s)</code> (la 's' final viene de <i>string</i>) deserializa texto JSON a objetos Python. <code>json.load(fp)</code> lee directamente de un descriptor de archivo."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "comprensiones,ternario",
+   "front": "¿Cómo se escribe un condicional <code>if-else</code> ternario dentro de una comprensión de lista?",
+   "back": "La cláusula ternaria debe ubicarse <b>antes</b> del bucle <code>for</code>:\n<pre><code>etiquetas = [\"par\" if x % 2 == 0 else \"impar\" for x in numeros]</code></pre>\n<i>Regla:</i> Si solo hay <code>if</code> para filtrar, va <b>al final</b>; si hay <code>if-else</code> para transformar valores, va <b>al principio</b>.",
+   "hint": "if-else va antes del for; if de filtrado va después del for"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "decoradores,funciones",
+   "front": "¿Qué es un decorador en Python y cuál es su sintaxis con <code>@</code>?",
+   "back": "Un decorador es una función que recibe otra función como argumento, amplía o modifica su comportamiento y devuelve una nueva función modificada.\n<pre><code>@mi_decorador\ndef saludo():\n    print(\"Hola\")\n\n# Equivale exactamente a:\ndef saludo():\n    print(\"Hola\")\nsaludo = mi_decorador(saludo)</code></pre>",
+   "hint": "Función que envuelve a otra función modificando su comportamiento"
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "conjuntos,metodos",
+   "front": "Para verificar si todos los elementos del conjunto A están dentro del conjunto B se utiliza {{A.issubset(B)}}.",
+   "back": "También se puede expresar con el operador relacional de subconjunto: <code>A <= B</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "numpy,fundamentos",
+   "front": "¿Por qué un <code>ndarray</code> de NumPy es órdenes de magnitud más rápido que una lista estándar de Python para cálculo numérico?",
+   "back": "1. <b>Memoria contigua</b>: almacena los datos en un bloque continuo de memoria en C sin punteros intermediarios.\n2. <b>Tipado estricto y homogéneo</b>: todos los elementos comparten el mismo <code>dtype</code>, evitando comprobaciones dinámicas de tipo en cada paso.\n3. <b>Vectorización y SIMD</b>: las operaciones se compilan en código de máquina utilizando instrucciones de hardware vectoriales.",
+   "hint": "Memoria contigua en C, tipos homogéneos y vectorización SIMD"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "numpy,creacion",
+   "front": "¿Qué función de NumPy crea un array de 5 valores espaciados uniformemente entre 0 y 10 (ambos inclusive)?",
+   "choices": [
+    "np.linspace(0, 10, 5)",
+    "np.arange(0, 10, 5)",
+    "np.zeros(5, 10)",
+    "np.range(0, 10, 5)"
+   ],
+   "answer": 0,
+   "back": "<code>np.linspace(start, stop, num)</code> divide el intervalo en <code>num</code> puntos equidistantes incluyendo el extremo final. <code>np.arange(0, 10, 5)</code> daría paso de 5: <code>[0, 5]</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "numpy,dimensiones",
+   "front": "¿Qué información devuelven los atributos <code>.ndim</code>, <code>.shape</code> y <code>.size</code> en un array de NumPy?",
+   "back": "• <code>arr.ndim</code>: número de dimensiones (rango o ejes del tensor, ej. 2 para una matriz).\n• <code>arr.shape</code>: tupla con la longitud de cada dimensión (ej. <code>(3, 4)</code>: 3 filas y 4 columnas).\n• <code>arr.size</code>: número total de elementos contenidos en el array (el producto de la tupla <code>shape</code>, ej. 12).",
+   "hint": "Número de ejes, tupla de dimensiones y conteo total de elementos"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "numpy,slicing",
+   "front": "¿Qué ocurre al modificar los datos de un slice de un array de NumPy y cómo se evita?",
+   "back": "El slicing en NumPy devuelve una <b>vista (view)</b> de los mismos datos en memoria, NO una copia. Modificar el slice alterará el array original.\n\n<i>Solución:</i> Crear explícitamente una copia independiente con <code>sub_arr = arr[1:3].copy()</code>.",
+   "hint": "Devuelve una vista compartida en memoria; requiere .copy()"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "numpy,indexacion",
+   "front": "Dada una matriz 2D <code>M = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])</code>, ¿cómo seleccionas todas las filas de la columna central?",
+   "back": "Usando slicing en filas y la posición de columna:\n<code>M[:, 1]</code>\n\nEl primer índice <code>:</code> indica «todas las filas», y el segundo <code>1</code> selecciona la columna de índice 1 (valores <code>[2, 5, 8]</code>).",
+   "hint": "M[filas, columnas]"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "numpy,broadcasting",
+   "front": "¿Cuáles son las dos reglas de compatibilidad de dimensiones para el Broadcasting en NumPy?",
+   "back": "Al operar sobre dos arrays, NumPy compara sus formas de <b>derecha a izquierda</b>. Dos dimensiones son compatibles si:\n1. Son <b>exactamente iguales</b>, o\n2. Una de ellas es <b>1</b> (en cuyo caso se expande virtualmente para igualar a la otra sin duplicar datos en memoria).",
+   "hint": "Comparación de derecha a izquierda: iguales o una vale 1"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "numpy,ejes",
+   "front": "En un array 2D de NumPy con forma (4, 3), ¿qué resultado produce la operación <code>arr.sum(axis=0)</code>?",
+   "choices": [
+    "Un array de 3 elementos (suma a lo largo de las filas para cada columna)",
+    "Un array de 4 elementos (suma a lo largo de las columnas para cada fila)",
+    "Un escalar con la suma de los 12 elementos",
+    "Una matriz diagonal de 3x3"
+   ],
+   "answer": 0,
+   "back": "El eje especificado en <code>axis</code> es la dimensión que se <b>colapsa</b> o reduce. Al colapsar <code>axis=0</code> (filas), se suman verticalmente los valores de cada columna, produciendo 3 sumas."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "numpy,condicional",
+   "front": "Para seleccionar elementos bajo una condición o sustituirlos por ternario se usa {{np.where(condicion, valor_si_true, valor_si_false)}}.",
+   "back": "Si solo se proporciona la condición, <code>np.where(cond)</code> devuelve una tupla de arrays con los índices de los elementos que son True."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "numpy,reshape",
+   "front": "¿Qué significa el valor <code>-1</code> al ejecutar <code>arr.reshape(2, -1)</code> en NumPy?",
+   "back": "Indica a NumPy que <b>calcule automáticamente</b> esa dimensión a partir del tamaño total del array y del resto de dimensiones indicadas.\nSi el array tiene 10 elementos, <code>arr.reshape(2, -1)</code> calculará una forma de <code>(2, 5)</code>.",
+   "hint": "Inferencia automática de la dimensión restante"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "numpy,algebra",
+   "front": "¿Cuál es la diferencia entre el operador <code>*</code> y el operador <code>@</code> entre dos matrices en NumPy?",
+   "back": "• <code>A * B</code>: multiplicación <b>elemento a elemento</b> (element-wise de Hadamard); requiere formas idénticas o compatibles por broadcasting.\n• <code>A @ B</code> (o <code>np.dot(A, B)</code>): <b>producto matricial formal</b> (álgebra lineal, filas por columnas); el número de columnas de A debe coincidir con el de filas de B.",
+   "reverse": true,
+   "hint": "Elemento a elemento vs producto matricial de álgebra lineal"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,estructuras",
+   "front": "¿Cuál es la relación estructural entre una <code>Series</code> y un <code>DataFrame</code> en Pandas?",
+   "back": "• Una <b>Series</b> es un array unidimensional etiquetado capaz de contener cualquier tipo de dato, asociado a un eje de etiquetas llamado <code>Index</code>.\n• Un <b>DataFrame</b> es una estructura bidimensional tabular (filas y columnas) compuesta esencialmente por un diccionario ordenado de objetos <code>Series</code> que comparten el mismo índice.",
+   "hint": "1D con índice vs 2D tabla compuesta por Series con índice compartido"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,indexacion",
+   "front": "¿Cuál es la diferencia fundamental entre <code>df.loc[]</code> y <code>df.iloc[]</code>?",
+   "back": "• <code>.loc[]</code>: indexación basada en <b>etiquetas</b> (nombres de filas y columnas). <i>Regla clave:</i> incluye ambos extremos en los rangos (<code>'a':'c'</code> incluye 'c').\n• <code>.iloc[]</code>: indexación basada exclusivamente en <b>posiciones enteras</b> (estilo Python de 0 a n-1). <i>Regla clave:</i> excluye el límite superior (<code>0:3</code> incluye 0, 1, 2).",
+   "reverse": true,
+   "hint": "Etiquetas (inclusivo) vs enteros (exclusivo fin)"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "pandas,filtrado",
+   "front": "¿Cómo filtras en Pandas filas donde 'edad' > 25 Y 'pais' sea 'ES'?",
+   "choices": [
+    "df[(df['edad'] > 25) & (df['pais'] == 'ES')]",
+    "df[df['edad'] > 25 and df['pais'] == 'ES']",
+    "df[(df['edad'] > 25) && (df['pais'] == 'ES')]",
+    "df.filter(edad > 25 and pais == 'ES')"
+   ],
+   "answer": 0,
+   "back": "En Pandas deben usarse los operadores vectoriales bitwise (<code>&</code> para AND, <code>|</code> para OR, <code>~</code> para NOT) y envolver <b>cada condición entre paréntesis</b> debido a la precedencia de operadores."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,nulos",
+   "front": "¿Cómo contabilizas el número exacto de valores faltantes (NaN) en cada columna de un DataFrame?",
+   "back": "<code>df.isna().sum()</code>\n(o de forma equivalente <code>df.isnull().sum()</code>).\n\n<code>df.isna()</code> genera una máscara booleana donde <code>True</code> vale 1; sumar a lo largo del eje vertical cuenta cuántos nulos hay por columna.",
+   "hint": "isna() sumado por columna"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,nulos",
+   "front": "¿Qué diferencia hay entre <code>df.dropna()</code> y <code>df.fillna(valor)</code>?",
+   "back": "• <code>df.dropna(subset=['col'], how='any')</code>: <b>elimina</b> las filas (o columnas si <code>axis=1</code>) que contienen valores nulos.\n• <code>df.fillna(valor)</code>: <b>imputa / reemplaza</b> los valores nulos con un escalar fijo (ej. 0) o estadístico (ej. <code>df['edad'].median()</code>) o propagando valores con <code>method='ffill'</code>.",
+   "hint": "Descarte vs imputación de valores faltantes"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "pandas,frecuencias",
+   "front": "¿Qué método calcula la frecuencia relativa (porcentajes sumando 1.0) de cada valor único en una Serie?",
+   "choices": [
+    "s.value_counts(normalize=True)",
+    "s.unique(percentages=True)",
+    "s.count(relative=True)",
+    "s.frequency_dist()"
+   ],
+   "answer": 0,
+   "back": "<code>s.value_counts(normalize=True)</code> divide el conteo de cada categoría entre el número total de elementos no nulos."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,groupby",
+   "front": "¿Cómo calculas simultáneamente la media, suma y recuento de una columna por cada categoría con <code>groupby</code>?",
+   "back": "Usando el método <code>.agg()</code> tras agrupar:\n<pre><code>df.groupby('categoria')['ventas'].agg(['mean', 'sum', 'count'])</code></pre>\nO asignando nombres a las columnas resultantes:\n<pre><code>df.groupby('categoria').agg(promedio=('ventas', 'mean'), total=('ventas', 'sum'))</code></pre>",
+   "hint": "df.groupby('cat')['col'].agg(['mean', 'sum', ...])"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,apply",
+   "front": "¿Cuál es la diferencia entre aplicar una función con <code>.apply()</code> a una Series vs a un DataFrame?",
+   "back": "• En una <b>Series</b>: la función recibe cada elemento individual de la serie.\n• En un <b>DataFrame</b>: por defecto (<code>axis=0</code>) la función recibe cada <b>columna completa</b> como una Serie. Si se indica <code>axis=1</code>, la función recibe cada <b>fila completa</b>, permitiendo cálculos inter-columna.",
+   "hint": "Elemento individual vs columna completa (axis=0) o fila (axis=1)"
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "pandas,uniones",
+   "front": "Para combinar dos DataFrames por claves comunes al estilo SQL JOIN se utiliza la función {{pd.merge(df1, df2, on='id', how='left')}}.",
+   "back": "Los modos de unión (<code>how</code>) disponibles son: <code>'inner'</code>, <code>'left'</code>, <code>'right'</code> y <code>'outer'</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,concatenacion",
+   "front": "¿Cómo apilas verticalmente (añadir filas) dos DataFrames con idénticas columnas?",
+   "back": "<code>pd.concat([df1, df2], axis=0, ignore_index=True)</code>\n\nEl parámetro <code>axis=0</code> concatena verticalmente las filas, e <code>ignore_index=True</code> genera un nuevo índice correlativo de 0 a N evitando índices duplicados.",
+   "hint": "pd.concat con axis=0 e ignore_index=True"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "pandas,seleccion",
+   "front": "¿Qué tipo de objeto devuelve la expresión <code>df[['precio']]</code> en comparación con <code>df['precio']</code>?",
+   "choices": [
+    "df[['precio']] devuelve un DataFrame; df['precio'] devuelve una Series",
+    "Ambos devuelven exactamente una Series",
+    "Ambos devuelven un DataFrame de una columna",
+    "df[['precio']] devuelve un array de NumPy plano"
+   ],
+   "answer": 0,
+   "back": "Pasar una lista de columnas (incluso con un solo elemento <code>[['col']]</code>) conserva la estructura 2D de DataFrame. Pasar una cadena simple <code>['col']</code> extrae la Serie 1D."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,ordenacion",
+   "front": "¿Cómo ordenas un DataFrame por dos columnas en direcciones opuestas (una ascendente y otra descendente)?",
+   "back": "<pre><code>df.sort_values(\n    by=['departamento', 'salario'],\n    ascending=[True, False]\n)</code></pre>\nSe pasan listas tanto para el parámetro <code>by</code> como para el booleano <code>ascending</code>.",
+   "hint": "Pasa listas a los parámetros by y ascending"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,strings",
+   "front": "¿Cómo realizas operaciones vectorizadas sobre texto en Pandas?",
+   "back": "A través del accesor <code>.str</code> sobre una Serie:\n<pre><code># Limpieza y filtrado\ndf['email'] = df['email'].str.strip().str.lower()\nfilas = df[df['nombre'].str.contains('García', na=False)]</code></pre>\nEl parámetro <code>na=False</code> asegura que los valores nulos no rompan la condición booleana.",
+   "hint": "Accesor .str sobre la columna"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,warning",
+   "front": "¿Por qué aparece la advertencia <code>SettingWithCopyWarning</code> en Pandas y cómo se soluciona?",
+   "back": "Ocurre al intentar asignar valores sobre una selección encadenada como <code>df[df['edad'] > 18]['estado'] = 'adulto'</code>, porque Pandas no puede determinar si la selección es una copia o una vista en memoria.\n\n<i>Solución canónica:</i> Usar siempre <code>.loc</code>:\n<code>df.loc[df['edad'] > 18, 'estado'] = 'adulto'</code>",
+   "hint": "Asignación sobre vista encadenada; solucionable con .loc[filas, columnas]"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "pandas,columnas",
+   "front": "¿Cómo eliminas de forma definitiva una columna llamada 'obsoleta' devolviendo un nuevo DataFrame?",
+   "choices": [
+    "df.drop(columns=['obsoleta'])",
+    "df.remove('obsoleta')",
+    "df.pop_column('obsoleta')",
+    "del df['obsoleta'].all()"
+   ],
+   "answer": 0,
+   "back": "<code>df.drop(columns=['obsoleta'])</code> (o <code>df.drop('obsoleta', axis=1)</code>) devuelve una copia del DataFrame sin la columna especificada."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "fcc_proyectos,numpy",
+   "front": "En el proyecto 1 de freeCodeCamp (Mean-Variance-Std Dev), ¿qué tres ejes deben calcularse para cada métrica en una matriz 3x3?",
+   "back": "Para una matriz de 3x3 convertida desde una lista de 9 números:\n1. <code>axis=0</code> (a lo largo de columnas, colapsa filas → lista de 3 valores)\n2. <code>axis=1</code> (a lo largo de filas, colapsa columnas → lista de 3 valores)\n3. <code>flattened</code> (sobre todos los 9 elementos de la matriz → un solo escalar)\n\n<i>Ejemplo:</i> <code>[arr.mean(axis=0).tolist(), arr.mean(axis=1).tolist(), arr.mean().item()]</code>.",
+   "hint": "axis=0 (columnas), axis=1 (filas) y plano (todos los elementos)"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "fcc_proyectos,numpy",
+   "front": "En el proyecto 'Mean-Variance-Std Dev Calculator', ¿qué debe ocurrir si la lista de entrada contiene menos o más de 9 números?",
+   "choices": [
+    "Lanzar ValueError(\"List must contain nine numbers.\")",
+    "Rellenar los huecos con ceros hasta llegar a 9",
+    "Devolver None y un código de error",
+    "Recortar los primeros 9 números automáticamente"
+   ],
+   "answer": 0,
+   "back": "La especificación del test unitario de freeCodeCamp exige explícitamente: <code>raise ValueError(\"List must contain nine numbers.\")</code> si <code>len(lista) != 9</code>."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "fcc_proyectos,pandas",
+   "front": "En el proyecto 'Demographic Data Analyzer', ¿cómo calculas el porcentaje de personas con educación avanzada (Bachelors, Masters o Doctorate) que ganan más de 50K?",
+   "back": "<pre><code>edu_avanzada = df['education'].isin(['Bachelors', 'Masters', 'Doctorate'])\nricos = df['salary'] == '>50K'\n\n# Proporción de ricos dentro del grupo de educación avanzada\nporcentaje = (edu_avanzada & ricos).sum() / edu_avanzada.sum() * 100\nporcentaje = round(porcentaje, 1)</code></pre>",
+   "hint": "df['education'].isin([...]) combinado con máscara de salario"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "fcc_proyectos,pandas",
+   "front": "En el proyecto 'Demographic Data Analyzer', ¿cómo hallas el país con mayor porcentaje de personas que ganan >50K?",
+   "back": "<pre><code>ricos_por_pais = df[df['salary'] == '>50K']['native-country'].value_counts()\ntotal_por_pais = df['native-country'].value_counts()\n\ntasas = (ricos_por_pais / total_por_pais * 100).dropna()\npais_top = tasas.idxmax()\nporcentaje_top = round(tasas.max(), 1)</code></pre>\nEl método <code>.idxmax()</code> devuelve la etiqueta del índice que tiene el valor máximo.",
+   "hint": "Conteo de ricos entre conteo total por país y luego .idxmax()"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "fcc_proyectos,medical",
+   "front": "En el proyecto 'Medical Data Visualizer', ¿cómo se añade la columna 'overweight' basada en el IMC?",
+   "back": "El IMC se calcula como el peso en kg dividido por la altura en metros al cuadrado:\n<pre><code>imc = df['weight'] / ((df['height'] / 100) ** 2)\ndf['overweight'] = (imc > 25).astype(int)</code></pre>\nSi el IMC es estrictamente mayor que 25 se asigna 1 (sobrepeso), de lo contrario 0.",
+   "hint": "peso / (altura / 100)**2 > 25 convertido a int"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "fcc_proyectos,medical",
+   "front": "Para ocultar el triángulo superior repetido en un mapa de calor de correlación se genera una máscara con {{np.triu(np.ones_like(corr, dtype=bool))}}.",
+   "back": "<code>np.triu()</code> extrae el triángulo superior; al pasarlo al parámetro <code>mask</code> de <code>sns.heatmap(corr, mask=mask)</code>, Seaborn no dibuja esos valores simétricos redundantes."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "fcc_proyectos,time_series",
+   "front": "En el proyecto 'Page View Time Series Visualizer', ¿cómo se limpian los datos filtrando el 2.5% superior e inferior de visualizaciones?",
+   "back": "<pre><code>q_low = df['value'].quantile(0.025)\nq_high = df['value'].quantile(0.975)\n\ndf_clean = df[(df['value'] >= q_low) & (df['value'] <= q_high)]</code></pre>\nElimina los días atípicos extremos conservando el 95% central de los registros.",
+   "hint": "df['value'].quantile(0.025) y quantile(0.975)"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "fcc_proyectos,sea_level",
+   "front": "En el proyecto 'Sea Level Predictor', ¿cómo se calculan la pendiente y el intercepto de la línea de regresión hasta el año 2050?",
+   "back": "<pre><code>from scipy.stats import linregress\n\nres = linregress(df['Year'], df['CSIRO Adjusted Sea Level'])\n\n# Crear rango extendido hasta 2050\nx_pred = np.arange(df['Year'].min(), 2051)\ny_pred = res.slope * x_pred + res.intercept\n\nplt.plot(x_pred, y_pred, 'r-', label='Ajuste lineal 1880-2050')</code></pre>",
+   "hint": "scipy.stats.linregress y ecuación de la recta y = mx + b"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "matplotlib,arquitectura",
+   "front": "¿Cuál es la diferencia entre los objetos <code>Figure</code> y <code>Axes</code> en la API orientada a objetos de Matplotlib?",
+   "back": "• <b>Figure</b>: es el lienzo completo de nivel superior (la ventana o página). Puede albergar uno o múltiples gráficos, títulos generales, subtítulos y barras de color.\n• <b>Axes</b>: es el área de trazado individual dentro de la figura donde residen los datos (líneas, barras, puntos), conteniendo los ejes X e Y, ticks, etiquetas y leyenda.\n\n<i>Creación:</i> <code>fig, ax = plt.subplots()</code>.",
+   "hint": "Lienzo general contenedor vs área de trazado individual con ejes"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "seaborn,graficos",
+   "front": "¿Qué gráfico de Seaborn es el más adecuado para comparar la mediana, rango intercuartílico y outliers de una variable numérica entre múltiples categorías?",
+   "choices": [
+    "sns.boxplot()",
+    "sns.lineplot()",
+    "sns.heatmap()",
+    "sns.scatterplot()"
+   ],
+   "answer": 0,
+   "back": "<code>sns.boxplot()</code> dibuja cajas con la mediana, cuartiles Q1-Q3, bigotes de 1.5 IQR y puntos individuales para valores atípicos (outliers)."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pandas,pivot",
+   "front": "¿Qué diferencia hay entre <code>df.pivot()</code> y <code>df.pivot_table()</code>?",
+   "back": "• <code>df.pivot()</code>: reestructura los datos sin agregar; <b>falla con ValueError</b> si existen duplicados para la combinación de índice y columnas.\n• <code>df.pivot_table()</code>: soporta agregación matemática mediante el parámetro <code>aggfunc</code> (por defecto <code>'mean'</code>, o <code>'sum'</code>, <code>'count'</code>), manejando de forma natural registros duplicados.",
+   "hint": "pivot simple sin duplicados vs pivot_table con funciones de agregación"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pandas,melt",
+   "front": "¿Para qué se utiliza la función <code>pd.melt()</code> en Pandas?",
+   "back": "Transforma un DataFrame de formato <b>ancho (wide)</b> a formato <b>largo (long / tidy)</b>.\nDespivota columnas seleccionadas en dos columnas: una con los nombres de las variables originales (<code>var_name</code>) y otra con sus valores (<code>value_name</code>), preservando columnas identificadoras (<code>id_vars</code>).\n\nFundamental para preparar datos para <code>sns.catplot()</code>.",
+   "hint": "Pasa de formato ancho a formato largo (unpivot)"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pandas,tiempo",
+   "front": "¿Cómo conviertes una columna de texto en datetime y la fijas como índice temporal en Pandas?",
+   "back": "<pre><code>df['fecha'] = pd.to_datetime(df['fecha'], format='%Y-%m-%d')\ndf.set_index('fecha', inplace=True)\n\n# Permite filtrar por texto directamente:\nprimer_trimestre = df['2022-01':'2022-03']</code></pre>",
+   "hint": "pd.to_datetime() y df.set_index('fecha')"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "pandas,tiempo",
+   "front": "Para cambiar la frecuencia de una serie temporal agrupando por mes y calculando la media se usa {{df.resample('M').mean()}}.",
+   "back": "<code>resample</code> actúa como un groupby especializado para índices temporales (ej. 'D' día, 'W' semana, 'M' mes, 'A' o 'Y' año)."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "estadistica,outliers",
+   "front": "¿Cómo se define un valor atípico (outlier) mediante el criterio del Rango Intercuartílico (IQR)?",
+   "back": "1. Calcular el primer cuartil ($Q_1$) y el tercer cuartil ($Q_3$)\n2. Obtener el rango: $IQR = Q_3 - Q_1$\n3. Definir los límites:\n   • <b>Límite inferior</b>: $Q_1 - 1.5 \\times IQR$\n   • <b>Límite superior</b>: $Q_3 + 1.5 \\times IQR$\n\nCualquier dato fuera de ese intervalo se considera un valor atípico leve (o extremo si el multiplicador es 3.0).",
+   "hint": "Q1 - 1.5*IQR y Q3 + 1.5*IQR"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "pandas,rendimiento",
+   "front": "¿Por qué debe evitarse el uso de bucles <code>for row in df.iterrows():</code> en Pandas?",
+   "choices": [
+    "Porque rompe la vectorización, crea un objeto Series por cada fila y es extremadamente lento",
+    "Porque iterrows() borra los tipos de datos de las columnas",
+    "Porque no soporta DataFrames de más de 1000 filas",
+    "Porque modifica las filas originales in-place de forma impredecible"
+   ],
+   "answer": 0,
+   "back": "Iterar con <code>iterrows()</code> sobrecarga el recolector de basura creando miles de Series intermedias en Python puro. Las operaciones vectorizadas nativas en C o <code>np.where</code> son de 100 a 1000 veces más rápidas."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pandas,tipos",
+   "front": "¿Qué beneficio de memoria aporta convertir una columna de texto con pocos valores únicos al tipo <code>'category'</code>?",
+   "back": "Reduce drásticamente el consumo de memoria RAM (a menudo en más de un 80%).\nEn lugar de guardar la cadena completa en cada fila, almacena un diccionario entero de categorías y guarda enteros pequeños (<code>int8</code> o <code>int16</code>) como punteros a la categoría correspondiente.",
+   "hint": "Sustituye strings repetidos por índices enteros ligeros"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "seaborn,personalizacion",
+   "front": "¿Cómo ajustas los márgenes de una figura de Matplotlib para evitar que títulos o etiquetas de ejes queden cortados?",
+   "back": "Usando <code>plt.tight_layout()</code> (o <code>fig.tight_layout()</code>) antes de guardar o mostrar la imagen.\nAlternativamente al guardar: <code>fig.savefig('plot.png', bbox_inches='tight')</code>.",
+   "hint": "plt.tight_layout() o bbox_inches='tight'"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pandas,discretizacion",
+   "front": "¿Cuál es la diferencia entre <code>pd.cut()</code> y <code>pd.qcut()</code> en Pandas?",
+   "back": "• <code>pd.cut()</code> divide los datos en contenedores (bins) de <b>anchura igual</b> en el rango de valores (ej. de 0 a 10, de 10 a 20...).\n• <code>pd.qcut()</code> divide los datos basándose en <b>cuantiles muestrales</b>, garantizando que cada contenedor tenga aproximadamente el <b>mismo número de observaciones</b>.",
+   "hint": "Anchura constante de rango vs igual frecuencia/número de datos por bin"
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "matplotlib,ejes",
+   "front": "¿Cómo añades un segundo eje Y independiente en el lado derecho de un gráfico de Matplotlib para comparar dos series con magnitudes muy distintas?",
+   "choices": [
+    "ax2 = ax.twinx()",
+    "ax2 = ax.twiny()",
+    "ax2 = fig.add_secondary_axis('y')",
+    "ax2 = ax.split(axis='y')"
+   ],
+   "answer": 0,
+   "back": "<code>ax.twinx()</code> crea un nuevo objeto Axes que comparte el mismo eje X pero dispone de una escala independiente en el eje Y a la derecha."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "seaborn,multivariable",
+   "front": "¿Para qué se utiliza <code>sns.pairplot(df, hue='categoria')</code>?",
+   "back": "Genera una matriz de subgráficos que cruza <b>todas las parejas posibles de variables numéricas</b> del DataFrame (diagramas de dispersión fuera de la diagonal y distribuciones en la diagonal principal), coloreando las observaciones según la columna categórica indicada en <code>hue</code>.\nEs la herramienta exploratoria visual más potente para detectar separabilidad de clases.",
+   "hint": "Matriz de dispersión cruzando todas las variables numéricas con color por clase"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pandas,duplicados",
+   "front": "¿Cómo identificas y eliminas registros duplicados basados únicamente en un subconjunto de columnas clave?",
+   "back": "<pre><code># Contar duplicados en la clave cliente_id\nnum_dups = df.duplicated(subset=['cliente_id']).sum()\n\n# Eliminar duplicados conservando el último registro visto\ndf_limpio = df.drop_duplicates(subset=['cliente_id'], keep='last')</code></pre>",
+   "hint": "df.duplicated() y df.drop_duplicates() con subset y keep"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pandas,tiempo",
+   "front": "¿Cómo calculas una media móvil de 7 días (rolling average) sobre una columna de valores diarios?",
+   "back": "<code>df['media_7d'] = df['visitas'].rolling(window=7).mean()</code>\n\nCalcula para cada fila el promedio de los 7 días precedentes (incluyendo el actual). Las primeras 6 filas quedarán como <code>NaN</code> salvo que se especifique <code>min_periods=1</code>.",
+   "hint": "df['col'].rolling(window=7).mean()"
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "fcc_proyectos,time_series",
+   "front": "En el proyecto Page View de freeCodeCamp, las fechas se leen e indexan directamente con {{pd.read_csv('fcc-forum-pageviews.csv', parse_dates=['date'], index_col='date')}}.",
+   "back": "Carga la columna de fechas directamente parseada como datetime y la sitúa de inmediato como el índice del DataFrame."
+  }
+ ]
+}

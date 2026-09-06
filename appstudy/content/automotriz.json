@@ -919,6 +919,104 @@
     "El color del escáner"
    ],
    "answer": 0
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "diagnóstico,obd2,inyección",
+   "front": "Fuel Trims (STFT y LTFT): ¿qué significan y cómo indican una fuga de vacío?",
+   "back": "- <b>STFT (Short Term Fuel Trim)</b>: corrección instantánea de combustible según la lectura inmediata de la sonda lambda.\n- <b>LTFT (Long Term Fuel Trim)</b>: corrección aprendida y almacenada en la ECU a lo largo del tiempo.\n\n<b>Fuga de vacío (toma de aire no medida)</b>: en ralentí entra aire no registrado por el MAF, por lo que la mezcla es pobre y los trims se disparan a positivo (ej. $+20\\,\\%$). Al acelerar a 2500 RPM el volumen de aire de la fuga es despreciable frente al flujo principal y los trims se normalizan a cerca de $0\\,\\%$."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "diagnóstico,obd2,códigos",
+   "front": "Un vehículo enciende la luz de avería con el código OBD-II P0171. ¿Qué indica este código?",
+   "choices": [
+    "Sistema demasiado pobre en el Banco 1 (System Too Lean Bank 1)",
+    "Fallo de encendido en el cilindro 1 (Misfire Cylinder 1)",
+    "Tensión excesiva en el sensor de posición de acelerador",
+    "Temperatura del líquido refrigerante por encima del límite"
+   ],
+   "answer": 0,
+   "back": "P0171 indica que la ECU ha tenido que enriquecer la mezcla al límite máximo calibrado porque detecta exceso de oxígeno no quemado en el escape. Causas habituales: tomas de aire en admisión, caudalímetro MAF sucio o baja presión de combustible."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "turbo,sobrealimentación,motores",
+   "front": "Turbo de Geometría Variable (VGT/VNT): ¿cómo elimina el turbo lag?",
+   "back": "Incorpora una corona de <b>álabes móviles</b> en la caracola de escape:\n\n- <b>A bajas RPM</b>: los álabes se cierran, estrechando el paso de los gases de escape. Esto aumenta la velocidad del gas (efecto Venturi) contra la turbina y genera presión de sobrealimentación instantánea sin lag.\n- <b>A altas RPM</b>: los álabes se abren para dar paso a todo el caudal de gases, evitando contrapresión excesiva y sobregiro del turbo."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "inyección,gdi,motores",
+   "front": "Inyección directa de gasolina (GDI): ¿por qué acumulan carbonilla en las válvulas de admisión?",
+   "back": "En motores con inyección indirecta (puerto), el inyector pulveriza gasolina sobre el vástago y la cabeza de la válvula de admisión, limpiándola continuamente con el disolvente del combustible.\n\nEn <b>inyección directa (GDI)</b> el inyector pulveriza directamente dentro de la cámara de combustión. Los vapores de aceite del sistema de ventilación del cárter (PCV) entran por la admisión y se hornean en las válvulas calientes sin que nada los lave, requiriendo descarbonización con cáscara de nuez (walnut blasting)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "híbridos,eléctricos,seguridad",
+   "front": "Vehículos híbridos y eléctricos: ¿qué es el circuito HVIL (High Voltage Interlock Loop)?",
+   "back": "Es un lazo de seguridad de <b>baja tensión (12 V)</b> que recorre en serie todos los conectores, tapas de servicio y módulos de alta tensión del vehículo.\n\nSi alguien abre o desconecta un componente de alta tensión sin cortar la energía, el lazo HVIL se interrumpe al instante y la unidad de control desconecta los contactores principales de la batería de alta tensión en milisegundos para evitar arcos eléctricos mortales."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "frenos,seguridad,abs,esp",
+   "front": "¿Cómo funciona el sistema de frenos antibloqueo (ABS) y control de estabilidad (ESP)?",
+   "back": "1. <b>Sensores de velocidad de rueda</b> (efecto Hall) miden la rotación continua de cada rueda.\n2. Si una rueda tiende a bloquearse (deslizar) durante una frenada, el <b>módulo hidráulico ABS</b> modula la presión de líquido de frenos mediante electroválvulas en tres fases: <i>reducir presión, mantener y reaplicar</i> hasta 15 veces por segundo, manteniendo la dirección del vehículo.\n3. El <b>ESP</b> añade sensor de ángulo de volante y sensor de aceleración lateral/guiñada: frena selectivamente ruedas individuales para corregir subviraje o sobreviraje."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "distribución,vvt,motores",
+   "front": "Distribución variable (VVT / VTEC): ¿qué beneficio aporta desfasar el árbol de levas?",
+   "back": "- <b>A bajas revoluciones</b>: retrasa la apertura de admisión para reducir el cruce de válvulas (traslape), logrando un ralentí suave, buen par motor y bajas emisiones.\n- <b>A altas revoluciones</b>: avanza la apertura de admisión para aprovechar la inercia del aire entrante y llenar al máximo el cilindro, aumentando la potencia máxima.\n- El actuador hidráulico gira el árbol respecto a su polea mediante presión de aceite gobernada por una electroválvula solenoide PWM."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "refrigeración,térmica,motores",
+   "front": "Tapón del radiador presurizado: ¿por qué eleva el punto de ebullición del motor?",
+   "back": "El punto de ebullición de un líquido aumenta con la presión.\n\nEl tapón presurizado lleva una válvula de resorte calibrada (habitualmente a 0.9–1.3 bar sobre la presión atmosférica). Al presurizar el circuito, la mezcla de agua y etilenglicol (50/50) <b>no hierve hasta los 125–130 °C</b>, evitando la formación de bolsas de vapor que causarían sobrecalentamiento instantáneo y rotura de culata."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "encendido,bujías,motores",
+   "front": "Bujías: ¿qué diferencia una bujía fría de una bujía caliente?",
+   "back": "El <b>grado térmico</b> indica la rapidez con la que la bujía disipa el calor de su punta hacia la culata:\n\n- <b>Bujía fría</b>: punta corta de cerámica aislante; disipa el calor rápidamente. Usada en motores de alta compresión o turbo para evitar autoencendido/picado de biela.\n- <b>Bujía caliente</b>: punta larga de cerámica; retiene calor para mantenerse por encima de 450–500 °C (temperatura de autolimpieza) y quemar los depósitos de carbonilla en motores de uso urbano a bajas RPM."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "emisiones,egr,medioambiente",
+   "front": "Válvula EGR: ¿cómo reduce las emisiones de óxidos de nitrógeno (NOx)?",
+   "back": "Los óxidos de nitrógeno (NOx) se forman únicamente cuando la temperatura en la cámara de combustión supera los <b>1370 °C</b> en presencia de oxígeno abundante.\n\nLa <b>EGR (Exhaust Gas Recirculation)</b> reintroduce una pequeña porción de gases de escape inertes en la admisión. Estos gases absorben calor y reducen la concentración de oxígeno, bajando la temperatura máxima del pico de combustión por debajo del umbral de formación de NOx."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "sensores,detonación,encendido",
+   "front": "Sensor de detonación (Knock Sensor): principio piezoeléctrico y acción de la ECU",
+   "back": "Es un sensor piezoeléctrico atornillado al bloque del motor que genera una señal de voltaje al vibrar en la frecuencia acústica característica del <b>picado de biela / autoencendido (~5 a 8 kHz)</b>.\n\nAl detectar la detonación, la ECU <b>retrasa el avance del encendido (timing retard)</b> en pasos de 2° a 3° en el cilindro afectado de forma inmediata para proteger los pistones de sobrepresiones destructivas, y luego avanza gradualmente hasta el límite óptimo."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "transmisión,diferencial,lsd",
+   "front": "Diferencial abierto vs Diferencial autoblocante (LSD): ¿qué ocurre si una rueda pierde adherencia?",
+   "back": "- <b>Diferencial abierto</b>: siempre aplica el <b>mismo par motor (50/50)</b> a ambas ruedas. Si una rueda pisa hielo y solo puede transmitir 10 Nm de par antes de patinar, la otra rueda sobre asfalto seco solo recibirá también 10 Nm, dejando el coche inmovilizado.\n- <b>Diferencial autoblocante (LSD)</b>: acopla mecánicamente ambos semiejes (mediante discos de fricción o engranajes helicoidales Torsen), transfiriendo el par sobrante hacia la rueda con agarre."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "híbridos,eléctricos,regeneración",
+   "front": "Frenada regenerativa: ¿cómo recupera energía el motor de tracción eléctrico?",
+   "back": "Al levantar el pie del acelerador o pisar el pedal de freno, el inversor conmuta los transistores IGBT/SiC para cambiar el ángulo de fase del campo magnético del estator.\n\nEl motor eléctrico pasa a funcionar como <b>generador trifásico</b>: la inercia del vehículo mueve el rotor contra el campo magnético (generando par de frenado mecánico) y la corriente inducida se rectifica para recargar la batería de alta tensión."
   }
  ],
  "levels": [

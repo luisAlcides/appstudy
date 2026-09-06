@@ -1138,6 +1138,149 @@
    "tags": "arquitectura,producción",
    "front": "Si cambias el modelo de {{embeddings}}, hay que {{reindexar}} todo el corpus: los vectores viejos y los nuevos no son comparables.",
    "back": "Cada modelo define su propio espacio vectorial; mezclarlos devuelve resultados sin sentido."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "transformers,atención,arquitectura",
+   "front": "Scaled Dot-Product Attention: escribe la fórmula y explica la división por $\\sqrt{d_k}$",
+   "back": "$$\\text{Attention}(Q, K, V) = \\text{softmax}\\left( \\frac{Q K^T}{\\sqrt{d_k}} \\right) V$$\n\n- $Q$ (Query), $K$ (Key), $V$ (Value) son matrices obtenidas proyectando linealmente los embeddings.\n- Se divide por <b>$\\sqrt{d_k}$</b> para evitar que con dimensiones altas el producto escalar $Q K^T$ crezca demasiado en magnitud. Si creciera, la función softmax entraría en regiones con gradientes extremadamente pequeños (saturación), frenando el entrenamiento."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "transformers,inferencia,optimización",
+   "front": "¿Qué es el KV-Cache en modelos de lenguaje y por qué ahorra tanta computación?",
+   "back": "En generación autorregresiva (token a token), los vectores $K$ (Key) y $V$ (Value) de los tokens anteriores nunca cambian.\n\nSin caché, calcular cada nuevo token requeriría reprocesar toda la secuencia previa ($O(N^2)$). Con <b>KV-Cache</b> se guardan en memoria VRAM los tensores $K$ y $V$ ya calculados, de modo que en cada paso solo se proyecta el nuevo token entrante ($O(N)$)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "fine-tuning,eficiencia,lora",
+   "front": "¿Cómo funciona LoRA (Low-Rank Adaptation) para ajustar LLMs?",
+   "back": "Congela los pesos originales del modelo $W_0 \\in \\mathbb{R}^{d \\times k}$ y descompone la matriz de actualización $\\Delta W$ en el producto de dos matrices de bajo rango:\n$$W = W_0 + \\Delta W = W_0 + \\frac{\\alpha}{r} (B \\times A)$$\ncon $A \\in \\mathbb{R}^{r \\times k}$ y $B \\in \\mathbb{R}^{d \\times r}$, donde el rango $r \\ll \\min(d, k)$ (ej. $r=8$ o $16$).\n\nReduce el número de parámetros entrenables en más de un 99 % y ahorra gigabytes de VRAM."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "fine-tuning,cuantización",
+   "front": "¿Qué diferencia fundamental aporta QLoRA respecto a LoRA estándar?",
+   "choices": [
+    "Cuantiza los pesos base a 4 bits (NF4) y añade adaptadores LoRA entrenables en precisión FP16/BF16 con desahogo de memoria (Paged Optimizers)",
+    "Elimina el uso de matrices de bajo rango para entrenar directamente las capas de atención completas",
+    "Sustituye la función de activación softmax por una función lineal para acelerar el entrenamiento",
+    "Entrena exclusivamente modelos en CPUs sin requerir aceleración GPU"
+   ],
+   "answer": 0,
+   "back": "QLoRA permite hacer fine-tuning de un modelo de 70B parámetros en una sola GPU comercial de 24 GB de VRAM (como una RTX 3090/4090) gracias al formato de 4 bits NormalFloat (NF4), doble cuantización y paged optimizers que evitan picos de memoria out-of-memory."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "rag,búsqueda,recuperación",
+   "front": "RAG Híbrido: ¿por qué combinar búsqueda vectorial con BM25?",
+   "back": "- <b>Búsqueda vectorial (Dense)</b>: captura similitud semántica, sinónimos y conceptos globales, pero puede fallar con identificadores exactos, números de serie o nombres propios raros.\n- <b>Búsqueda léxica (BM25 / Sparse)</b>: encuentra coincidencias exactas de palabras clave.\n\nCombinadas mediante <b>RRF (Reciprocal Rank Fusion)</b> o pesos ponderados, se obtiene lo mejor de ambos mundos: precisión en términos exactos y comprensión del contexto."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "rag,recuperación,re-ranking",
+   "front": "¿Qué es un Cross-Encoder (Re-ranker) en un flujo RAG?",
+   "back": "Un <b>Bi-Encoder</b> procesa la consulta y los documentos por separado para crear embeddings (rápido para indexar millones de textos con búsqueda aproximada ANN).\n\nUn <b>Cross-Encoder</b> procesa el par `[Consulta + Documento]` <b>conjuntamente</b> en las capas de atención del Transformer. Es más costoso en cómputo, por lo que se aplica solo sobre los top 20–50 candidatos recuperados para reordenarlos con máxima precisión antes de enviarlos al LLM."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "alineación,rlhf,dpo",
+   "front": "{{DPO::Direct Preference Optimization}} optimiza las preferencias humanas directamente sobre las probabilidades del modelo utilizando una función de pérdida matemática implícita, eliminando la necesidad de entrenar un {{Reward Model::modelo de recompensa}} separado como en RLHF."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "inferencia,cuantización,despliegue",
+   "front": "Cuantización: ¿qué diferencia hay entre GPTQ, AWQ y GGUF?",
+   "back": "- <b>GPTQ (Post-Training Quantization)</b>: comprime pesos a 4/8 bits basándose en la matriz Hessiana de segundo orden; muy optimizado para inferencia en GPU (vLLM, ExLlama).\n- <b>AWQ (Activation-aware Weight Quantization)</b>: protege el 1 % de pesos más críticos según las activaciones reales; retiene mejor la precisión con poco cómputo.\n- <b>GGUF</b>: formato de archivo binario autocontenido desarrollado por el ecosistema llama.cpp; optimizado para inferencia híbrida CPU/GPU en máquinas locales."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "visión,multimodal,arquitectura",
+   "front": "Vision Transformer (ViT): ¿cómo procesa una imagen una red diseñada para texto?",
+   "back": "Divide la imagen en una cuadrícula de parches cuadrados (habitualmente de $16 \\times 16$ píxeles), proyecta linealmente cada parche a un vector de embedding continuo y les añade embeddings posicionales.\n\nA partir de ese punto, los parches se procesan exactamente igual que una secuencia de tokens de texto por un Transformer estándar."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "arquitectura,moe,eficiencia",
+   "front": "¿Qué es una arquitectura Mixture of Experts (MoE) en modelos LLM?",
+   "back": "Reemplaza las capas densas Feed-Forward por múltiples 'expertos' independientes (ej. 8 o 16 redes menores). Una pequeña red de enrutamiento (<b>Router / Gating Network</b>) selecciona solo los top-1 o top-2 expertos más adecuados para procesar cada token.\n\n<b>Ventaja</b>: un modelo con 45B parámetros totales solo activa ~12B por token, ofreciendo la capacidad de un modelo gigante a la velocidad y coste computacional de un modelo mediano (como Mixtral 8x7B)."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "atención,gpu,rendimiento",
+   "front": "¿Por qué FlashAttention acelera los Transformers reduciendo el uso de memoria?",
+   "back": "El cuello de botella de la atención estándar no es la capacidad de cálculo matemático de la GPU, sino el <b>ancho de banda de memoria (HBM)</b> al leer y escribir la enorme matriz de atención $N \\times N$.\n\n<b>FlashAttention</b> divide las matrices $Q, K, V$ en bloques que caben en la rapidísima memoria <b>SRAM</b> interna del chip de la GPU, calculando la softmax incrementalmente sin materializar nunca la matriz $N \\times N$ en memoria global (HBM). Ahorra memoria de $O(N^2)$ a $O(N)$ y acelera la inferencia de 2 a 4 veces."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "inferencia,aceleración",
+   "front": "En {{Speculative Decoding::decodificación especulativa}}, un modelo pequeño y veloz (Draft Model) genera una ráfaga de tokens tentativos que son verificados en un único pase de atención en paralelo por el modelo grande objetivo."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "agentes,react,razonamiento",
+   "front": "Patrón ReAct en agentes de IA: ¿cuál es su ciclo de ejecución?",
+   "back": "El patrón <b>ReAct (Reason + Act)</b> combina razonamiento en lenguaje natural con ejecución de herramientas en un bucle continuo de tres pasos:\n\n1. <b>Thought (Pensamiento)</b>: el modelo razona sobre el estado actual, el objetivo y qué información le falta.\n2. <b>Action (Acción)</b>: emite una llamada estructurada a una herramienta o API externa (ej. buscar en base de datos, ejecutar comando).\n3. <b>Observation (Observación)</b>: recibe el resultado de la herramienta y vuelve al paso 1 hasta resolver la tarea final con <b>Final Answer</b>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "difusión,imágenes,arquitectura",
+   "front": "Modelos de Difusión: proceso directo (Forward) vs proceso inverso (Reverse)",
+   "back": "- <b>Proceso directo (Forward)</b>: añade gradualmente ruido Gaussiano a una imagen paso a paso hasta convertirla en ruido blanco puro no estructurado ($q(x_t | x_{t-1})$).\n- <b>Proceso inverso (Reverse)</b>: una red neuronal (U-Net o Diffusion Transformer DiT) aprende a <b>predecir y restar el ruido añadido en cada paso</b> ($\\epsilon_\\theta(x_t, t)$), transformando ruido puro en una imagen nítida condicionada por un texto descriptivo."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "prompting,razonamiento,técnicas",
+   "front": "Chain of Thought (CoT) y Self-Consistency: ¿por qué mejoran el razonamiento matemático?",
+   "back": "- <b>Chain of Thought (Cadena de pensamiento)</b>: forzar al modelo a generar pasos intermedios de razonamiento («<i>Pensemos paso a paso...</i>») antes de la respuesta final permite que los tokens intermedios sirvan de memoria de trabajo computacional.\n- <b>Self-Consistency (Autoconsistencia)</b>: muestrea múltiples cadenas de razonamiento independientes a temperatura > 0 y selecciona la respuesta final por <b>votación mayoritaria</b>, eliminando errores aleatorios."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "evaluación,métricas",
+   "front": "En evaluación de sistemas RAG, la métrica de {{Faithfulness::fidelidad / no alucinación}} mide si todas las afirmaciones de la respuesta generada pueden deducirse exclusivamente del contexto recuperado."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "tokenización,bpe,nlp",
+   "front": "¿Cómo funciona el algoritmo Byte Pair Encoding (BPE) en modelos LLM?",
+   "back": "1. Comienza con un vocabulario de caracteres o bytes individuales.\n2. Cuenta la frecuencia de todos los pares de símbolos adyacentes en el corpus de entrenamiento.\n3. <b>Fusiona iterativamente el par más frecuente</b> en un nuevo token de subpalabra.\n4. Repite hasta alcanzar el tamaño de vocabulario deseado (ej. 32.000 o 128.000 tokens).\n\nPermite manejar palabras desconocidas descomponiéndolas en subpalabras y representa palabras frecuentes como un único token eficiente."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "sampling,temperatura,inferencia",
+   "front": "Técnicas de muestreo en LLMs: Temperature, Top-p (Nucleus) y Min-p",
+   "back": "- <b>Temperature</b>: divide los logits entre $T$ antes de la softmax ($z_i / T$). Valores bajos (<0.3) hacen la distribución más picuda y determinista; valores altos (>0.8) la aplanan, aumentando la creatividad.\n- <b>Top-p (Nucleus)</b>: selecciona el conjunto más pequeño de tokens cuya suma acumulada de probabilidades alcanza el valor $p$ (ej. 0.9), descartando la cola larga.\n- <b>Min-p</b>: descarta cualquier token cuya probabilidad sea menor que $\\text{min\\_p} \\times P(\\text{token más probable})$, adaptándose dinámicamente según la confianza del modelo."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "difusión,dit,arquitectura",
+   "front": "¿Qué es un Diffusion Transformer (DiT) y en qué mejora a las U-Nets?",
+   "back": "Reemplaza el backbone convolucional clásico de las U-Nets por una arquitectura <b>Transformer pura</b> que procesa parches espaciales de la imagen latente con capas de autoatención.\n\nIncorpora condicionamiento de paso de tiempo y texto mediante <b>adaLN (Adaptive Layer Normalization)</b>. Escala de forma predecible con leyes de escalado (Scaling Laws), ofreciendo mayor fidelidad visual y coherencia en generación de vídeo e imagen (Sora, Flux, Stable Diffusion 3)."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "evaluación,benchmarks",
+   "front": "La prueba {{Needle In A Haystack::aguja en un pajar}} evalúa la capacidad de recuperación exacta de un LLM al insertar una frase clave arbitraria en distintas posiciones de una ventana de contexto de 128k o más tokens."
   }
  ],
  "levels": [

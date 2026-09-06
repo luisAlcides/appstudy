@@ -2916,6 +2916,30 @@
      "key": "Un dato es utilizable cuando estaba disponible, no solamente porque su evento ocurrió antes."
     }
    ]
+  },
+  {
+   "level": 2,
+   "minutes": 12,
+   "tags": "series temporales,estacionariedad,arima,pronóstico",
+   "title": "Análisis y modelado de series temporales",
+   "subtitle": "Estacionariedad, autocorrelación y validación sin fuga de datos.",
+   "body": [
+    {
+     "p": "Los datos temporales violan la hipótesis fundamental de la estadística clásica de que las observaciones son independientes e idénticamente distribuidas (i.i.d.)."
+    },
+    {
+     "h": "Estacionariedad y test ADF"
+    },
+    {
+     "p": "Para aplicar modelos autoregresivos (ARIMA), la serie debe ser estacionaria (media y varianza estables). La prueba de Dickey-Fuller aumentada (ADF) evalúa la hipótesis nula de existencia de raíz unitaria (no estacionaria). Si el p-valor es menor a 0.05, se rechaza la hipótesis y la serie es estacionaria."
+    },
+    {
+     "h": "Validación temporal estricta"
+    },
+    {
+     "key": "Nunca utilices K-Fold aleatorio con series temporales. Utiliza siempre ventanas temporales crecientes (Expanding Window) para entrenar únicamente con el pasado y predecir el futuro."
+    }
+   ]
   }
  ]
 }

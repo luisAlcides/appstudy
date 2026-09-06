@@ -2167,6 +2167,55 @@
    "front": "Una evaluación histórica debe reconstruir lo que el sistema {{sabía}} en el instante de decisión.",
    "back": "Esto exige controlar disponibilidad y versiones, además de fechas de eventos.",
    "tags": "disponibilidad temporal"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "polars,dataframes,rendimiento",
+   "front": "Polars vs Pandas: ¿cuáles son las claves de la velocidad de Polars?",
+   "back": "1. <b>Escrito en Rust</b> y basado en el formato de memoria columnar <b>Apache Arrow</b> (sin copias intermedias y con vectorización SIMD).\n2. <b>Multihilo nativo</b>: paraleliza operaciones sobre todos los núcleos de la CPU por defecto.\n3. <b>Evaluación perezosa (LazyFrame)</b>: construye un grafo de ejecución y un optimizador de consultas que aplica predicados pushdown y proyección pushdown antes de cargar datos a memoria."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "interpretabilidad,shap,modelos",
+   "front": "¿Qué son los valores SHAP (Shapley Additive exPlanations)?",
+   "back": "Método basado en la teoría de juegos cooperativos que asigna a cada variable una contribución numérica justa sobre la predicción final del modelo.\n\nCumple la propiedad de <b>aditividad</b>: la suma de los valores SHAP de todas las variables más el valor base (predicción media global) es exactamente igual a la predicción del modelo para esa instancia concreta."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "mlops,drift,producción",
+   "front": "Covariate Shift vs Concept Drift: ¿en qué se diferencian?",
+   "back": "- <b>Covariate Shift (Data Drift)</b>: cambia la distribución de las variables de entrada $P(X)$, pero la relación entre $X$ e $y$ ($P(y|X)$) se mantiene intacta (ej. la edad media de los usuarios sube, pero los hábitos de compra por edad siguen siendo los mismos).\n- <b>Concept Drift</b>: cambia la relación estadística entre las variables y la variable objetivo $P(y|X)$ (ej. tras una crisis económica o pandemia, un cliente con el mismo sueldo gasta de forma completamente distinta)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "series temporales,estadística,arima",
+   "front": "Series temporales: ¿qué es la estacionariedad y por qué es fundamental?",
+   "back": "Una serie es <b>estacionaria en sentido débil</b> si sus propiedades estadísticas no cambian con el tiempo:\n1. <b>Media constante</b> a lo largo del tiempo (sin tendencia).\n2. <b>Varianza constante</b> (homocedasticidad).\n3. La covarianza entre dos puntos solo depende del desfase temporal (lag), no del momento en que se miden.\n\nSe comprueba con el <b>Test de Dickey-Fuller aumentado (ADF)</b> y se logra aplicando diferenciación ($y'_t = y_t - y_{t-1}$) o transformaciones logarítmicas."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "validación,series temporales,leakage",
+   "front": "¿Por qué el K-Fold Cross-Validation tradicional genera Data Leakage en series de tiempo?",
+   "back": "El K-Fold clásico baraja los datos aleatoriamente, usando observaciones del <b>futuro</b> para predecir observaciones del <b>pasado</b> (fuga temporal).\n\nEn series temporales debe usarse <b>Time Series Split (Forward Chaining / Ventana expansiva)</b>: el conjunto de entrenamiento siempre precede temporalmente al de validación, simulando fielmente el escenario de producción real."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "búsqueda vectorial,hnsw,índices",
+   "front": "Índice HNSW (Hierarchical Navigable Small World): ¿cómo acelera la búsqueda vectorial?",
+   "back": "Construye un <b>grafo multicapa</b> donde las capas superiores contienen pocos nodos con enlaces largos para saltos rápidos a grandes distancias en el espacio de embeddings, y las capas inferiores contienen enlaces densos y cortos para refinamiento local.\n\nPermite encontrar los $K$ vectores más cercanos (Approximate Nearest Neighbors - ANN) con complejidad temporal de <b>$O(\\log N)$</b> en lugar de realizar una búsqueda exhaustiva $O(N)$ sobre millones de vectores."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "métricas,evaluación,desbalance",
+   "front": "PR-AUC vs ROC-AUC: ¿por qué PR-AUC es preferible en conjuntos altamente desbalanceados?",
+   "back": "La curva ROC evalúa la Tasa de Falsos Positivos ($FPR = FP / (FP + TN)$). Si la clase negativa ($TN$) es masiva (ej. 99.9 % de transacciones legítimas vs 0.1 % fraudes), un gran número de falsos positivos apenas mueve el denominador, produciendo un ROC-AUC engañosamente alto (>0.98).\n\n<b>PR-AUC (Precision-Recall)</b> compara la Precisión ($TP / (TP + FP)$) directamente contra el Recall, penalizando duramente cualquier falso positivo."
   }
  ],
  "levels": [

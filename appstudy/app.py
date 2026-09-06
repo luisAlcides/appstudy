@@ -58,6 +58,15 @@ class AppStudy(Adw.Application):
         self.add_main_option("say", 0, GLib.OptionFlags.NONE,
                              GLib.OptionArg.STRING,
                              "Leer un texto en voz alta con la voz de Bit", "TEXTO")
+        self.add_main_option("fcc", 0, GLib.OptionFlags.NONE,
+                             GLib.OptionArg.STRING,
+                             "Descargar lección de freeCodeCamp y generar tarjetas con IA", "URL")
+        self.add_main_option("fcc-read", 0, GLib.OptionFlags.NONE,
+                             GLib.OptionArg.STRING,
+                             "Descargar lección de freeCodeCamp y guardarla como lectura", "URL")
+        self.add_main_option("fcc-certs", 0, GLib.OptionFlags.NONE,
+                             GLib.OptionArg.NONE,
+                             "Listar certificaciones disponibles de freeCodeCamp", None)
 
     # ------------------------------------------------------------------ arranque
 
@@ -144,6 +153,60 @@ class AppStudy(Adw.Application):
             cfg = voz.config(self.con)
             voz.hablar(opts["say"], cfg)
             return 0
+        if opts.get("fcc_certs") or opts.get("fcc-certs"):
+            from . import freecodecamp
+            certs = freecodecamp.listar_certificaciones()
+            lineas = ["Certificaciones de freeCodeCamp disponibles:"]
+            for c in certs:
+                lineas.append(f"  {c['icono']} {c['nombre']} ({c['slug']})")
+            cmdline.print_literal("\n".join(lineas) + "\n")
+            return 0
+        if "fcc" in opts:
+            url = opts["fcc"]
+            from . import freecodecamp
+            cfg = ia.config(self.con)
+            if not cfg.get("activa"):
+                cmdline.print_literal("La IA está desactivada. Actívala en Ajustes de AppStudy.\n")
+                return 1
+            cmdline.print_literal(f"Conectando con freeCodeCamp ({url})…\n")
+            try:
+                leccion = freecodecamp.obtener_leccion(url)
+                cmdline.print_literal(f"Descargado: «{leccion['titulo']}» ({leccion['bloque']})\n")
+                cmdline.print_literal("Pensando tarjetas con la IA…\n")
+                tarjetas = freecodecamp.generar_tarjetas_fcc(cfg, leccion, cuantas=5)
+                cmdline.print_literal(f"Se generaron {len(tarjetas)} tarjetas:\n")
+                fila = self.con.execute(
+                    "SELECT id, key, name FROM decks WHERE key='python' OR key='datos' ORDER BY pos LIMIT 1"
+                ).fetchone()
+                mazo_id = fila["id"] if fila else 1
+                mazo_key = fila["key"] if fila else "python"
+                for i, t in enumerate(tarjetas, 1):
+                    cmdline.print_literal(f"  [{i}] {t['front']}\n      → {t['back']}\n")
+                    db.add_card(self.con, mazo_id, mazo_key, "card", t["front"], t["back"],
+                                tags=t.get("tags", "freecodecamp"), level=2)
+                self.con.commit()
+                cmdline.print_literal(f"Guardadas con éxito en el mazo «{fila['name'] if fila else mazo_key}».\n")
+                return 0
+            except Exception as e:
+                cmdline.print_literal(f"Error: {e}\n")
+                return 1
+        if "fcc-read" in opts or "fcc_read" in opts:
+            url = opts.get("fcc-read") or opts.get("fcc_read")
+            from . import freecodecamp
+            cmdline.print_literal(f"Descargando lección desde freeCodeCamp ({url})…\n")
+            try:
+                leccion = freecodecamp.obtener_leccion(url)
+                fila = self.con.execute(
+                    "SELECT id, key, name FROM decks WHERE key='python' OR key='datos' ORDER BY pos LIMIT 1"
+                ).fetchone()
+                mazo_id = fila["id"] if fila else 1
+                mazo_key = fila["key"] if fila else "python"
+                cap = freecodecamp.guardar_como_lectura(self.con, leccion, mazo_id, mazo_key)
+                cmdline.print_literal(f"Capítulo «{cap['title']}» guardado con éxito en «{fila['name'] if fila else mazo_key}».\n")
+                return 0
+            except Exception as e:
+                cmdline.print_literal(f"Error: {e}\n")
+                return 1
         if "read-card" in opts:
             self.show_reading_for_card(opts["read-card"])
         elif opts.get("leeches"):
@@ -321,11 +384,72 @@ class AppStudy(Adw.Application):
 
 
 def main():
-    # La mascota vive en su propio proceso y con su propio backend gráfico, así
-    # que se atiende antes de que GTK abra la pantalla.
+    # Comandos CLI rápidos sin necesidad de interfaz gráfica
     if "--status" in sys.argv or "--pet-off" in sys.argv:
         from .status import run_status
         return run_status(sys.argv)
+    if "--fcc-certs" in sys.argv:
+        from . import freecodecamp
+        certs = freecodecamp.listar_certificaciones()
+        print("Certificaciones de freeCodeCamp disponibles:")
+        for c in certs:
+            print(f"  {c['icono']} {c['nombre']} ({c['slug']})")
+        return 0
+    if "--fcc" in sys.argv:
+        idx = sys.argv.index("--fcc")
+        if idx + 1 < len(sys.argv):
+            url = sys.argv[idx + 1]
+            from . import db, freecodecamp, ia
+            con = db.connect()
+            cfg = ia.config(con)
+            if not cfg.get("activa"):
+                print("La IA está desactivada en Ajustes de AppStudy.")
+                con.close()
+                return 1
+            print(f"Conectando con freeCodeCamp ({url})…")
+            try:
+                leccion = freecodecamp.obtener_leccion(url)
+                print(f"Descargado: «{leccion['titulo']}» ({leccion['bloque']})")
+                print("Pensando tarjetas con la IA…")
+                tarjetas = freecodecamp.generar_tarjetas_fcc(cfg, leccion, cuantas=5)
+                print(f"Se generaron {len(tarjetas)} tarjetas:\n")
+                fila = con.execute("SELECT id, key, name FROM decks WHERE key='python' OR key='datos' ORDER BY pos LIMIT 1").fetchone()
+                mazo_id = fila["id"] if fila else 1
+                mazo_key = fila["key"] if fila else "python"
+                for i, t in enumerate(tarjetas, 1):
+                    print(f"  [{i}] {t['front']}\n      → {t['back']}\n")
+                    db.add_card(con, mazo_id, mazo_key, "card", t["front"], t["back"],
+                                tags=t.get("tags", "freecodecamp"), level=2)
+                con.commit()
+                print(f"Guardadas con éxito en el mazo «{fila['name'] if fila else mazo_key}».")
+                con.close()
+                return 0
+            except Exception as e:
+                print(f"Error: {e}")
+                con.close()
+                return 1
+    if "--fcc-read" in sys.argv:
+        idx = sys.argv.index("--fcc-read")
+        if idx + 1 < len(sys.argv):
+            url = sys.argv[idx + 1]
+            from . import db, freecodecamp
+            con = db.connect()
+            print(f"Descargando lección desde freeCodeCamp ({url})…")
+            try:
+                leccion = freecodecamp.obtener_leccion(url)
+                fila = con.execute(
+                    "SELECT id, key, name FROM decks WHERE key='python' OR key='datos' ORDER BY pos LIMIT 1"
+                ).fetchone()
+                mazo_id = fila["id"] if fila else 1
+                mazo_key = fila["key"] if fila else "python"
+                cap = freecodecamp.guardar_como_lectura(con, leccion, mazo_id, mazo_key)
+                print(f"Capítulo «{cap['title']}» guardado con éxito en el mazo «{fila['name'] if fila else mazo_key}».")
+                con.close()
+                return 0
+            except Exception as e:
+                print(f"Error: {e}")
+                con.close()
+                return 1
     if "--pet" in sys.argv:
         from .pet import run_pet
         return run_pet(sys.argv)

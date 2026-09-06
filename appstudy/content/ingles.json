@@ -2068,6 +2068,61 @@
    "tags": "precision-c1",
    "front": "EXPLAIN: Contrast “Only Lina checked the figures” with “Lina checked only the figures”.",
    "back": "The first restricts who checked: Lina and no one else in context. The second restricts what Lina checked: the figures and nothing else in context."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "falsos amigos,vocabulario,precisión",
+   "front": "False Friends: Actually vs Currently",
+   "back": "- <b>Actually</b>: en realidad, de hecho («<i>Actually, the server is running</i>» = En realidad, el servidor está funcionando).\n- <b>Currently / At present</b>: actualmente, ahora mismo («<i>We are currently testing the release</i>» = Actualmente estamos probando la versión).\n\nNunca traduzcas «actualmente» como «actually»."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "falsos amigos,vocabulario,precisión",
+   "front": "False Friends: Attend vs Assist",
+   "back": "- <b>To attend</b>: asistir a un evento, reunión o clase («<i>I will attend the meeting</i>» = Asistiré a la reunión).\n- <b>To assist</b>: ayudar, socorrer («<i>She assisted me with the deployment</i>» = Ella me ayudó con el despliegue)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "phrasal verbs,técnico,trabajo",
+   "front": "Phrasal verbs esenciales: roll out, scale up, figure out, back out",
+   "back": "- <b>Roll out</b>: desplegar o lanzar una actualización/producto por fases («<i>We will roll out the update tomorrow</i>»).\n- <b>Scale up</b>: aumentar la capacidad o potencia de un sistema.\n- <b>Figure out</b>: descifrar, entender o resolver cómo hacer algo («<i>Let's figure out why it crashed</i>»).\n- <b>Back out</b>: echarse atrás o revertir una operación."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "gramática,phrasal verbs",
+   "front": "When a production bug is detected, the DevOps team must {{roll back::revertir a una versión previa}} the deployment immediately."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "falsos amigos,vocabulario",
+   "front": "En inglés, ¿cómo se dice «sensato / con sentido común» y «sensible / delicado»?",
+   "choices": [
+    "Sensible (sensato) y Sensitive (sensible)",
+    "Sensitive (sensato) y Sensible (sensible)",
+    "Sensible (sensato) y Sensual (sensible)",
+    "Sensitising (sensato) y Sensible (sensible)"
+   ],
+   "answer": 0,
+   "back": "<b>Sensible</b> significa sensato o prudente («<i>A sensible decision</i>»). <b>Sensitive</b> significa sensible, delicado o susceptible («<i>Sensitive data</i>» = Datos confidenciales/sensibles)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "arquitectura,conceptos,vocabulario",
+   "front": "Términos de arquitectura en inglés: Idempotent, Decoupling, Bottleneck",
+   "back": "- <b>Idempotent</b>: operación que puede repetirse varias veces produciendo exactamente el mismo resultado final que ejecutándola una sola vez (ej. petición HTTP PUT o DELETE).\n- <b>Decoupling</b>: desacoplamiento; aislar módulos o servicios para que no dependan directamente entre sí (mediante colas de mensajes o APIs).\n- <b>Bottleneck</b>: cuello de botella; el componente o paso más lento que limita el rendimiento global de todo el sistema."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "phrasal verbs,infraestructura,devops",
+   "front": "Phrasal verbs: Spin up, Tear down, Fall back on",
+   "back": "- <b>Spin up</b>: arrancar o instanciar un nuevo servidor, contenedor o máquina virtual («<i>We can spin up three new worker nodes</i>»).\n- <b>Tear down</b>: destruir, desmontar o limpiar recursos temporales tras un test o tarea («<i>Tear down the staging environment</i>»).\n- <b>Fall back on</b>: recurrir a una alternativa de reserva cuando el método principal falla («<i>Fall back on cached data</i>»)."
   }
  ]
 }

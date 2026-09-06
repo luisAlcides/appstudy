@@ -1454,6 +1454,124 @@
    "back": "Por eso una carga alta con la CPU ociosa apunta al almacenamiento o a la red.",
    "tags": "rendimiento",
    "level": 3
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "contenedores,kernel,sistemas",
+   "front": "Contenedores en Linux: ¿qué hacen los Namespaces y qué hacen los Cgroups?",
+   "back": "Un contenedor no es una máquina virtual, es un proceso aislado mediante dos primitivas del kernel:\n\n1. <b>Namespaces (aislamiento de vista)</b>: definen <i>lo que el proceso puede ver</i> (PID para procesos, NET para interfaces de red, MNT para sistemas de archivos montados, UTS para hostname, IPC, USER).\n2. <b>Cgroups (control de recursos)</b>: definen <i>cuánto puede usar</i> (límites y contabilidad de CPU, memoria RAM, ancho de banda de disco e I/O)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "observabilidad,kernel,ebpf",
+   "front": "¿Qué es eBPF y por qué ha revolucionado la observabilidad y seguridad en Linux?",
+   "back": "<b>eBPF (Extended Berkeley Packet Filter)</b> permite ejecutar programas seguros y verificados por el kernel dentro del espacio de núcleo en respuesta a eventos (syscalls, paquetes de red, tracepoints o kprobes) <b>sin recompilar el kernel ni cargar módulos de terceros peligrosos</b>.\n\nPermite tracing de latencia de I/O, cortafuegos a velocidad de línea de red (XDP) y auditoría de seguridad en tiempo real con overhead insignificante."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "rendimiento,diagnóstico,kernel",
+   "front": "Al mirar el load average (`1.50, 2.80, 5.00`) en `uptime` o `top`, ¿qué procesos se contabilizan en el número?",
+   "choices": [
+    "Procesos en estado Running (R, usando CPU) más procesos en estado Uninterruptible Sleep (D, esperando disco o I/O del kernel)",
+    "Exclusivamente procesos que están utilizando ciclos de CPU en el espacio de usuario",
+    "El porcentaje directo de memoria swap utilizada por el sistema",
+    "El número de hilos de red en espera de conexiones TCP entrantes"
+   ],
+   "answer": 0,
+   "back": "En Linux el load average cuenta procesos en cola de CPU (R) <b>más</b> procesos bloqueados en I/O ininterrumpible (estado D, como lectura lenta de NFS o disco duro degradado). Por eso puedes tener un load average de 20 con la CPU al 5 % si hay un atasco en el subsistema de almacenamiento."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "almacenamiento,sistemas de archivos,volúmenes",
+   "front": "LVM: ¿cuál es la jerarquía entre PV, VG y LV?",
+   "back": "1. <b>PV (Physical Volume)</b>: partición o disco físico inicializado con `pvcreate /dev/sdb1`.\n2. <b>VG (Volume Group)</b>: grupo de almacenamiento que agrupa uno o varios PVs en una bolsa común de espacio (`vgcreate vg_datos /dev/sdb1 /dev/sdc1`).\n3. <b>LV (Logical Volume)</b>: partición virtual creada dentro del VG (`lvcreate -L 50G -n lv_app vg_datos`), sobre la que se formatea el sistema de archivos (ext4/xfs) y se puede redimensionar en caliente con `lvextend -r`."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "diagnóstico,llamadas al sistema",
+   "front": "El comando {{strace -p 1234::herramienta de rastreo}} permite interceptar y registrar en tiempo real todas las llamadas al sistema (syscalls) y señales recibidas por el proceso 1234."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "redes,sistemas,cortafuegos",
+   "front": "nftables vs iptables: ¿por qué nftables reemplazó a iptables?",
+   "back": "- <b>iptables</b> requería herramientas separadas para cada protocolo (`iptables`, `ip6tables`, `arptables`, `ebtables`), recreaba reglas completas en cada cambio y tenía sintaxis dispar.\n- <b>nftables</b> unifica IPv4, IPv6, ARP y bridging en un solo framework con una máquina de estados en el kernel más eficiente, soporte nativo de sets dinámicos e intervalos, y sintaxis coherente (`nft list ruleset`)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "almacenamiento,fiabilidad,sistemas de archivos",
+   "front": "Sistemas de archivos Copy-on-Write (Btrfs / ZFS): ¿cómo evitan la corrupción silenciosa de datos?",
+   "back": "En un sistema CoW los bloques modificados nunca se sobreescriben en el mismo sitio: se escriben en un bloque libre nuevo y los punteros del árbol se actualizan atómicamente.\n\nAdemás calculan <b>checksums criptográficos de cada bloque de metadatos y datos</b>. Durante una lectura o un proceso de <i>scrub</i>, si el checksum no coincide con el dato leído (corrupción por fallo de disco o memoria), el sistema de archivos lo detecta y lo repara automáticamente a partir de una réplica en espejo/RAID."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "señales,procesos,posix",
+   "front": "Señales Unix: diferencias entre SIGTERM (15), SIGKILL (9), SIGINT (2) y SIGHUP (1)",
+   "back": "- <b>SIGINT (2)</b>: interrupción desde terminal (Ctrl+C). El programa puede capturarla para salir ordenadamente.\n- <b>SIGTERM (15)</b>: petición estándar de terminación. Da tiempo al proceso para cerrar conexiones, guardar datos y liberar ficheros.\n- <b>SIGKILL (9)</b>: terminación forzada e inmediata ejecutada directamente por el kernel. <b>No puede ser capturada, bloqueada ni ignorada</b> por el proceso.\n- <b>SIGHUP (1)</b>: desconexión de terminal; comúnmente usada por demonios (como Nginx o SSH) para <b>recargar la configuración en caliente</b> sin reiniciar."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "memoria,kernel,tuning",
+   "front": "¿Qué controla el parámetro del kernel `vm.swappiness`?",
+   "back": "Controla la agresividad del kernel para mover páginas de memoria anónima (de programas) a la partición/archivo swap frente a reclamar memoria caché de páginas de disco (page cache):\n- <b>Valor 0</b>: el kernel evita el swap a toda costa hasta quedarse sin memoria.\n- <b>Valor 60</b> (por defecto en Ubuntu): equilibrio entre caching de disco y swap.\n- <b>Valor 10</b>: recomendado para servidores de bases de datos para priorizar que los datos activos sigan en RAM física."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "systemd,servicios,administración",
+   "front": "Systemd unit: ¿cuándo usar `Type=simple`, `Type=forking` y `Type=oneshot`?",
+   "back": "- <b>Type=simple</b>: el proceso arrancado por `ExecStart` es el servicio principal continuo (ej. un servidor web en primer plano).\n- <b>Type=forking</b>: el proceso principal se bifurca (crea un proceso hijo demonio en background) y el proceso padre original sale (típico en servicios tradicionales como Apache o Nginx).\n- <b>Type=oneshot</b>: ejecuta una tarea de corta duración que realiza un trabajo y termina antes de que systemd continúe con los siguientes servicios."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "seguridad,capabilities,permisos",
+   "front": "Linux Capabilities: ¿por qué evitan otorgar permisos de root completo?",
+   "back": "Dividen los privilegios monolíticos de superusuario `root` en piezas independientes y granulares:\n\n- `CAP_NET_BIND_SERVICE`: permite vincular un servicio a puertos privilegiados (<1024, como 80 o 443) sin dar acceso root al resto del sistema.\n- `CAP_SYS_TIME`: permite cambiar la hora del sistema.\n- `CAP_NET_ADMIN`: permite configurar interfaces y rutas de red.\n\nSe asignan a ejecutables con `setcap cap_net_bind_service=+ep /ruta/binario`."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "redes,tcp,sockets",
+   "front": "Estados TCP: ¿qué significa TIME_WAIT y cuál es su duración estándar?",
+   "back": "Ocurre en el extremo que <b>inicia el cierre activo</b> de una conexión TCP (tras enviar el último ACK).\n\nPermanece en `TIME_WAIT` durante <b>2 MSL (Maximum Segment Lifetime, habitualmente 60 segundos)</b> para:\n1. Asegurar que el último ACK llegue al otro extremo y no se pierda en la red.\n2. Permitir que cualquier paquete retrasado o duplicado de la conexión anterior expire en los routers sin corromper una nueva conexión en el mismo puerto."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "rendimiento,io,diagnóstico",
+   "front": "Lectura de `iostat -xz 1`: ¿qué indican `%util` y `await`?",
+   "back": "- <b>`await`</b>: tiempo medio total (en milisegundos) que tarda una operación de E/S desde que entra en cola hasta que se completa en disco. Valores > 10–20 ms en SSD indican saturación o cuello de botella.\n- <b>`%util`</b>: porcentaje de tiempo durante el cual el disco estuvo ocupado atendiendo peticiones. Si está cerca del 100 %, el almacenamiento está al límite de su capacidad de servicio."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "redes,epoll,syscalls,escalabilidad",
+   "front": "`epoll` vs `select` / `poll`: ¿por qué `epoll` resuelve el problema C10K?",
+   "back": "- <b>`select` / `poll` ($O(N)$)</b>: el proceso debe pasar al kernel la lista completa de miles de descriptores de socket en cada llamada y recorrerlos linealmente para ver cuál tiene datos.\n- <b>`epoll` ($O(1)$)</b>: mantiene en el kernel un árbol rojo-negro con los sockets registrados. Cuando llega un paquete de red, la interrupción del hardware añade el socket directamente a una <b>lista de eventos listos</b>. El proceso solo recoge los descriptores que tienen actividad real, permitiendo atender 100.000+ conexiones concurrentes en Nginx o Node.js."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "contenedores,almacenamiento,overlayfs",
+   "front": "OverlayFS en Docker: ¿qué son las capas lowerdir, upperdir y merged?",
+   "back": "- <b>lowerdir</b>: capas inferiores de <b>solo lectura</b> (la imagen base).\n- <b>upperdir</b>: capa superior de <b>lectura y escritura</b> (donde se guardan los cambios del contenedor en ejecución).\n- <b>workdir</b>: directorio interno de trabajo para preparar operaciones atómicas.\n- <b>merged</b>: punto de montaje unificado que ve el contenedor. Si el contenedor modifica un fichero de lowerdir, OverlayFS hace una <b>copia al vuelo (Copy-up)</b> a upperdir antes de editarlo."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "profiling,rendimiento,flamegraph",
+   "front": "Flamegraphs de CPU con `perf`: ¿cómo se interpretan?",
+   "back": "- <b>Eje Y (vertical)</b>: profundidad de la pila de llamadas (stack trace). La función inferior llamó a la superior.\n- <b>Eje X (horizontal)</b>: porcentaje de tiempo de CPU total consumido por esa función y sus descendientes (ordenado alfabéticamente para agrupar llamadas, no cronológicamente).\n\nLas cajas más <b>anchas en la parte superior</b> señalan los cuellos de botella exactos de código donde la CPU pasa la mayor parte del tiempo."
   }
  ],
  "levels": [

@@ -702,6 +702,72 @@
      "key": "Una reparación queda respaldada por una verificación documentada, no solo por una factura de piezas."
     }
    ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "diagnóstico,obd2,fuel trims,sondas lambda",
+   "title": "Diagnóstico avanzado con Fuel Trims y sondas de banda ancha",
+   "subtitle": "Lectura en vivo de correcciones de combustible para encontrar averías invisibles.",
+   "body": [
+    {
+     "p": "El sensor de oxígeno colocado antes del catalizador es el termómetro de la combustión. Si la mezcla tiene más aire del debido, la ECU compensa inyectando más combustible."
+    },
+    {
+     "h": "Interpretación de los Fuel Trims"
+    },
+    {
+     "p": "Un motor sano tiene STFT y LTFT oscilando entre <b>-5 % y +5 %</b>. Valores por encima de $+10\\,\\%$ o por debajo de $-10\\,\\%$ indican que la ECU está forzando la inyección para compensar un fallo."
+    },
+    {
+     "key": "Si los trims positivos se corrigen al acelerar el motor a 2500 RPM, el problema es una <b>fuga de vacío</b> (admisión). Si los trims se vuelven aún más positivos al acelerar a plena carga, el problema es <b>falta de caudal/presión de combustible</b> o MAF defectuoso."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "refrigeración,térmica,termostato,culata",
+   "title": "Gestión térmica del motor y circuito de refrigeración",
+   "subtitle": "Presurización, punto de ebullición, termostatos y purga correcta.",
+   "body": [
+    {
+     "p": "El motor de combustión disipa un tercio de la energía del combustible en forma de calor por el refrigerante. Mantener la temperatura de trabajo estable (entre 88 °C y 95 °C) es vital para el rendimiento y la durabilidad."
+    },
+    {
+     "h": "El papel del tapón presurizado"
+    },
+    {
+     "p": "El tapón del vaso de expansión o radiador mantiene el circuito presurizado a ~1 bar. Esto eleva el punto de ebullición del refrigerante a más de 125 °C, impidiendo que el fluido hierva y forme bolsas de gas que dejarían zonas de la culata sin contacto térmico."
+    },
+    {
+     "warn": "Nunca abras el tapón con el motor caliente: la despresurización instantánea hace que el líquido a 105 °C hierva de golpe, proyectando vapor y agua hirviendo con violencia."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "transmisión,diferencial,lsd,tracción",
+   "title": "El diferencial del vehículo: abierto, autoblocante (LSD) y tracción",
+   "subtitle": "Cómo giran las ruedas en curva y por qué un diferencial abierto puede dejarte tirado.",
+   "body": [
+    {
+     "p": "Al tomar una curva, la rueda exterior recorre un arco más largo que la rueda interior. El diferencial mecánico permite que ambas ruedas giren a velocidades distintas mientras reciben potencia."
+    },
+    {
+     "h": "La debilidad del diferencial abierto"
+    },
+    {
+     "p": "Un diferencial convencional divide el par motor exactamente al 50/50. Su limitación: el par total que puede entregar al suelo está limitado por la rueda con <b>menor agarre</b>. Si una rueda pisa barro o se levanta en el aire, patina a gran velocidad y la rueda con buen agarre no recibe fuerza."
+    },
+    {
+     "h": "Diferenciales autoblocantes (LSD)"
+    },
+    {
+     "p": "Los diferenciales de deslizamiento limitado (LSD mecánicos por embragues, viscosos o sensibles al par Torsen) bloquean parcialmente la diferencia de velocidad entre semiejes, redirigiendo el par disponible hacia la rueda con tracción."
+    }
+   ]
   }
  ]
 }

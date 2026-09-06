@@ -702,6 +702,255 @@
    "front": "Un ADC saturado pierde información sobre cuánto la entrada {{excede}} el rango de medida.",
    "back": "El código máximo no distingue por sí solo diferentes valores fuera de rango.",
    "tags": "conversión adc"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "instrumentación,medición,diagnóstico",
+   "front": "Osciloscopio: ¿qué diferencia hay entre acoplamiento AC, DC y GND?",
+   "back": "<b>DC (corriente continua)</b>: muestra la señal completa con su nivel medio y desplazamiento continuo.\n<b>AC (corriente alterna)</b>: inserta un condensador en serie para bloquear el componente continuo y dejar pasar solo las variaciones (ideal para ver rizado fino de mV sobre una fuente de 12 V).\n<b>GND (tierra)</b>: desconecta la entrada y conecta la traza a 0 V de referencia para calibrar la posición cero."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "instrumentación,medición",
+   "front": "¿Por qué se utiliza una punta atenuadora 10X en un osciloscopio en lugar de 1X?",
+   "choices": [
+    "Aumenta la impedancia de entrada (10 MΩ frente a 1 MΩ) y reduce la carga capacitiva sobre el circuito",
+    "Permite duplicar la velocidad de muestreo del conversor analógico-digital",
+    "Convierte automáticamente señales de alterna en continua para su lectura",
+    "Evita que el osciloscopio consuma corriente de la red eléctrica"
+   ],
+   "answer": 0,
+   "back": "Una punta 10X eleva la impedancia a 10 MΩ y reduce la capacitancia a ~10-15 pF. Esto evita distorsionar señales rápidas de alta frecuencia al medirlas, a cambio de atenuar la señal por 10 (que el osciloscopio compensa multiplicando la escala)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "protocolos,comunicación,electrónica",
+   "front": "Bus I2C: ¿cuántas líneas usa y por qué son obligatorias las resistencias pull-up?",
+   "back": "Usa solo <b>2 líneas</b>: <b>SDA</b> (datos bidireccionales) y <b>SCL</b> (reloj generado por el maestro).\n\nLas líneas son de <b>colector abierto / drenador abierto</b>: los dispositivos solo pueden tirar la línea a 0 V (LOW), nunca a Vcc (HIGH). Las <b>resistencias pull-up</b> (habitualmente de 2.2 kΩ a 10 kΩ) se encargan de subir el nivel a HIGH cuando nadie transmite, evitando cortocircuitos si dos dispositivos transmiten a la vez."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "protocolos,comunicación,electrónica",
+   "front": "Bus SPI: ¿cuáles son sus 4 líneas y qué ventaja tiene frente a I2C?",
+   "back": "Líneas de SPI:\n1. <b>MOSI / SDO</b>: Master Out Slave In.\n2. <b>MISO / SDI</b>: Master In Slave Out.\n3. <b>SCK / SCLK</b>: Reloj serie.\n4. <b>CS / SS</b>: Chip Select (habilita un esclavo específico con nivel bajo).\n\n<b>Ventaja</b>: es <b>full-duplex</b> (transmite y recibe simultáneamente) y alcanza velocidades muy altas (10–50+ MHz), frente a los 100–400 kHz habituales de I2C."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "protocolos,comunicación,redes",
+   "front": "Bus CAN: ¿por qué utiliza señal diferencial (CAN-H y CAN-L) y 120 Ω en los extremos?",
+   "back": "<b>Señal diferencial</b>: transmite sobre un par trenzado con tensiones complementarias ($V_{diff} = CAN\\_H - CAN\\_L$). Cualquier interferencia electromagnética externa afecta a ambos cables por igual, cancelándose en el receptor.\n\n<b>Resistencias de terminación de 120 Ω</b> en cada extremo (60 Ω equivalentes): adaptan la impedancia característica de la línea para <b>evitar reflexiones de onda</b> que corromperían las tramas digitales."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "protocolos,comunicación",
+   "front": "En el protocolo UART la línea en reposo se encuentra a nivel {{HIGH::nivel lógico alto}}, la transmisión inicia con un bit de {{START::arranque}} a nivel LOW y finaliza con uno o dos bits de {{STOP::parada}} a nivel HIGH."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "sensores,instrumentación",
+   "front": "Termopar tipo K vs RTD PT100: ¿cómo mide la temperatura cada uno?",
+   "back": "<b>Termopar tipo K (Chromel-Alumel)</b>: genera una microtensión proporcional a la diferencia de temperatura entre dos uniones metálicas distintas (<b>efecto Seebeck</b>, ~41 µV/°C). Requiere compensación de unión fría. Rango amplio (-200 °C a 1260 °C).\n<b>RTD PT100</b>: sensor resistivo de platino que tiene exactamente <b>100 Ω a 0 °C</b> con coeficiente positivo (PTC, ~0.385 Ω/°C). Es mucho más preciso, estable y lineal, habitualmente conectado a 3 o 4 hilos para anular la resistencia del cable."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "sensores,instrumentación",
+   "front": "Puente de Wheatstone: ¿para qué se utiliza y cuándo está en equilibrio?",
+   "back": "Permite medir variaciones mínimas de resistencia (como en galgas extensiométricas de peso y presión).\n\nEstá en <b>equilibrio ($V_{out} = 0$)</b> cuando:\n$$\\frac{R_1}{R_2} = \\frac{R_3}{R_4}$$\nCualquier pequeña deformación en una de las ramas desequilibra el puente y genera una señal en milivoltios fácil de amplificar."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "sensores,control,motores",
+   "front": "Encoder rotativo en cuadratura: ¿cómo determina el sentido de giro?",
+   "back": "Dispone de dos canales de pulsos ópticos o magnéticos (<b>Canal A</b> y <b>Canal B</b>) desfasados exactamente <b>90° eléctricos</b> entre sí.\n\n- Si el Canal A se pone en HIGH antes que el Canal B: <b>giro horario</b>.\n- Si el Canal B se pone en HIGH antes que el Canal A: <b>giro antihorario</b>.\nPermite medir posición angular, velocidad y sentido de rotación sin contacto mecánico directo."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "fuentes,conversión,electrónica",
+   "front": "Regulador lineal (LDO) vs convertidor Buck: ¿cuándo usar cada uno?",
+   "back": "<b>Regulador lineal (LDO)</b>: disipa la diferencia de tensión como calor ($P = (V_{in} - V_{out}) \\times I$). Tiene bajísimo ruido eléctrico y coste mínimo; ideal para corrientes bajas o etapas analógicas sensibles.\n<b>Convertidor Buck (conmutado)</b>: conmuta con inductor y MOSFET con eficiencias del 85–95 %. Ideal cuando la diferencia de tensión o la corriente son altas, evitando que el circuito se sobrecaliente."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "fuentes,conversión,cálculo",
+   "front": "Un regulador lineal LM7805 baja de 12 V a 5 V alimentando un circuito que consume 1 A. ¿Cuánta potencia disipa en forma de calor?",
+   "choices": [
+    "7 W",
+    "5 W",
+    "12 W",
+    "1.4 W"
+   ],
+   "answer": 0,
+   "back": "$P = (V_{in} - V_{out}) \\times I = (12 - 5) \\times 1 = 7$ W de calor puro disipado en el encapsulado, frente a solo 5 W útiles entregados a la carga (rendimiento del 41.6 %). Un convertidor Buck disiparía menos de 0.8 W."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "filtros,frecuencia,cálculo",
+   "front": "Filtro paso bajo RC: ¿cuál es su frecuencia de corte y qué ocurre a esa frecuencia?",
+   "back": "Frecuencia de corte ($f_c$):\n$$f_c = \\frac{1}{2 \\pi R C}$$\n\nEn $f_c$ la potencia de la señal se reduce a la mitad (<b>-3 dB</b>) y la amplitud de tensión cae a $\\frac{1}{\\sqrt{2}} \\approx 0.707$ ($70.7\\,\\%$ del valor original), con un desfase de 45°. Las frecuencias superiores se atenúan a razón de 20 dB por década."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "baterías,almacenamiento,energía",
+   "front": "Baterías de Litio-Ion vs LiFePO4: tensiones nominales y seguridad",
+   "back": "<b>Li-Ion (NMC / LCO)</b>:\n- Tensión nominal: 3.6 V – 3.7 V (máx 4.2 V, corte seguro 3.0 V).\n- Mayor densidad energética; riesgo de embalamiento térmico por encima de 60 °C o sobrecarga.\n\n<b>LiFePO4 (Fosfato de hierro y litio)</b>:\n- Tensión nominal: 3.2 V (máx 3.65 V, corte 2.5 V).\n- Química ultraestable contra sobrecalentamiento, 2000–5000 ciclos de vida (frente a 500–800 de Li-Ion clásico)."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "baterías,almacenamiento",
+   "front": "La tasa de descarga {{1C::tasa C}} de una batería de 2500 mAh significa que puede entregar {{2.5 A::corriente en amperios}} de forma continua durante una hora."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "amplificadores,operacionales,analógica",
+   "front": "Amplificador operacional: ¿cuáles son las dos reglas de oro del cortocircuito virtual?",
+   "back": "En un op-amp con realimentación negativa operando en zona lineal:\n1. <b>$V_+ = V_-$</b>: La tensión en la entrada no inversora es igual a la tensión en la entrada inversora (tierra virtual / cortocircuito virtual).\n2. <b>$I_+ = I_- = 0$</b>: Las entradas no consumen corriente debido a su impedancia de entrada infinita."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "amplificadores,fórmulas,cálculo",
+   "front": "Ganancia de amplificador inversor y no inversor con Op-Amp",
+   "back": "<b>Inversor</b>:\n$$A_v = -\\frac{R_f}{R_{in}}$$\n(Desfasa la señal 180° e invierte el signo).\n\n<b>No inversor</b>:\n$$A_v = 1 + \\frac{R_f}{R_{in}}$$\n(Ganancia siempre mayor o igual a 1, sin inversión de fase. Con $R_f = 0$ es un seguidor de tensión/buffer de impedancia)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "protección,componentes,diseño",
+   "front": "¿Qué es un diodo TVS y un varistor MOV y cómo protegen un circuito?",
+   "back": "<b>Diodo TVS (Transient Voltage Suppressor)</b>: semiconductor ultra rápido (picosegundos) que entra en conducción por avalancha cuando la tensión supera su umbral, derivando picos de ESD y transitorios a tierra sin destruirse.\n<b>Varistor MOV (Óxido metálico)</b>: resistencia variable no lineal que absorbe sobretensiones de gran energía en líneas de alimentación de corriente alterna y continua."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "motores,control,semiconductores",
+   "front": "¿Qué es un Puente H (H-Bridge) y cómo controla un motor DC?",
+   "back": "Es una topología de <b>cuatro transistores (MOSFETs o BJTs)</b> conectados en forma de 'H' con el motor en el centro.\n\n- Activando diagonal 1 ($Q_1$ y $Q_4$): la corriente cruza de izquierda a derecha $\\rightarrow$ <b>giro horario</b>.\n- Activando diagonal 2 ($Q_2$ y $Q_3$): la corriente cruza de derecha a izquierda $\\rightarrow$ <b>giro antihorario</b>.\n- Si se modula con <b>PWM</b> se controla la velocidad.\n- <b>Shoot-through (cortocircuito directo)</b>: si se activan $Q_1$ y $Q_2$ a la vez, se destruye el puente."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "aislamiento,seguridad,componentes",
+   "front": "¿Qué es el aislamiento galvánico y cómo lo consigue un optoacoplador?",
+   "back": "El <b>aislamiento galvánico</b> impide la circulación de corriente directa entre dos partes de un circuito, eliminando lazos de masa y protegiendo electrónica de control de sobretensiones de potencia.\n\nUn <b>optoacoplador</b> transmite la señal mediante un <b>LED emisor infrarrojo y un fototransistor receptor</b> separados por una barrera dieléctrica transparente: la información viaja por luz pura sin contacto metálico."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "muestreo,adc,procesamiento",
+   "front": "Teorema de Muestreo de Nyquist-Shannon: condición para digitalizar sin aliasing",
+   "back": "Para reconstruir una señal analógica continua de frecuencia máxima $f_{max}$ sin pérdida ni artefactos (aliasing), la <b>frecuencia de muestreo ($f_s$)</b> debe ser estrictamente mayor al doble de su frecuencia máxima:\n$$f_s > 2 f_{max}$$\n\nEjemplo: el oído humano oye hasta 20 kHz; por eso el audio de CD se muestrea a 44.1 kHz con un filtro antialiasing paso bajo previo."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "adc,resolución,cálculo",
+   "front": "Un conversor analógico-digital (ADC) de {{10 bits::resolución en bits}} divide la tensión de referencia de 5 V en {{1024::número de niveles}} niveles, con una resolución de aproximadamente 4.88 mV por paso."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "filtros,analógica,opamp",
+   "front": "Filtro activo Sallen-Key: ¿qué es y cuál es su atenuación?",
+   "back": "Es una topología de <b>filtro activo de segundo orden</b> implementada con un solo amplificador operacional, dos resistencias y dos condensadores.\n\nProporciona una pendiente de corte de <b>-40 dB por década</b> (-12 dB por octava). Permite implementar respuestas Butterworth (plana en banda pasante), Chebyshev (corte abrupto con rizado) o Bessel (retardo de grupo lineal sin distorsión de fase)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "conversión,boost,fuentes",
+   "front": "Convertidor Boost (elevador): ¿cómo consigue una tensión de salida mayor que la de entrada?",
+   "back": "Cuando el interruptor (MOSFET) conduce, la corriente crece en el <b>inductor</b> almacenando energía en su campo magnético.\n\nAl abrirse el interruptor, el inductor se opone a la caída de corriente generando una fuerza contraelectromotriz ($V_L = L \\frac{di}{dt}$) que <b>se suma en serie a la tensión de entrada</b> a través del diodo:\n$$V_{out} = \\frac{V_{in}}{1 - D}$$\ndonde $D$ es el ciclo de trabajo (duty cycle, $0 \\le D < 1$)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "comunicación,industrial,rs485",
+   "front": "Protocolo RS-485: características eléctricas y distancia máxima",
+   "back": "- <b>Transmisión diferencial multipunto</b> (half-duplex sobre un par de cables A y B).\n- Conecta hasta 32 o 128 dispositivos en el mismo bus a distancias de hasta <b>1200 metros</b> (a 100 kbps) o velocidades de hasta 10–35 Mbps a corta distancia.\n- Inmune al ruido industrial; requiere resistencias de terminación de <b>120 Ω</b> en los dos extremos físicos del cable."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "temporizadores,555,osciladores",
+   "front": "Temporizador 555 en modo astable: frecuencia de oscilación",
+   "back": "En modo astable oscila continuamente generando una onda cuadrada sin necesidad de disparo externo:\n$$f = \\frac{1.44}{(R_1 + 2R_2) \\times C}$$\n\nEl condensador se carga a través de $R_1 + R_2$ hasta $\\frac{2}{3} V_{cc}$ y se descarga a través de $R_2$ hasta $\\frac{1}{3} V_{cc}$ mediante el pin 7 (Discharge)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pcb,emc,diseño",
+   "front": "Diseño de PCB: ¿por qué es crítico un plano de masa continuo (Ground Plane)?",
+   "back": "En alta frecuencia la corriente de retorno no sigue el camino de menor resistencia óhmica, sino el de <b>menor inductancia de bucle</b>, que está exactamente debajo de la pista de señal.\n\nUn plano de masa sólido e ininterrumpido minimiza el área del bucle de corriente, reduciendo drásticamente la emisión de interferencias electromagnéticas (EMI) y la susceptibilidad al ruido."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "componentes,zener,regulación",
+   "front": "¿Cómo se conecta un diodo Zener para funcionar como regulador de tensión?",
+   "choices": [
+    "Polarizado en inversa en paralelo con la carga, con una resistencia en serie que limita la corriente",
+    "Polarizado en directa en serie con la carga positiva",
+    "En antiparalelo con la fuente de alimentación sin resistencia limitadora",
+    "Conectado entre la fase y el neutro de la corriente alterna"
+   ],
+   "answer": 0,
+   "back": "El diodo Zener se conecta polarizado en <b>inversa</b> en paralelo con la carga. Al superar su tensión de ruptura Zener ($V_Z$), mantiene una tensión constante entre sus bornes mientras la resistencia serie absorbe las fluctuaciones de la fuente."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "mosfet,gate-driver,semiconductores",
+   "front": "¿Por qué un MOSFET de potencia necesita un Gate Driver si su puerta está aislada?",
+   "back": "Aunque la resistencia DC de la puerta es casi infinita, la puerta presenta una <b>capacitancia parásita ($C_{iss} = C_{gs} + C_{gd}$)</b> significativa (de 1 a 10 nF).\n\nPara cargar y descargar esa capacitancia en 20–50 nanosegundos (y conmutar a cientos de kHz sin que el transistor pase tiempo en la zona lineal disipando calor), se requieren <b>corrientes de pico de 1 a 4 amperios</b> que un microcontrolador (limitado a 20 mA) no puede suministrar directamente."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "semiconductores,potencia,tiristores",
+   "front": "Tiristor (SCR) vs Triac: ¿cómo funcionan y cómo se apagan?",
+   "back": "- <b>SCR (Silicon Controlled Rectifier)</b>: semiconductor unidireccional. Se dispara con un pulso positivo en el gate y <b>permanece conduciendo indefinidamente</b> hasta que la corriente que lo atraviesa cae por debajo de la corriente de mantenimiento ($I_H$) o se anula la tensión.\n- <b>Triac</b>: equivale a dos SCRs en antiparalelo con un gate común; permite el disparo y conducción en <b>ambos sentidos de la corriente alterna</b> (control de velocidad de taladros, dimmers de luz)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "relés,ssr,conmutación",
+   "front": "Relé de estado sólido (SSR) con cruce por cero (Zero-Crossing): ventaja clave",
+   "back": "Un SSR con <b>Zero-Crossing</b> espera a que la onda senoidal de corriente alterna cruce exactamente por <b>0 voltios</b> antes de encender la carga.\n\nEsto elimina los picos brutales de corriente de inserción (*inrush current*) y las interferencias electromagnéticas (EMI) que se producen al conmutar en el pico de la onda, alargando la vida de lámparas y resistencias calefactoras."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "dac,analógica,conversión",
+   "front": "Conversor Digital-Analógico (DAC) tipo red R-2R: ¿cómo funciona?",
+   "back": "Utiliza una escalera de resistencias donde solo se emplean <b>dos valores: $R$ y $2R$</b> (ej. 10 kΩ y 20 kΩ).\n\nCada bit de la palabra digital conecta una rama a $V_{ref}$ (si es 1) o a $0\\text{ V}$ (si es 0). Por el principio de Thévenin, cada peldaño de la escalera divide la contribución de tensión exactamente a la mitad respecto al anterior ($V_{ref}/2, V_{ref}/4, V_{ref}/8$), logrando una conversión analógica lineal sin requerir resistencias de valores dispares."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "fuentes,flyback,transformadores",
+   "front": "¿Cuál es la característica de funcionamiento distintiva de una fuente conmutada topología Flyback?",
+   "choices": [
+    "Almacena energía magnética en el entrehierro del transformador durante la fase de conducción y la transfiere a la salida cuando el transistor se apaga",
+    "Transfiere energía directamente del primario al secundario de forma simultánea mientras el transistor está encendido",
+    "No utiliza diodo rectificador en el secundario porque genera corriente continua pura por resonancia",
+    "Requiere siempre que la tensión de salida sea superior a la tensión de entrada"
+   ],
+   "answer": 0,
+   "back": "El transformador Flyback actúa en realidad como un inductor acoplado con entrehierro: almacena energía durante el tiempo ON y la libera al secundario a través del diodo durante el tiempo OFF. Es la topología reina para cargadores de móviles y fuentes aisladas de baja potencia (< 100 W)."
   }
  ]
 }

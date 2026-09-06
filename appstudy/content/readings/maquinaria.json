@@ -1115,6 +1115,57 @@
      "key": "Un pesaje útil necesita cálculo correcto e identificación correcta."
     }
    ]
+  },
+  {
+   "level": 2,
+   "minutes": 12,
+   "tags": "hidráulica,bombas,load-sensing,transmisión",
+   "title": "Hidráulica Load Sensing y transmisiones de maquinaria",
+   "subtitle": "La tecnología que ahorra combustible y multiplica la fuerza en excavadoras y cargadores.",
+   "body": [
+    {
+     "p": "Las máquinas antiguas usaban bombas de caudal fijo: bombeaban todo el aceite todo el tiempo, disipando el exceso en calor a través de válvulas de alivio. La hidráulica <b>Load Sensing (LS)</b> cambió las reglas."
+    },
+    {
+     "h": "La bomba de pistones axiales con plato basculante"
+    },
+    {
+     "p": "En un sistema LS, una línea sensora de carga toma la presión más alta demandada por cualquiera de los actuadores activos y la envía de vuelta a la bomba."
+    },
+    {
+     "p": "El compensador ajusta el ángulo del plato basculante para mantener la presión de la bomba exactamente a: <b>$P_{bomba} = P_{carga} + \\Delta P_{margen}$</b> (donde el margen suele ser de 20 bar). Si sueltas los mandos, la bomba se coloca a caudal casi nulo."
+    },
+    {
+     "h": "El convertidor de par en cargadores y volquetes"
+    },
+    {
+     "p": "El convertidor de par hidrodinámico multiplica el par motor gracias al <b>estator</b> con rueda libre. Cuando la máquina empuja contra una pila de tierra y se frena, el convertidor multiplica el par hasta 3 veces sin calar el motor diésel, permitiendo clavar la pala con máxima potencia."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "frenos,motor,jake-brake,retardadores",
+   "title": "Frenos de motor auxiliares: Jake Brake y retardadores",
+   "subtitle": "Cómo descender pendientes pronunciadas con 40 toneladas sin quemar los frenos.",
+   "body": [
+    {
+     "p": "Un volquete cargado bajando un puerto de montaña acumula una energía cinética y potencial inmensa. Confiar únicamente en los frenos de fricción de las ruedas causaría sobrecalentamiento instantáneo (*brake fade*) y pérdida total de frenado."
+    },
+    {
+     "h": "Freno de compresión Jake Brake"
+    },
+    {
+     "p": "Modifica electrohidráulicamente la apertura de las válvulas de escape al final de la carrera de compresión. El aire comprimido por el pistón se expulsa a la atmósfera antes de que pueda devolver su energía mecánica, convirtiendo al motor en un absorbente de potencia de cientos de caballos."
+    },
+    {
+     "h": "Retardadores hidráulicos"
+    },
+    {
+     "p": "Hacen girar un rotor con paletas dentro de una cámara llena de aceite de transmisión contra un estator fijo. La fricción hidrodinámica del aceite frena la transmisión con suavidad absoluta, evacuando el calor generado a través del radiador del motor."
+    }
+   ]
   }
  ]
 }

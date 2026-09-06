@@ -11,7 +11,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 
 from . import ayuda, buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: E402
-from . import historial, hotkey, ia, importador, lecturas  # noqa: E402
+from . import freecodecamp, historial, hotkey, ia, importador, lecturas  # noqa: E402
 from . import libros, logros, pet, recordatorios, respaldo, scheduler  # noqa: E402
 from . import nube, sincronizacion  # noqa: E402
 from . import sesiones, sonido, util, voz  # noqa: E402
@@ -604,6 +604,9 @@ class MainWindow(Adw.ApplicationWindow):
         escribir = Gtk.Button(label="✎ Escribir un capítulo", css_classes=["pill"])
         escribir.connect("clicked", lambda *_: self.editor_capitulo())
         fila_acciones.append(escribir)
+        fcc_leer = Gtk.Button(label="🌐 Descargar de freeCodeCamp", css_classes=["pill"])
+        fcc_leer.connect("clicked", lambda *_: self.descargar_lectura_freecodecamp())
+        fila_acciones.append(fcc_leer)
         propios = self.con.execute(
             "SELECT COUNT(*) FROM chapters WHERE propio=1").fetchone()[0]
         if propios:
@@ -813,6 +816,11 @@ class MainWindow(Adw.ApplicationWindow):
         self.btn_ia.connect("clicked", lambda *_: self.generar_con_ia())
         barra.append(self.btn_ia)
 
+        self.btn_fcc = Gtk.Button(icon_name="applications-internet-symbolic",
+                                  tooltip_text="Generar tarjetas desde freeCodeCamp con IA (Internet)")
+        self.btn_fcc.connect("clicked", lambda *_: self.generar_desde_freecodecamp())
+        barra.append(self.btn_fcc)
+
         importar = Gtk.Button(icon_name="document-open-symbolic",
                               tooltip_text="Importar tarjetas de Anki, CSV o TSV")
         importar.connect("clicked", lambda *_: self.importar_tarjetas())
@@ -838,7 +846,9 @@ class MainWindow(Adw.ApplicationWindow):
         return lista
 
     def refresh_browser(self):
-        self.btn_ia.set_visible(ia.config(self.con)["activa"])
+        activa = ia.config(self.con)["activa"]
+        self.btn_ia.set_visible(activa)
+        self.btn_fcc.set_visible(activa)
         texto = self.search.get_text().strip().lower()
         # Buscando se enseñan las tarjetas de todos los temas mezcladas; sin
         # buscar, solo los temas, y el desglose queda dentro de cada uno.
@@ -1746,6 +1756,7 @@ class MainWindow(Adw.ApplicationWindow):
         activa = fila.get_active()
         ia.guardar(self.con, activa=activa)
         self.btn_ia.set_visible(activa)
+        self.btn_fcc.set_visible(activa)
         if activa:
             self.probar_ia()
         else:
@@ -1974,6 +1985,190 @@ class MainWindow(Adw.ApplicationWindow):
         self.notify_user(f"{n} tarjetas guardadas en {mazo['name']}" if n
                          else "No marcaste ninguna")
         self.refresh()
+
+    def generar_desde_freecodecamp(self):
+        """Descarga una lección o curso de freeCodeCamp y propone tarjetas con la IA."""
+        if not ia.config(self.con)["activa"]:
+            self.notify_user("Activa la IA en Ajustes para generar tarjetas")
+            return
+        dlg = Adw.AlertDialog(
+            heading="freeCodeCamp con IA",
+            body="Descarga lecciones desde freeCodeCamp (requiere Internet) y genera tarjetas con IA.")
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+
+        certs = freecodecamp.listar_certificaciones()
+        opciones_cert = ["(Pegar URL personalizada de freeCodeCamp)"] + [
+            f"{c['icono']} {c['nombre']}" for c in certs
+        ]
+        elegir_cert = Gtk.DropDown.new_from_strings(opciones_cert)
+        caja.append(self.labeled("Certificación o curso", elegir_cert))
+
+        url_entry = Gtk.Entry(placeholder_text="https://www.freecodecamp.org/learn/...")
+        url_entry.set_activates_default(True)
+        caja.append(self.labeled("O pega la URL de la lección", url_entry))
+
+        def on_cert_changed(dd, _pspec):
+            idx = dd.get_selected()
+            if idx > 0:
+                c = certs[idx - 1]
+                url_entry.set_text(c.get("url") or f"https://www.freecodecamp.org/learn/{c['slug']}/")
+        elegir_cert.connect("notify::selected", on_cert_changed)
+
+        mazos = db.deck_stats(self.con)
+        elegir_mazo = Gtk.DropDown.new_from_strings([f"{d['icon']} {d['name']}" for d in mazos])
+        for i, m in enumerate(mazos):
+            if m["key"] == "python":
+                elegir_mazo.set_selected(i)
+                break
+        caja.append(self.labeled("Mazo donde guardarlas", elegir_mazo))
+
+        cuantas = Gtk.SpinButton.new_with_range(1, 10, 1)
+        cuantas.set_value(5)
+        caja.append(self.labeled("Cuántas tarjetas", cuantas))
+
+        chk_guardar_cap = Gtk.CheckButton(label="Guardar también la lección para leer en «Leer»", active=True)
+        caja.append(chk_guardar_cap)
+
+        dlg.set_extra_child(caja)
+        dlg.add_response("cancel", "Cancelar")
+        dlg.add_response("go", "Descargar y generar")
+        dlg.set_response_appearance("go", Adw.ResponseAppearance.SUGGESTED)
+        dlg.set_default_response("go")
+        dlg.connect("response", self.on_generar_fcc, url_entry, elegir_cert, certs, elegir_mazo, cuantas, mazos, chk_guardar_cap)
+        dlg.present(self)
+
+    def on_generar_fcc(self, _d, respuesta, url_entry, elegir_cert, certs, elegir_mazo, cuantas, mazos, chk_guardar_cap):
+        if respuesta != "go":
+            return
+        url = url_entry.get_text().strip()
+        idx = elegir_cert.get_selected()
+        if not url and idx > 0:
+            url = certs[idx - 1].get("url") or f"https://www.freecodecamp.org/learn/{certs[idx - 1]['slug']}/"
+        if not url:
+            self.notify_user("Indica una URL o selecciona una certificación")
+            return
+        mazo = mazos[elegir_mazo.get_selected()]
+        n = int(cuantas.get_value())
+        guardar_cap = chk_guardar_cap.get_active()
+        self.notify_user(f"Conectando a freeCodeCamp y pensando {n} tarjetas…")
+        cfg = ia.config(self.con)
+
+        def trabajo():
+            leccion = freecodecamp.obtener_leccion(url)
+            if guardar_cap:
+                otra = db.connect()
+                try:
+                    freecodecamp.guardar_como_lectura(otra, leccion, mazo["id"], mazo["key"])
+                finally:
+                    otra.close()
+            tarjetas = freecodecamp.generar_tarjetas_fcc(cfg, leccion, n)
+            return leccion, tarjetas
+
+        def al_terminar(resultado):
+            leccion, tarjetas = resultado
+            if guardar_cap:
+                self.refresh_reader()
+            self.revisar_generadas(
+                tarjetas, mazo, leccion["titulo"],
+                etiquetas=f"freecodecamp, {leccion['bloque']}",
+                fuente=leccion.get("fuente"))
+            ia.hilo(lambda: ia.descargar(cfg))
+
+        def al_fallar(e):
+            self.notify_user(f"Error con freeCodeCamp / IA: {e}")
+            ia.hilo(lambda: ia.descargar(cfg))
+
+        ia.hilo(trabajo, al_terminar, al_fallar)
+
+    def descargar_lectura_freecodecamp(self):
+        """Descarga una lección o curso de freeCodeCamp y la abre directamente en el lector."""
+        dlg = Adw.AlertDialog(
+            heading="Leer desde freeCodeCamp",
+            body="Descarga una lección o tutorial de freeCodeCamp para leerlo en AppStudy.")
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+
+        certs = freecodecamp.listar_certificaciones()
+        opciones_cert = ["(Pegar URL personalizada de freeCodeCamp)"] + [
+            f"{c['icono']} {c['nombre']}" for c in certs
+        ]
+        elegir_cert = Gtk.DropDown.new_from_strings(opciones_cert)
+        caja.append(self.labeled("Certificación o curso", elegir_cert))
+
+        url_entry = Gtk.Entry(placeholder_text="https://www.freecodecamp.org/learn/...")
+        url_entry.set_activates_default(True)
+        caja.append(self.labeled("O pega la URL de la lección", url_entry))
+
+        def on_cert_changed(dd, _pspec):
+            idx = dd.get_selected()
+            if idx > 0:
+                c = certs[idx - 1]
+                url_entry.set_text(c.get("url") or f"https://www.freecodecamp.org/learn/{c['slug']}/")
+        elegir_cert.connect("notify::selected", on_cert_changed)
+
+        mazos = db.deck_stats(self.con)
+        elegir_mazo = Gtk.DropDown.new_from_strings([f"{d['icon']} {d['name']}" for d in mazos])
+        for i, m in enumerate(mazos):
+            if m["key"] == "python":
+                elegir_mazo.set_selected(i)
+                break
+        caja.append(self.labeled("Tema de la lectura", elegir_mazo))
+
+        chk_ia = Gtk.CheckButton(label="Generar también tarjetas con IA para este tema", active=False)
+        caja.append(chk_ia)
+
+        dlg.set_extra_child(caja)
+        dlg.add_response("cancel", "Cancelar")
+        dlg.add_response("go", "Descargar y leer")
+        dlg.set_response_appearance("go", Adw.ResponseAppearance.SUGGESTED)
+        dlg.set_default_response("go")
+        dlg.connect("response", self.on_descargar_lectura_fcc, url_entry, elegir_cert, certs, elegir_mazo, mazos, chk_ia)
+        dlg.present(self)
+
+    def on_descargar_lectura_fcc(self, _d, respuesta, url_entry, elegir_cert, certs, elegir_mazo, mazos, chk_ia):
+        if respuesta != "go":
+            return
+        url = url_entry.get_text().strip()
+        idx = elegir_cert.get_selected()
+        if not url and idx > 0:
+            url = certs[idx - 1].get("url") or f"https://www.freecodecamp.org/learn/{certs[idx - 1]['slug']}/"
+        if not url:
+            self.notify_user("Indica una URL o selecciona una certificación")
+            return
+        mazo = mazos[elegir_mazo.get_selected()]
+        con_ia = chk_ia.get_active()
+        self.notify_user("Descargando lección desde freeCodeCamp…")
+
+        def trabajo():
+            leccion = freecodecamp.obtener_leccion(url)
+            otra_con = db.connect()
+            try:
+                cap = freecodecamp.guardar_como_lectura(otra_con, leccion, mazo["id"], mazo["key"])
+            finally:
+                otra_con.close()
+            tarjetas = None
+            if con_ia and ia.config(self.con)["activa"]:
+                cfg = ia.config(self.con)
+                try:
+                    tarjetas = freecodecamp.generar_tarjetas_fcc(cfg, leccion, cuantas=5)
+                except Exception:
+                    tarjetas = None
+            return leccion, cap, tarjetas
+
+        def al_terminar(resultado):
+            leccion, cap, tarjetas = resultado
+            self.refresh_reader()
+            self.abrir_lectura(cap)
+            self.notify_user(f"Capítulo «{cap['title']}» abierto en el lector")
+            if tarjetas:
+                self.revisar_generadas(
+                    tarjetas, mazo, leccion["titulo"],
+                    etiquetas=f"freecodecamp, {leccion['bloque']}",
+                    fuente=leccion.get("fuente"))
+
+        def al_fallar(e):
+            self.notify_user(f"Error al descargar de freeCodeCamp: {e}")
+
+        util.hilo(trabajo, al_terminar, al_fallar)
 
     def generar_desde_capitulo(self, capitulo):
         """Propone tarjetas ancladas explícitamente al capítulo abierto."""
@@ -3112,6 +3307,7 @@ echo hola
                          (self.ia_modelo, self.on_ia_modelo)):
             fila.handler_unblock_by_func(cb)
         self.btn_ia.set_visible(c["activa"])
+        self.btn_fcc.set_visible(c["activa"])
 
         t = db.totals(self.con)
         self.hoy_row.set_subtitle(f"{t['hoy']} repasos en las últimas 24 h; las tarjetas "

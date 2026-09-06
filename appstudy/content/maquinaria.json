@@ -1374,6 +1374,76 @@
     "Trabajo realizado, condiciones de verificación y resultado"
    ],
    "answer": 2
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "hidráulica,load-sensing,bombas",
+   "front": "Hidráulica Load Sensing (LS): ¿qué ventaja tiene frente a una bomba de caudal fijo?",
+   "back": "Una bomba de pistones axiales Load Sensing ajusta el ángulo del plato basculante para suministrar <b>solo el caudal exacto que exigen los actuadores</b> más un margen fijo de presión (presión marginal, ~15–25 bar).\n\nSi ninguna palanca se acciona, la bomba se va a caudal mínimo de espera (standby). Esto ahorra cientos de litros de combustible al año al no estrangular aceite presurizado por las válvulas de alivio."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "emisiones,diésel,dpf",
+   "front": "Regeneración del filtro de partículas DPF en maquinaria pesada: pasiva, activa y forzada",
+   "back": "- <b>Pasiva</b>: ocurre automáticamente durante trabajos intensos cuando los gases de escape superan los 300–400 °C, quemando el hollín de forma continua.\n- <b>Activa</b>: la ECU inyecta combustible adicional en la carrera de escape para elevar la temperatura del DPF a 600 °C mientras la máquina opera.\n- <b>Forzada / Estacionaria</b>: se realiza con la máquina aparcada y bloqueada mediante el panel o escáner de servicio cuando el nivel de saturación supera el umbral de seguridad."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "transmisión,hidrostática,control",
+   "front": "¿Qué componente de una transmisión hidrostática (HST) permite variar la velocidad y el sentido de marcha de una excavadora o minicargador de forma continua?",
+   "choices": [
+    "La variación del ángulo del plato basculante en la bomba hidráulica de pistones axiales",
+    "Un conjunto de engranajes sincronizados de cuatro marchas mecánicas",
+    "Un convertidor de par con bloqueo hidráulico controlado por electroválvula",
+    "El ajuste manual de la válvula de mariposa en el colector de admisión diésel"
+   ],
+   "answer": 0,
+   "back": "Al inclinar el plato basculante de la bomba hacia un lado o hacia el otro, se modifica el volumen de desplazamiento por vuelta (velocidad) y la dirección del flujo de aceite hidráulico (marcha adelante o atrás) de forma infinitamente variable y suave."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "transmisión,convertidor,hidráulica",
+   "front": "Convertidor de par hidrodinámico: componentes y función del estator",
+   "back": "Consta de tres elementos sumergidos en aceite:\n1. <b>Bomba impulsora</b>: unida al volante del motor diésel, lanza aceite hacia la turbina.\n2. <b>Turbina</b>: conectada al eje de entrada de la transmisión.\n3. <b>Estator con embrague unidireccional (rueda libre)</b>: redirige el flujo de aceite que sale de la turbina para que incida favorablemente en la bomba.\n\nEsa redirección es la que produce la <b>multiplicación de par (hasta 2.5 a 3 veces el par del motor)</b> durante el arranque con carga pesada."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "seguridad,hidráulica,válvulas",
+   "front": "¿Para qué sirve una válvula de retención pilotada (holding valve / check valve) en los cilindros de una grúa o excavadora?",
+   "back": "Bloquea el retorno del aceite hidráulico de la cámara del cilindro de forma 100 % hermética.\n\nSolo se abre cuando recibe una presión de pilotaje deliberada desde el mando del operador. Si una manguera hidráulica se rompe o revienta, la válvula se cierra mecánicamente de inmediato, <b>impidiendo que el brazo, la pluma o la carga caigan por gravedad</b>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "frenos,neumática,seguridad",
+   "front": "¿Cómo funciona el freno de resorte Maxi-Brake en camiones y maquinaria pesada?",
+   "back": "En las cámaras de freno dobles, el <b>freno de estacionamiento y emergencia es 100 % mecánico</b>: un resorte de acero gigante mantiene las zapatas/discos frenados por defecto.\n\nPara liberar el freno y poder rodar, el sistema neumático debe suministrar presión de aire (>60–90 PSI) para comprimir y vencer la fuerza del resorte. Si el camión sufre una fuga total de aire comprimido, los resortes se expanden y <b>bloquean las ruedas automáticamente</b> por seguridad."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "mantenimiento,análisis de aceite,sos",
+   "front": "Análisis de aceite SOS en maquinaria pesada: metales de desgaste clave",
+   "back": "- <b>Hierro (Fe)</b>: desgaste de camisas de cilindro, engranajes, árboles de levas.\n- <b>Cobre (Cu)</b>: desgaste de casquillos de biela, cojinetes de bancada o enfriadores de aceite.\n- <b>Cromo (Cr)</b>: desgaste de segmentos/anillos de pistón.\n- <b>Silicio (Si) y Aluminio (Al)</b>: entrada de polvo/tierra por fallo en el filtro de aire o admisión rota."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "frenos,motor,jake-brake",
+   "front": "Freno de motor por compresión (Jake Brake): ¿cómo frena un camión diésel pesado?",
+   "back": "El motor diésel comprime aire en la carrera ascendente absorbiendo energía mecánica.\n\nJusto en el punto muerto superior (PMS) de compresión, una electroválvula hidráulica <b>abre brevemente la válvula de escape</b>, liberando todo el aire comprimido hacia el tubo de escape antes de que pueda expandirse y empujar el pistón hacia abajo. Convierte al motor en un gigantesco compresor de aire que frena el camión sin desgastar los frenos de servicio."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "hidráulica,válvulas,control",
+   "front": "Válvula direccional proporcional con muescas de estrangulamiento (Notches)",
+   "back": "Las correderas (spools) de las válvulas proporcionales no abren el paso de aceite de golpe: llevan <b>muescas de mecanizado fino en V o en U</b> en los bordes de control.\n\nAl desplazarse milimétricamente mediante un solenoide proporcional PWM, el área de paso de aceite crece de forma progresiva, permitiendo un posicionamiento ultrasuave y sin golpes de ariete del brazo hidráulico."
   }
  ],
  "levels": [
