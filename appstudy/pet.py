@@ -1661,9 +1661,14 @@ class PetWindow(Gtk.ApplicationWindow):
         clic_bubble.connect("pressed", self.on_bubble_click)
         self.bubble_box.add_controller(clic_bubble)
 
-        self.menu = Gtk.PopoverMenu.new_from_model(self.build_menu())
+        self.registrar_acciones()
+        self.menu = Gtk.Popover(has_arrow=False)
+        # add_css_class, no css_classes=[...]: el constructor sustituye la lista
+        # entera y se lleva por delante la clase "background" que GtkPopover se
+        # pone sola, que es la que pinta el fondo. Sin ella la tarjeta sale
+        # transparente y se lee el escritorio a través.
+        self.menu.add_css_class("as-menu")
         self.menu.set_parent(self.creature)
-        self.menu.set_has_arrow(False)
 
         self.connect("map", self.on_map)
         GLib.timeout_add_seconds(CHECK_EVERY, self.on_check)
@@ -1921,7 +1926,7 @@ class PetWindow(Gtk.ApplicationWindow):
         sonido.guardar(self.con, activo=not self.sonido["activo"])
         self.sonido = sonido.config(self.con)
         self.sonar("clic")
-        self.menu.set_menu_model(self.build_menu())     # cambia la etiqueta
+        self.refrescar_menu()          # cambia la etiqueta de silencio
 
     def cambiar_tamano(self, paso):
         nueva = round(self.creature.escala + paso, 2)
@@ -3226,6 +3231,103 @@ class PetWindow(Gtk.ApplicationWindow):
             self.abrir_menu_en(self.bubble_box, x, y)
             return
 
+    # ------------------------------------------------ la tarjeta de acciones
+
+    def _boton_accion(self, etiqueta, cb, clases=("pill",), tooltip=None):
+        b = Gtk.Button(label=etiqueta, css_classes=list(clases), hexpand=True)
+        b.connect("clicked", lambda *_: (self.menu.popdown(), cb()))
+        if tooltip:
+            b.set_tooltip_text(tooltip)
+        return b
+
+    def _fila_accion(self, etiqueta, cb, sufijo=None):
+        """Una línea de la lista: texto a la izquierda y, si acaso, un dato a la derecha."""
+        b = Gtk.Button(css_classes=["flat", "as-menu-fila"])
+        caja = Gtk.Box(spacing=8)
+        caja.append(Gtk.Label(label=etiqueta, xalign=0, hexpand=True))
+        if sufijo:
+            caja.append(Gtk.Label(label=sufijo, css_classes=["as-menu-dato"]))
+        b.set_child(caja)
+        b.connect("clicked", lambda *_: (self.menu.popdown(), cb()))
+        return b
+
+    def _grupo_tamano(self, titulo, menos, mas):
+        fila = Gtk.Box(spacing=6, css_classes=["as-menu-tamano"])
+        fila.append(Gtk.Label(label=titulo, xalign=0, hexpand=True,
+                              css_classes=["as-menu-dato"]))
+        for etiqueta, cb in (("−", menos), ("+", mas)):
+            b = Gtk.Button(label=etiqueta, css_classes=["circular", "flat"])
+            b.connect("clicked", lambda _b, f=cb: f())     # sin cerrar: se ajusta a ojo
+            fila.append(b)
+        return fila
+
+    def refrescar_menu(self):
+        """Rehace el contenido: el estado y las etiquetas cambian entre aperturas."""
+        t = self.stats or {}
+        # `total` de stats son tarjetas, no repasos: la etapa se cuenta del log
+        etapa = evolucion(total_repasos(self.con))["nombre"]
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
+                       css_classes=["as-menu-caja"])
+
+        caja.append(Gtk.Label(label=f"{NOMBRE} · {etapa}", xalign=0,
+                              css_classes=["as-bubble-title"]))
+        pendientes = t.get("pendientes", 0)
+        resumen = (f"{pendientes} pendientes · {t.get('hoy', 0)} hoy"
+                   if pendientes else f"al día · {t.get('hoy', 0)} hoy")
+        racha = t.get("racha", 0)
+        if racha:
+            resumen += f" · racha de {racha} d"
+        caja.append(Gtk.Label(label=resumen, xalign=0, css_classes=["as-menu-estado"]))
+
+        # Lo que se usa a diario, en botones grandes y a dos columnas
+        rejilla = Gtk.Grid(column_spacing=6, row_spacing=6, column_homogeneous=True,
+                           margin_top=4)
+        principales = [
+            ("🧠 Enséñame", lambda: (self.wake(), self.teach())),
+            ("⚡ Ponme a prueba", lambda: (self.wake(), self.quiz())),
+            ("🎙️ Hablar", lambda: (self.wake(), self.alternar_conversacion())),
+            ("💬 Chat", lambda: (self.wake(), self.abrir_chat())),
+            ("❓ Pregúntame", lambda: (self.wake(), self.preguntar())),
+            ("📖 Una frase", lambda: (self.wake(), self.quote())),
+        ]
+        for i, (etiqueta, cb) in enumerate(principales):
+            clases = ["pill", "suggested-action"] if i == 0 else ["pill"]
+            rejilla.attach(self._boton_accion(etiqueta, cb, clases), i % 2, i // 2, 1, 1)
+        caja.append(rejilla)
+
+        caja.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
+        for etiqueta, cb, sufijo in (
+                ("📊 Cómo va la semana", lambda: (self.wake(), self.diario()), None),
+                ("⏱️ Sesión de estudio", self.study, None),
+                ("🕐 Tarjetas recientes", self.abrir_historial, None),
+                ("🎬 Platzi", lambda: self.abrir_reproductor_cursos("platzi"), None),
+                ("🎬 Udemy", lambda: self.abrir_reproductor_cursos("udemy"), None)):
+            caja.append(self._fila_accion(etiqueta, cb, sufijo))
+
+        caja.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
+        caja.append(self._grupo_tamano(f"Tamaño de {NOMBRE}",
+                                       lambda: self.cambiar_tamano(-ESCALA_PASO),
+                                       lambda: self.cambiar_tamano(ESCALA_PASO)))
+        caja.append(self._grupo_tamano("Tamaño de la tarjeta",
+                                       lambda: self.cambiar_tamano_tarjeta(-0.25),
+                                       lambda: self.cambiar_tamano_tarjeta(0.25)))
+
+        caja.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
+        for etiqueta, cb in (
+                ("🔇 Silencio" if self.sonido["activo"] else "🔊 Con sonido",
+                 self.alternar_sonido),
+                (f"😴 Duérmete {SNOOZE_MIN} min", self.snooze),
+                ("☀️ Despertar", self.wake),
+                ("🪟 Abrir AppStudy", self.open_main),
+                ("❔ Cómo se usa", self.abrir_ayuda)):
+            caja.append(self._fila_accion(etiqueta, cb))
+
+        salir = self._fila_accion("🚪 Salir", self.salir_del_todo)
+        salir.add_css_class("as-menu-salir")
+        caja.append(salir)
+
+        self.menu.set_child(caja)
+
     def abrir_menu_en(self, widget, x, y):
         rect = Gdk.Rectangle()
         rect.x, rect.y, rect.width, rect.height = int(x), int(y), 1, 1
@@ -3234,6 +3336,7 @@ class PetWindow(Gtk.ApplicationWindow):
                 self.menu.unparent()
             self.menu.set_parent(widget)
         self.menu.set_pointing_to(rect)
+        self.refrescar_menu()          # el estado y las etiquetas, al día
         self.menu.popup()
 
     def abrir_historial(self, *_):
@@ -3359,51 +3462,12 @@ class PetWindow(Gtk.ApplicationWindow):
 
         self.open_bubble()
 
-    def build_menu(self):
-        m = Gio.Menu()
-        seccion = Gio.Menu()
-        seccion.append("Enséñame algo", "win.teach")
-        seccion.append("Tarjetas recientes", "win.historial")
-        seccion.append("Ponme a prueba", "win.quiz")
-        seccion.append("Pregúntame algo", "win.ask")
-        seccion.append("Modo chatbot", "win.chat")
-        seccion.append("Una frase de libro", "win.quote")
-        seccion.append("Cómo va la semana", "win.diario")
-        seccion.append("Sesión de estudio", "win.study")
-        seccion.append("Abrir AppStudy", "win.open")
-        seccion.append("Cómo se usa", "win.ayuda")
-        m.append_section(None, seccion)
+    def registrar_acciones(self):
+        """Las acciones de ventana, por si se llaman desde fuera (GAction).
 
-        # Submenú Cursos Online
-        cursos_menu = Gio.Menu()
-        cursos_menu.append("🟢 Abrir Platzi", "win.platzi_open")
-        cursos_menu.append("🟣 Abrir Udemy", "win.udemy_open")
-        m.append_submenu("🎬 Cursos Online", cursos_menu)
-
-        tamano = Gio.Menu()
-        tamano.append("Silencio" if self.sonido["activo"] else "Con sonido", "win.mute")
-
-        # Submenú tamaño de tarjeta
-        tarjeta_submenu = Gio.Menu()
-        tarjeta_submenu.append("Tarjeta más grande (+)", "win.card_bigger")
-        tarjeta_submenu.append("Tarjeta más pequeña (-)", "win.card_smaller")
-        tarjeta_submenu.append("Tamaño: Normal (100%)", "win.card_size_100")
-        tarjeta_submenu.append("Tamaño: Grande (125%)", "win.card_size_125")
-        tarjeta_submenu.append("Tamaño: Muy grande (150%)", "win.card_size_150")
-        tamano.append_submenu("Tamaño de tarjeta", tarjeta_submenu)
-
-        # Submenú tamaño de la criatura
-        mascota_submenu = Gio.Menu()
-        mascota_submenu.append(f"{NOMBRE} más grande", "win.bigger")
-        mascota_submenu.append(f"{NOMBRE} más pequeño", "win.smaller")
-        tamano.append_submenu(f"Tamaño de {NOMBRE}", mascota_submenu)
-
-        m.append_section(None, tamano)
-        dormir = Gio.Menu()
-        dormir.append(f"Duérmete {SNOOZE_MIN} min", "win.snooze")
-        dormir.append("Despertar", "win.wake")
-        m.append_section(None, dormir)
-        m.append("Salir", "win.quit")
+        La tarjeta de acciones ya no usa un modelo de menú: se construye a mano
+        en `refrescar_menu`, así que aquí solo queda el registro.
+        """
         for nombre, cb in (("teach", lambda *_: (self.wake(), self.teach())),
                            ("historial", self.abrir_historial),
                            ("quiz", lambda *_: (self.wake(), self.quiz())),
@@ -3435,7 +3499,6 @@ class PetWindow(Gtk.ApplicationWindow):
             a = Gio.SimpleAction.new(nombre, None)
             a.connect("activate", cb)
             self.add_action(a)
-        return m
 
     def snooze(self):
         self.sonar("dormir")

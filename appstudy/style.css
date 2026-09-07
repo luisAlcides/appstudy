@@ -591,3 +591,66 @@ window.as-pet box.as-bubble.as-bubble-chat {
   margin-top: 6px;
   opacity: 0.75;
 }
+
+/* ------------------------------------ la tarjeta de acciones (clic derecho) */
+
+/* El fondo se pinta aquí y no se deja al tema: la ventana de Bit es
+   transparente, así que cualquier hueco deja ver el escritorio. Con el color y
+   el gradiente, como en el globo, queda opaco pase lo que pase. */
+popover.as-menu > contents {
+  background-color: @window_bg_color;
+  background-image: linear-gradient(@card_bg_color, @card_bg_color);
+  color: @card_fg_color;
+  border: 1px solid alpha(currentColor, 0.12);
+  border-radius: 18px;
+  padding: 0;
+  box-shadow: 0 8px 24px alpha(black, 0.38);
+}
+
+popover.as-menu > arrow { background: none; border: none; }
+
+popover.as-menu .as-menu-caja {
+  padding: 14px 14px 10px 14px;
+  min-width: 268px;
+}
+
+/* El resumen de debajo del título: pendientes, repasos de hoy y racha */
+.as-menu-estado {
+  font-size: 0.82rem;
+  opacity: 0.68;
+  margin-bottom: 2px;
+}
+
+.as-menu button.pill {
+  padding: 6px 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+/* Las filas de la lista: alto cómodo y todo el ancho pulsable */
+.as-menu button.as-menu-fila {
+  padding: 5px 8px;
+  min-height: 0;
+  font-size: 0.92rem;
+  border-radius: 10px;
+}
+
+.as-menu button.as-menu-fila:hover { background: alpha(currentColor, 0.10); }
+
+.as-menu-dato {
+  font-size: 0.82rem;
+  opacity: 0.62;
+}
+
+.as-menu-tamano { padding: 2px 8px; }
+
+.as-menu-tamano button {
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+  font-weight: 800;
+}
+
+/* Salir se distingue del resto: es la única acción que se lamenta pulsar */
+.as-menu button.as-menu-salir label { color: #E06C5A; }
+.as-menu button.as-menu-salir:hover { background: alpha(#E06C5A, 0.16); }
