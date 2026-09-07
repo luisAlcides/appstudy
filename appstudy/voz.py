@@ -13,10 +13,12 @@ parámetros de inferencia de Piper (afinados para una dicción más clara que la
 de fábrica) y el texto que se le entrega, que se limpia y se puntúa para que
 la entonación y las pausas suenen a persona y no a lector de listas.
 """
+import itertools
 import json
 import os
 import re
 import shutil
+import struct
 import subprocess
 import threading
 import time
@@ -54,6 +56,20 @@ PIPER_NOISE_W = 0.9
 # se sigue mejor al estudiar. Es la base sobre la que actúa la velocidad.
 PIPER_LENGTH_BASE = 1.06
 PIPER_SILENCIO_FRASE = 0.35
+
+KOKORO_DIR = Path.home() / ".local" / "share" / "appstudy" / "kokoro"
+KOKORO_MODELO = KOKORO_DIR / "kokoro-v1.0.onnx"
+KOKORO_VOCES_BIN = KOKORO_DIR / "voices-v1.0.bin"
+KOKORO_PYTHON = Path.home() / ".local" / "share" / "appstudy" / "tts-venv" / "bin" / "python"
+KOKORO_SCRIPT = Path(__file__).with_name("tts_kokoro.py")
+KOKORO_SAMPLE_RATE = 24000
+
+# Voces de Kokoro elegidas de oído. Cambiarlas es cambiar esta línea.
+KOKORO_VOZ = {"es": "em_santa", "en": "af_heart"}
+# Kokoro suena mejor un pelín por debajo de su velocidad nominal.
+KOKORO_VELOCIDAD_BASE = 0.95
+# Ritmo medido (palabras/segundo) para estimar la duración de la animación.
+KOKORO_PALABRAS_SEG = 2.45
 
 _cache_modelos: dict[str, Path | None] = {}
 _cache_config_modelo: dict[str, dict] = {}
@@ -96,6 +112,102 @@ def modelo_para(idioma: str | None = None) -> Path | None:
 
     _cache_modelos[lang] = encontrado
     return encontrado
+
+
+def tiene_kokoro() -> bool:
+    """Indica si el motor Kokoro (entorno aislado + modelos) está instalado."""
+    return (KOKORO_PYTHON.is_file() and os.access(KOKORO_PYTHON, os.X_OK)
+            and KOKORO_MODELO.is_file() and KOKORO_VOCES_BIN.is_file()
+            and KOKORO_SCRIPT.is_file())
+
+
+class MotorKokoro:
+    """Mantiene vivo el proceso de Kokoro y le pide locuciones de una en una.
+
+    El proceso se conserva entre tarjetas porque cargar el modelo cuesta medio
+    segundo. Las peticiones se serializan con un turno: mientras una locución se
+    está generando, la siguiente espera a que la anterior termine de vaciarse.
+    """
+
+    def __init__(self):
+        self._proc = None
+        self._turno = threading.Lock()
+
+    def _vivo(self) -> bool:
+        return self._proc is not None and self._proc.poll() is None
+
+    def _arrancar(self) -> bool:
+        if self._vivo():
+            return True
+        self.parar()
+        try:
+            self._proc = subprocess.Popen(
+                [str(KOKORO_PYTHON), str(KOKORO_SCRIPT)],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+            )
+        except Exception:
+            self._proc = None
+            return False
+        return True
+
+    def parar(self):
+        proc, self._proc = self._proc, None
+        if proc is not None:
+            try:
+                proc.terminate()
+            except OSError:
+                pass
+
+    def pedir(self, texto: str, voz: str, idioma: str, velocidad: float) -> bool:
+        """Envía una petición. El turno queda tomado hasta llamar a `soltar`."""
+        self._turno.acquire()
+        if not self._arrancar():
+            self._turno.release()
+            return False
+        peticion = json.dumps({"texto": texto, "voz": voz, "idioma": idioma,
+                               "velocidad": velocidad}, ensure_ascii=False)
+        try:
+            self._proc.stdin.write((peticion + "\n").encode("utf-8"))
+            self._proc.stdin.flush()
+        except Exception:
+            self.parar()
+            self._turno.release()
+            return False
+        return True
+
+    def tramas(self):
+        """Devuelve los trozos de audio de la locución en curso, uno a uno."""
+        proc = self._proc
+        if proc is None:
+            return
+        while True:
+            try:
+                cabecera = proc.stdout.read(4)
+                if len(cabecera) < 4:
+                    self.parar()  # el ayudante murió: se reabrirá en la siguiente
+                    return
+                tam = struct.unpack("<I", cabecera)[0]
+                if tam == 0:
+                    return
+                datos = proc.stdout.read(tam)
+                if len(datos) < tam:
+                    self.parar()
+                    return
+            except Exception:
+                self.parar()
+                return
+            yield datos
+
+    def soltar(self):
+        try:
+            self._turno.release()
+        except RuntimeError:
+            pass
+
+
+_kokoro = MotorKokoro()
 
 
 def config_modelo(modelo: Path) -> dict:
@@ -198,8 +310,19 @@ def tiene_motor_neuronal(idioma: str | None = None) -> bool:
     return modelo_para(idioma) is not None
 
 
+def motor_actual() -> str:
+    """Motor de voz que se usará: 'kokoro', 'piper', 'spd-say' o ''."""
+    if tiene_kokoro():
+        return "kokoro"
+    if tiene_motor_neuronal():
+        return "piper"
+    return "spd-say" if shutil.which("spd-say") else ""
+
+
 def voz_actual(idioma: str | None = None) -> str:
-    """Nombre legible de la voz neuronal en uso (para mostrarla en Ajustes)."""
+    """Nombre legible de la voz en uso (para mostrarla en Ajustes)."""
+    if tiene_kokoro():
+        return KOKORO_VOZ.get(_idioma_corto(idioma), "")
     modelo = modelo_para(idioma)
     return modelo.stem if modelo else ""
 
@@ -300,10 +423,11 @@ def duracion_estimada(texto: str, velocidad: int = 0) -> float:
     if palabras == 0:
         return 0.0
     factor = max(0.5, min(2.0, 1.0 + (velocidad / 100.0)))
-    # 2.65 palabras/segundo es el ritmo medido de Piper con estos parámetros;
-    # cada frase añade además su silencio de cierre.
+    # Ritmos medidos de cada motor con sus parámetros; cada frase añade además
+    # el silencio de cierre con el que se separan.
+    palabras_seg = KOKORO_PALABRAS_SEG if tiene_kokoro() else 2.65
     frases = max(1, len(re.findall(r"[.!?]+(?:\s|$)", limpio)))
-    segundos = (palabras / 2.65) / factor + 0.4 + (frases - 1) * PIPER_SILENCIO_FRASE
+    segundos = (palabras / palabras_seg) / factor + 0.4 + (frases - 1) * PIPER_SILENCIO_FRASE
     return round(max(1.2, min(120.0, segundos)), 2)
 
 
@@ -328,7 +452,8 @@ def config(con) -> dict:
         "velocidad": max(-50, min(50, velocidad)),
         "tono": max(-50, min(50, tono)),
         "idioma": str(db.get_meta(con, "voz_idioma", "es")),
-        "neuronal": tiene_motor_neuronal(),
+        "neuronal": tiene_motor_neuronal() or tiene_kokoro(),
+        "motor": motor_actual(),
     }
 
 
@@ -368,6 +493,7 @@ class ReproductorVoz:
         self._hablando = False
         self._spd_cmd = shutil.which("spd-say")
         self._sox_cmd = shutil.which("sox")
+        self._token = 0
 
     def esta_hablando(self) -> bool:
         with self._lock:
@@ -379,6 +505,7 @@ class ReproductorVoz:
 
     def detener(self):
         with self._lock:
+            self._token += 1
             self._hablando = False
             for atributo in ("_proc_piper", "_proc_filtro"):
                 proc = getattr(self, atributo, None)
@@ -398,12 +525,159 @@ class ReproductorVoz:
     def reproducir(self, texto: str, cfg: dict, duracion: float, on_done=None):
         self.detener()
         idioma = cfg.get("idioma", "es")
-        if tiene_motor_neuronal(idioma):
+        if tiene_kokoro():
+            self._reproducir_kokoro(texto, cfg, duracion, on_done)
+        elif tiene_motor_neuronal(idioma):
             self._reproducir_piper(texto, cfg, duracion, on_done)
         elif self._spd_cmd:
             self._reproducir_spdsay(texto, cfg, duracion, on_done)
         else:
             self._reproducir_speechd(texto, cfg, duracion, on_done)
+
+    def _player(self) -> str | None:
+        return next((c for c in ("paplay", "pw-play", "aplay") if shutil.which(c)), None)
+
+    def _tuberia(self, player: str, rate: str, vol: int, tono) -> tuple[list | None, list]:
+        """Filtro de tono (si hay sox) y reproductor, ambos en PCM crudo."""
+        tono = int(tono or 0)
+        cmd_filtro = None
+        if tono and self._sox_cmd:
+            cents = str(int(max(-50, min(50, tono)) * 6))  # ±50 → ±3 semitonos
+            crudo = ["-t", "raw", "-r", rate, "-e", "signed", "-b", "16", "-c", "1"]
+            cmd_filtro = [self._sox_cmd, "-q", *crudo, "-", *crudo, "-", "pitch", cents]
+
+        if player == "paplay":
+            vol_pa = str(int(max(0, min(100, vol)) * 655.36))
+            cmd_player = ["paplay", "--raw", "--rate", rate, "--channels", "1",
+                          "--format", "s16le", "--volume", vol_pa]
+        elif player == "pw-play":
+            vol_pw = str(round(max(0.0, min(1.0, vol / 100.0)), 2))
+            # Sin --raw, pw-play intenta leer una cabecera de archivo y falla.
+            cmd_player = ["pw-play", "--raw", "--rate", rate, "--channels", "1",
+                          "--format", "s16", "--volume", vol_pw, "-"]
+        else:
+            cmd_player = ["aplay", "-q", "-r", rate, "-c", "1", "-f", "S16_LE", "-t", "raw", "-"]
+        return cmd_filtro, cmd_player
+
+    def _reproducir_kokoro(self, texto: str, cfg: dict, duracion: float, on_done=None):
+        player = self._player()
+        vol = cfg.get("volumen", 100)
+        if not player or vol <= 0:
+            self._reproducir_piper(texto, cfg, duracion, on_done)
+            return
+
+        idioma = _idioma_corto(cfg.get("idioma", "es"))
+        factor = max(0.5, min(2.0, 1.0 + (cfg.get("velocidad", 0) / 100.0)))
+        velocidad = round(KOKORO_VELOCIDAD_BASE * factor, 3)
+        rate = str(KOKORO_SAMPLE_RATE)
+        cmd_filtro, cmd_player = self._tuberia(player, rate, vol, cfg.get("tono", 0))
+
+        with self._lock:
+            self._token += 1
+            token = self._token
+            # Se marca ya, antes de generar: quien pregunte si Bit está hablando
+            # (el botón de altavoz, la boca) debe verlo desde el primer momento.
+            self._hablando = True
+
+        def _ejecutar():
+            if not _kokoro.pedir(texto, KOKORO_VOZ.get(idioma, "em_santa"), idioma, velocidad):
+                self._marcar_callado(token)
+                self._reproducir_piper(texto, cfg, duracion, on_done)
+                return
+            try:
+                self._reproducir_tramas(_kokoro.tramas(), cmd_filtro, cmd_player, token, on_done)
+            finally:
+                _kokoro.soltar()
+
+        threading.Thread(target=_ejecutar, daemon=True).start()
+
+    def _marcar_callado(self, token: int):
+        """Baja la bandera de "hablando" salvo que ya haya otra locución en curso."""
+        with self._lock:
+            if token == self._token:
+                self._hablando = False
+
+    def _reproducir_tramas(self, tramas, cmd_filtro, cmd_player, token, on_done):
+        """Vuelca el audio que va llegando del motor en la tubería de sonido.
+
+        Si la locución se cancela mientras tanto, se dejan de escribir tramas
+        pero se siguen consumiendo: así el motor termina limpio y sigue caliente
+        para la siguiente tarjeta en vez de tener que rearrancarlo.
+        """
+        primera = next(iter(tramas), None)
+        if primera is None:  # el motor no dio audio
+            self._marcar_callado(token)
+            if on_done:
+                _notificar_fin(on_done)
+            return
+
+        with self._lock:
+            vigente = token == self._token
+        if not vigente:  # cancelada antes de sonar: se vacía el motor y ya está
+            for _ in tramas:
+                pass
+            return
+
+        with self._lock:
+            try:
+                p_filtro = None
+                if cmd_filtro:
+                    p_filtro = subprocess.Popen(cmd_filtro, stdin=subprocess.PIPE,
+                                                stdout=subprocess.PIPE,
+                                                stderr=subprocess.DEVNULL)
+                    p_player = subprocess.Popen(cmd_player, stdin=p_filtro.stdout,
+                                                stdout=subprocess.DEVNULL,
+                                                stderr=subprocess.DEVNULL)
+                    p_filtro.stdout.close()
+                    entrada = p_filtro.stdin
+                else:
+                    p_player = subprocess.Popen(cmd_player, stdin=subprocess.PIPE,
+                                                stdout=subprocess.DEVNULL,
+                                                stderr=subprocess.DEVNULL)
+                    entrada = p_player.stdin
+                self._proc = p_player
+                self._proc_filtro = p_filtro
+            except Exception:
+                if token == self._token:
+                    self._hablando = False
+                self._proc = None
+                self._proc_filtro = None
+                fallo = True
+            else:
+                fallo = False
+        if fallo:
+            for _ in tramas:
+                pass
+            return
+
+        cancelada = False
+        for datos in itertools.chain([primera], tramas):
+            if cancelada or token != self._token:
+                cancelada = True
+                continue  # se sigue vaciando el motor, pero ya no suena
+            try:
+                entrada.write(datos)
+                entrada.flush()
+            except Exception:
+                cancelada = True
+
+        try:
+            entrada.close()
+        except Exception:
+            pass
+        if not cancelada:
+            try:
+                p_player.wait()
+            except Exception:
+                pass
+
+        with self._lock:
+            if self._proc is p_player:
+                self._proc = None
+                self._proc_filtro = None
+                self._hablando = False
+        if on_done and not cancelada:
+            _notificar_fin(on_done)
 
     def _reproducir_piper(self, texto: str, cfg: dict, duracion: float, on_done=None):
         player = next((c for c in ("paplay", "pw-play", "aplay") if shutil.which(c)), None)
@@ -441,25 +715,7 @@ class ReproductorVoz:
             "--output_raw",  # audio a medida que se genera: empieza a sonar antes
         ]
 
-        # Piper no cambia el tono; si hay sox se hace en un filtro intermedio.
-        tono = int(cfg.get("tono", 0) or 0)
-        cmd_filtro = None
-        if tono and self._sox_cmd:
-            cents = str(int(max(-50, min(50, tono)) * 6))  # ±50 → ±3 semitonos
-            crudo = ["-t", "raw", "-r", rate, "-e", "signed", "-b", "16", "-c", "1"]
-            cmd_filtro = [self._sox_cmd, "-q", *crudo, "-", *crudo, "-", "pitch", cents]
-
-        if player == "paplay":
-            vol_pa = str(int(max(0, min(100, vol)) * 655.36))
-            cmd_player = ["paplay", "--raw", "--rate", rate, "--channels", "1",
-                          "--format", "s16le", "--volume", vol_pa]
-        elif player == "pw-play":
-            vol_pw = str(round(max(0.0, min(1.0, vol / 100.0)), 2))
-            # Sin --raw, pw-play intenta leer una cabecera de archivo y falla.
-            cmd_player = ["pw-play", "--raw", "--rate", rate, "--channels", "1",
-                          "--format", "s16", "--volume", vol_pw, "-"]
-        else:
-            cmd_player = ["aplay", "-q", "-r", rate, "-c", "1", "-f", "S16_LE", "-t", "raw", "-"]
+        cmd_filtro, cmd_player = self._tuberia(player, rate, vol, cfg.get("tono", 0))
 
         def _ejecutar():
             with self._lock:

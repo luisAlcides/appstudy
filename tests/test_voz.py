@@ -123,6 +123,23 @@ class TestVoz(BaseTemporal):
             voz._cache_modelos.clear()
             voz._cache_modelos.update(cache)
 
+    def test_troceado_kokoro(self):
+        from appstudy import tts_kokoro
+        # El primer trozo se corta corto para que la voz arranque enseguida
+        texto = ("Primera frase corta. " + "Segunda frase bastante más larga que la primera. " * 4)
+        bloques = list(tts_kokoro.trozos(texto))
+        self.assertGreater(len(bloques), 1)
+        self.assertLessEqual(len(bloques[0]), tts_kokoro.PRIMER_TROZO)
+        for bloque in bloques[1:]:
+            self.assertLessEqual(len(bloque), tts_kokoro.MAX_CARACTERES)
+        # No se pierde ni se duplica texto
+        self.assertEqual(" ".join(bloques).split(), texto.split())
+        self.assertEqual(list(tts_kokoro.trozos("")), [])
+
+    def test_motor_actual(self):
+        self.assertIn(voz.motor_actual(), ("kokoro", "piper", "spd-say", ""))
+        self.assertEqual(voz.config(self.con)["motor"], voz.motor_actual())
+
     def test_hablar_inactivo_devuelve_cero(self):
         cfg = {"activo": False}
         dur = voz.hablar("Hola mundo", cfg)

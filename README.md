@@ -96,7 +96,9 @@ Requiere Python 3 con GTK4 y libadwaita, que ya vienen en Ubuntu/Mint con GNOME
 (`sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1` si faltaran),
 `python3-pygments` para los colores del código y `gir1.2-webkit-6.0` para leer
 EPUB (sin él, todo lo demás funciona igual). La IA local es opcional y va
-aparte (ver [Preguntarle a Bit](#preguntarle-a-bit-ia-local)).
+aparte (ver [Preguntarle a Bit](#preguntarle-a-bit-ia-local)), y los motores de
+voz los descarga el propio instalador salvo dos cosas que piden root
+(ver [Voz](#voz-leer-en-voz-alta-y-responder-hablando)).
 
 El lanzador se llama `io.github.appstudy.AppStudy.desktop`, igual que el id de la
 aplicación: es lo que mira GNOME para emparejar la ventana abierta con su icono
@@ -710,6 +712,81 @@ Las páginas se dibujan con `pdftocairo` (poppler, ya lo tienes) en un hilo
 aparte, y se guardan en `~/.local/share/appstudy/paginas`: dibujar una tarda
 ~150 ms, volver a ella es instantáneo, y mientras lees una ya se está dibujando
 la siguiente. La caché se puede borrar cuando quieras — se rehace sola.
+
+## Voz: leer en voz alta y responder hablando
+
+Bit lee las tarjetas, las citas y sus propias respuestas, y tú puedes contestar
+por el micrófono. Todo pasa dentro del equipo: no hay servicio de nube ni clave
+que guardar.
+
+**`./install.sh` deja esto montado solo** — se puede repetir sin miedo, salta lo
+que ya esté:
+
+| Qué | Dónde queda | Tamaño |
+|---|---|---|
+| **Kokoro**, el motor de voz principal | `~/.local/share/appstudy/kokoro` (modelo) y `tts-venv` (entorno) | ~490 MB |
+| **Piper**, el motor de reserva, con sus voces | `~/.local/share/appstudy/piper` | ~215 MB |
+| **Vosk**, para responder hablando | `~/.local/share/appstudy/vosk` | ~126 MB |
+
+Es cerca de **1 GB** en total y se descarga una sola vez; borrar cualquiera de
+esas carpetas no rompe nada, solo baja un escalón de calidad.
+
+Lo único que tienes que poner tú a mano, porque toca el sistema:
+
+```bash
+sudo apt install sox                    # control de tono de la voz
+pip install --user vosk                 # transcribir lo que dices al micrófono
+```
+
+`sox` es lo único que pide root, y solo afecta al ajuste de tono: sin él la voz
+suena igual de bien, simplemente el control se queda quieto. `vosk` va en el
+Python del sistema (en Ubuntu reciente puede pedir `--break-system-packages`, o
+un `pipx`); si prefieres, `whisper-cli` también sirve. Sin ninguno de los dos,
+responder hablando queda desactivado y el resto funciona.
+
+Reproducir el sonido lo hace `pw-play`, `paplay` o `aplay`, y con tener uno basta
+— en Ubuntu/Mint con PipeWire o PulseAudio ya está. Para descargar los modelos
+hace falta `curl` o `wget`.
+
+### Por qué Kokoro va en su propio entorno
+
+Kokoro suena claramente más humano que Piper, pero necesita `onnxruntime`, que
+tarda meses en publicar ruedas para cada Python nuevo. Si el Python del sistema
+va por delante (Python 3.14, por ejemplo), no hay forma de instalarlo ahí. Por
+eso el instalador crea con [uv](https://github.com/astral-sh/uv) un entorno
+aparte con Python 3.12 en `~/.local/share/appstudy/tts-venv`, y la app —que
+sigue corriendo con el Python del sistema— habla con él como un proceso más:
+`appstudy/tts_kokoro.py` recibe el texto y devuelve audio.
+
+Ese proceso **se queda vivo entre tarjetas**: cargar el modelo cuesta medio
+segundo y pagarlo en cada tarjeta se nota. Con el motor caliente la voz arranca
+en ~0,15 s, y el texto se trocea en frases para que empiece a sonar sin esperar a
+tenerlo todo sintetizado.
+
+Si algo de esto falla —no hay `uv`, no se pudo bajar el modelo, la máquina es
+vieja— **no se rompe nada**: la voz cae sola en Piper, y si tampoco estuviera, en
+`spd-say` del sistema. El instalador te lo dice al terminar, y en Ajustes ves qué
+motor y qué voces están activos.
+
+### Cambiar de voz
+
+En español se usa `em_santa` y en inglés `af_heart`, elegidas de oído. Se cambian
+en el diccionario `KOKORO_VOZ` de `appstudy/voz.py`; las disponibles se listan
+así:
+
+```bash
+~/.local/share/appstudy/tts-venv/bin/python -c \
+  "from kokoro_onnx import Kokoro; import os; d=os.path.expanduser('~/.local/share/appstudy/kokoro'); \
+   print(Kokoro(f'{d}/kokoro-v1.0.onnx', f'{d}/voices-v1.0.bin').get_voices())"
+```
+
+Las voces de Piper son archivos `.onnx` sueltos en `~/.local/share/appstudy/piper`:
+basta con dejar otra ahí para que se use, siguiendo el orden de `VOCES_PREFERIDAS`.
+Ese orden es de escucha, no de tamaño — la `es_ES-sharvard-medium` suena mejor que
+alguna «high», así que va primero.
+
+La velocidad, el volumen y el tono se ajustan desde **Ajustes → Voz y lectura en
+voz alta**, y valen para los dos motores.
 
 ## Preguntarle a Bit (IA local)
 

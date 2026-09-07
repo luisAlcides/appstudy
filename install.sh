@@ -197,11 +197,56 @@ descargar_voz "en/en_US/lessac/high" "en_US-lessac-high" || \
   descargar_voz "en/en_US/lessac/medium" "en_US-lessac-medium" || \
   echo "  (aviso) No se pudo descargar ninguna voz en inglés."
 
-# 3. sox (opcional): permite ajustar el tono de la voz desde Ajustes
+# 3. Motor Kokoro (opcional, la voz más natural): vive en su propio entorno
+# porque necesita onnxruntime, que aún no tiene ruedas para los Python más
+# nuevos con los que puede venir el sistema. Si algo falla, queda Piper.
+echo "▸ Configurando el motor de voz Kokoro (opcional)…"
+KOKORO_DIR="$HOME/.local/share/appstudy/kokoro"
+TTS_VENV="$HOME/.local/share/appstudy/tts-venv"
+KOKORO_BASE="https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0"
+UV_BIN="$(command -v uv || echo "$HOME/.local/bin/uv")"
+
+if [ ! -x "$UV_BIN" ]; then
+  echo "  Instalando uv (gestor de entornos de Python, solo para tu usuario)…"
+  curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null 2>&1 || true
+  UV_BIN="$HOME/.local/bin/uv"
+fi
+
+if [ -x "$UV_BIN" ]; then
+  if [ ! -x "$TTS_VENV/bin/python" ]; then
+    echo "  Creando entorno aislado con Python 3.12…"
+    "$UV_BIN" venv --python 3.12 "$TTS_VENV" >/dev/null 2>&1 || true
+  fi
+  if [ -x "$TTS_VENV/bin/python" ]; then
+    "$TTS_VENV/bin/python" -c "import kokoro_onnx" 2>/dev/null || {
+      echo "  Instalando kokoro-onnx…"
+      VIRTUAL_ENV="$TTS_VENV" "$UV_BIN" pip install kokoro-onnx >/dev/null 2>&1 || true
+    }
+  fi
+fi
+
+mkdir -p "$KOKORO_DIR"
+for archivo in kokoro-v1.0.onnx voices-v1.0.bin; do
+  if [ ! -s "$KOKORO_DIR/$archivo" ]; then
+    echo "  Descargando $archivo…"
+    curl -fSL $PROGRESS_FLAG "$KOKORO_BASE/$archivo" -o "$KOKORO_DIR/$archivo" 2>/dev/null || \
+      wget -qO "$KOKORO_DIR/$archivo" "$KOKORO_BASE/$archivo" 2>/dev/null || true
+    [ -s "$KOKORO_DIR/$archivo" ] || rm -f "$KOKORO_DIR/$archivo"
+  fi
+done
+
+if [ -x "$TTS_VENV/bin/python" ] && "$TTS_VENV/bin/python" -c "import kokoro_onnx" 2>/dev/null \
+   && [ -s "$KOKORO_DIR/kokoro-v1.0.onnx" ] && [ -s "$KOKORO_DIR/voices-v1.0.bin" ]; then
+  echo "  ✓ Kokoro listo (voz principal; Piper queda de reserva)"
+else
+  echo "  (aviso) Kokoro no quedó instalado: se usará Piper, que también suena bien."
+fi
+
+# 4. sox (opcional): permite ajustar el tono de la voz desde Ajustes
 command -v sox >/dev/null || \
   echo "  (aviso) falta sox: el control de tono de la voz quedará inactivo. sudo apt install sox"
 
-# 4. Modelo de IA local (Ollama)
+# 5. Modelo de IA local (Ollama)
 echo "▸ Verificando modelo de IA local (Ollama)…"
 if command -v ollama >/dev/null; then
   if ollama list 2>/dev/null | grep -q "gemma3:4b"; then
@@ -215,7 +260,7 @@ else
   echo "    curl -fsSL https://ollama.com/install.sh | sh && ollama pull gemma3:4b"
 fi
 
-# 5. Modelos de Reconocimiento de Voz (Vosk STT)
+# 6. Modelos de Reconocimiento de Voz (Vosk STT)
 echo "▸ Verificando modelos de reconocimiento de voz (Vosk STT)…"
 VOSK_DIR="$HOME/.local/share/appstudy/vosk"
 mkdir -p "$VOSK_DIR"
@@ -253,7 +298,7 @@ echo "  Ventana completa: appstudy   (o busca «AppStudy» en el menú)"
 echo "  Mascota:          appstudy --pet   (o Ajustes → Bit, la mascota)"
 echo "  Dock:             anclado con su icono (si algo falla, arrástralo tú)"
 echo "  Barra superior:   icono de AppStudy (tras reiniciar la sesión)"
-echo "  Voz neuronal:     Piper TTS (español e inglés en $PIPER_DIR)"
+echo "  Voz neuronal:     Kokoro (si se instaló) con Piper de reserva en $PIPER_DIR"
 echo "  Reconocimiento:   Vosk STT (español e inglés en $VOSK_DIR)"
 echo "  IA local:         Ollama (gemma3:4b)"
 echo "  Cambiar el atajo: dentro de la app, pestaña Ajustes"

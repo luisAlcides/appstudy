@@ -1323,9 +1323,11 @@ class MainWindow(Adw.ApplicationWindow):
         gp.add(self.reminder_end)
         page.add(gp)
 
-        if voz.tiene_motor_neuronal():
+        motor = voz.motor_actual()
+        if motor in ("kokoro", "piper"):
             voces = " · ".join(v for v in (voz.voz_actual("es"), voz.voz_actual("en")) if v)
-            desc_voz = f"Voz neuronal de alta calidad (Piper · {voces})."
+            nombre = "Kokoro" if motor == "kokoro" else "Piper"
+            desc_voz = f"Voz neuronal de alta calidad ({nombre} · {voces})."
         else:
             desc_voz = ("Permite que Bit y las tarjetas lean su texto en voz alta bajo "
                         "demanda o automáticamente.")
@@ -1361,7 +1363,7 @@ class MainWindow(Adw.ApplicationWindow):
         import shutil as _shutil
         self.voz_tono.set_subtitle(
             "0 estándar · valores positivos más agudo"
-            if _shutil.which("sox") or not voz.tiene_motor_neuronal() else
+            if _shutil.which("sox") or motor not in ("kokoro", "piper") else
             "0 estándar · con la voz neuronal requiere sox (sudo apt install sox)")
         self.voz_tono.connect("notify::value", self.on_voz_tono)
         gvoz.add(self.voz_tono)
