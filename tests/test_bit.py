@@ -1,6 +1,6 @@
 import unittest
 
-from appstudy import pet, scheduler
+from appstudy import ia, pet, scheduler
 from tests.apoyo import BaseTemporal
 
 
@@ -46,3 +46,39 @@ class TotalRepasosBitTest(BaseTemporal):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ConversacionHabladaTest(unittest.TestCase):
+    """Las decisiones de la charla hablada, sin levantar la ventana de Bit."""
+
+    def despedida(self, texto):
+        return pet.PetWindow.es_despedida(texto)
+
+    def test_reconoce_las_despedidas(self):
+        for frase in ("adiós", "Adiós", "hasta luego", "ya está", "Gracias Bit", "chao"):
+            self.assertTrue(self.despedida(frase), frase)
+
+    def test_no_corta_la_charla_por_una_palabra_suelta(self):
+        # "adiós" dentro de una pregunta es materia de estudio, no una despedida
+        for frase in ("¿cómo se dice adiós en inglés?", "explícame el para qué",
+                      "hasta luego se dice see you later"):
+            self.assertFalse(self.despedida(frase), frase)
+
+
+class RespuestaHabladaTest(unittest.TestCase):
+    def test_acorta_por_la_ultima_frase_entera(self):
+        largo = ("Primera frase corta. " * 30).strip()
+        corto = ia.acortar_para_hablar(largo, maximo=10)
+        self.assertTrue(corto.endswith("."))
+        self.assertLessEqual(len(corto.split()), 10)
+
+    def test_deja_en_paz_lo_que_ya_es_breve(self):
+        breve = "Claro, el repaso espaciado sirve para no olvidar. ¿Seguimos?"
+        self.assertEqual(ia.acortar_para_hablar(breve), breve)
+        self.assertEqual(ia.acortar_para_hablar(""), "")
+
+    def test_una_parrafada_sin_puntos_se_corta_igual(self):
+        sin_puntos = " ".join(["palabra"] * 80)
+        corto = ia.acortar_para_hablar(sin_puntos, maximo=12)
+        self.assertEqual(len(corto.split()), 12)
+        self.assertTrue(corto.endswith("."))

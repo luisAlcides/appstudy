@@ -10,9 +10,11 @@ import json
 import math
 import os
 import random
+import re
 import subprocess
 import sys
 import time
+import unicodedata
 from pathlib import Path
 
 import cairo
@@ -1494,6 +1496,8 @@ class PetWindow(Gtk.ApplicationWindow):
         self.btn_voz = None
         self.texto_hablable = ""
         self.chat = None              # {"historial": [...], "contexto": str} en modo chatbot
+        self.conversacion = None      # EscuchaContinua cuando la charla es hablada
+        self.oido = None              # EscuchaPalabraClave esperando el "hola bit"
         self.stats = {}
         self.ultimas_citas = []     # para no repetir la misma frase seguida
 
@@ -1556,6 +1560,9 @@ class PetWindow(Gtk.ApplicationWindow):
         GLib.timeout_add_seconds(CHECK_EVERY, self.on_check)
         GLib.timeout_add_seconds(30, self.save_position)
         self.refresh_stats()
+        # El oído tarda un segundo en cargar su modelo: se hace después de que la
+        # ventana esté puesta para no retrasar la aparición de Bit.
+        GLib.timeout_add_seconds(2, lambda: (self.arrancar_palabra_clave(), False)[1])
 
     # ------------------------------------------------------- siempre por encima
 
@@ -1903,6 +1910,8 @@ class PetWindow(Gtk.ApplicationWindow):
             ia.hilo(lambda: ia.descargar(cfg))
 
     def close_bubble(self, *_):
+        if getattr(self, "conversacion", None) is not None:
+            self.parar_conversacion()
         if hasattr(self, "detener_voz"):
             self.detener_voz()
         if self.chat is not None or self.ia_cuerpo is not None:
@@ -2251,6 +2260,7 @@ class PetWindow(Gtk.ApplicationWindow):
             fila_ia = Gtk.Box(spacing=10, homogeneous=True)
             fila_ia.append(self.boton_explicar())
             fila_ia.append(self.boton_chat())
+            fila_ia.append(self.boton_conversar())
             self.bubble_box.append(fila_ia)
 
         otra = Gtk.Box(spacing=10, homogeneous=True)
@@ -2608,6 +2618,7 @@ class PetWindow(Gtk.ApplicationWindow):
             fila_ia = Gtk.Box(spacing=10, homogeneous=True)
             fila_ia.append(self.boton_explicar())
             fila_ia.append(self.boton_chat())
+            fila_ia.append(self.boton_conversar())
             self.bubble_box.append(fila_ia)
 
         self.card = card       # el pie necesita saber de qué tarjeta se habla
@@ -2640,6 +2651,156 @@ class PetWindow(Gtk.ApplicationWindow):
         b.connect("clicked", lambda *_: self.abrir_chat())
         return b
 
+    def boton_conversar(self):
+        b = Gtk.Button(label="🎙️ Hablar con Bit", css_classes=["flat", "as-bubble-link"])
+        b.connect("clicked", lambda *_: self.alternar_conversacion())
+        return b
+
+    # ------------------------------------------------- conversación hablada
+
+    # Lo que dices para cerrar la charla sin tocar nada. Se compara con el turno
+    # entero, no por palabras sueltas, para que "adiós" dentro de una frase
+    # ("¿cómo se dice adiós en inglés?") no te corte la conversación.
+    DESPEDIDAS = {
+        "adios", "adios bit", "hasta luego", "hasta luego bit", "chao", "chau",
+        "nos vemos", "ya esta", "ya está", "eso es todo", "gracias bit",
+        "listo gracias", "para", "para ya", "deja de escuchar", "salir del chat",
+    }
+
+    @staticmethod
+    def _normalizar(texto: str) -> str:
+        limpio = "".join(c for c in unicodedata.normalize("NFD", texto.lower())
+                         if unicodedata.category(c) != "Mn")
+        return re.sub(r"[^a-z0-9 ]+", "", limpio).strip()
+
+    @classmethod
+    def es_despedida(cls, texto: str) -> bool:
+        return cls._normalizar(texto) in {cls._normalizar(d) for d in cls.DESPEDIDAS}
+
+    def salir_del_todo(self):
+        """Cierra Bit soltando antes el micrófono y la IA."""
+        self.parar_palabra_clave()
+        self.parar_conversacion()
+        self.get_application().quit()
+
+    def arrancar_palabra_clave(self):
+        """Deja el oído puesto esperando un «hola bit», si toca."""
+        from . import voz_rec
+        if self.oido is not None or self.conversacion is not None:
+            return False
+        self.voz_cfg = voz.config(self.con)
+        if not self.voz_cfg.get("clave", True) or not ia.config(self.con)["activa"]:
+            return False
+        if not voz_rec.EscuchaPalabraClave.disponible("es"):
+            return False
+        oido = voz_rec.EscuchaPalabraClave(
+            idioma="es", al_activar=lambda: GLib.idle_add(self.despertar_por_voz))
+        self.oido = oido if oido.iniciar() else None
+        return False
+
+    def parar_palabra_clave(self):
+        oido, self.oido = self.oido, None
+        if oido is not None:
+            oido.detener()
+
+    def despertar_por_voz(self):
+        """Has dicho «hola bit»: suelta el micrófono del oído y ponte a charlar."""
+        self.parar_palabra_clave()
+        if self.conversacion is not None:
+            return False
+        self.creature.play("salto", 0.5)
+        self.sonar("listo")
+        self.alternar_conversacion()
+        return False
+
+    def alternar_conversacion(self):
+        """Enciende o apaga la charla hablada: hablas y Bit contesta, sin botones."""
+        from . import voz_rec
+        if self.conversacion is not None:
+            self.parar_conversacion(despedirse=True)
+            return
+        if not ia.config(self.con)["activa"]:
+            self.say("Actívame la IA en Ajustes y charlamos.", titulo="🧠 Sin IA",
+                     boton=("Abrir AppStudy", self.open_main))
+            return
+        if not voz_rec.tiene_reconocimiento_voz("es"):
+            self.say("Me falta el reconocimiento de voz. Instálame vosk y te escucho.",
+                     titulo="🎙️ Sin oído")
+            return
+        if self.chat is None:
+            self.abrir_chat()
+            if self.chat is None:     # la IA no estaba lista
+                return
+        self.chat["hablado"] = True
+
+        escucha = voz_rec.EscuchaContinua(
+            idioma="es",
+            al_estado=lambda e: GLib.idle_add(self.estado_conversacion, e),
+            al_oir=lambda t: GLib.idle_add(self.oido_en_conversacion, t))
+        if not escucha.iniciar():
+            self.say("No pude abrir el micrófono para escucharte.", titulo="🎙️ Sin micrófono")
+            return
+        self.parar_palabra_clave()   # el micrófono es de la charla mientras dure
+        self.conversacion = escucha
+        self.render_chat()
+
+    def parar_conversacion(self, despedirse: bool = False):
+        escucha, self.conversacion = self.conversacion, None
+        if escucha is not None:
+            escucha.detener()
+        if self.chat is not None:
+            self.chat["hablado"] = False
+            self.render_chat()
+        if despedirse and self.chat is not None:
+            self.creature.play("salto", 0.4)
+        # Se vuelve a dejar el oído puesto, pero un momento después: si arranca
+        # pegado al final de la charla, coge la cola de lo último que se dijo.
+        GLib.timeout_add_seconds(2, lambda: (self.arrancar_palabra_clave(), False)[1])
+
+    def estado_conversacion(self, estado: str):
+        """Refleja en el globo si te está oyendo, pensando o hablando."""
+        etiquetas = {"escuchando": "🎙️ Te escucho…",
+                     "procesando": "🤔 Déjame pensar…",
+                     "hablando": "🔊 Bit está hablando…"}
+        if getattr(self, "lbl_conversacion", None) is not None:
+            self.lbl_conversacion.set_label(etiquetas.get(estado, ""))
+        if estado == "escuchando" and self.creature:
+            self.creature.play("mirar", 0.6)
+        return False
+
+    def oido_en_conversacion(self, texto: str):
+        """Llega un turno tuyo transcrito del micrófono."""
+        if self.conversacion is None or not texto:
+            return False
+        if self.es_despedida(texto):
+            self.parar_conversacion()
+            self.chat["historial"].append({"role": "user", "content": texto})
+            self.render_chat()
+            self.hablar_en_conversacion("Vale, aquí sigo cuando quieras.", seguir=False)
+            return False
+        if not self.enviar_chat(texto) and self.conversacion is not None:
+            # Fue una orden ("abre Platzi", "crea una tarjeta"): no hay respuesta
+            # del modelo que esperar, así que se vuelve a escuchar ya.
+            self.conversacion.reanudar()
+        return False
+
+    def hablar_en_conversacion(self, texto: str, seguir: bool = True):
+        """Bit dice su turno y, al terminar, vuelve a escucharte."""
+        self.voz_cfg = voz.config(self.con)
+        self.estado_conversacion("hablando")
+        fin = self.fin_turno_hablado if seguir else (lambda: self.on_voz_terminada())
+        duracion = voz.hablar(texto, self.voz_cfg, on_done=fin)
+        if duracion > 0:
+            self.creature.hablar(duracion)
+        elif seguir:
+            self.fin_turno_hablado()
+
+    def fin_turno_hablado(self):
+        self.on_voz_terminada()
+        if self.conversacion is not None:
+            self.conversacion.reanudar()
+        return False
+
     def abrir_chat(self):
         """Empieza una conversación nueva, con la tarjeta actual como contexto."""
         if not ia.config(self.con)["activa"]:
@@ -2658,6 +2819,7 @@ class PetWindow(Gtk.ApplicationWindow):
 
     def salir_chat(self, *_):
         """Se acabó la charla: Bit vuelve a su color y a lo suyo, y libera la IA."""
+        self.parar_conversacion()
         self.chat = None
         self.creature.charlando = False
         self.bubble_box.remove_css_class("as-bubble-chat")
@@ -2675,8 +2837,14 @@ class PetWindow(Gtk.ApplicationWindow):
         self.card = None
         self.reto = None
 
-        cabecera = self.bubble_header("💬 Chat con Bit", CHAT)
+        hablando = self.conversacion is not None
+        cabecera = self.bubble_header("🎙️ Hablando con Bit" if hablando else "💬 Chat con Bit", CHAT)
         self.bubble_box.append(cabecera)
+        self.lbl_conversacion = None
+        if hablando:
+            self.lbl_conversacion = Gtk.Label(label="🎙️ Te escucho…", xalign=0,
+                                              css_classes=["as-bubble-cita"])
+            self.bubble_box.append(self.lbl_conversacion)
         if self.chat["contexto"]:
             self.bubble_box.append(Gtk.Label(
                 label=self.chat["contexto"][:110], wrap=True, xalign=0,
@@ -2698,8 +2866,17 @@ class PetWindow(Gtk.ApplicationWindow):
         self.bubble_box.append(scroll)
         GLib.timeout_add(60, lambda: (self._chat_al_final(scroll), False)[1])
 
-        entrada = Gtk.Entry(placeholder_text="Escríbeme…", css_classes=["as-reto-entrada"])
+        entrada = Gtk.Entry(
+            placeholder_text="Háblame o escríbeme…" if hablando else "Escríbeme…",
+            css_classes=["as-reto-entrada"])
         self.bubble_box.append(entrada)
+
+        micro = Gtk.Button(
+            label="⏹️ Dejar de hablar" if hablando else "🎙️ Hablar con Bit",
+            css_classes=["pill", "destructive-action" if hablando else "as-chat-enviar"])
+        micro.connect("clicked", lambda *_: self.alternar_conversacion())
+        self.bubble_box.append(micro)
+
         fila = Gtk.Box(spacing=6, homogeneous=True)
         salir = Gtk.Button(label="Salir del chat", css_classes=["pill"])
         salir.connect("clicked", self.salir_chat)
@@ -2722,20 +2899,21 @@ class PetWindow(Gtk.ApplicationWindow):
         ajuste.set_value(max(0, ajuste.get_upper() - ajuste.get_page_size()))
 
     def enviar_chat(self, texto):
+        """Manda un turno. Devuelve False si lo resolvió una orden, sin modelo."""
         if not texto or self.chat is None:
-            return
+            return False
 
         texto_l = texto.lower()
         if any(k in texto_l for k in ("crea una tarjeta", "crear una tarjeta", "haz una tarjeta", "nueva tarjeta")):
             self.crear_tarjeta_con_ia(texto)
-            return
+            return False
 
         es_c = any(k in texto_l for k in ("platzi", "udemy", "curso", "clase", "reproductor", "video"))
         es_a = any(k in texto_l for k in ("platzi", "udemy", "siguiente", "proximo", "próximo", "ultimo", "último", "abre", "abrir", "pon", "poner", "ver", "reproduce", "reproducir", "mostrar", "muéstrame"))
         if es_c and es_a:
             plat = "platzi" if "platzi" in texto_l else ("udemy" if "udemy" in texto_l else None)
             self.abrir_reproductor_cursos(plat)
-            return
+            return False
 
         self.chat["historial"].append({"role": "user", "content": texto})
         cuerpo = Gtk.Label(label="…", wrap=True, xalign=0, max_width_chars=self.char_width(32),
@@ -2749,10 +2927,12 @@ class PetWindow(Gtk.ApplicationWindow):
         cfg = ia.config(self.con)
         historial = list(self.chat["historial"][:-1])
         contexto = self.chat["contexto"]
+        hablado = bool(self.chat.get("hablado"))
         ia.hilo(lambda: ia.conversar(cfg, historial, texto, contexto,
-                                     trozo=self.escribir_ia),
+                                     trozo=self.escribir_ia, hablado=hablado),
                 self.fin_chat,
                 lambda e: self.fin_chat(f"<i>{GLib.markup_escape_text(str(e))}</i>"))
+        return True
 
     def fin_chat(self, respuesta):
         self.creature.hablando_hasta = 0
@@ -2763,7 +2943,10 @@ class PetWindow(Gtk.ApplicationWindow):
                                        "content": respuesta or "(sin respuesta)"})
         self.sonar("listo")
         self.render_chat()
-        self.voz_auto_si_toca()
+        if self.conversacion is not None:
+            self.hablar_en_conversacion(ia.acortar_para_hablar(respuesta or ""))
+        else:
+            self.voz_auto_si_toca()
 
     def preguntar(self):
         """Un globo con una caja de texto: pregúntale lo que quieras."""
@@ -3116,7 +3299,7 @@ class PetWindow(Gtk.ApplicationWindow):
                            ("smaller", lambda *_: self.cambiar_tamano(-ESCALA_PASO)),
                            ("snooze", lambda *_: self.snooze()),
                            ("wake", lambda *_: self.wake()),
-                           ("quit", lambda *_: self.get_application().quit())):
+                           ("quit", lambda *_: self.salir_del_todo())):
             a = Gio.SimpleAction.new(nombre, None)
             a.connect("activate", cb)
             self.add_action(a)
@@ -3210,6 +3393,7 @@ def run_pet(argv) -> int:
     # ya está importado y la pantalla abierta.
     app = Adw.Application(application_id=PET_APP_ID,
                           flags=Gio.ApplicationFlags.FLAGS_NONE)
+    abiertas = []          # la ventana de Bit, para poder apagarla al salir
 
     def activate(a):
         if a.get_active_window():
@@ -3227,12 +3411,25 @@ def run_pet(argv) -> int:
             # pintaría un fondo opaco y la mascota dejaría de recortarse.
             Gtk.StyleContext.add_provider_for_display(
                 display, css, Gtk.STYLE_PROVIDER_PRIORITY_USER + 1)
-        PetWindow(a, con).present()
+        ventana = PetWindow(a, con)
+        abiertas.append(ventana)
+        ventana.present()
 
     import signal
     try:
-        signal.signal(signal.SIGTERM, lambda *_: app.quit())
-        signal.signal(signal.SIGINT, lambda *_: app.quit())
+        def _apagar(*_):
+            # Soltar el micrófono antes de irse: si no, el proceso de grabación
+            # sobrevive a Bit y el trasto se queda con el micro cogido.
+            for ventana in abiertas:
+                try:
+                    ventana.parar_palabra_clave()
+                    ventana.parar_conversacion()
+                except Exception:
+                    pass
+            app.quit()
+
+        signal.signal(signal.SIGTERM, _apagar)
+        signal.signal(signal.SIGINT, _apagar)
     except Exception:
         pass
     app.connect("activate", activate)

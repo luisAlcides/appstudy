@@ -7,8 +7,11 @@ fonética y conceptual para dar retroalimentación inmediata.
 """
 from __future__ import annotations
 
+import array
+import collections
 import difflib
 import json
+import math
 import os
 import re
 import shutil
@@ -209,3 +212,343 @@ class GrabadorMicrofono:
                     pass
             self._proc = None
         return self._wav_path
+
+
+# --------------------------------------------------- conversación manos libres
+
+RATE_ESCUCHA = 16000
+BLOQUE = 4000  # muestras por lectura (~125 ms a 16 kHz)
+
+
+class DetectorTurnos:
+    """Decide cuándo has terminado de hablar, midiendo la energía del micrófono.
+
+    Es lo que sustituye al botón de «he terminado»: mientras hablas acumula, y
+    cuando llevas `silencio_fin` segundos callado da el turno por cerrado. El
+    umbral no es fijo porque ningún micrófono ni ninguna habitación se parecen:
+    se calcula sobre el ruido de fondo que va midiendo, y así funciona igual en
+    un cuarto silencioso que con un ventilador al lado.
+    """
+
+    def __init__(self, rate: int = RATE_ESCUCHA, silencio_fin: float = 1.0,
+                 minimo_habla: float = 0.4, maximo_turno: float = 30.0):
+        self.rate = rate
+        self.silencio_fin = silencio_fin
+        self.minimo_habla = minimo_habla
+        self.maximo_turno = maximo_turno
+        self.reiniciar()
+
+    def reiniciar(self):
+        # El suelo de ruido es el mínimo de los últimos ~10 s. Un ventilador
+        # constante entra entero en esa ventana y sube el suelo; una persona
+        # hablando no, porque entre palabra y palabra deja huecos que lo bajan.
+        self.ventana = collections.deque(maxlen=80)
+        self.hablando = False
+        self.seg_habla = 0.0
+        self.seg_silencio = 0.0
+        self.seg_total = 0.0
+
+    @staticmethod
+    def energia(bloque: bytes) -> float:
+        """Valor eficaz (RMS) del bloque de audio PCM de 16 bits."""
+        if len(bloque) < 2:
+            return 0.0
+        muestras = array.array("h")
+        muestras.frombytes(bloque[:len(bloque) - (len(bloque) % 2)])
+        if not muestras:
+            return 0.0
+        return math.sqrt(sum(m * m for m in muestras) / len(muestras))
+
+    @property
+    def ruido(self) -> float:
+        return min(self.ventana) if self.ventana else 120.0
+
+    @property
+    def umbral(self) -> float:
+        # Tres veces el ruido de fondo, con un mínimo para que un micrófono
+        # mudo no dispare turnos fantasma.
+        return max(300.0, self.ruido * 3.0)
+
+    def procesar(self, bloque: bytes) -> str:
+        """Devuelve 'silencio', 'hablando' o 'fin' según lo que lleve oído."""
+        dur = (len(bloque) / 2) / self.rate
+        self.seg_total += dur
+        rms = self.energia(bloque)
+        umbral = self.umbral
+        self.ventana.append(rms)
+
+        if rms > umbral:
+            self.hablando = True
+            self.seg_habla += dur
+            self.seg_silencio = 0.0
+            # Un turno no puede durar para siempre: si el micrófono lleva medio
+            # minuto con energía (una charla de fondo, una tele), se corta y se
+            # transcribe lo que haya en vez de no entregar nunca el turno.
+            return "fin" if self.seg_total >= self.maximo_turno else "hablando"
+
+        if not self.hablando:
+            return "silencio"
+
+        self.seg_silencio += dur
+        if self.seg_silencio >= self.silencio_fin:
+            return "fin" if self.seg_habla >= self.minimo_habla else "silencio"
+        if self.seg_total >= self.maximo_turno:
+            return "fin"
+        return "hablando"
+
+
+class EscuchaContinua:
+    """Micrófono siempre abierto: entrega lo que dices, turno a turno.
+
+    Mientras Bit habla se deja de escuchar, para no transcribir sus propias
+    palabras saliendo por los altavoces.
+    """
+
+    def __init__(self, idioma: str = "es", al_estado=None, al_oir=None):
+        self.idioma = idioma
+        self.al_estado = al_estado          # 'escuchando' | 'hablando' | 'procesando'
+        self.al_oir = al_oir                # recibe el texto de cada turno
+        self._proc = None
+        self._hilo = None
+        self._activa = False
+        self._pausada = False
+        self.detector = DetectorTurnos()
+
+    @staticmethod
+    def _comando() -> list | None:
+        if shutil.which("arecord"):
+            return ["arecord", "-q", "-f", "S16_LE", "-r", str(RATE_ESCUCHA),
+                    "-c", "1", "-t", "raw"]
+        if shutil.which("pw-record"):
+            return ["pw-record", "--rate", str(RATE_ESCUCHA), "--channels", "1",
+                    "--format", "s16", "--raw", "-"]
+        return None
+
+    def esta_activa(self) -> bool:
+        return self._activa
+
+    def pausar(self):
+        """Se deja de escuchar (Bit está hablando)."""
+        self._pausada = True
+
+    def reanudar(self):
+        self.detector.reiniciar()
+        self._pausada = False
+        self._avisar("escuchando")
+
+    def _avisar(self, estado: str):
+        if self.al_estado:
+            try:
+                self.al_estado(estado)
+            except Exception:
+                pass
+
+    def iniciar(self) -> bool:
+        cmd = self._comando()
+        if not cmd or self._activa:
+            return False
+        try:
+            self._proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                          stderr=subprocess.DEVNULL)
+        except Exception:
+            self._proc = None
+            return False
+        self._activa = True
+        self._pausada = False
+        self.detector.reiniciar()
+        self._hilo = threading.Thread(target=self._escuchar, daemon=True)
+        self._hilo.start()
+        self._avisar("escuchando")
+        return True
+
+    def detener(self):
+        self._activa = False
+        proc, self._proc = self._proc, None
+        if proc:
+            try:
+                proc.terminate()
+                proc.wait(timeout=1.5)
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+
+    def _escuchar(self):
+        proc = self._proc
+        acumulado = bytearray()
+        # Se lee hasta que la tubería se cierre, no hasta que el proceso muera:
+        # cuando termina la grabación puede quedar audio sin leer en el buffer.
+        while self._activa and proc:
+            try:
+                bloque = proc.stdout.read(BLOQUE * 2)
+            except Exception:
+                break
+            if not bloque:
+                break
+            if self._pausada:
+                acumulado.clear()       # lo que sonó mientras hablaba Bit se tira
+                self.detector.reiniciar()
+                continue
+
+            estado = self.detector.procesar(bloque)
+            if estado in ("hablando", "fin"):
+                acumulado.extend(bloque)
+            if estado != "fin":
+                continue
+
+            audio = bytes(acumulado)
+            acumulado.clear()
+            self.detector.reiniciar()
+            self.pausar()               # no se escucha mientras se piensa
+            self._avisar("procesando")
+            texto = self._transcribir(audio)
+            if texto and self.al_oir:
+                try:
+                    self.al_oir(texto)
+                except Exception:
+                    pass
+            elif self._activa:
+                self.reanudar()         # no se entendió nada: seguimos a la escucha
+
+    def _transcribir(self, pcm: bytes) -> str:
+        """Pasa el turno grabado a texto con el motor que haya."""
+        if not pcm:
+            return ""
+        fd, ruta = tempfile.mkstemp(suffix=".wav", prefix="appstudy_turno_")
+        os.close(fd)
+        try:
+            with wave.open(ruta, "wb") as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(2)
+                wf.setframerate(RATE_ESCUCHA)
+                wf.writeframes(pcm)
+            return transcribir_audio(ruta, idioma=self.idioma)
+        except Exception:
+            return ""
+        finally:
+            try:
+                os.unlink(ruta)
+            except OSError:
+                pass
+
+
+# ------------------------------------------------------ palabra clave: «hola bit»
+
+PALABRA_CLAVE = "hola bit"
+# Vosk no siempre acierta con «bit» —suena a «vit», a «bip»—, así que se dan por
+# buenas las confusiones habituales en vez de exigir la transcripción exacta.
+# «hey» y «beat» se probaron y se quitaron: son tan comunes en audio
+# cualquiera que despertaban a Bit sola con una frase de fondo.
+INICIOS_CLAVE = ("hola", "ola", "oye")
+NOMBRES_CLAVE = ("bit", "vit", "bip", "bid")
+# Frases señuelo: con una gramática cerrada el motor mete a la fuerza lo que oye
+# en la frase más parecida, así que «hola buenos días» acabaría siendo «hola bit».
+# Dándole sitios donde caer, cada cosa va a su sitio y no salta la palabra clave.
+SENUELOS_CLAVE = ("hola", "buenos días", "buenas tardes", "qué tal", "cómo estás",
+                  "adiós", "hasta luego", "gracias", "sí", "no", "vale", "bueno")
+
+
+def gramatica_clave() -> str:
+    """La lista cerrada de frases que el reconocedor puede devolver."""
+    frases = [f"{inicio} {nombre}" for inicio in INICIOS_CLAVE for nombre in NOMBRES_CLAVE]
+    return json.dumps([*frases, *SENUELOS_CLAVE, "[unk]"], ensure_ascii=False)
+
+
+def es_palabra_clave(texto: str) -> bool:
+    """Cierto si en lo oído aparece un saludo seguido del nombre de Bit."""
+    palabras = re.findall(r"[a-záéíóúñü]+", (texto or "").lower())
+    return any(a in INICIOS_CLAVE and b in NOMBRES_CLAVE
+               for a, b in zip(palabras, palabras[1:]))
+
+
+class EscuchaPalabraClave:
+    """Micrófono en reposo, esperando a que digas «hola bit».
+
+    No transcribe lo que se habla en la habitación: el reconocedor solo puede
+    devolver las frases de `gramatica_clave()`, así que todo lo demás sale como
+    desconocido y se descarta. Nada de esto sale del equipo.
+    """
+
+    def __init__(self, idioma: str = "es", al_activar=None):
+        self.idioma = idioma
+        self.al_activar = al_activar
+        self._proc = None
+        self._hilo = None
+        self._activa = False
+
+    @staticmethod
+    def disponible(idioma: str = "es") -> bool:
+        try:
+            import vosk  # noqa: F401
+        except ImportError:
+            return False
+        return _obtener_modelo_vosk(idioma) is not None and bool(EscuchaContinua._comando())
+
+    def esta_activa(self) -> bool:
+        return self._activa
+
+    def iniciar(self) -> bool:
+        if self._activa or not self.disponible(self.idioma):
+            return False
+        cmd = EscuchaContinua._comando()
+        if not cmd:
+            return False
+        try:
+            self._proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                          stderr=subprocess.DEVNULL)
+        except Exception:
+            self._proc = None
+            return False
+        self._activa = True
+        self._hilo = threading.Thread(target=self._vigilar, daemon=True)
+        self._hilo.start()
+        return True
+
+    def detener(self):
+        self._activa = False
+        proc, self._proc = self._proc, None
+        if proc:
+            try:
+                proc.terminate()
+                proc.wait(timeout=1.5)
+            except Exception:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+
+    def _vigilar(self):
+        import vosk
+        modelo = _obtener_modelo_vosk(self.idioma)
+        if modelo is None:
+            self._activa = False
+            return
+        rec = vosk.KaldiRecognizer(modelo, RATE_ESCUCHA, gramatica_clave())
+        proc = self._proc
+        while self._activa and proc:
+            try:
+                bloque = proc.stdout.read(BLOQUE * 2)
+            except Exception:
+                break
+            if not bloque:
+                break
+            # Solo se miran los resultados cerrados, nunca los parciales: un
+            # parcial pasa por «hola bit» a mitad de otra frase y despertaría a
+            # Bit en medio de una conversación ajena.
+            try:
+                if not rec.AcceptWaveform(bloque):
+                    continue
+                texto = json.loads(rec.Result()).get("text", "")
+            except Exception:
+                continue
+            if not es_palabra_clave(texto):
+                continue
+            rec.Reset()
+            self._activa = False
+            if self.al_activar:
+                try:
+                    self.al_activar()
+                except Exception:
+                    pass
+            return

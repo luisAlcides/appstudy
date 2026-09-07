@@ -748,6 +748,58 @@ Reproducir el sonido lo hace `pw-play`, `paplay` o `aplay`, y con tener uno bast
 — en Ubuntu/Mint con PipeWire o PulseAudio ya está. Para descargar los modelos
 hace falta `curl` o `wget`.
 
+### Conversar con Bit en voz alta
+
+En cualquier globo con la IA activa hay un botón **🎙️ Hablar con Bit**, y dentro
+del chat también. A partir de ahí es una conversación normal: hablas, Bit se da
+cuenta de que has terminado, contesta en voz alta y se vuelve a poner a escuchar
+sola. No hay que pulsar nada entre turno y turno.
+
+**O no pulsas nada: le dices «hola bit».** Mientras Bit está suelta por el
+escritorio deja el oído puesto esperando esa frase, y al oírla abre la charla
+hablada ella sola. Se apaga desde **Ajustes → Voz → Responder a «Hola Bit»**.
+
+Estar siempre escuchando cuesta **un 2% de un núcleo**, medido, porque el oído en
+reposo no transcribe nada: el reconocedor trabaja con una lista cerrada de frases
+—los saludos posibles y un puñado de señuelos— y todo lo que no encaje sale como
+desconocido y se tira. Los señuelos son la parte que importa: con una lista
+cerrada el motor mete a la fuerza lo que oye en la frase más parecida, así que sin
+un «buenos días» o un «qué tal» donde caer, cualquier saludo acabaría siendo un
+«hola bit». También se dan por buenas las confusiones típicas —vosk oye «vit» o
+«bip» donde dices «bit»— y se exige el orden correcto, para que hablar *sobre* un
+bit no la despierte. Nada de esto sale del equipo, y solo se mira cuando el
+reconocedor cierra una frase, nunca a media palabra.
+
+El globo te dice en qué punto está —«Te escucho…», «Déjame pensar…», «Bit está
+hablando…»— y se corta diciendo **adiós**, **hasta luego** o **ya está**, o con
+el botón de dejar de hablar. La despedida se compara con la frase entera, así que
+preguntarle *«¿cómo se dice adiós en inglés?»* no te cierra la charla.
+
+Tres detalles que hacen que se sienta como hablar con alguien:
+
+- **Sabe cuándo has terminado** midiendo la energía del micrófono, no por tiempo
+  fijo. El umbral se calcula sobre el ruido de fondo de tu habitación —el suelo
+  de ruido es el mínimo de los últimos diez segundos—, así que un ventilador al
+  lado sube el listón en vez de tomarse por voz. Un carraspeo suelto no cierra
+  turno, y un turno no puede eternizarse: a los treinta segundos contesta con lo
+  que haya oído.
+- **No se escucha a sí misma.** Mientras Bit habla, el micrófono se ignora y lo
+  que entró se tira; si no, se transcribiría su propia voz saliendo por los
+  altavoces y se contestaría sola.
+- **Responde como quien conversa, no como quien da clase.** En modo hablado se le
+  pide otra cosa al modelo: una o dos frases, sin listas ni negritas —que en voz
+  alta no significan nada—, y devolviendo la pelota. Además la respuesta se corta
+  por la última frase entera si se pasa de cincuenta y cinco palabras: un modelo
+  pequeño se emociona explicando, y medio minuto de monólogo no hay quien lo siga.
+  Si quieres más, se lo pides.
+
+Las órdenes de siempre siguen funcionando habladas: «abre Platzi», «crea una
+tarjeta de…». Cuando es una orden y no una pregunta, Bit la ejecuta y vuelve a
+escucharte sin esperar respuesta del modelo.
+
+Hace falta la IA local activada (ver [Preguntarle a Bit](#preguntarle-a-bit-ia-local))
+y el reconocimiento de voz instalado; sin ellos el botón te lo dice.
+
 ### Por qué Kokoro va en su propio entorno
 
 Kokoro suena claramente más humano que Piper, pero necesita `onnxruntime`, que

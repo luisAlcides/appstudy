@@ -1347,6 +1347,17 @@ class MainWindow(Adw.ApplicationWindow):
         self.voz_auto.connect("notify::active", self.on_voz_auto)
         gvoz.add(self.voz_auto)
 
+        from . import voz_rec
+        self.voz_clave = Adw.SwitchRow(
+            title="Responder a «Hola Bit»",
+            subtitle=("Bit deja el micrófono puesto esperando esa frase y abre la "
+                      "charla hablada. Nada sale del equipo"
+                      if voz_rec.EscuchaPalabraClave.disponible("es") else
+                      "Necesita el reconocimiento de voz instalado (vosk)"))
+        self.voz_clave.set_sensitive(voz_rec.EscuchaPalabraClave.disponible("es"))
+        self.voz_clave.connect("notify::active", self.on_voz_clave)
+        gvoz.add(self.voz_clave)
+
         self.voz_vol = Adw.SpinRow.new_with_range(0, 100, 10)
         self.voz_vol.set_title("Volumen de voz")
         self.voz_vol.connect("notify::value", self.on_voz_volumen)
@@ -1711,6 +1722,9 @@ class MainWindow(Adw.ApplicationWindow):
 
     def on_voz_auto(self, fila, _p):
         voz.guardar(self.con, auto=fila.get_active())
+
+    def on_voz_clave(self, fila, _p):
+        voz.guardar(self.con, clave=fila.get_active())
 
     def on_voz_volumen(self, fila, _p):
         voz.guardar(self.con, volumen=int(fila.get_value()))
@@ -3258,17 +3272,20 @@ echo hola
         vcfg = voz.config(self.con)
         for fila, cb in ((self.voz_switch, self.on_voz_toggle),
                          (self.voz_auto, self.on_voz_auto),
+                         (self.voz_clave, self.on_voz_clave),
                          (self.voz_vol, self.on_voz_volumen),
                          (self.voz_vel, self.on_voz_velocidad),
                          (self.voz_tono, self.on_voz_tono)):
             fila.handler_block_by_func(cb)
         self.voz_switch.set_active(vcfg["activo"])
         self.voz_auto.set_active(vcfg["auto"])
+        self.voz_clave.set_active(vcfg["clave"])
         self.voz_vol.set_value(vcfg["volumen"])
         self.voz_vel.set_value(vcfg["velocidad"])
         self.voz_tono.set_value(vcfg["tono"])
         for fila, cb in ((self.voz_switch, self.on_voz_toggle),
                          (self.voz_auto, self.on_voz_auto),
+                         (self.voz_clave, self.on_voz_clave),
                          (self.voz_vol, self.on_voz_volumen),
                          (self.voz_vel, self.on_voz_velocidad),
                          (self.voz_tono, self.on_voz_tono)):

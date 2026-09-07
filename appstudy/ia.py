@@ -49,6 +49,26 @@ Reglas:
 - Puedes usar <b>negrita</b> y <i>cursiva</i>, nada más de HTML."""
 
 
+# Cómo se comporta Bit cuando la conversación es hablada. Lo que se lee en voz
+# alta no se puede ojear: una lista de cinco puntos que en pantalla se abarca de
+# un vistazo, dicha en voz alta se hace eterna y no se retiene. Por eso aquí se
+# le pide lo que hace una persona al charlar — frases cortas, sin formato, y
+# devolver la pelota — en vez de soltar la explicación completa de una vez.
+SISTEMA_HABLADO = """Eres Bit, la mascota de AppStudy. Estás CONVERSANDO EN VOZ \
+ALTA con un estudiante que repasa inglés, Linux, ciencia de datos, inteligencia \
+artificial, maquinaria pesada, mecánica automotriz y electricidad.
+
+Es una charla hablada, no un texto:
+- Una o dos frases por turno, cuarenta palabras como mucho. Es lo que se aguanta escuchando.
+- Habla llano y cercano, como quien explica algo a un amigo tomando café.
+- Nada de formato: ni listas, ni negritas, ni HTML, ni emojis. Se va a leer en voz alta.
+- Nada de números de punto ni "primero, segundo, tercero": si hay varias cosas, di una y ofrece seguir.
+- Termina devolviendo la pelota cuando venga a cuento: una pregunta corta, una comprobación.
+- Si te preguntan algo largo, da lo esencial y ofrece entrar en detalle.
+- Responde en español salvo que te hablen en otro idioma o el tema sea el inglés.
+- Si no lo sabes, dilo en una frase. No inventes datos ni cifras."""
+
+
 # ------------------------------------------------------------------ ajustes
 
 def config(con) -> dict:
@@ -269,21 +289,48 @@ def preguntar(cfg, pregunta: str, contexto: str = "", trozo=None) -> str:
 MEMORIA_CHAT = 12
 
 
-def conversar(cfg, historial: list, pregunta: str, contexto: str = "", trozo=None) -> str:
+def conversar(cfg, historial: list, pregunta: str, contexto: str = "", trozo=None,
+              hablado: bool = False) -> str:
     """Un turno de conversación: el modelo ve lo que ya habéis hablado.
 
     `historial` es una lista de {"role": "user"|"assistant", "content": str}; el
-    que llama se encarga de ir añadiendo los turnos.
+    que llama se encarga de ir añadiendo los turnos. Con `hablado` responde como
+    en una charla en voz alta y no como en un chat escrito.
     """
-    sistema = SISTEMA
+    sistema = SISTEMA_HABLADO if hablado else SISTEMA
     if contexto:
         sistema += ("\n\nEl estudiante viene de esta tarjeta, tenla presente:\n"
                     + contexto)
     mensajes = [{"role": "system", "content": sistema},
                 *historial[-MEMORIA_CHAT:],
                 {"role": "user", "content": pregunta.strip()}]
-    return _limpiar(_mensaje(cfg, mensajes, trozo=trozo, temperatura=0.5,
+    # Al hablar se sube un punto la temperatura: una charla con la temperatura
+    # del chat escrito suena a respuesta enlatada.
+    return _limpiar(_mensaje(cfg, mensajes, trozo=trozo,
+                             temperatura=0.7 if hablado else 0.5,
                              keep_alive=KEEP_ALIVE_CHAT))
+
+
+# Tope de lo que se dice de un tirón. Un modelo pequeño se emociona explicando y
+# se planta en cien palabras: leídas son medio minuto de monólogo, y para cuando
+# acaba ya no te acuerdas de lo que preguntaste. Se corta por la última frase
+# entera, nunca a mitad, y el resto se pierde a propósito: si hace falta más, lo
+# pides y te lo cuenta.
+MAX_PALABRAS_HABLADO = 55
+
+
+def acortar_para_hablar(texto: str, maximo: int = MAX_PALABRAS_HABLADO) -> str:
+    """Recorta una respuesta larga por la última frase que quepa."""
+    if not texto:
+        return ""
+    palabras = texto.split()
+    if len(palabras) <= maximo:
+        return texto.strip()
+    recorte = " ".join(palabras[:maximo])
+    corte = max(recorte.rfind(c) for c in ".!?…")
+    if corte > len(recorte) // 3:      # hay una frase entera aprovechable
+        return recorte[:corte + 1].strip()
+    return recorte.rstrip(" ,;:") + "."
 
 
 def explicar(cfg, card, trozo=None) -> str:

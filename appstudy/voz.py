@@ -452,12 +452,14 @@ def config(con) -> dict:
         "velocidad": max(-50, min(50, velocidad)),
         "tono": max(-50, min(50, tono)),
         "idioma": str(db.get_meta(con, "voz_idioma", "es")),
+        "clave": db.get_meta(con, "voz_clave", "1") == "1",
         "neuronal": tiene_motor_neuronal() or tiene_kokoro(),
         "motor": motor_actual(),
     }
 
 
-def guardar(con, activo=None, auto=None, volumen=None, velocidad=None, tono=None, idioma=None):
+def guardar(con, activo=None, auto=None, volumen=None, velocidad=None, tono=None,
+            idioma=None, clave=None):
     """Guarda cambios en la configuración de voz."""
     if activo is not None:
         db.set_meta(con, "voz_activo", "1" if activo else "0")
@@ -471,6 +473,8 @@ def guardar(con, activo=None, auto=None, volumen=None, velocidad=None, tono=None
         db.set_meta(con, "voz_tono", int(max(-50, min(50, tono))))
     if idioma is not None:
         db.set_meta(con, "voz_idioma", str(idioma))
+    if clave is not None:
+        db.set_meta(con, "voz_clave", "1" if clave else "0")
 
 
 def _notificar_fin(cb):
