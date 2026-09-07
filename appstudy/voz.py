@@ -6,7 +6,14 @@ forma automática, sincronizando el movimiento de la boca de Bit con la locució
 Utiliza el motor neuronal de alta calidad Piper si está instalado localmente,
 lo que produce una voz humana, cálida y natural (no robótica). Si no está,
 recurre a `spd-say` (speech-dispatcher) o la biblioteca `speechd` del sistema.
+
+La calidad de la locución depende de tres cosas, y aquí se cuidan las tres:
+la voz elegida (se prefiere el modelo de mayor calidad instalado), los
+parámetros de inferencia de Piper (afinados para una dicción más clara que la
+de fábrica) y el texto que se le entrega, que se limpia y se puntúa para que
+la entonación y las pausas suenen a persona y no a lector de listas.
 """
+import json
 import os
 import re
 import shutil
@@ -22,6 +29,90 @@ PIPER_BIN = PIPER_DIR / "piper"
 PIPER_MODEL_ES = PIPER_DIR / "es_ES-davefx-medium.onnx"
 PIPER_MODEL_EN = PIPER_DIR / "en_US-lessac-medium.onnx"
 PIPER_MODEL = PIPER_MODEL_ES  # retrocompatibilidad
+
+# Orden de preferencia de las voces instaladas (mejor calidad primero). Se usa
+# junto al descubrimiento automático de modelos: si el usuario instaló una voz
+# "high", se prefiere sobre la "medium" aunque no esté en esta lista.
+# El orden es de escucha, no de tamaño: sharvard (medium) suena más natural en
+# español que las "high" disponibles, así que va primero.
+VOCES_PREFERIDAS = {
+    "es": ["es_ES-sharvard-medium", "es_MX-claude-high", "es_MX-ald-medium",
+           "es_ES-davefx-medium"],
+    "en": ["en_US-lessac-high", "en_US-ryan-high", "en_US-amy-medium",
+           "en_US-lessac-medium"],
+}
+CALIDAD_ORDEN = {"high": 0, "medium": 1, "low": 2, "x_low": 3}
+
+# Parámetros de inferencia afinados de oído para que la locución suene humana.
+# Subir el ruido del generador y la variación de duración por fonema por encima
+# de los valores de fábrica (0.667 y 0.8) es lo que quita el aire robótico:
+# la entonación varía y el ritmo deja de ser regular como un metrónomo. Bajarlos
+# da una dicción más "limpia" pero plana, que es justo lo que suena a máquina.
+PIPER_NOISE_SCALE = 0.7
+PIPER_NOISE_W = 0.9
+# Un habla ligeramente más lenta que la nominal se percibe como más natural y
+# se sigue mejor al estudiar. Es la base sobre la que actúa la velocidad.
+PIPER_LENGTH_BASE = 1.06
+PIPER_SILENCIO_FRASE = 0.35
+
+_cache_modelos: dict[str, Path | None] = {}
+_cache_config_modelo: dict[str, dict] = {}
+
+
+def _idioma_corto(idioma: str | None) -> str:
+    return "en" if idioma and str(idioma).lower().startswith("en") else "es"
+
+
+def _calidad_modelo(nombre: str) -> int:
+    for sufijo, orden in CALIDAD_ORDEN.items():
+        if nombre.endswith("-" + sufijo):
+            return orden
+    return 9
+
+
+def modelo_para(idioma: str | None = None) -> Path | None:
+    """Devuelve el mejor modelo Piper instalado para el idioma pedido.
+
+    Prefiere las voces de la lista `VOCES_PREFERIDAS` y, si no hay ninguna,
+    cualquier modelo del idioma correcto ordenado por calidad (high > medium).
+    """
+    lang = _idioma_corto(idioma)
+    if lang in _cache_modelos:
+        cacheado = _cache_modelos[lang]
+        if cacheado is None or cacheado.is_file():
+            return cacheado
+
+    encontrado = None
+    if PIPER_DIR.is_dir():
+        disponibles = {m.stem: m for m in PIPER_DIR.glob("*.onnx") if m.is_file()}
+        for nombre in VOCES_PREFERIDAS.get(lang, []):
+            if nombre in disponibles:
+                encontrado = disponibles[nombre]
+                break
+        if encontrado is None:
+            candidatos = [m for n, m in disponibles.items() if n.lower().startswith(lang)]
+            if candidatos:
+                encontrado = sorted(candidatos, key=lambda m: (_calidad_modelo(m.stem), m.stem))[0]
+
+    _cache_modelos[lang] = encontrado
+    return encontrado
+
+
+def config_modelo(modelo: Path) -> dict:
+    """Lee el .json del modelo (frecuencia de muestreo y parámetros de voz)."""
+    clave = str(modelo)
+    if clave in _cache_config_modelo:
+        return _cache_config_modelo[clave]
+    datos = {"sample_rate": 22050, "noise_scale": PIPER_NOISE_SCALE,
+             "noise_w": PIPER_NOISE_W}
+    try:
+        with open(str(modelo) + ".json", encoding="utf-8") as f:
+            crudo = json.load(f)
+        datos["sample_rate"] = int(crudo.get("audio", {}).get("sample_rate", 22050))
+    except Exception:
+        pass
+    _cache_config_modelo[clave] = datos
+    return datos
 
 STOPWORDS_EN = {
     "the", "be", "to", "of", "and", "that", "have", "i", "it", "for", "not",
@@ -104,9 +195,13 @@ def tiene_motor_neuronal(idioma: str | None = None) -> bool:
     """Indica si el motor de voz neuronal (Piper) está disponible."""
     if not (PIPER_BIN.is_file() and os.access(PIPER_BIN, os.X_OK)):
         return False
-    if idioma and str(idioma).lower().startswith("en"):
-        return PIPER_MODEL_EN.is_file()
-    return PIPER_MODEL_ES.is_file() or PIPER_MODEL.is_file()
+    return modelo_para(idioma) is not None
+
+
+def voz_actual(idioma: str | None = None) -> str:
+    """Nombre legible de la voz neuronal en uso (para mostrarla en Ajustes)."""
+    modelo = modelo_para(idioma)
+    return modelo.stem if modelo else ""
 
 
 def limpiar_para_voz(texto: str) -> str:
@@ -133,10 +228,68 @@ def limpiar_para_voz(texto: str) -> str:
     t = re.sub(r"[\U00010000-\U0010ffff\u2600-\u27bf\u2300-\u23ff\u2b50-\u2b55\ufe00-\ufe0f]", "", t)
     # Caracteres de puntuación ornamental o viñetas
     t = re.sub(r"[•·—–―«»“”\"\'\(\)\[\]\{\}]", " ", t)
-    # Espacios duplicados y saltos de línea
+    # Viñetas de lista al principio de línea: no se leen
+    t = re.sub(r"(?m)^[ \t]*[-+*]\s+", "", t)
+    # Cada salto de línea es una frase: se le pone punto para que Piper haga la
+    # pausa correspondiente en vez de leerlo todo de corrido.
+    t = re.sub(r"[ \t]*\n+[ \t]*", ". ", t)
+    t = re.sub(r"([,.:;!?¡¿])\.\s", r"\1 ", t)
+    # Espacios duplicados
     t = re.sub(r"\s+", " ", t).strip()
     # Limpiar espacios previos a signos de puntuación
     t = re.sub(r"\s+([,.:;!?])", r"\1", t)
+    # Puntuación repetida: alarga las pausas sin aportar nada
+    t = re.sub(r"([.,:;!?])\1{1,}", r"\1", t)
+    t = re.sub(r"^[.,:;]+\s*", "", t)
+    return t
+
+
+ABREVIATURAS_ES = [
+    (r"\bp\.?\s?ej\.", "por ejemplo"),
+    (r"\betc\.", "etcétera."),
+    (r"\bEE\.?\s?UU\.?", "Estados Unidos"),
+    (r"\bDr\.", "doctor"),
+    (r"\bDra\.", "doctora"),
+    (r"\bSr\.", "señor"),
+    (r"\bSra\.", "señora"),
+    (r"\bnúm\.", "número"),
+]
+
+ABREVIATURAS_EN = [
+    (r"\be\.g\.", "for example"),
+    (r"\bi\.e\.", "that is"),
+    (r"\betc\.", "et cetera."),
+    (r"\bvs\.?", "versus"),
+    (r"\bMr\.", "mister"),
+    (r"\bMrs\.", "missus"),
+]
+
+SIMBOLOS = {
+    "es": [("%", " por ciento"), ("&", " y "), ("+", " más "), ("=", " igual a "),
+           ("→", ", entonces, "), ("<", " menor que "), (">", " mayor que ")],
+    "en": [("%", " percent"), ("&", " and "), ("+", " plus "), ("=", " equals "),
+           ("→", ", then, "), ("<", " less than "), (">", " greater than ")],
+}
+
+
+def preparar_prosodia(texto: str, idioma: str = "es") -> str:
+    """Ajusta el texto ya limpio para que la locución suene natural.
+
+    Desarrolla abreviaturas y símbolos que los motores leen letra por letra y
+    cierra la frase con un punto para que Piper module la entonación final.
+    """
+    if not texto:
+        return ""
+    lang = _idioma_corto(idioma)
+    t = texto
+    for patron, reemplazo in (ABREVIATURAS_EN if lang == "en" else ABREVIATURAS_ES):
+        t = re.sub(patron, reemplazo, t, flags=re.IGNORECASE)
+    for simbolo, palabra in SIMBOLOS[lang]:
+        t = t.replace(simbolo, palabra)
+    t = re.sub(r"\s+", " ", t).strip()
+    t = re.sub(r"\s+([,.:;!?])", r"\1", t)
+    if t and t[-1] not in ".!?:;":
+        t += "."
     return t
 
 
@@ -147,7 +300,10 @@ def duracion_estimada(texto: str, velocidad: int = 0) -> float:
     if palabras == 0:
         return 0.0
     factor = max(0.5, min(2.0, 1.0 + (velocidad / 100.0)))
-    segundos = (palabras / 2.5) / factor + 0.5
+    # 2.65 palabras/segundo es el ritmo medido de Piper con estos parámetros;
+    # cada frase añade además su silencio de cierre.
+    frases = max(1, len(re.findall(r"[.!?]+(?:\s|$)", limpio)))
+    segundos = (palabras / 2.65) / factor + 0.4 + (frases - 1) * PIPER_SILENCIO_FRASE
     return round(max(1.2, min(120.0, segundos)), 2)
 
 
@@ -208,8 +364,10 @@ class ReproductorVoz:
         self._lock = threading.Lock()
         self._proc = None
         self._proc_piper = None
+        self._proc_filtro = None
         self._hablando = False
         self._spd_cmd = shutil.which("spd-say")
+        self._sox_cmd = shutil.which("sox")
 
     def esta_hablando(self) -> bool:
         with self._lock:
@@ -222,12 +380,14 @@ class ReproductorVoz:
     def detener(self):
         with self._lock:
             self._hablando = False
-            if self._proc_piper is not None:
-                try:
-                    self._proc_piper.terminate()
-                except OSError:
-                    pass
-                self._proc_piper = None
+            for atributo in ("_proc_piper", "_proc_filtro"):
+                proc = getattr(self, atributo, None)
+                if proc is not None:
+                    try:
+                        proc.terminate()
+                    except OSError:
+                        pass
+                    setattr(self, atributo, None)
             if self._proc is not None:
                 try:
                     self._proc.terminate()
@@ -259,31 +419,47 @@ class ReproductorVoz:
             return
         velocidad = cfg.get("velocidad", 0)
         factor = max(0.5, min(2.0, 1.0 + (velocidad / 100.0)))
-        length_scale = round(1.0 / factor, 3)
+        length_scale = round(PIPER_LENGTH_BASE / factor, 3)
 
         idioma = cfg.get("idioma", "es")
-        if idioma and str(idioma).lower().startswith("en") and PIPER_MODEL_EN.is_file():
-            modelo = PIPER_MODEL_EN
-        elif PIPER_MODEL_ES.is_file():
-            modelo = PIPER_MODEL_ES
-        else:
-            modelo = PIPER_MODEL
+        modelo = modelo_para(idioma)
+        if modelo is None:
+            if self._spd_cmd:
+                self._reproducir_spdsay(texto, cfg, duracion, on_done)
+            return
+        info = config_modelo(modelo)
+        rate = str(info.get("sample_rate", 22050))
 
         cmd_piper = [
             str(PIPER_BIN),
             "--model", str(modelo),
             "--length_scale", str(length_scale),
-            "--output-raw",
+            "--noise_scale", str(PIPER_NOISE_SCALE),
+            "--noise_w", str(PIPER_NOISE_W),
+            "--sentence_silence", str(PIPER_SILENCIO_FRASE),
+            "--quiet",
+            "--output_raw",  # audio a medida que se genera: empieza a sonar antes
         ]
+
+        # Piper no cambia el tono; si hay sox se hace en un filtro intermedio.
+        tono = int(cfg.get("tono", 0) or 0)
+        cmd_filtro = None
+        if tono and self._sox_cmd:
+            cents = str(int(max(-50, min(50, tono)) * 6))  # ±50 → ±3 semitonos
+            crudo = ["-t", "raw", "-r", rate, "-e", "signed", "-b", "16", "-c", "1"]
+            cmd_filtro = [self._sox_cmd, "-q", *crudo, "-", *crudo, "-", "pitch", cents]
 
         if player == "paplay":
             vol_pa = str(int(max(0, min(100, vol)) * 655.36))
-            cmd_player = ["paplay", "--raw", "--rate", "22050", "--channels", "1", "--volume", vol_pa]
+            cmd_player = ["paplay", "--raw", "--rate", rate, "--channels", "1",
+                          "--format", "s16le", "--volume", vol_pa]
         elif player == "pw-play":
             vol_pw = str(round(max(0.0, min(1.0, vol / 100.0)), 2))
-            cmd_player = ["pw-play", "--rate", "22050", "--channels", "1", "--volume", vol_pw, "-"]
+            # Sin --raw, pw-play intenta leer una cabecera de archivo y falla.
+            cmd_player = ["pw-play", "--raw", "--rate", rate, "--channels", "1",
+                          "--format", "s16", "--volume", vol_pw, "-"]
         else:
-            cmd_player = ["aplay", "-q", "-r", "22050", "-f", "S16_LE", "-t", "raw"]
+            cmd_player = ["aplay", "-q", "-r", rate, "-c", "1", "-f", "S16_LE", "-t", "raw", "-"]
 
         def _ejecutar():
             with self._lock:
@@ -295,19 +471,32 @@ class ReproductorVoz:
                         stdout=subprocess.PIPE,
                         stderr=subprocess.DEVNULL,
                     )
+                    p_filtro = None
+                    entrada = p_piper.stdout
+                    if cmd_filtro:
+                        p_filtro = subprocess.Popen(
+                            cmd_filtro,
+                            stdin=entrada,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.DEVNULL,
+                        )
+                        p_piper.stdout.close()
+                        entrada = p_filtro.stdout
                     p_player = subprocess.Popen(
                         cmd_player,
-                        stdin=p_piper.stdout,
+                        stdin=entrada,
                         stdout=subprocess.DEVNULL,
                         stderr=subprocess.DEVNULL,
                     )
-                    p_piper.stdout.close()
+                    entrada.close()
                     self._proc = p_player
                     self._proc_piper = p_piper
+                    self._proc_filtro = p_filtro
                 except Exception:
                     self._hablando = False
                     self._proc = None
                     self._proc_piper = None
+                    self._proc_filtro = None
                     return
 
             try:
@@ -324,6 +513,7 @@ class ReproductorVoz:
                 with self._lock:
                     self._proc = None
                     self._proc_piper = None
+                    self._proc_filtro = None
                     self._hablando = False
                 if on_done:
                     _notificar_fin(on_done)
@@ -441,7 +631,8 @@ def hablar(texto: str, cfg: dict | None = None, on_done=None,
             cfg["idioma"] = "en"
 
     duracion = duracion_estimada(limpio, cfg.get("velocidad", 0))
-    _reproductor.reproducir(limpio, cfg, duracion, on_done)
+    hablado = preparar_prosodia(limpio, cfg.get("idioma", "es"))
+    _reproductor.reproducir(hablado, cfg, duracion, on_done)
     return duracion
 
 

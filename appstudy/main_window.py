@@ -348,51 +348,48 @@ class MainWindow(Adw.ApplicationWindow):
         box.append(lista)
 
     def tarjeta_modos_estudio(self):
-        caja = Gtk.Box(spacing=12, homogeneous=True)
+        modos = [
+            ("📝 Modo Examen",
+             "Simulacro de 20 o 40 preguntas sin calificar hasta el final, con nota y desglose.",
+             lambda *_: self.abrir_simulacro_examen()),
+            ("✍️ Escritura Libre",
+             "Redacta un párrafo sobre un tema del mazo y recibe corrección con IA local.",
+             lambda *_: self.abrir_escritura_libre()),
+            ("🔥 Cursos de freeCodeCamp",
+             "Currículo completo con su editor y sus pruebas: haz las lecciones aquí y "
+             "conviértelas en lecturas o tarjetas.",
+             lambda *_: self.abrir_cursos_freecodecamp()),
+            ("🎬 Cursos Online",
+             "Reproductor integrado de Platzi y Udemy con detección de último y siguiente video.",
+             lambda *_: self.abrir_reproductor_cursos()),
+        ]
 
-        b_ex = Gtk.Button(css_classes=["card"])
-        c_ex = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        c_ex.set_margin_top(12)
-        c_ex.set_margin_bottom(12)
-        c_ex.set_margin_start(12)
-        c_ex.set_margin_end(12)
-        c_ex.append(Gtk.Label(label="📝 Modo Examen", css_classes=["heading"], xalign=0))
-        c_ex.append(Gtk.Label(
-            label="Simulacro de 20 o 40 preguntas sin calificar hasta el final, con nota y desglose.",
-            wrap=True, xalign=0, css_classes=["caption", "as-dim"]))
-        b_ex.set_child(c_ex)
-        b_ex.connect("clicked", lambda *_: self.abrir_simulacro_examen())
-        caja.append(b_ex)
+        columnas = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        for desde in range(0, len(modos), 2):
+            fila = Gtk.Box(spacing=12, homogeneous=True)
+            for titulo, texto, accion in modos[desde:desde + 2]:
+                fila.append(self.tarjeta_modo(titulo, texto, accion))
+            columnas.append(fila)
+        return columnas
 
-        b_es = Gtk.Button(css_classes=["card"])
-        c_es = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        c_es.set_margin_top(12)
-        c_es.set_margin_bottom(12)
-        c_es.set_margin_start(12)
-        c_es.set_margin_end(12)
-        c_es.append(Gtk.Label(label="✍️ Escritura Libre", css_classes=["heading"], xalign=0))
-        c_es.append(Gtk.Label(
-            label="Redacta un párrafo sobre un tema del mazo y recibe corrección con IA local.",
-            wrap=True, xalign=0, css_classes=["caption", "as-dim"]))
-        b_es.set_child(c_es)
-        b_es.connect("clicked", lambda *_: self.abrir_escritura_libre())
-        caja.append(b_es)
+    @staticmethod
+    def tarjeta_modo(titulo, texto, accion):
+        """Una de las tarjetas grandes de «Modos de estudio»."""
+        boton = Gtk.Button(css_classes=["card"])
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        for lado in ("top", "bottom", "start", "end"):
+            getattr(caja, f"set_margin_{lado}")(12)
+        caja.append(Gtk.Label(label=titulo, css_classes=["heading"], xalign=0))
+        caja.append(Gtk.Label(label=texto, wrap=True, xalign=0,
+                              css_classes=["caption", "as-dim"]))
+        boton.set_child(caja)
+        boton.connect("clicked", accion)
+        return boton
 
-        b_cur = Gtk.Button(css_classes=["card"])
-        c_cur = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        c_cur.set_margin_top(12)
-        c_cur.set_margin_bottom(12)
-        c_cur.set_margin_start(12)
-        c_cur.set_margin_end(12)
-        c_cur.append(Gtk.Label(label="🎬 Cursos Online", css_classes=["heading"], xalign=0))
-        c_cur.append(Gtk.Label(
-            label="Reproductor integrado de Platzi y Udemy con detección de último y siguiente video.",
-            wrap=True, xalign=0, css_classes=["caption", "as-dim"]))
-        b_cur.set_child(c_cur)
-        b_cur.connect("clicked", lambda *_: self.abrir_reproductor_cursos())
-        caja.append(b_cur)
-
-        return caja
+    def abrir_cursos_freecodecamp(self, superblock=None):
+        """Abre el catálogo de freeCodeCamp para tomar sus cursos desde aquí."""
+        from . import cursos_fcc
+        cursos_fcc.abrir_catalogo(self.con, parent_window=self, superblock=superblock)
 
     def abrir_reproductor_cursos(self, plataforma=None, siguiente=False):
         from . import reproductor
@@ -1326,9 +1323,12 @@ class MainWindow(Adw.ApplicationWindow):
         gp.add(self.reminder_end)
         page.add(gp)
 
-        desc_voz = ("Voz neuronal de alta calidad (Piper · modelos en español e inglés natural)."
-                    if voz.tiene_motor_neuronal() else
-                    "Permite que Bit y las tarjetas lean su texto en voz alta bajo demanda o automáticamente.")
+        if voz.tiene_motor_neuronal():
+            voces = " · ".join(v for v in (voz.voz_actual("es"), voz.voz_actual("en")) if v)
+            desc_voz = f"Voz neuronal de alta calidad (Piper · {voces})."
+        else:
+            desc_voz = ("Permite que Bit y las tarjetas lean su texto en voz alta bajo "
+                        "demanda o automáticamente.")
         gvoz = Adw.PreferencesGroup(
             title="Voz y lectura en voz alta",
             description=desc_voz)
@@ -1358,7 +1358,11 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.voz_tono = Adw.SpinRow.new_with_range(-50, 50, 5)
         self.voz_tono.set_title("Tono")
-        self.voz_tono.set_subtitle("0 estándar · valores positivos más agudo")
+        import shutil as _shutil
+        self.voz_tono.set_subtitle(
+            "0 estándar · valores positivos más agudo"
+            if _shutil.which("sox") or not voz.tiene_motor_neuronal() else
+            "0 estándar · con la voz neuronal requiere sox (sudo apt install sox)")
         self.voz_tono.connect("notify::value", self.on_voz_tono)
         gvoz.add(self.voz_tono)
 

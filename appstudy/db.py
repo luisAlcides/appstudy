@@ -157,6 +157,19 @@ CREATE TABLE IF NOT EXISTS online_courses (
     UNIQUE(platform, course_slug)
 );
 
+-- Currículo de freeCodeCamp: qué lección de qué curso llevas hecha o vista.
+-- El catálogo en sí no se guarda aquí (se cachea en disco): solo tu avance.
+CREATE TABLE IF NOT EXISTS fcc_progress (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    superblock  TEXT NOT NULL,
+    block       TEXT NOT NULL DEFAULT '',
+    slug        TEXT NOT NULL UNIQUE,       -- ruta /learn/... de la lección
+    title       TEXT NOT NULL DEFAULT '',
+    hecho       INTEGER NOT NULL DEFAULT 0,
+    visto_at    REAL NOT NULL DEFAULT 0,
+    updated_at  REAL NOT NULL DEFAULT 0
+);
+
 """
 
 INDEXES = """
@@ -170,6 +183,7 @@ CREATE INDEX IF NOT EXISTS idx_books_abierto ON books(abierto DESC);
 CREATE INDEX IF NOT EXISTS idx_notas_libro  ON notas(ruta, pagina);
 CREATE INDEX IF NOT EXISTS idx_sources_chapter ON card_sources(chapter_uid);
 CREATE INDEX IF NOT EXISTS idx_online_plat ON online_courses(platform, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_fcc_sb ON fcc_progress(superblock, block);
 """
 
 
@@ -965,3 +979,62 @@ def get_online_course(con, platform: str, course_slug: str) -> dict | None:
     ).fetchone()
     return dict(fila) if fila else None
 
+
+
+# --------------------------------------------------------------- freeCodeCamp
+
+def fcc_marcar(con, superblock: str, block: str, slug: str, title: str = "",
+               hecho: bool | None = None) -> None:
+    """Anota que has visto (y opcionalmente completado) una lección del currículo.
+
+    `hecho=None` solo registra la visita sin tocar lo que ya estuviera marcado:
+    así abrir de nuevo una lección terminada no la desmarca.
+    """
+    slug = (slug or "").strip()
+    if not slug:
+        return
+    ahora = time.time()
+    con.execute(
+        """INSERT INTO fcc_progress (superblock, block, slug, title, hecho, visto_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(slug) DO UPDATE SET
+               superblock=excluded.superblock,
+               block=excluded.block,
+               title=CASE WHEN excluded.title != '' THEN excluded.title ELSE fcc_progress.title END,
+               hecho=CASE WHEN ? THEN excluded.hecho ELSE fcc_progress.hecho END,
+               visto_at=excluded.visto_at,
+               updated_at=excluded.updated_at""",
+        (superblock.strip(), (block or "").strip(), slug, (title or "").strip(),
+         1 if hecho else 0, ahora, ahora, hecho is not None))
+    con.commit()
+
+
+def fcc_hechas(con, superblock: str | None = None) -> dict:
+    """Devuelve {slug: fila} con el avance guardado, de un curso o de todos."""
+    if superblock:
+        filas = con.execute("SELECT * FROM fcc_progress WHERE superblock=?",
+                            (superblock.strip(),)).fetchall()
+    else:
+        filas = con.execute("SELECT * FROM fcc_progress").fetchall()
+    return {f["slug"]: dict(f) for f in filas}
+
+
+def fcc_ultima(con, superblock: str | None = None) -> dict | None:
+    """La lección de freeCodeCamp que tocaste más recientemente."""
+    if superblock:
+        fila = con.execute(
+            "SELECT * FROM fcc_progress WHERE superblock=? ORDER BY visto_at DESC LIMIT 1",
+            (superblock.strip(),)).fetchone()
+    else:
+        fila = con.execute(
+            "SELECT * FROM fcc_progress ORDER BY visto_at DESC LIMIT 1").fetchone()
+    return dict(fila) if fila else None
+
+
+def fcc_resumen(con) -> dict:
+    """{superblock: {'hechas': n, 'vistas': n}} para pintar el avance del catálogo."""
+    filas = con.execute(
+        """SELECT superblock, SUM(hecho) AS hechas, COUNT(*) AS vistas
+           FROM fcc_progress GROUP BY superblock""").fetchall()
+    return {f["superblock"]: {"hechas": f["hechas"] or 0, "vistas": f["vistas"] or 0}
+            for f in filas}

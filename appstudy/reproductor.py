@@ -1,4 +1,4 @@
-"""Reproductor web integrado para cursos online (Platzi y Udemy).
+"""Reproductor web integrado para cursos online (freeCodeCamp, Platzi y Udemy).
 
 Permite visualizar clases y videos directamente en una ventana nativa de AppStudy
 utilizando WebKitGTK con sesión persistente (cookies y credenciales guardadas).
@@ -30,11 +30,12 @@ except Exception:
 
 from gi.repository import Adw, Gdk, GLib, Gtk
 
-from . import db, ia, util, voz
+from . import db, freecodecamp, ia, util, voz
 
 PERFIL_DIR = Path.home() / ".local" / "share" / "appstudy" / "player_profile"
 PLATZI_HOME = "https://platzi.com/home"
 UDEMY_HOME = "https://www.udemy.com/home/my-courses/learning/"
+FCC_HOME = "https://www.freecodecamp.org/learn/"
 
 _instancia_reproductor: CursosPlayerWindow | None = None
 _sesion_webkit: WebKit.NetworkSession | None = None
@@ -86,7 +87,7 @@ def reanudar_reproductor_activo():
 
 
 class CursosPlayerWindow(Adw.Window):
-    """Ventana del reproductor web para Platzi y Udemy."""
+    """Ventana del reproductor web para freeCodeCamp, Platzi y Udemy."""
 
     def __init__(self, con, parent_window=None):
         super().__init__(transient_for=parent_window)
@@ -94,7 +95,7 @@ class CursosPlayerWindow(Adw.Window):
         _instancia_reproductor = self
 
         self.con = con
-        self.set_title("Reproductor de Cursos · Platzi & Udemy")
+        self.set_title("Reproductor de Cursos · freeCodeCamp, Platzi y Udemy")
         self.set_default_size(1120, 740)
 
         self.connect("close-request", self._al_cerrar)
@@ -128,6 +129,11 @@ class CursosPlayerWindow(Adw.Window):
 
         # Botones de acceso rápido a plataformas
         self.box_plataformas = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self.btn_fcc = Gtk.Button(label="🔥 freeCodeCamp",
+                                  tooltip_text="Ir al currículo de freeCodeCamp")
+        self.btn_fcc.add_css_class("flat")
+        self.btn_fcc.connect("clicked", lambda _: self.cargar_url(FCC_HOME))
+
         self.btn_platzi = Gtk.Button(label="🟢 Platzi", tooltip_text="Ir a Platzi Home")
         self.btn_platzi.add_css_class("flat")
         self.btn_platzi.connect("clicked", lambda _: self.cargar_url(PLATZI_HOME))
@@ -136,9 +142,16 @@ class CursosPlayerWindow(Adw.Window):
         self.btn_udemy.add_css_class("flat")
         self.btn_udemy.connect("clicked", lambda _: self.cargar_url(UDEMY_HOME))
 
+        self.box_plataformas.append(self.btn_fcc)
         self.box_plataformas.append(self.btn_platzi)
         self.box_plataformas.append(self.btn_udemy)
         self.header.pack_start(self.box_plataformas)
+
+        self.btn_hecha = Gtk.Button(
+            icon_name="object-select-symbolic",
+            tooltip_text="Marcar esta lección de freeCodeCamp como completada")
+        self.btn_hecha.set_visible(False)
+        self.btn_hecha.connect("clicked", lambda _: self.marcar_leccion_fcc(True))
 
         self.btn_tarjeta = Gtk.Button(icon_name="document-new-symbolic", tooltip_text="Crear tarjeta con Bit (Ctrl+N)")
         self.btn_tarjeta.connect("clicked", self._on_crear_tarjeta)
@@ -164,6 +177,7 @@ class CursosPlayerWindow(Adw.Window):
         self.btn_limpiar.connect("clicked", lambda _: self.limpiar_cookies_y_recargar())
 
         self.header.pack_end(self.btn_autopause)
+        self.header.pack_end(self.btn_hecha)
         self.header.pack_end(self.btn_tarjeta)
         self.header.pack_end(self.btn_limpiar)
 
@@ -200,6 +214,8 @@ class CursosPlayerWindow(Adw.Window):
         try:
             self.ucm.register_script_message_handler("videoFin")
             self.ucm.connect("script-message-received::videoFin", self._on_video_fin)
+            self.ucm.register_script_message_handler("retoHecho")
+            self.ucm.connect("script-message-received::retoHecho", self._on_reto_hecho)
         except Exception:
             pass
 
@@ -360,6 +376,8 @@ class CursosPlayerWindow(Adw.Window):
             self._ejecutar_extractor_js(uri)
 
     def _detectar_plataforma(self, uri: str) -> str | None:
+        if "freecodecamp.org" in uri:
+            return "freecodecamp"
         if "platzi.com" in uri:
             return "platzi"
         if "udemy.com" in uri:
@@ -368,11 +386,21 @@ class CursosPlayerWindow(Adw.Window):
 
     def _inspeccionar_pagina(self, uri: str):
         plat = self._detectar_plataforma(uri)
+        self.btn_hecha.set_visible(plat == "freecodecamp" and "/learn/" in uri)
         if not plat:
             self.lbl_info.set_text(uri)
             return
 
-        if plat == "platzi":
+        if plat == "freecodecamp":
+            sb = freecodecamp.superblock_de(uri)
+            bloque = freecodecamp.bloque_de(uri)
+            if sb:
+                self.lbl_info.set_text(
+                    f"🔥 freeCodeCamp · {freecodecamp.nombre_curso(sb)}"
+                    + (f" » {freecodecamp.nombre_bonito(bloque)}" if bloque else ""))
+            else:
+                self.lbl_info.set_text("🔥 freeCodeCamp")
+        elif plat == "platzi":
             m = re.search(r"platzi\.com/(?:clases|cursos)/([^/?#]+)", uri)
             slug = m.group(1) if m else "platzi"
             self.lbl_info.set_text(f"🟢 Platzi · Curso: {slug.replace('-', ' ').title()}")
@@ -408,6 +436,43 @@ class CursosPlayerWindow(Adw.Window):
                               document.querySelector("a.NextClass") ||
                               document.querySelector("a[href*='/clases/']:not([aria-current='page'])");
                 if (nextBtn && nextBtn.href) res.next_url = nextBtn.href;
+            }
+            // 1.b Extraer en freeCodeCamp
+            else if (location.hostname.indexOf("freecodecamp.org") !== -1) {
+                var fh = document.querySelector(".challenge-title") ||
+                         document.querySelector("h1");
+                if (fh) res.lesson_title = fh.innerText.trim();
+
+                var partes = location.pathname.split("/").filter(Boolean);
+                if (partes.length > 1) res.course_title = partes[1].replace(/-/g, " ");
+
+                var fnext = document.querySelector("a[href*='/learn/'][class*='next']") ||
+                            document.querySelector("button[data-playwright-test-label='submit-lesson-button']");
+                if (fnext && fnext.href) res.next_url = fnext.href;
+
+                // Avisar a AppStudy cuando el reto se supera: freeCodeCamp abre
+                // su ventana de enhorabuena antes de pasar al paso siguiente.
+                function vigilarReto() {
+                    var modal = document.querySelector("[data-playwright-test-label='completion-modal']") ||
+                                document.querySelector(".completion-modal") ||
+                                document.querySelector("#completion-modal");
+                    var visible = modal && modal.offsetParent !== null;
+                    if (visible && !window._appstudy_reto_avisado) {
+                        window._appstudy_reto_avisado = location.pathname;
+                        try {
+                            if (window.webkit && window.webkit.messageHandlers &&
+                                window.webkit.messageHandlers.retoHecho) {
+                                window.webkit.messageHandlers.retoHecho.postMessage(location.pathname);
+                            }
+                        } catch(e) {}
+                    } else if (!visible && window._appstudy_reto_avisado !== location.pathname) {
+                        window._appstudy_reto_avisado = null;
+                    }
+                }
+                vigilarReto();
+                if (!window._appstudy_reto_timer) {
+                    window._appstudy_reto_timer = setInterval(vigilarReto, 1500);
+                }
             }
             // 2. Extraer en Udemy
             else if (location.hostname.indexOf("udemy.com") !== -1) {
@@ -469,6 +534,10 @@ class CursosPlayerWindow(Adw.Window):
         course_title = datos.get("course_title") or ""
         next_url = datos.get("next_url") or ""
 
+        if plat == "freecodecamp":
+            self._guardar_progreso_fcc(uri, lesson_title)
+            return
+
         slug = ""
         if plat == "platzi":
             m = re.search(r"platzi\.com/(?:clases|cursos)/([^/?#]+)", uri)
@@ -499,6 +568,35 @@ class CursosPlayerWindow(Adw.Window):
 
         icono = "🟢" if plat == "platzi" else "🟣"
         self.lbl_info.set_text(f"{icono} {plat.capitalize()} · {course_title} » {lesson_title}")
+
+    def _guardar_progreso_fcc(self, uri: str, lesson_title: str = "", hecho=None):
+        """Apunta por dónde vas en el currículo de freeCodeCamp."""
+        ruta = freecodecamp.ruta_de(uri)
+        sb = freecodecamp.superblock_de(uri)
+        if not ruta or not sb:
+            return
+        bloque = freecodecamp.bloque_de(uri)
+        titulo = lesson_title or ruta.rsplit("/", 1)[-1].replace("-", " ").title()
+        db.fcc_marcar(self.con, sb, bloque, ruta, titulo, hecho=hecho)
+        db.upsert_online_course(
+            self.con, platform="freecodecamp", course_slug=sb,
+            course_title=freecodecamp.nombre_curso(sb),
+            course_url=f"https://www.freecodecamp.org/learn/{sb}/",
+            last_video_title=titulo, last_video_url=uri)
+        marca = "✓ " if hecho else ""
+        self.lbl_info.set_text(
+            f"🔥 {marca}freeCodeCamp · {freecodecamp.nombre_curso(sb)} » {titulo}")
+
+    def marcar_leccion_fcc(self, hecho: bool = True):
+        """Marca la lección abierta como completada (botón de la barra superior)."""
+        uri = self.web_view.get_uri() if self.web_view else ""
+        if not uri or self._detectar_plataforma(uri) != "freecodecamp":
+            return
+        self._guardar_progreso_fcc(uri, hecho=hecho)
+
+    def _on_reto_hecho(self, manager, js_result):
+        """freeCodeCamp ha dado el reto por superado: queda marcado en AppStudy."""
+        GLib.idle_add(self.marcar_leccion_fcc, True)
 
     def _on_video_fin(self, manager, js_result):
         """Llamado cuando el video de la lección termina."""
@@ -785,7 +883,10 @@ def abrir_reproductor(con, parent_window=None, url: str | None = None,
         win.cargar_url(url)
     elif plataforma:
         p = plataforma.lower().strip()
-        win.cargar_url(UDEMY_HOME if p == "udemy" else PLATZI_HOME)
+        if p in ("freecodecamp", "fcc"):
+            win.cargar_url(FCC_HOME)
+        else:
+            win.cargar_url(UDEMY_HOME if p == "udemy" else PLATZI_HOME)
     elif not win.web_view.get_uri():
         win.cargar_url(PLATZI_HOME)
 

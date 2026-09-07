@@ -74,6 +74,55 @@ class TestVoz(BaseTemporal):
         self.assertFalse(voz.es_tarjeta_ingles(card_en, texto_es))
         self.assertEqual(voz.detectar_idioma(card_en, texto_es), "es")
 
+    def test_limpiar_conserva_pausas_de_lista(self):
+        # Cada línea es una frase: sin viñetas y con punto para que haya pausa
+        texto = "Pasos del arranque:\n- Girar la llave\n- Soltar al encender"
+        self.assertEqual(voz.limpiar_para_voz(texto),
+                         "Pasos del arranque: Girar la llave. Soltar al encender")
+        # La puntuación repetida no alarga las pausas artificialmente
+        self.assertEqual(voz.limpiar_para_voz("¿Seguro??? Sí..."), "¿Seguro? Sí.")
+
+    def test_preparar_prosodia(self):
+        es = voz.preparar_prosodia("El motor rinde 90% p.ej. a 3000 rpm")
+        self.assertIn("por ciento", es)
+        self.assertIn("por ejemplo", es)
+        self.assertTrue(es.endswith("."))
+
+        en = voz.preparar_prosodia("Water is 100% pure, e.g. rain", idioma="en")
+        self.assertIn("percent", en)
+        self.assertIn("for example", en)
+
+        # No se añade punto si ya termina en signo de cierre
+        self.assertEqual(voz.preparar_prosodia("¡Genial!"), "¡Genial!")
+        self.assertEqual(voz.preparar_prosodia(""), "")
+
+    def test_modelo_para_prefiere_alta_calidad(self):
+        import tempfile
+        from pathlib import Path
+        tmp = Path(tempfile.mkdtemp())
+        anterior, cache = voz.PIPER_DIR, dict(voz._cache_modelos)
+        try:
+            voz.PIPER_DIR = tmp
+            voz._cache_modelos.clear()
+            (tmp / "es_ES-davefx-medium.onnx").touch()
+            (tmp / "es_MX-claude-high.onnx").touch()
+            self.assertEqual(voz.modelo_para("es").name, "es_MX-claude-high.onnx")
+
+            # Una voz desconocida vale si es del idioma pedido
+            voz._cache_modelos.clear()
+            (tmp / "en_GB-alba-medium.onnx").touch()
+            self.assertEqual(voz.modelo_para("en").name, "en_GB-alba-medium.onnx")
+
+            # Sin modelos del idioma no hay motor neuronal
+            voz._cache_modelos.clear()
+            for f in tmp.glob("*.onnx"):
+                f.unlink()
+            self.assertIsNone(voz.modelo_para("en"))
+        finally:
+            voz.PIPER_DIR = anterior
+            voz._cache_modelos.clear()
+            voz._cache_modelos.update(cache)
+
     def test_hablar_inactivo_devuelve_cero(self):
         cfg = {"activo": False}
         dur = voz.hablar("Hola mundo", cfg)

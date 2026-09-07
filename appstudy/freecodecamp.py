@@ -9,6 +9,7 @@ from __future__ import annotations
 import html
 import json
 import re
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -223,7 +224,9 @@ def obtener_leccion(url_o_slug: str) -> dict:
         try:
             datos_raw = _peticion_http(ruta_api)
             data = json.loads(datos_raw.decode("utf-8"))
-            result = data.get("result", {}).get("data", {})
+            resultado = data.get("result", {})
+            result = resultado.get("data", {})
+            meta = resultado.get("pageContext", {}).get("challengeMeta", {}) or {}
             challenge_node = result.get("challengeNode", {})
             challenge = challenge_node.get("challenge", {})
 
@@ -253,6 +256,9 @@ def obtener_leccion(url_o_slug: str) -> dict:
                 if textos_tests:
                     cuerpo_ia.append("Criterios de verificación y comportamiento:\n" + "\n".join(textos_tests[:5]))
 
+                def _absoluta(ruta):
+                    return f"https://www.freecodecamp.org{ruta}" if ruta else ""
+
                 return {
                     "titulo": titulo,
                     "bloque": bloque,
@@ -260,6 +266,9 @@ def obtener_leccion(url_o_slug: str) -> dict:
                     "descripcion": desc,
                     "instrucciones": inst,
                     "fuente": url,
+                    "siguiente": _absoluta(meta.get("nextChallengePath", "")),
+                    "anterior": _absoluta(meta.get("prevChallengePath", "")),
+                    "ultima_del_bloque": bool(meta.get("isLastChallengeInBlock")),
                     "texto_para_ia": "\n\n".join(cuerpo_ia),
                 }
         except (FCCError, json.JSONDecodeError):
@@ -295,6 +304,9 @@ def obtener_leccion(url_o_slug: str) -> dict:
         "descripcion": desc,
         "instrucciones": "",
         "fuente": url,
+        "siguiente": "",
+        "anterior": "",
+        "ultima_del_bloque": False,
         "texto_para_ia": f"Título: {titulo}\n\n{desc}",
     }
 
@@ -420,3 +432,189 @@ def guardar_como_lectura(con, leccion: dict, deck_id: int, deck_key: str, nivel:
 
     cap_db = db.chapter_by_id(con, cid)
     return cap_db if cap_db else cap
+
+
+# ------------------------------------------------------------------ catálogo
+
+# El índice del currículo completo (todas las certificaciones con todas sus
+# lecciones) viaja en un único page-data de unos 8 MB. Se descarga una vez y se
+# reparte en un archivo por curso, así que abrir el catálogo luego es instantáneo.
+INDICE_URL = ("https://www.freecodecamp.org/page-data/learn/"
+              "scientific-computing-with-python/page-data.json")
+CACHE_DIAS = 7
+
+# Cursos que se ofrecen en el catálogo, en el orden en que se muestran. La clave
+# es el superBlock tal y como lo nombra freeCodeCamp en su currículo.
+CURSOS = [
+    ("responsive-web-design-v9", "🌐", "Diseño Web Adaptable (HTML y CSS)", "datos"),
+    ("javascript-v9", "⚡", "JavaScript desde cero", "datos"),
+    ("python-v9", "🐍", "Python desde cero", "python"),
+    ("scientific-computing-with-python", "🐍", "Computación Científica con Python", "python"),
+    ("data-analysis-with-python", "📊", "Análisis de Datos con Python", "python"),
+    ("machine-learning-with-python", "🤖", "Machine Learning con Python", "ia"),
+    ("relational-databases-v9", "🗄️", "Bases de Datos Relacionales", "linux"),
+    ("back-end-development-and-apis-v9", "🛠️", "Back End y APIs (Node y Express)", "linux"),
+    ("front-end-development-libraries-v9", "⚛️", "Librerías de Front End", "datos"),
+    ("javascript-algorithms-and-data-structures-v8", "🧠", "Algoritmos y Estructuras de Datos", "datos"),
+    ("quality-assurance", "🧪", "Control de Calidad y Pruebas", "datos"),
+    ("information-security", "🔒", "Seguridad Informática", "linux"),
+    ("college-algebra-with-python", "🧮", "Álgebra Universitaria con Python", "matematicas"),
+    ("a2-english-for-developers", "🗣️", "Inglés para Programadores (A2)", "ingles"),
+    ("b1-english-for-developers", "🗣️", "Inglés para Programadores (B1)", "ingles"),
+    ("foundational-c-sharp-with-microsoft", "🔷", "C# con Microsoft", "datos"),
+    ("project-euler", "➗", "Project Euler (retos matemáticos)", "matematicas"),
+    ("coding-interview-prep", "💼", "Preparación de Entrevistas", "datos"),
+]
+
+MAZO_POR_CURSO = {sb: mazo for sb, _i, _n, mazo in CURSOS}
+
+
+def _cache_dir():
+    from . import db
+    ruta = db.DATA_DIR / "fcc"
+    ruta.mkdir(parents=True, exist_ok=True)
+    return ruta
+
+
+def nombre_bonito(dashed: str) -> str:
+    """«learn-basic-css-by-building-a-cafe-menu» → «Learn Basic Css By Building A Cafe Menu»."""
+    return (dashed or "").replace("-", " ").strip().title()
+
+
+def nombre_curso(superblock: str) -> str:
+    """El nombre en castellano del curso; si no está en el catálogo, el suyo."""
+    for sb, _ico, nombre, _mazo in CURSOS:
+        if sb == superblock:
+            return nombre
+    return nombre_bonito(superblock)
+
+
+def listar_cursos() -> list[dict]:
+    """Catálogo de cursos ofrecidos, con su icono, nombre y mazo sugerido."""
+    return [{"superblock": sb, "icono": ico, "nombre": nom, "deck_sugerido": mazo,
+             "url": f"https://www.freecodecamp.org/learn/{sb}/"}
+            for sb, ico, nom, mazo in CURSOS]
+
+
+def _repartir_indice(datos: dict) -> dict:
+    """Convierte el índice descargado en {superblock: catálogo} y lo deja en caché."""
+    nodos = (datos.get("result", {}).get("data", {})
+             .get("allChallengeNode", {}).get("nodes", []))
+    if not nodos:
+        raise FCCError("El índice de freeCodeCamp llegó vacío o con otro formato.")
+
+    por_curso: dict[str, dict] = {}
+    for nodo in nodos:
+        reto = nodo.get("challenge") or {}
+        sb = reto.get("superBlock")
+        bloque = reto.get("block")
+        slug = (reto.get("fields") or {}).get("slug")
+        if not sb or not bloque or not slug:
+            continue
+        curso = por_curso.setdefault(sb, {"superblock": sb, "bloques": {}})
+        b = curso["bloques"].setdefault(
+            bloque, {"block": bloque, "titulo": nombre_bonito(bloque),
+                     "orden": reto.get("order") or 0, "lecciones": []})
+        b["lecciones"].append({
+            "titulo": reto.get("title") or "Lección",
+            "slug": slug,
+            "url": f"https://www.freecodecamp.org{slug}",
+        })
+
+    catalogos = {}
+    ahora = time.time()
+    for sb, curso in por_curso.items():
+        bloques = sorted(curso["bloques"].values(), key=lambda b: b["orden"])
+        catalogo = {"superblock": sb, "descargado": ahora, "bloques": bloques,
+                    "lecciones": sum(len(b["lecciones"]) for b in bloques)}
+        catalogos[sb] = catalogo
+        try:
+            (_cache_dir() / f"{_archivo_seguro(sb)}.json").write_text(
+                json.dumps(catalogo), encoding="utf-8")
+        except OSError:
+            pass
+    return catalogos
+
+
+def _archivo_seguro(superblock: str) -> str:
+    return re.sub(r"[^a-z0-9_-]+", "_", superblock.lower())
+
+
+def catalogo(superblock: str, refrescar: bool = False) -> dict:
+    """Devuelve los bloques y lecciones de un curso, tirando de caché si la hay.
+
+    Estructura: {'superblock', 'bloques': [{'block', 'titulo', 'lecciones': [
+    {'titulo', 'slug', 'url'}]}], 'lecciones': n}
+    """
+    sb = (superblock or "").strip()
+    if not sb:
+        raise FCCError("Falta el identificador del curso de freeCodeCamp.")
+    archivo = _cache_dir() / f"{_archivo_seguro(sb)}.json"
+    if not refrescar and archivo.exists():
+        try:
+            guardado = json.loads(archivo.read_text(encoding="utf-8"))
+            if time.time() - guardado.get("descargado", 0) < CACHE_DIAS * 86400:
+                return guardado
+        except (OSError, json.JSONDecodeError):
+            pass
+
+    crudo = _peticion_http(INDICE_URL)
+    try:
+        datos = json.loads(crudo.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise FCCError("No se pudo leer el índice del currículo de freeCodeCamp.") from e
+
+    catalogos = _repartir_indice(datos)
+    if sb not in catalogos:
+        # Puede que el curso quedara en caché de una descarga anterior
+        if archivo.exists():
+            try:
+                return json.loads(archivo.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                pass
+        raise FCCError(f"freeCodeCamp ya no publica el curso «{sb}».")
+    return catalogos[sb]
+
+
+def catalogo_en_cache(superblock: str) -> dict | None:
+    """El catálogo guardado en disco, sin tocar la red. None si no está."""
+    archivo = _cache_dir() / f"{_archivo_seguro(superblock)}.json"
+    if not archivo.exists():
+        return None
+    try:
+        return json.loads(archivo.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def superblock_de(url: str) -> str:
+    """Saca el curso al que pertenece una URL del currículo ('' si no es una)."""
+    m = re.search(r"freecodecamp\.org/(?:[a-z-]+/)?learn/([^/?#]+)(?:/([^/?#]+))?", url or "")
+    if not m:
+        return ""
+    sb = m.group(1)
+    # Las rutas con año («/learn/2022/responsive-web-design/…») llevan el
+    # superBlock en el segundo tramo.
+    if re.fullmatch(r"\d{4}", sb) and m.group(2):
+        return f"{sb}/{m.group(2)}"
+    return sb
+
+
+def bloque_de(url: str) -> str:
+    """El módulo (block) al que pertenece una URL de lección; '' si no se ve."""
+    sb = superblock_de(url)
+    if not sb:
+        return ""
+    m = re.search(re.escape(sb) + r"/([^/?#]+)", url)
+    return m.group(1) if m else ""
+
+
+def ruta_de(url: str) -> str:
+    """La ruta canónica «/learn/…» de una lección, que es como se guarda el avance."""
+    try:
+        camino = urllib.parse.urlparse(url).path.rstrip("/")
+    except ValueError:
+        return ""
+    if "/learn/" not in camino:
+        return ""
+    return "/learn/" + camino.split("/learn/", 1)[1]

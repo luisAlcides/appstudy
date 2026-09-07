@@ -853,10 +853,38 @@ El nombre del modelo no tiene por qué ser un gemma: en Ajustes puedes escribir
 cualquiera que tengas descargado. La familia gemma solo es la preferida cuando el
 que pediste no está y AppStudy tiene que elegir por ti (`elegir_modelo()`).
 
-### Integración con freeCodeCamp y generación de tarjetas con IA
+### Tomar cursos de freeCodeCamp dentro de AppStudy
 
-AppStudy se conecta con [freeCodeCamp.org](https://www.freecodecamp.org/) a través de Internet
-para descargar lecciones, desafíos y cursos completos, transformándolos automáticamente en tarjetas de estudio con la IA local:
+En el **Panel**, dentro de «Modos de estudio», la tarjeta **🔥 Cursos de freeCodeCamp**
+abre el catálogo completo del currículo de [freeCodeCamp.org](https://www.freecodecamp.org/)
+sin salir de la aplicación. Son tres pasos: **curso → módulo → lección**.
+
+- **El catálogo.** Dieciocho certificaciones y cursos (desarrollo web, JavaScript,
+  Python, análisis de datos, machine learning, bases de datos, back end, seguridad,
+  álgebra, inglés para programadores…). Cada uno muestra cuántas lecciones llevas
+  hechas de cuántas hay. El currículo entero se descarga **una sola vez** (unos 8 MB)
+  y queda en caché en `~/.local/share/appstudy/fcc/`; a partir de ahí el catálogo abre
+  al instante. El botón ↻ de la cabecera lo vuelve a descargar cuando quieras.
+- **Hacer la lección.** Al pulsarla se abre en el reproductor web integrado, con su
+  editor de código y sus pruebas, tal cual en freeCodeCamp: la haces ahí. Cuando
+  freeCodeCamp da el reto por superado, AppStudy **la marca sola** como completada; el
+  botón ✓ de la barra superior la marca a mano si prefieres. En el catálogo, «▶ Empezar
+  el módulo» salta directamente a la primera lección que te falta, y arriba del todo
+  tienes **«Seguir donde lo dejaste»**.
+- **Convertirla en estudio.** Cada lección lleva dos botones más: 📄 la guarda como
+  capítulo propio para leerla en **Leer** (también sin conexión), y ☰ le pide a la IA
+  local que saque tarjetas de repaso de ella, con la previsualización de siempre para
+  elegir cuáles guardar. El mazo destino se propone según el curso (Python, Datos, IA,
+  Linux, Inglés, Matemáticas).
+
+Tu avance vive en la base de AppStudy (tabla `fcc_progress`), no en tu cuenta de
+freeCodeCamp: para que la web guarde tu progreso oficial, inicia sesión dentro del
+reproductor como en cualquier navegador (la sesión y las cookies se conservan).
+
+### Generar tarjetas desde una URL suelta de freeCodeCamp
+
+Además del catálogo, cualquier página de freeCodeCamp —lecciones, artículos o
+tutoriales— se puede convertir en tarjetas con la IA local:
 
 - **Desde la interfaz gráfica:** en la pestaña **Tarjetas**, junto al botón de IA y el de importar, pulsa el botón del globo terráqueo 🌐 (*Generar tarjetas desde freeCodeCamp con IA*). Puedes elegir directamente una certificación de la lista o pegar cualquier URL de freeCodeCamp (`https://www.freecodecamp.org/learn/...`). La IA procesará la lección y te presentará una previsualización interactiva con casillas para elegir qué tarjetas guardar en tu mazo.
 - **Por terminal:**

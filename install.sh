@@ -25,6 +25,10 @@ from gi.repository import Gtk, Adw
 }
 python3 -c "import pygments" 2>/dev/null || \
   echo "  (aviso) falta pygments: el código se verá sin colores. sudo apt install python3-pygments"
+python3 -c "import bs4" 2>/dev/null || \
+  echo "  (aviso) falta beautifulsoup4: el análisis HTML de libros usará el procesador básico. Instala con: pip install beautifulsoup4"
+python3 -c "import vosk" 2>/dev/null || \
+  echo "  (aviso) falta vosk: el reconocimiento de voz usará motores alternativos si existen. Instala con: pip install vosk"
 command -v curl >/dev/null || command -v wget >/dev/null || \
   echo "  (aviso) falta curl o wget para descargar modelos: sudo apt install curl"
 command -v paplay >/dev/null || command -v pw-play >/dev/null || command -v aplay >/dev/null || \
@@ -161,35 +165,41 @@ else
   echo "  ✓ Piper TTS ya instalado"
 fi
 
-# 2. Modelo de voz en español (es_ES-davefx-medium)
-ES_BASE="https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/es/es_ES/davefx/medium"
-if [ ! -f "$PIPER_DIR/es_ES-davefx-medium.onnx" ]; then
-  echo "  Descargando modelo de voz en español (es_ES-davefx-medium)…"
-  curl -fSL $PROGRESS_FLAG "${ES_BASE}/es_ES-davefx-medium.onnx" -o "$PIPER_DIR/es_ES-davefx-medium.onnx" 2>/dev/null || \
-    wget -qO "$PIPER_DIR/es_ES-davefx-medium.onnx" "${ES_BASE}/es_ES-davefx-medium.onnx" 2>/dev/null || true
-  curl -fSL -s "${ES_BASE}/es_ES-davefx-medium.onnx.json" -o "$PIPER_DIR/es_ES-davefx-medium.onnx.json" 2>/dev/null || \
-    wget -qO "$PIPER_DIR/es_ES-davefx-medium.onnx.json" "${ES_BASE}/es_ES-davefx-medium.onnx.json" 2>/dev/null || true
-  if [ -f "$PIPER_DIR/es_ES-davefx-medium.onnx" ]; then
-    echo "  ✓ Modelo de voz en español listo"
+# 2. Modelos de voz (se prefiere la calidad "high"; la "medium" queda de reserva)
+descargar_voz() {  # $1 ruta en el repo de voces, $2 nombre del modelo
+  local ruta="$1" nombre="$2"
+  local base="https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/$ruta"
+  if [ -f "$PIPER_DIR/$nombre.onnx" ]; then
+    echo "  ✓ Voz $nombre lista"
+    return 0
   fi
-else
-  echo "  ✓ Modelo de voz en español listo"
-fi
+  echo "  Descargando voz $nombre…"
+  curl -fSL $PROGRESS_FLAG "$base/$nombre.onnx" -o "$PIPER_DIR/$nombre.onnx" 2>/dev/null || \
+    wget -qO "$PIPER_DIR/$nombre.onnx" "$base/$nombre.onnx" 2>/dev/null || true
+  curl -fSL -s "$base/$nombre.onnx.json" -o "$PIPER_DIR/$nombre.onnx.json" 2>/dev/null || \
+    wget -qO "$PIPER_DIR/$nombre.onnx.json" "$base/$nombre.onnx.json" 2>/dev/null || true
+  if [ -s "$PIPER_DIR/$nombre.onnx" ] && [ -s "$PIPER_DIR/$nombre.onnx.json" ]; then
+    echo "  ✓ Voz $nombre lista"
+    return 0
+  fi
+  rm -f "$PIPER_DIR/$nombre.onnx" "$PIPER_DIR/$nombre.onnx.json"
+  return 1
+}
 
-# 3. Modelo de voz en inglés (en_US-lessac-medium)
-EN_BASE="https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/en/en_US/lessac/medium"
-if [ ! -f "$PIPER_DIR/en_US-lessac-medium.onnx" ]; then
-  echo "  Descargando modelo de voz en inglés (en_US-lessac-medium)…"
-  curl -fSL $PROGRESS_FLAG "${EN_BASE}/en_US-lessac-medium.onnx" -o "$PIPER_DIR/en_US-lessac-medium.onnx" 2>/dev/null || \
-    wget -qO "$PIPER_DIR/en_US-lessac-medium.onnx" "${EN_BASE}/en_US-lessac-medium.onnx" 2>/dev/null || true
-  curl -fSL -s "${EN_BASE}/en_US-lessac-medium.onnx.json" -o "$PIPER_DIR/en_US-lessac-medium.onnx.json" 2>/dev/null || \
-    wget -qO "$PIPER_DIR/en_US-lessac-medium.onnx.json" "${EN_BASE}/en_US-lessac-medium.onnx.json" 2>/dev/null || true
-  if [ -f "$PIPER_DIR/en_US-lessac-medium.onnx" ]; then
-    echo "  ✓ Modelo de voz en inglés listo"
-  fi
-else
-  echo "  ✓ Modelo de voz en inglés listo"
-fi
+# Español: sharvard es la que suena más natural de las disponibles en Piper
+descargar_voz "es/es_ES/sharvard/medium" "es_ES-sharvard-medium" || \
+  descargar_voz "es/es_MX/claude/high" "es_MX-claude-high" || \
+  descargar_voz "es/es_ES/davefx/medium" "es_ES-davefx-medium" || \
+  echo "  (aviso) No se pudo descargar ninguna voz en español."
+
+# Inglés: voz de alta calidad; si falla, la media de siempre
+descargar_voz "en/en_US/lessac/high" "en_US-lessac-high" || \
+  descargar_voz "en/en_US/lessac/medium" "en_US-lessac-medium" || \
+  echo "  (aviso) No se pudo descargar ninguna voz en inglés."
+
+# 3. sox (opcional): permite ajustar el tono de la voz desde Ajustes
+command -v sox >/dev/null || \
+  echo "  (aviso) falta sox: el control de tono de la voz quedará inactivo. sudo apt install sox"
 
 # 4. Modelo de IA local (Ollama)
 echo "▸ Verificando modelo de IA local (Ollama)…"
@@ -205,6 +215,36 @@ else
   echo "    curl -fsSL https://ollama.com/install.sh | sh && ollama pull gemma3:4b"
 fi
 
+# 5. Modelos de Reconocimiento de Voz (Vosk STT)
+echo "▸ Verificando modelos de reconocimiento de voz (Vosk STT)…"
+VOSK_DIR="$HOME/.local/share/appstudy/vosk"
+mkdir -p "$VOSK_DIR"
+if [ ! -d "$VOSK_DIR/vosk-model-small-es-0.42" ]; then
+  echo "  Descargando modelo Vosk en español (es_ES)…"
+  curl -fSL $PROGRESS_FLAG "https://alphacephei.com/vosk/models/vosk-model-small-es-0.42.zip" -o "$VOSK_DIR/vosk-es.zip" 2>/dev/null || \
+    wget -qO "$VOSK_DIR/vosk-es.zip" "https://alphacephei.com/vosk/models/vosk-model-small-es-0.42.zip" 2>/dev/null || true
+  if [ -f "$VOSK_DIR/vosk-es.zip" ]; then
+    unzip -q "$VOSK_DIR/vosk-es.zip" -d "$VOSK_DIR/" 2>/dev/null || true
+    rm -f "$VOSK_DIR/vosk-es.zip"
+    echo "  ✓ Modelo Vosk en español listo"
+  fi
+else
+  echo "  ✓ Modelo Vosk en español listo"
+fi
+
+if [ ! -d "$VOSK_DIR/vosk-model-small-en-us-0.15" ]; then
+  echo "  Descargando modelo Vosk en inglés (en_US)…"
+  curl -fSL $PROGRESS_FLAG "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip" -o "$VOSK_DIR/vosk-en.zip" 2>/dev/null || \
+    wget -qO "$VOSK_DIR/vosk-en.zip" "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip" 2>/dev/null || true
+  if [ -f "$VOSK_DIR/vosk-en.zip" ]; then
+    unzip -q "$VOSK_DIR/vosk-en.zip" -d "$VOSK_DIR/" 2>/dev/null || true
+    rm -f "$VOSK_DIR/vosk-en.zip"
+    echo "  ✓ Modelo Vosk en inglés listo"
+  fi
+else
+  echo "  ✓ Modelo Vosk en inglés listo"
+fi
+
 echo
 echo "✓ Listo."
 echo "  Popup:            pulsa el atajo desde cualquier aplicación"
@@ -214,5 +254,6 @@ echo "  Mascota:          appstudy --pet   (o Ajustes → Bit, la mascota)"
 echo "  Dock:             anclado con su icono (si algo falla, arrástralo tú)"
 echo "  Barra superior:   icono de AppStudy (tras reiniciar la sesión)"
 echo "  Voz neuronal:     Piper TTS (español e inglés en $PIPER_DIR)"
+echo "  Reconocimiento:   Vosk STT (español e inglés en $VOSK_DIR)"
 echo "  IA local:         Ollama (gemma3:4b)"
 echo "  Cambiar el atajo: dentro de la app, pestaña Ajustes"
