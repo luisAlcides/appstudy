@@ -95,6 +95,11 @@ CHAT = "#5B86D6"
 
 TINTA = (0.16, 0.14, 0.12)      # ojos, cejas y boca, en marrón cálido
 
+# Cuánto se agrandan y bajan los rasgos dentro del cuerpo. Los accesorios no se
+# tocan: las gafas y la corona van con la cabeza, no con la cara.
+CARA_ESCALA = 1.09
+CARA_BAJA = 3.0
+
 # Evoluciona por trabajo real, no por tiempo abierto. Los accesorios son Cairo
 # puro: unas pocas curvas más al dibujar, sin imágenes ni memoria adicional.
 EVOLUCIONES = (
@@ -257,6 +262,10 @@ class Creature(Gtk.DrawingArea):
         self.hover_suave = 0.0
         self.reduced_motion = False
         self.accessory = "ninguno"
+        # 'f', 'm' o '': de quién es la voz con la que habla. Cambia la cara,
+        # para que a quien le contesta una voz de mujer no le hable un muñeco
+        # con cara de otra cosa.
+        self.genero = ""
         # Cuánto llevas sin estudiar, de 0 (acabas de repasar) a 1 (varios días).
         # Le cambia el ánimo, pero también cómo se mueve: se le nota en el cuerpo.
         self.abandono = 0.0
@@ -686,7 +695,13 @@ class Creature(Gtk.DrawingArea):
         cr.save()
         # La cara acompaña la mirada, con menos recorrido que las pupilas.
         cr.translate(self.mirada[0] * 1.2, self.mirada[1] * 0.8)
+        cr.save()
+        # Los rasgos, un punto mayores y algo más abajo: centrados en el mochi
+        # se leen mejor de lejos y no dejan medio cuerpo vacío bajo la boca.
+        cr.translate(0, CARA_BAJA)
+        cr.scale(CARA_ESCALA, CARA_ESCALA)
         self._cara(cr, color, dormido)
+        cr.restore()
         self._accesorio(cr, color)
         cr.restore()
         cr.restore()
@@ -719,16 +734,20 @@ class Creature(Gtk.DrawingArea):
         Cairo no tiene desenfoque, así que se imita con trazos concéntricos cada
         vez más tenues. Sin esto la mascota se perdería sobre un fondo claro.
         """
-        for grosor, alpha in ((7.0, 0.035), (3.4, 0.055)):
+        for grosor, alpha in ((6.0, 0.022), (2.8, 0.038)):
             dibujar()
             cr.set_source_rgba(0.10, 0.07, 0.05, alpha)
             cr.set_line_width(grosor * ancho)
             cr.stroke()
 
     def _perfil(self, cr, alpha=0.30, grosor=1.9):
-        """El contorno cálido que separa a Bit de cualquier escritorio."""
-        cr.set_source_rgba(0.29, 0.23, 0.19, alpha)
-        cr.set_line_width(grosor)
+        """El contorno cálido que separa a Bit de cualquier escritorio.
+
+        Marrón cálido y fino: el gris azulado y el trazo grueso son lo que le
+        daban aire de pegatina recortada en vez de dibujo.
+        """
+        cr.set_source_rgba(0.34, 0.24, 0.18, alpha * 0.88)
+        cr.set_line_width(grosor * 0.82)
         cr.stroke()
 
     def _pintar_estrella(self, cr, color, r, inercia, fase):
@@ -762,15 +781,18 @@ class Creature(Gtk.DrawingArea):
 
         # Sombra suave y contorno van DEBAJO del relleno: así el borde queda
         # limpio aunque los rayos se pisen entre sí.
-        self._halo(cr, silueta, 1.4)
+        self._halo(cr, silueta, 1.2)
         silueta()
-        self._perfil(cr, 0.34, 3.2)
+        self._perfil(cr, 0.30, 2.4)
 
         silueta()
-        g = cairo.RadialGradient(-r * 0.25, -r * 0.30, 4, 0, 0, r)
-        g.add_color_stop_rgba(0, *_claro(color, 0.30))
-        g.add_color_stop_rgba(0.45, *_hex(color))
-        g.add_color_stop_rgba(1, *_oscuro(color, 0.80))
+        # Más recorrido de luz a sombra: la punta se separa del cuerpo del rayo
+        # y los once dejan de leerse como una mancha.
+        g = cairo.RadialGradient(-r * 0.28, -r * 0.34, 3, 0, 0, r * 1.02)
+        g.add_color_stop_rgba(0, *_claro(color, 0.42))
+        g.add_color_stop_rgba(0.38, *_claro(color, 0.10))
+        g.add_color_stop_rgba(0.72, *_hex(color))
+        g.add_color_stop_rgba(1, *_oscuro(color, 0.72))
         cr.set_source(g)
         cr.fill()
 
@@ -779,10 +801,10 @@ class Creature(Gtk.DrawingArea):
         for i in range(11):
             cr.save()
             cr.rotate(i * math.tau / 11 + inercia * math.sin(i * 1.73) * 0.45)
-            cr.move_to(r * 0.67, -3)
-            cr.curve_to(r * 0.74, -4.5, r * 0.83, -3.5, r * 0.88, -1.5)
-            cr.set_source_rgba(1, 0.96, 0.87, 0.24)
-            cr.set_line_width(2.1)
+            cr.move_to(r * 0.58, -3.2)
+            cr.curve_to(r * 0.70, -4.8, r * 0.84, -3.8, r * 0.92, -1.2)
+            cr.set_source_rgba(1, 0.96, 0.87, 0.30)
+            cr.set_line_width(2.3)
             cr.stroke()
             cr.restore()
 
@@ -960,13 +982,20 @@ class Creature(Gtk.DrawingArea):
         self._perfil(cr)
 
         # Pequeña insignia de luz: un detalle propio, legible incluso al 50 %.
-        cr.move_to(0, 22)
-        cr.curve_to(1, 25, 2, 26, 5, 27)
-        cr.curve_to(2, 28, 1, 29, 0, 32)
-        cr.curve_to(-1, 29, -2, 28, -5, 27)
-        cr.curve_to(-2, 26, -1, 25, 0, 22)
+        # Va más abajo que la cara, que ahora ocupa más sitio, para que no se le
+        # monte a la boca.
+        cr.move_to(0, 26)
+        cr.curve_to(1, 29, 2, 30, 5, 31)
+        cr.curve_to(2, 32, 1, 33, 0, 36)
+        cr.curve_to(-1, 33, -2, 32, -5, 31)
+        cr.curve_to(-2, 30, -1, 29, 0, 26)
         cr.set_source_rgba(*_hex(color, 0.72))
         cr.fill()
+
+    def color_hex(self) -> str:
+        """El color del ánimo en curso, en hexadecimal."""
+        return MOODS.get("normal" if self.charlando else self.mood, TERRACOTA) \
+            if not self.charlando else CHAT
 
     def _pies(self, cr):
         """Dos pies rechonchos que asoman bajo el mochi y alternan con el balanceo."""
@@ -983,13 +1012,43 @@ class Creature(Gtk.DrawingArea):
                              self.RY - 1 + fase * 0.4 - levanta)
                 cr.rotate(lado * (0.12 + levanta * 0.025))
                 cr.scale(1.0, 0.58)
-                cr.arc(0, 0, 11.5, 0, math.tau)
+                cr.arc(0, 0, 12.3, 0, math.tau)
                 cr.restore()
             self._halo(cr, pie, 0.7)
+            # Sombra de contacto: sin ella los pies flotan sobre el escritorio
+            cr.save()
+            cr.translate(lado * (15 + levanta * 0.35), self.RY + 4.2)
+            cr.scale(1.0, 0.3)
+            sombra = cairo.RadialGradient(0, 0, 1, 0, 0, 11)
+            opacidad = 0.26 * max(0.0, 1 - levanta / 9.0)   # al levantar el pie, se va
+            sombra.add_color_stop_rgba(0, 0.16, 0.10, 0.07, opacidad)
+            sombra.add_color_stop_rgba(1, 0.16, 0.10, 0.07, 0.0)
+            cr.arc(0, 0, 11, 0, math.tau)
+            cr.set_source(sombra)
+            cr.fill()
+            cr.restore()
+
             pie()
-            cr.set_source_rgba(*_hex(CREMA_SOMBRA))
+            # Volumen en vez de un relleno plano: claro arriba, sombra abajo,
+            # que es lo que los sacaba grises y apagados al lado del cuerpo.
+            g = cairo.RadialGradient(lado * 12, self.RY - 6, 1,
+                                     lado * 15, self.RY + 1, 15)
+            g.add_color_stop_rgba(0, *_hex(CREMA))
+            g.add_color_stop_rgba(1, *_hex(CREMA_SOMBRA))
+            cr.set_source(g)
             cr.fill_preserve()
-            self._perfil(cr, 0.30)
+            cr.save()
+            cr.clip_preserve()
+            # El mismo rebote de color que tiene el cuerpo en el borde: sin él
+            # los pies se leen grises al lado de un cuerpo cálido.
+            rebote = cairo.RadialGradient(lado * 15, self.RY - 4, 2,
+                                          lado * 15, self.RY + 3, 13)
+            rebote.add_color_stop_rgba(0, *_hex(self.color_hex(), 0.0))
+            rebote.add_color_stop_rgba(1, *_hex(self.color_hex(), 0.30))
+            cr.set_source(rebote)
+            cr.paint()
+            cr.restore()
+            self._perfil(cr, 0.46, 2.2)
 
     def _brazos(self, cr, color):
         """Dos brazos cortos con manopla; el derecho saluda cuando toca.
@@ -1028,22 +1087,33 @@ class Creature(Gtk.DrawingArea):
                 largo = 15 + 7 * k
 
             cr.save()
-            cr.translate(lado * 30, 5)
+            cr.translate(lado * 30, 6.5)
             cr.scale(lado, 1)               # el izquierdo, en espejo
             cr.rotate(ang)
             cr.set_line_cap(cairo.LINE_CAP_ROUND)
             for grosor, rgba in ((13.5, (0.10, 0.07, 0.05, 0.06)),
-                                 (11.6, (0.29, 0.23, 0.19, 0.30)),
+                                 (11.9, (0.34, 0.24, 0.18, 0.40)),
                                  (9.4, _hex(CREMA))):
                 cr.move_to(0, 0)
                 cr.line_to(largo, 0)
                 cr.set_source_rgba(*rgba)
                 cr.set_line_width(grosor)
                 cr.stroke()
-            cr.arc(largo + 1.5, 0, 6.6, 0, math.tau)     # la manopla
-            cr.set_source_rgba(*_hex(CREMA_CLARO))
+            cr.arc(largo + 1.5, 0, 7.4, 0, math.tau)     # la manopla
+            g = cairo.RadialGradient(largo - 0.8, -2.4, 0.5, largo + 1.5, 0.5, 8.2)
+            g.add_color_stop_rgba(0, *_hex(CREMA_CLARO))
+            g.add_color_stop_rgba(1, *_hex(CREMA_SOMBRA))
+            cr.set_source(g)
             cr.fill_preserve()
-            self._perfil(cr, 0.28)
+            cr.save()
+            cr.clip_preserve()
+            rebote = cairo.RadialGradient(largo + 0.5, -1.5, 1, largo + 1.5, 1.5, 8.5)
+            rebote.add_color_stop_rgba(0, *_hex(color, 0.0))
+            rebote.add_color_stop_rgba(1, *_hex(color, 0.28))
+            cr.set_source(rebote)
+            cr.paint()
+            cr.restore()
+            self._perfil(cr, 0.44, 2.2)
             cr.restore()
 
     def _cara(self, cr, color, dormido):
@@ -1078,6 +1148,8 @@ class Creature(Gtk.DrawingArea):
                 cr.set_line_width(2.8)
                 cr.set_line_cap(cairo.LINE_CAP_ROUND)
                 cr.stroke()
+                if self.genero == "f":
+                    self._pestanas(cr, ex, ey, dx, 0.55)
                 continue
 
             def ojo():
@@ -1131,6 +1203,9 @@ class Creature(Gtk.DrawingArea):
             cr.fill()
             cr.restore()
 
+            if self.genero == "f":
+                self._pestanas(cr, ex, ey, dx, apertura)
+
         if self.abandono > 0.45 and not dormido:
             self._ojeras(cr, min(1.0, (self.abandono - 0.45) / 0.55))
         self._cejas(cr, cerrado)
@@ -1152,7 +1227,10 @@ class Creature(Gtk.DrawingArea):
                   self.phase("risa") is not None or self.phase("baile") is not None)
         for dx in (-23, 23):
             g = cairo.RadialGradient(dx, 8, 1, dx, 8, 8)
-            g.add_color_stop_rgba(0, *_hex(color, 0.40 if fuerte else 0.22))
+            intensidad = 0.40 if fuerte else 0.22
+            if self.genero == "f":
+                intensidad += 0.08
+            g.add_color_stop_rgba(0, *_hex(color, intensidad))
             g.add_color_stop_rgba(1, *_hex(color, 0.0))
             cr.save()
             cr.translate(dx, 8)
@@ -1161,6 +1239,26 @@ class Creature(Gtk.DrawingArea):
             cr.restore()
             cr.set_source(g)
             cr.fill()
+
+    def _pestanas(self, cr, ex, ey, lado, apertura):
+        """Tres pestañas en la esquina de fuera de cada ojo."""
+        fuera = 1 if lado > 0 else -1
+        rx, ry = 9.2, 9.2 * 1.18 * max(0.35, apertura)
+        cr.save()
+        cr.set_source_rgba(*TINTA, 0.85)
+        cr.set_line_width(1.6)
+        cr.set_line_cap(cairo.LINE_CAP_ROUND)
+        # Nacen del borde del ojo, en el cuarto de arriba y hacia fuera, y
+        # apuntan en la misma dirección en la que sale el borde.
+        for grados, largo in ((22, 4.6), (46, 5.4), (70, 5.0)):
+            ang = math.radians(grados)
+            base_x = ex + fuera * rx * math.cos(ang)
+            base_y = ey - ry * math.sin(ang)
+            cr.move_to(base_x, base_y)
+            cr.line_to(base_x + fuera * largo * math.cos(ang),
+                       base_y - largo * math.sin(ang))
+            cr.stroke()
+        cr.restore()
 
     def _cejas(self, cr, cerrado):
         if self.mood == "dormido":
@@ -1184,14 +1282,19 @@ class Creature(Gtk.DrawingArea):
             alto += 1.5 * pulso(bostezo)
         marcada = self.mood in ("triste", "hambre", "aburrido", "feliz")
         cr.set_source_rgba(*TINTA, 0.72 if marcada else 0.50)
-        cr.set_line_width(2.7 if marcada else 2.4)
+        grosor = 2.7 if marcada else 2.4
+        if self.genero == "f":
+            grosor -= 0.55        # ceja más fina, un pelo más arqueada
+            alto -= 1.2
+        cr.set_line_width(grosor)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
         for lado in (-1, 1):
             cr.save()
             cr.translate(lado * 13.5, alto)
             cr.rotate(inclinacion * lado)
+            arco = -3.0 if self.genero == "f" else -2.2
             cr.move_to(-6, 0)
-            cr.curve_to(-2, -2.2, 2, -2.2, 6, 0)
+            cr.curve_to(-2, arco, 2, arco, 6, 0)
             cr.stroke()
             cr.restore()
 
@@ -1319,6 +1422,11 @@ class Creature(Gtk.DrawingArea):
             cr.fill_preserve()
             self._perfil(cr, 0.24, 1.3)
         elif self.accessory == "gafas":
+            # Las gafas van sobre los ojos, así que siguen a la cara cuando esta
+            # se agranda o se baja; el pañuelo y la corona no, que van al cuerpo.
+            cr.save()
+            cr.translate(0, CARA_BAJA)
+            cr.scale(CARA_ESCALA, CARA_ESCALA)
             cr.set_source_rgba(*TINTA, 0.78)
             cr.set_line_width(2.4)
             for dx in (-13.5, 13.5):
@@ -1333,6 +1441,7 @@ class Creature(Gtk.DrawingArea):
             cr.stroke()
             cr.move_to(-24, -8); cr.line_to(-34, -12); cr.stroke()
             cr.move_to(24, -8); cr.line_to(34, -12); cr.stroke()
+            cr.restore()
         elif self.accessory == "corona":
             cr.move_to(-18, -31)
             cr.line_to(-21, -49)
@@ -1720,6 +1829,7 @@ class PetWindow(Gtk.ApplicationWindow):
         repasos = total_repasos(self.con)
         self.creature.accessory = accesorio_valido(
             str(db.get_meta(self.con, "pet_accessory", "ninguno")), repasos)
+        self.creature.genero = self.voz_cfg.get("genero", "")
         self.creature.teaching = self.bubble.get_reveal_child()
         self.set_tooltip_text(
             f"{NOMBRE} · {t['pendientes']} pendientes · {t['hoy']} hoy · "
@@ -2025,6 +2135,7 @@ class PetWindow(Gtk.ApplicationWindow):
         self.voz_cfg = voz.config(self.con)
         if not self.voz_cfg.get("activo", True):
             return
+        self.cara_de_la_voz(texto, getattr(self, "card", None))
         duracion = voz.hablar(texto, self.voz_cfg, on_done=self.on_voz_terminada,
                               card=getattr(self, "card", None))
         if duracion > 0:
@@ -2062,7 +2173,9 @@ class PetWindow(Gtk.ApplicationWindow):
                     else:
                         self.creature.desanimar()
                         self.sonar("fallo")
-                    duracion = voz.hablar(juicio["feedback"], self.voz_cfg, card=self.card)
+                    self.cara_de_la_voz(juicio["feedback"], self.card)
+                    duracion = voz.hablar(juicio["feedback"], self.voz_cfg, card=self.card,
+                                          on_done=self.on_voz_terminada)
                     if duracion > 0:
                         self.creature.hablar(duracion)
 
@@ -2107,7 +2220,24 @@ class PetWindow(Gtk.ApplicationWindow):
             self.btn_voz.set_icon_name("audio-volume-high-symbolic")
             self.btn_voz.set_tooltip_text("Escuchar (leer en voz alta)")
 
+    def cara_de_la_voz(self, texto="", card=None):
+        """Pone la cara de la voz con la que va a hablar ahora mismo.
+
+        La voz se elige por frase —una tarjeta de inglés la lee la voz inglesa—,
+        así que la cara va con ella y no con el idioma configurado.
+        """
+        if not getattr(self, "creature", None):
+            return
+        idioma = voz.detectar_idioma(card=card, texto=texto)
+        self.creature.genero = voz.genero_voz(idioma)
+
+    def cara_en_reposo(self):
+        """Al callarse, vuelve a la cara de su voz de siempre."""
+        if getattr(self, "creature", None):
+            self.creature.genero = self.voz_cfg.get("genero", "")
+
     def on_voz_terminada(self):
+        self.cara_en_reposo()
         if hasattr(self, "creature") and self.creature:
             self.creature.hablando_hasta = 0
         if hasattr(self, "btn_voz") and self.btn_voz:
@@ -2789,6 +2919,7 @@ class PetWindow(Gtk.ApplicationWindow):
         self.voz_cfg = voz.config(self.con)
         self.estado_conversacion("hablando")
         fin = self.fin_turno_hablado if seguir else (lambda: self.on_voz_terminada())
+        self.cara_de_la_voz(texto)
         duracion = voz.hablar(texto, self.voz_cfg, on_done=fin)
         if duracion > 0:
             self.creature.hablar(duracion)
@@ -3170,7 +3301,8 @@ class PetWindow(Gtk.ApplicationWindow):
 
         self.say(f"🎬 <b>{texto_voz}</b>", titulo="🎬 Cursos Online")
         if getattr(self, "voz_cfg", {}).get("activo", True):
-            dur = voz.hablar(texto_voz, self.voz_cfg)
+            self.cara_de_la_voz(texto_voz)
+            dur = voz.hablar(texto_voz, self.voz_cfg, on_done=self.on_voz_terminada)
             if dur > 0:
                 self.creature.hablar(dur)
 

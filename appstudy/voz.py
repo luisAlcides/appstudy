@@ -310,6 +310,38 @@ def tiene_motor_neuronal(idioma: str | None = None) -> bool:
     return modelo_para(idioma) is not None
 
 
+# De qué voz es cada modelo de Piper. En Kokoro no hace falta tabla: el nombre
+# lo dice (af_heart es americana femenina, em_santa español masculino), pero los
+# de Piper no siguen ninguna convención y hay que saberlo de escucharlos.
+GENERO_PIPER = {
+    "es_ES-sharvard-medium": "f",
+    "es_ES-davefx-medium": "m",
+    "es_MX-claude-high": "m",
+    "es_MX-ald-medium": "m",
+    "en_US-lessac-medium": "f",
+    "en_US-lessac-high": "f",
+    "en_US-amy-medium": "f",
+    "en_US-hfc_female-medium": "f",
+    "en_US-ryan-high": "m",
+}
+
+
+def genero_kokoro(nombre: str) -> str:
+    """Kokoro nombra sus voces idioma + f/m + nombre: af_heart, em_santa…"""
+    return nombre[1] if len(nombre) > 2 and nombre[1] in "fm" and nombre[2] == "_" else ""
+
+
+def genero_voz(idioma: str | None = None) -> str:
+    """'f', 'm' o '' según de quién sea la voz que se está usando.
+
+    Bit se dibuja acorde: si le pones una voz de mujer, se ve como una.
+    """
+    if tiene_kokoro():
+        return genero_kokoro(KOKORO_VOZ.get(_idioma_corto(idioma), ""))
+    modelo = modelo_para(idioma)
+    return GENERO_PIPER.get(modelo.stem, "") if modelo else ""
+
+
 def motor_actual() -> str:
     """Motor de voz que se usará: 'kokoro', 'piper', 'spd-say' o ''."""
     if tiene_kokoro():
@@ -453,6 +485,7 @@ def config(con) -> dict:
         "tono": max(-50, min(50, tono)),
         "idioma": str(db.get_meta(con, "voz_idioma", "es")),
         "clave": db.get_meta(con, "voz_clave", "1") == "1",
+        "genero": genero_voz(db.get_meta(con, "voz_idioma", "es")),
         "neuronal": tiene_motor_neuronal() or tiene_kokoro(),
         "motor": motor_actual(),
     }

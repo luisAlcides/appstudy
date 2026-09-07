@@ -140,6 +140,24 @@ class TestVoz(BaseTemporal):
         self.assertIn(voz.motor_actual(), ("kokoro", "piper", "spd-say", ""))
         self.assertEqual(voz.config(self.con)["motor"], voz.motor_actual())
 
+    def test_genero_de_la_voz(self):
+        # Kokoro lo dice en el nombre; Piper necesita la tabla
+        self.assertEqual(voz.genero_kokoro("af_heart"), "f")
+        self.assertEqual(voz.genero_kokoro("em_santa"), "m")
+        self.assertEqual(voz.genero_kokoro("ef_dora"), "f")
+        for raro in ("", "x", "santa", "abc_def"):
+            self.assertEqual(voz.genero_kokoro(raro), "")
+        self.assertEqual(voz.GENERO_PIPER["es_ES-sharvard-medium"], "f")
+        self.assertEqual(voz.GENERO_PIPER["es_ES-davefx-medium"], "m")
+        self.assertIn(voz.genero_voz("es"), ("f", "m", ""))
+        # La cara va con la voz de cada frase: una tarjeta de inglés la lee la
+        # voz inglesa, y la cara tiene que ser la de esa voz, no la del ajuste
+        card_en = {"deck_key": "ingles", "deck_name": "Inglés"}
+        idioma = voz.detectar_idioma(card_en, "Choose the correct sentence")
+        self.assertEqual(idioma, "en")
+        self.assertEqual(voz.genero_voz(idioma), voz.genero_voz("en"))
+        self.assertEqual(voz.config(self.con)["genero"], voz.genero_voz("es"))
+
     def test_hablar_inactivo_devuelve_cero(self):
         cfg = {"activo": False}
         dur = voz.hablar("Hola mundo", cfg)

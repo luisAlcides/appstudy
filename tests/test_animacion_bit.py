@@ -19,6 +19,7 @@ class BitSinVentana:
         self.teaching = self.charlando = self.hover = self.reduced_motion = False
         self.hover_suave = self.abandono = 0.0
         self.accessory = "ninguno"
+        self.genero = ""
         self.anims = {}
         self.particulas = []
         self.mirada = [0.0, 0.0]
@@ -134,3 +135,27 @@ class AnimacionBitTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CaraSegunLaVozTest(unittest.TestCase):
+    """Bit se dibuja acorde a la voz con la que habla."""
+
+    @staticmethod
+    def pintar(genero, mood="normal"):
+        bit = BitSinVentana()
+        bit.genero = genero
+        bit.mood = mood
+        bit.t = 3.0
+        superficie = cairo.ImageSurface(cairo.FORMAT_ARGB32, *pet.DISENO)
+        bit.draw(None, cairo.Context(superficie), *pet.DISENO)
+        return bytes(superficie.get_data())
+
+    def test_la_cara_cambia_con_el_genero_de_la_voz(self):
+        neutra, mujer, hombre = (self.pintar(""), self.pintar("f"), self.pintar("m"))
+        self.assertNotEqual(neutra, mujer)      # pestañas, cejas y color de cachetes
+        self.assertEqual(neutra, hombre)        # el masculino es la cara de siempre
+
+    def test_se_dibuja_en_todos_los_animos(self):
+        for mood in pet.MOODS:
+            for genero in ("", "f", "m"):
+                self.assertTrue(self.pintar(genero, mood))

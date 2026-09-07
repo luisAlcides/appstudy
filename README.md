@@ -128,6 +128,52 @@ solo volver a abrir lo que estuviera corriendo.
 | La mascota (`pet.py`, `ia.py`, `sonido.py`…) | `appstudy --pet-off && appstudy --pet` |
 | Contenido de `content/*.json` | **Ctrl+R** o `appstudy --reload` |
 | Icono, lanzador, dock, atajo, extensión | `./install.sh` (o `./actualizar.sh`) |
+| Motores o voces nuevas (Kokoro, Piper, Vosk) | `./install.sh` (o `./actualizar.sh`) |
+| `sox` o `vosk` | a mano, una vez (ver abajo) |
+
+### Actualizar en una máquina que ya tenía AppStudy
+
+`actualizar.sh` llama a `install.sh`, y este salta lo que ya esté y descarga solo
+lo que falte. Así que **para la voz y el oído no hay que hacer nada más**: la
+primera actualización después de un cambio de motor se lleva un rato porque baja
+lo que no tuvieras (Kokoro y su entorno son ~490 MB, una voz de Piper ~75 MB, los
+modelos de Vosk ~126 MB), y las siguientes no bajan nada.
+
+Lo único que hay que poner a mano, una sola vez por máquina, porque toca el
+sistema y el instalador no puede:
+
+```bash
+sudo apt install sox            # control de tono de la voz
+pip install --user vosk         # oír lo que dices, y el «hola bit»
+```
+
+Después de actualizar, para que todo coja lo nuevo:
+
+- **La ventana principal**: ciérrala y ábrela (el propio script te lo recuerda).
+- **Bit**: `actualizar.sh` ya la reinicia. A mano sería
+  `appstudy --pet-off && appstudy --pet`. Hace falta para que empiece a escuchar
+  el «hola bit», que se pone en marcha al arrancar la mascota.
+- **La extensión de GNOME**: solo si cambió, y entonces hay que cerrar sesión.
+
+Para comprobar que quedó todo en su sitio:
+
+```bash
+python3 -c "
+from appstudy import voz, voz_rec
+import shutil
+print('motor de voz:', voz.motor_actual())
+print('voces:      ', voz.voz_actual('es'), '·', voz.voz_actual('en'))
+print('oído:       ', voz_rec.tiene_reconocimiento_voz('es'))
+print('hola bit:   ', voz_rec.EscuchaPalabraClave.disponible('es'))
+print('tono (sox): ', bool(shutil.which('sox')))"
+```
+
+Con todo puesto responde `kokoro`, las dos voces, y `True` en las tres últimas.
+Un `piper` en la primera línea significa que Kokoro no llegó a instalarse —se oye
+bien igual, pero menos natural—; un `False` en el oído deja el «hola bit» y las
+respuestas habladas fuera, y se arregla con el `pip install` de arriba. Los
+ajustes viven en la base de datos, así que **no se pierde nada al actualizar**:
+volumen, velocidad, tono y el interruptor del «hola bit» siguen como los dejaste.
 
 ## Uso
 
@@ -819,6 +865,21 @@ Si algo de esto falla —no hay `uv`, no se pudo bajar el modelo, la máquina es
 vieja— **no se rompe nada**: la voz cae sola en Piper, y si tampoco estuviera, en
 `spd-say` del sistema. El instalador te lo dice al terminar, y en Ajustes ves qué
 motor y qué voces están activos.
+
+### La cara de Bit sigue a su voz
+
+Bit se dibuja acorde a la voz con la que habla **en cada frase**, no al idioma
+que tengas configurado: como una tarjeta de inglés la lee la voz inglesa, que es
+de mujer, al leerla le salen pestañas, la ceja más fina y arqueada y los cachetes
+un punto más presentes; en cuanto vuelve al español y a su voz masculina, vuelve
+la cara de siempre. No hay ajuste que tocar y no hay que reiniciar nada: cambia
+sola al hablar, y al callarse se queda con la cara de su voz habitual.
+
+De dónde sale el dato: las voces de Kokoro lo llevan en el nombre (`af_heart` es
+americana femenina, `em_santa` español masculino, `ef_dora` española femenina),
+y las de Piper, que no siguen ninguna convención, están en la tabla
+`GENERO_PIPER` de `appstudy/voz.py`. Una voz que no esté en ninguna de las dos
+deja la cara neutra en vez de inventarse nada.
 
 ### Cambiar de voz
 
