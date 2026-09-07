@@ -255,9 +255,12 @@ class PopupWindow(Adw.Window):
             if len(self.recent_ids) > 30:
                 self.recent_ids.pop(0)
 
+        # Práctica intercalada: si no estás repasando un mazo concreto, la
+        # siguiente sale de otro tema que la que acabas de responder.
+        anterior = self.card["deck_key"] if self.card and not self.deck_key else None
         self.card = scheduler.next_card(self.con, self.deck_key, level=self.level,
                                         tags=self.tags, exclude_ids=self.recent_ids,
-                                        exclude_id=current_id)
+                                        exclude_id=current_id, evitar_deck=anterior)
         if self.card is None and (self.level or self.tags):
             # El capítulo ya no tiene tarjetas pendientes: se amplía al mazo entero
             self.level = self.tags = None
@@ -525,6 +528,8 @@ class PopupWindow(Adw.Window):
                                    use_markup=True, wrap=True, xalign=0))
             caja_fb.append(in_fb)
             box.append(caja_fb)
+            if jv.get("pronunciacion"):
+                box.append(self.caja_pronunciacion(jv["pronunciacion"]))
 
         box.append(Gtk.Label(label=util.to_markup(text), use_markup=True, wrap=True,
                              xalign=0, css_classes=["as-back"], selectable=True))
@@ -943,6 +948,45 @@ class PopupWindow(Adw.Window):
                 self.btn_voz.set_tooltip_text("Detener lectura (V)")
         return False
 
+    def caja_pronunciacion(self, p: dict) -> Gtk.Widget:
+        """Cómo sonó cada palabra, con el modelo a mano para volver a oírlo."""
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
+                       css_classes=["as-card", "as-pronunciacion"])
+        for lado in ("top", "bottom", "start", "end"):
+            getattr(caja, f"set_margin_{lado}")(8)
+        caja.append(Gtk.Label(
+            label=f"<b>Pronunciación {p['nota']}/100</b> · {p['veredicto']}",
+            use_markup=True, wrap=True, xalign=0))
+
+        # Cada palabra con su marca: verde va bien, ámbar salió dudosa, roja no
+        # se entendió. Es más útil que una nota sola, que no dice qué repetir.
+        palabras = Gtk.FlowBox(selection_mode=Gtk.SelectionMode.NONE, max_children_per_line=8,
+                               column_spacing=4, row_spacing=4)
+        clases = {"bien": "as-pron-bien", "floja": "as-pron-floja", "mal": "as-pron-mal"}
+        for d in p["detalle"]:
+            palabras.append(Gtk.Label(label=d["palabra"],
+                                      css_classes=["as-chip", clases[d["estado"]]]))
+        caja.append(palabras)
+
+        if p["repasar"]:
+            fila = Gtk.Box(spacing=6)
+            escuchar = Gtk.Button(label="🔊 Escúchalo", css_classes=["pill"])
+            escuchar.connect("clicked", lambda *_: self.escuchar_modelo())
+            fila.append(escuchar)
+            repetir = Gtk.Button(label="🎙️ Repetir", css_classes=["pill", "suggested-action"])
+            repetir.connect("clicked", lambda *_: self.alternar_microfono())
+            fila.append(repetir)
+            caja.append(fila)
+        return caja
+
+    def escuchar_modelo(self):
+        """Lee la respuesta con la voz del idioma de la tarjeta, para imitarla."""
+        from . import voz
+        if not self.card:
+            return
+        voz.detener()
+        voz.hablar(self.card["back"], self.voz_cfg, card=self.card)
+
     def alternar_microfono(self):
         import threading
         from . import voz_rec
@@ -962,8 +1006,15 @@ class PopupWindow(Adw.Window):
                 cfg_ia = ia.config(self.con)
 
                 def _tarea():
-                    dicho = voz_rec.transcribir_audio(ruta, idioma=idioma)
-                    return voz_rec.juzgar_respuesta(dicho, self.card["back"], card=self.card, cfg_ia=cfg_ia)
+                    dicho, palabras = voz_rec.transcribir_con_palabras(ruta, idioma=idioma)
+                    juicio = voz_rec.juzgar_respuesta(dicho, self.card["back"],
+                                                      card=self.card, cfg_ia=cfg_ia)
+                    # La pronunciación solo se puntúa en inglés: en tu idioma lo
+                    # que se juzga es si sabes la respuesta, no cómo suena.
+                    if idioma == "en" and dicho:
+                        juicio["pronunciacion"] = voz_rec.evaluar_pronunciacion(
+                            self.card["back"], palabras, dicho)
+                    return juicio
 
                 def _fin(juicio):
                     self.feedback_voz = juicio

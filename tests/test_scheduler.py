@@ -7,7 +7,7 @@ del año, la selección de la próxima tarjeta y el deshacer del día.
 import time
 import unittest
 
-from appstudy import fsrs, scheduler
+from appstudy import db, fsrs, scheduler
 from tests.apoyo import BaseTemporal
 
 AGAIN, HARD, GOOD, EASY = scheduler.AGAIN, scheduler.HARD, scheduler.GOOD, scheduler.EASY
@@ -310,3 +310,109 @@ class TestNextCard(BaseTemporal):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LimiteNuevasTest(BaseTemporal):
+    """El cupo diario de tarjetas nuevas: sin él, un mazo grande se come de golpe."""
+
+    def setUp(self):
+        super().setUp()
+        self.deck = self.mazo()
+        self.ids = [self.tarjeta(self.deck, f"nueva {i}") for i in range(8)]
+
+    def test_por_defecto_hay_tope(self):
+        self.assertEqual(db.nuevas_por_dia(self.con), db.NUEVAS_POR_DIA_DEFECTO)
+
+    def test_deja_de_estrenar_al_agotar_el_cupo(self):
+        db.set_nuevas_por_dia(self.con, 3)
+        estrenadas = set()
+        for _ in range(3):
+            carta = scheduler.next_card(self.con)
+            self.assertIsNotNone(carta)
+            estrenadas.add(carta["id"])
+            self.repasar(carta["id"], 3)
+        self.assertEqual(len(estrenadas), 3)
+        self.assertEqual(db.nuevas_hoy(self.con), 3)
+
+        # Agotado el cupo, no se estrena ninguna más: solo quedan las nuevas,
+        # así que devuelve algo ya visto o nada, pero nunca una sin estrenar
+        for _ in range(5):
+            carta = scheduler.next_card(self.con)
+            if carta is not None:
+                self.assertIn(carta["id"], estrenadas)
+
+    def test_repasar_dos_veces_la_misma_no_gasta_cupo(self):
+        db.set_nuevas_por_dia(self.con, 5)
+        carta = scheduler.next_card(self.con)
+        self.repasar(carta["id"], 1)
+        self.repasar(carta["id"], 3)
+        self.assertEqual(db.nuevas_hoy(self.con), 1)
+
+    def test_sin_tope_no_se_limita(self):
+        db.set_nuevas_por_dia(self.con, 0)
+        for _ in range(6):
+            carta = scheduler.next_card(self.con)
+            self.repasar(carta["id"], 3)
+        self.assertEqual(db.nuevas_hoy(self.con), 6)
+
+    def test_el_cupo_no_bloquea_lo_vencido(self):
+        db.set_nuevas_por_dia(self.con, 1)
+        primera = scheduler.next_card(self.con)
+        self.repasar(primera["id"], 3, cuando=time.time() - 5 * 86400)
+        self.con.execute("UPDATE state SET due=? WHERE card_id=?",
+                         (time.time() - 3600, primera["id"]))
+        self.con.commit()
+        # Con el cupo gastado ayer o no, lo vencido sigue saliendo
+        carta = scheduler.next_card(self.con)
+        self.assertIsNotNone(carta)
+
+    def test_practicar_un_capitulo_puede_saltarse_el_cupo(self):
+        db.set_nuevas_por_dia(self.con, 1)
+        carta = scheduler.next_card(self.con)
+        self.repasar(carta["id"], 3)
+        # Pedir material nuevo a propósito sigue funcionando
+        otra = scheduler.next_card(self.con, respetar_limite=False,
+                                   exclude_id=carta["id"])
+        self.assertIsNotNone(otra)
+        self.assertNotEqual(otra["id"], carta["id"])
+
+    def test_los_totales_cuentan_el_cupo(self):
+        db.set_nuevas_por_dia(self.con, 4)
+        carta = scheduler.next_card(self.con)
+        self.repasar(carta["id"], 3)
+        t = db.totals(self.con)
+        self.assertEqual(t["nuevas_hoy"], 1)
+        self.assertEqual(t["nuevas_tope"], 4)
+        self.assertEqual(t["nuevas_restantes"], 3)
+
+
+class PracticaIntercaladaTest(BaseTemporal):
+    """Saltar de tema entre tarjeta y tarjeta, que es lo que consolida."""
+
+    def setUp(self):
+        super().setUp()
+        self.linux = self.mazo(key="linux", name="Linux")
+        self.mecanica = self.mazo(key="mecanica", name="Mecánica")
+        for i in range(4):
+            self.tarjeta(self.linux, f"linux {i}")
+            self.tarjeta(self.mecanica, f"mecánica {i}", key="mecanica")
+        db.set_nuevas_por_dia(self.con, 0)      # sin tope, para no mezclar asuntos
+
+    def test_la_siguiente_es_de_otro_tema(self):
+        for _ in range(6):
+            carta = scheduler.next_card(self.con, evitar_deck="linux")
+            self.assertEqual(carta["deck_key"], "mecanica")
+
+    def test_si_solo_queda_ese_tema_sigue_dando_tarjeta(self):
+        # Con un único mazo, intercalar es imposible y no debe quedarse en blanco
+        solo = BaseTemporal.mazo(self, key="solo", name="Solo")
+        self.con.execute("UPDATE decks SET enabled=0 WHERE key IN ('linux','mecanica')")
+        self.con.commit()
+        self.tarjeta(solo, "única", key="solo")
+        carta = scheduler.next_card(self.con, evitar_deck="solo")
+        self.assertIsNotNone(carta)
+        self.assertEqual(carta["deck_key"], "solo")
+
+    def test_sin_pedirlo_no_cambia_nada(self):
+        carta = scheduler.next_card(self.con)
+        self.assertIn(carta["deck_key"], ("linux", "mecanica"))

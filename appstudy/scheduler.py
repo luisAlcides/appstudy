@@ -241,17 +241,36 @@ def recalcular_sanguijuelas(con) -> int:
 
 # ------------------------------------------------------------ próxima tarjeta
 
+def _cupo_agotado(con) -> bool:
+    """Cierto si hoy ya se han estrenado todas las tarjetas nuevas que tocaban."""
+    from . import db
+    tope = db.nuevas_por_dia(con)
+    return bool(tope) and db.nuevas_hoy(con) >= tope
+
+
 def next_card(con, deck_key: str | None = None, new_ratio: float = 0.25,
               level: int | None = None, tags: str | None = None,
               exclude_id: int | None = None,
               exclude_ids: set[int] | list[int] | None = None,
-              incluir_sanguijuelas: bool = False):
+              incluir_sanguijuelas: bool = False,
+              respetar_limite: bool = True,
+              evitar_deck: str | None = None):
     """Elige la próxima tarjeta: primero lo vencido, si no algo nuevo, si no un repaso adelantado.
 
     `deck_key`, `level` y `tags` acotan la selección — es lo que usa «practicar
     este capítulo» para preguntar solo sobre lo que acabas de leer.
     `exclude_id` / `exclude_ids` evitan repetir la tarjeta actual al pedir otra.
     Las sanguijuelas se quedan fuera: para eso se apartan.
+
+    Con `respetar_limite`, agotado el cupo diario de tarjetas nuevas deja de
+    estrenar y sigue con lo vencido. Se pone en False cuando pides material
+    nuevo a propósito, como al practicar un capítulo recién leído.
+
+    `evitar_deck` es la práctica intercalada: se le pasa el mazo de la tarjeta
+    que acabas de responder y, si hay de dónde elegir, la siguiente sale de otro
+    tema. Estudiar un mazo entero del tirón se siente más fácil y se recuerda
+    peor: al saltar de tema el cerebro tiene que reconocer de qué va la pregunta
+    antes de contestarla, y ese esfuerzo es justo lo que consolida.
     """
     now = time.time()
     where = "d.enabled=1" if not deck_key else "d.key=?"
@@ -285,8 +304,9 @@ def next_card(con, deck_key: str | None = None, new_ratio: float = 0.25,
     if exclude_ids:
         excluded.update(exclude_ids)
 
+    sin_cupo = respetar_limite and _cupo_agotado(con)
     raw_due = q("AND s.reps>0 AND s.due<=? ORDER BY s.due ASC", (now,), 50)
-    raw_new = q("AND s.reps=0 ORDER BY c.level ASC, RANDOM()", (), 50)
+    raw_new = [] if sin_cupo else q("AND s.reps=0 ORDER BY c.level ASC, RANDOM()", (), 50)
 
     due = [c for c in raw_due if c["id"] not in excluded]
     new = [c for c in raw_new if c["id"] not in excluded]
@@ -299,8 +319,10 @@ def next_card(con, deck_key: str | None = None, new_ratio: float = 0.25,
     elif new:
         pool = new
     else:
-        # Todo al día: repaso de refuerzo, priorizando lo que vence antes
-        raw_fallback = q("ORDER BY s.due ASC", (), 50)
+        # Todo al día: repaso de refuerzo, priorizando lo que vence antes. Sin
+        # cupo se piden solo tarjetas ya vistas: si no, el refuerzo estrenaría
+        # por la puerta de atrás las que el límite acaba de dejar fuera.
+        raw_fallback = q(("AND s.reps>0 " if sin_cupo else "") + "ORDER BY s.due ASC", (), 50)
         fallback = [c for c in raw_fallback if c["id"] not in excluded]
         if fallback:
             pool = fallback
@@ -321,6 +343,12 @@ def next_card(con, deck_key: str | None = None, new_ratio: float = 0.25,
         # Entre las nuevas se respeta el nivel: solo se sortea dentro del más bajo
         minimo = pool[0]["level"]
         pool = [c for c in pool if c["level"] == minimo]
+
+    if evitar_deck:
+        # Intercalar es preferir otro tema, no imponerlo: si lo único que queda
+        # es del mismo mazo, se sigue estudiando en vez de no dar tarjeta.
+        otros = [c for c in pool if c["deck_key"] != evitar_deck]
+        pool = otros or pool
 
     return dict(random.choice(pool[:6]) if len(pool) > 1 else pool[0])
 

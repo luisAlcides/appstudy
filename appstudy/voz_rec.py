@@ -113,6 +113,97 @@ def transcribir_audio(ruta_wav: str, idioma: str = "es") -> str:
     return ""
 
 
+def transcribir_con_palabras(ruta_wav: str, idioma: str = "es") -> tuple[str, list]:
+    """Transcribe y además devuelve la confianza de cada palabra.
+
+    Vosk da una puntuación por palabra: es lo que permite distinguir entre
+    decir otra cosa y decir lo correcto pero mal pronunciado. Con otros motores
+    no hay confianzas y se devuelve la lista vacía.
+    """
+    if not os.path.isfile(ruta_wav):
+        return "", []
+    try:
+        import vosk
+        modelo = _obtener_modelo_vosk(idioma)
+        if modelo is None:
+            return transcribir_audio(ruta_wav, idioma=idioma), []
+        wf = wave.open(ruta_wav, "rb")
+        rec = vosk.KaldiRecognizer(modelo, wf.getframerate())
+        rec.SetWords(True)
+        palabras, textos = [], []
+
+        def acumular(crudo):
+            r = json.loads(crudo)
+            if r.get("text"):
+                textos.append(r["text"])
+            for w in r.get("result", []):
+                palabras.append({"palabra": w.get("word", ""),
+                                 "conf": float(w.get("conf", 0.0))})
+
+        while True:
+            datos = wf.readframes(4000)
+            if not datos:
+                break
+            if rec.AcceptWaveform(datos):
+                acumular(rec.Result())
+        acumular(rec.FinalResult())
+        wf.close()
+        return " ".join(textos).strip(), palabras
+    except Exception:
+        return transcribir_audio(ruta_wav, idioma=idioma), []
+
+
+# Por debajo de esto se considera que la palabra salió dudosa, aunque el motor
+# la reconociera: es el hueco entre «lo dijo» y «se le entendió».
+CONF_BIEN = 0.80
+CONF_FLOJA = 0.45
+
+
+def _palabras(texto: str) -> list:
+    return re.findall(r"[a-záéíóúñüA-ZÁÉÍÓÚÑÜ']+", (texto or "").lower())
+
+
+def evaluar_pronunciacion(esperado: str, palabras: list, dicho: str = "") -> dict:
+    """Compara palabra por palabra lo que se esperaba oír con lo que se oyó.
+
+    No mide si la respuesta es correcta —de eso va `juzgar_respuesta`—, sino si
+    se entiende al decirla: qué palabras salieron limpias, cuáles dudosas y
+    cuáles no se reconocieron. Devuelve una nota de 0 a 100 y el detalle para
+    pintarlo palabra a palabra.
+    """
+    objetivo = _palabras(voz.limpiar_para_voz(esperado))
+    if not objetivo:
+        return {"nota": 0, "detalle": [], "repasar": [], "veredicto": "Nada que comparar."}
+
+    oidas = [p["palabra"].lower() for p in palabras] if palabras else _palabras(dicho)
+    confianzas = [p.get("conf", 1.0) for p in palabras] if palabras else [1.0] * len(oidas)
+
+    detalle = [{"palabra": p, "estado": "mal", "conf": 0.0} for p in objetivo]
+    for bloque in difflib.SequenceMatcher(None, objetivo, oidas).get_matching_blocks():
+        for k in range(bloque.size):
+            conf = confianzas[bloque.b + k] if bloque.b + k < len(confianzas) else 1.0
+            detalle[bloque.a + k] = {
+                "palabra": objetivo[bloque.a + k],
+                "estado": "bien" if conf >= CONF_BIEN else
+                          ("floja" if conf >= CONF_FLOJA else "mal"),
+                "conf": round(conf, 2),
+            }
+
+    puntos = {"bien": 1.0, "floja": 0.55, "mal": 0.0}
+    nota = round(100 * sum(puntos[d["estado"]] for d in detalle) / len(detalle))
+    repasar = [d["palabra"] for d in detalle if d["estado"] != "bien"]
+
+    if nota >= 90:
+        veredicto = "Se te entiende perfectamente."
+    elif nota >= 70:
+        veredicto = "Bien, aunque un par de palabras salieron dudosas."
+    elif nota >= 40:
+        veredicto = "Se entiende a medias: repite despacio las marcadas."
+    else:
+        veredicto = "No se te entendió; prueba otra vez más cerca del micrófono."
+    return {"nota": nota, "detalle": detalle, "repasar": repasar, "veredicto": veredicto}
+
+
 def juzgar_respuesta(dicho: str, esperada: str, card: dict | None = None,
                      cfg_ia: dict | None = None) -> dict:
     """Compara lo dicho por el usuario con la respuesta esperada y juzga el acierto."""

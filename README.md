@@ -537,6 +537,112 @@ rehacer el estado se reproducen los repasos que quedan **con sus fechas de
 verdad**, así que una tarjeta con repasos espaciados meses no acaba con la
 memoria de una repasada tres veces seguidas.
 
+## Cuántas nuevas al día
+
+Un mazo grande sin freno se come de golpe: metes doscientas tarjetas nuevas una
+tarde y tres semanas después te vuelven todas juntas, el día que menos tiempo
+tienes. Por eso hay un **tope diario de tarjetas nuevas** en
+**Ajustes → Tarjetas nuevas al día**, quince por defecto y 0 para quitarlo.
+
+Agotado el cupo, Bit deja de estrenar y sigue con lo vencido —el refuerzo
+también respeta el tope, que si no las colaría por la puerta de atrás—. La
+misma tarjeta repasada dos veces el mismo día gasta cupo una sola vez, porque lo
+que cuenta es estrenarla. En Ajustes ves cuántas llevas hoy, cuánto queda de
+cupo y a cuántos días está el mazo a ese ritmo: mil quinientas nuevas a quince
+al día son cien días, que es un plan, no una montaña.
+
+Cuando practicas un capítulo recién leído se pide material nuevo a propósito y
+el tope no aplica: ahí lo que quieres es justo lo que acabas de leer.
+
+## Pronunciación en las tarjetas de inglés
+
+En una tarjeta de inglés, responder por el micrófono ya no solo dice si
+acertaste: puntúa **cómo lo dijiste**, palabra por palabra. Verde va bien, ámbar
+salió dudosa, roja no se entendió, con una nota sobre 100 y los botones para
+**escuchar el modelo** y **repetir** hasta que salga.
+
+La diferencia entre decirlo mal y decir otra cosa la da Vosk, que devuelve una
+confianza por palabra; sobre eso se alinea lo que dijiste con lo que había que
+decir. En español no se puntúa: ahí lo que se juzga es si sabes la respuesta, no
+cómo suena.
+
+## Examen oral con Bit
+
+**🎓 Examen oral** en la tarjeta de acciones de Bit. Te hace cinco preguntas
+habladas sobre lo que ya has estudiado, escucha tu respuesta, la califica de 0 a
+100 y cierra con un acta: nota, cuántas aprobaste y qué toca repasar. Es lo más
+parecido a que alguien te pregunte en el taller, y mide otra cosa que la tarjeta:
+no si reconoces la respuesta, sino si sabes explicarla.
+
+Tres decisiones que lo hacen útil y no un juguete:
+
+- **Pregunta por el porqué**, no lee el frente de la tarjeta. La pregunta la
+  redacta el modelo a partir de la tarjeta, para que tengas que razonar.
+- **La tarjeta es la verdad**, no lo que el modelo crea saber: se corrige contra
+  ella, así que la nota es de tu temario. Si dices lo que dice la referencia son
+  80 o más aunque sea corto, y no se te exige desarrollo que la tarjeta no trae.
+- **Decir «ni idea» es un cero**, y eso no se le pregunta al modelo. Un modelo
+  pequeño califica con la manga muy ancha: le puso un 60 a un «ni idea» porque
+  al leer la referencia se le pegaba lo que ahí decía. Esa comprobación se hace
+  en código, y la escala del examinador está anclada con ejemplos de qué es un
+  0, un 30 y un 80.
+
+Solo entra lo que ya estudiaste alguna vez —examinarte de lo que no has abierto
+no mide nada— y salen primero las que llevas más tiempo sin repasar. Sin IA
+local activada no hay examen; si el modelo falla a mitad, el examen sigue
+preguntando el frente de la tarjeta tal cual.
+
+## Otras formas de estudiar, además de la tarjeta
+
+La tarjeta es buena para reconocer y floja para lo demás. Estos cuatro modos
+cubren lo que la tarjeta no llega a medir, y todos salen de la tarjeta de
+acciones de Bit.
+
+### Práctica intercalada
+
+Estudiar un mazo entero del tirón se siente más fácil y se recuerda peor. Ahora,
+cuando no estás repasando un mazo concreto, **la siguiente tarjeta sale de otro
+tema** que la que acabas de responder: al saltar, el cerebro tiene que reconocer
+de qué va la pregunta antes de contestarla, y ese esfuerzo es justo lo que
+consolida. Si lo único que queda es del mismo mazo se sigue estudiando: se
+prefiere intercalar, no se impone.
+
+### 🗒️ Recuerdo libre
+
+Eliges un tema, cierras los ojos y **cuentas todo lo que te venga** —hablando o
+escribiendo—, y luego la IA lo contrasta con el material y te dice **qué te
+dejaste**. Es el ejercicio con más respaldo de todos y el único que ninguna
+tarjeta cubre: leer engaña, porque reconoces lo que ya viste y te parece que lo
+sabes; aquí no hay nada delante.
+
+Lo que importa del resultado no es la nota, es la lista de lo que faltó. La nota
+tiene dos frenos, porque un modelo pequeño puntúa por impresión y se equivoca en
+las dos direcciones: si lo que cuentas **ni siquiera usa el vocabulario del
+material** no hay nota que valga (le puso un 65 a un recuerdo de mecánica sobre
+material de estadística), y si el modelo sí hizo el recuento, la nota no puede
+pasar de la proporción entre lo cubierto y lo que faltó.
+
+### 👩‍🎓 Te lo explico
+
+Le explicas un tema **tú a ella**, y Bit hace de alumna que no se entera: no
+explica, pregunta. Pide el porqué, un ejemplo, que le aclares la palabra
+técnica, y te dice qué no le cuadra si te saltas un paso. Explicar en voz alta
+destapa los huecos que releer no destapa, porque releyendo reconoces y
+explicando tienes que producir. Va sobre la conversación hablada, así que es
+manos libres.
+
+### 🔗 Conexiones
+
+En vez de definiciones, **relaciones**: qué tiene que ver una cosa con otra, qué
+pasa si falla una. Saber qué es un alternador y saber qué es una batería no es
+saber por qué el motor se para cuando falla el alternador, y eso último es lo
+que se usa en el taller.
+
+Emparejar bien es la mitad del ejercicio: las parejas salen del mismo mazo y se
+prefieren las que comparten etiquetas, nivel o el término técnico que las une.
+Hace falta haber estudiado **al menos dos tarjetas del mismo tema**; con una
+suelta por mazo te dirá que aún no hay de qué preguntar.
+
 ## Las lecturas
 
 150 capítulos, **1.410 minutos** de material, ordenados por nivel dentro de cada mazo:

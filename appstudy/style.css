@@ -654,3 +654,11 @@ popover.as-menu .as-menu-caja {
 /* Salir se distingue del resto: es la única acción que se lamenta pulsar */
 .as-menu button.as-menu-salir label { color: #E06C5A; }
 .as-menu button.as-menu-salir:hover { background: alpha(#E06C5A, 0.16); }
+
+/* ------------------------------------------- pronunciación palabra a palabra */
+
+.as-pronunciacion { padding: 10px 12px; }
+
+.as-chip.as-pron-bien  { background: alpha(#6E9B7A, 0.28); }
+.as-chip.as-pron-floja { background: alpha(#D9A441, 0.30); }
+.as-chip.as-pron-mal   { background: alpha(#B24A3E, 0.30); font-weight: 700; }

@@ -290,14 +290,17 @@ MEMORIA_CHAT = 12
 
 
 def conversar(cfg, historial: list, pregunta: str, contexto: str = "", trozo=None,
-              hablado: bool = False) -> str:
+              hablado: bool = False, papel: str = "profesora") -> str:
     """Un turno de conversación: el modelo ve lo que ya habéis hablado.
 
     `historial` es una lista de {"role": "user"|"assistant", "content": str}; el
     que llama se encarga de ir añadiendo los turnos. Con `hablado` responde como
     en una charla en voz alta y no como en un chat escrito.
     """
-    sistema = SISTEMA_HABLADO if hablado else SISTEMA
+    if papel == "alumna":
+        sistema = SISTEMA_ALUMNA         # se lo explicas tú y ella pregunta
+    else:
+        sistema = SISTEMA_HABLADO if hablado else SISTEMA
     if contexto:
         sistema += ("\n\nEl estudiante viene de esta tarjeta, tenla presente:\n"
                     + contexto)
@@ -331,6 +334,217 @@ def acortar_para_hablar(texto: str, maximo: int = MAX_PALABRAS_HABLADO) -> str:
     if corte > len(recorte) // 3:      # hay una frase entera aprovechable
         return recorte[:corte + 1].strip()
     return recorte.rstrip(" ,;:") + "."
+
+
+ESQUEMA_EXAMEN = {
+    "type": "object",
+    "properties": {
+        "nota": {"type": "integer"},
+        "veredicto": {"type": "string"},
+        "falto": {"type": "string"},
+    },
+    "required": ["nota", "veredicto"],
+}
+
+
+def preguntar_de_viva_voz(cfg, card, ya_preguntadas: list | None = None) -> str:
+    """Convierte una tarjeta en la pregunta que haría un examinador hablando.
+
+    No vale con leer el frente tal cual: en un examen oral se pregunta por el
+    porqué y por el cómo, que es donde se ve si lo entendiste o lo memorizaste.
+    """
+    frente, dorso = util.plain(card["front"]), util.plain(card["back"])
+    evitar = ""
+    if ya_preguntadas:
+        evitar = "\n\nNo repitas estas, ya se preguntaron:\n- " + "\n- ".join(ya_preguntadas[-4:])
+    usuario = (f"Materia de la tarjeta:\nPregunta: {frente}\nRespuesta: {dorso}\n\n"
+               "Hazle al estudiante UNA pregunta de examen oral sobre esto. Una sola "
+               "frase, hablada, sin numerarla y sin saludar. Que obligue a explicar o "
+               "a razonar, no a soltar una palabra suelta." + evitar)
+    return _limpiar(_mensaje(cfg, [{"role": "system", "content": SISTEMA_HABLADO},
+                                   {"role": "user", "content": usuario}],
+                             temperatura=0.7, keep_alive=KEEP_ALIVE_CHAT))
+
+
+def calificar_respuesta(cfg, card, pregunta: str, respuesta: str) -> dict:
+    """Puntúa de 0 a 100 una respuesta hablada y dice en una frase qué faltó.
+
+    La referencia es la tarjeta, no lo que el modelo crea saber: así la nota es
+    del temario que estudias y no de la enciclopedia del modelo.
+    """
+    frente, dorso = util.plain(card["front"]), util.plain(card["back"])
+    usuario = (
+        f"Eres el examinador. La respuesta de referencia, que es la verdad para "
+        f"esta corrección, es:\n{frente} → {dorso}\n\n"
+        f"Pregunta que hiciste: {pregunta}\n"
+        f"Lo que respondió el estudiante, hablando: {respuesta}\n\n"
+        "Califica de 0 a 100 con esta escala, que es estricta a propósito:\n"
+        "- 0: no contesta, dice que no lo sabe, o habla de otra cosa.\n"
+        "- 1 a 30: suelta una idea vaga sin nada de la referencia.\n"
+        "- 31 a 59: roza el tema pero se deja lo esencial.\n"
+        "- 60 a 79: dice lo esencial aunque se deje detalles.\n"
+        "- 80 a 100: cubre la referencia entera y se explica bien.\n"
+        "Puntúa solo lo que el estudiante DIJO. No le sumes lo que tú sepas del "
+        "tema ni lo que la pregunta ya sugiere. Ante la duda, la nota más baja.\n"
+        "Mide contra la referencia y solo contra ella: si dice lo que la referencia "
+        "dice, son 80 o más aunque sea corto y aunque a ti te parezca poco. No "
+        "exijas desarrollo, ejemplos ni matices que la referencia no trae.\n"
+        "Es una respuesta hablada: perdona la forma, los titubeos y el orden.\n"
+        "'veredicto' es UNA frase corta que se le va a leer en voz alta. "
+        "'falto' es lo que se dejó, en pocas palabras; solo se deja vacío si la "
+        "nota es 80 o más.")
+    crudo = _mensaje(cfg, [{"role": "system", "content": SISTEMA},
+                           {"role": "user", "content": usuario}],
+                     formato=ESQUEMA_EXAMEN, temperatura=0.2,
+                     keep_alive=KEEP_ALIVE_CHAT)
+    try:
+        datos = json.loads(crudo)
+    except json.JSONDecodeError:
+        trozo = re.search(r"\{.*\}", crudo, re.S)
+        if not trozo:
+            raise IAError("El modelo no devolvió una calificación que pueda leer.") from None
+        datos = json.loads(trozo.group(0))
+    try:
+        nota = max(0, min(100, int(datos.get("nota", 0))))
+    except (TypeError, ValueError):
+        nota = 0
+    return {"nota": nota,
+            "veredicto": _limpiar(str(datos.get("veredicto", "")).strip()),
+            "falto": _limpiar(str(datos.get("falto", "")).strip())}
+
+
+# Bit haciéndose la alumna. El efecto Feynman: explicar algo en voz alta a
+# alguien que no lo sabe destapa los huecos que releer no destapa, porque
+# releyendo reconoces lo que ya viste y explicando tienes que producirlo.
+SISTEMA_ALUMNA = """Eres Bit y hoy te toca ser la alumna: el estudiante te va a \
+explicar un tema y tú NO lo sabes. Estás conversando en voz alta con él.
+
+Cómo te comportas:
+- No expliques tú. Tu trabajo es entender lo que te cuenta y preguntar.
+- Una o dos frases por turno, cuarenta palabras como mucho, sin listas ni formato.
+- Pregunta por lo que no quede claro: un porqué, un cómo, un ejemplo, un caso raro.
+- Si usa una palabra técnica sin explicarla, pídele que te la explique.
+- Si se contradice o se salta un paso, dile qué no te cuadra, sin corregirle tú.
+- Cuando algo te quede claro de verdad, dilo en pocas palabras y sigue con lo siguiente.
+- Nunca le des la respuesta ni completes su explicación: te quedas con la duda y preguntas.
+- Habla llano y cercano, en español."""
+
+ESQUEMA_RECUERDO = {
+    "type": "object",
+    "properties": {
+        "nota": {"type": "integer"},
+        "cubierto": {"type": "array", "items": {"type": "string"}},
+        "falto": {"type": "array", "items": {"type": "string"}},
+        "veredicto": {"type": "string"},
+    },
+    "required": ["nota", "falto"],
+}
+
+
+def evaluar_recuerdo(cfg, material: str, recordado: str) -> dict:
+    """Compara lo que recordaste de un tema con el material, y dice qué falta.
+
+    Es el ejercicio de recuerdo libre: cierras el libro, sueltas todo lo que te
+    venga y luego se contrasta. Lo que importa de la respuesta no es la nota,
+    son los puntos que te dejaste, porque son exactamente los que hay que volver
+    a mirar.
+    """
+    usuario = (
+        f"Este es el material que el estudiante tenía que aprender:\n{material}\n\n"
+        f"Esto es TODO lo que ha recordado sin mirar:\n{recordado}\n\n"
+        "Compara una cosa con la otra:\n"
+        "- 'cubierto': los puntos del material que sí ha recordado, en frases cortas.\n"
+        "- 'falto': los puntos del material que no ha mencionado, en frases cortas. "
+        "Este es el campo importante: sé concreto y no te dejes ninguno.\n"
+        "- 'nota': el porcentaje del material que ha recordado, de 0 a 100. Es una "
+        "proporción, no una impresión: si el material tiene diez puntos y menciona "
+        "dos, son 20. Si no menciona NINGÚN punto del material —habla de otro tema, "
+        "o dice generalidades— es 0. No le cuentes como recordado nada que no esté "
+        "en el material, por muy cierto que sea. Da igual el orden y la redacción.\n"
+        "- 'veredicto': UNA frase corta, se le va a leer en voz alta.")
+    crudo = _mensaje(cfg, [{"role": "system", "content": SISTEMA},
+                           {"role": "user", "content": usuario}],
+                     formato=ESQUEMA_RECUERDO, temperatura=0.2,
+                     keep_alive=KEEP_ALIVE_CHAT)
+    try:
+        datos = json.loads(crudo)
+    except json.JSONDecodeError:
+        trozo = re.search(r"\{.*\}", crudo, re.S)
+        if not trozo:
+            raise IAError("El modelo no devolvió un repaso que pueda leer.") from None
+        datos = json.loads(trozo.group(0))
+
+    def lista(clave):
+        valores = datos.get(clave, [])
+        if isinstance(valores, str):
+            valores = [valores]
+        return [_limpiar(str(v).strip()) for v in valores if str(v).strip()][:12]
+
+    try:
+        nota = max(0, min(100, int(datos.get("nota", 0))))
+    except (TypeError, ValueError):
+        nota = 0
+    return {"nota": nota, "cubierto": lista("cubierto"), "falto": lista("falto"),
+            "veredicto": _limpiar(str(datos.get("veredicto", "")).strip())}
+
+
+def pregunta_de_conexion(cfg, uno: dict, otro: dict) -> str:
+    """Una pregunta que ate dos ideas del temario.
+
+    Las tarjetas preguntan piezas sueltas; esto pregunta el sistema. Saber qué
+    es un alternador y saber qué es una batería no es saber por qué el motor se
+    para cuando falla el alternador.
+    """
+    a = f"{util.plain(uno['front'])} → {util.plain(uno['back'])}"
+    b = f"{util.plain(otro['front'])} → {util.plain(otro['back'])}"
+    usuario = (f"Dos cosas del temario del estudiante:\nA) {a}\nB) {b}\n\n"
+               "Hazle UNA pregunta hablada que le obligue a relacionar A con B: qué "
+               "tiene que ver una con otra, qué pasa si falla una, en qué se parecen "
+               "o en qué se contradicen. Una sola frase, sin saludar y sin numerar. "
+               "Si de verdad no tienen ninguna relación, pregunta en qué se "
+               "diferencian.")
+    return _limpiar(_mensaje(cfg, [{"role": "system", "content": SISTEMA_HABLADO},
+                                   {"role": "user", "content": usuario}],
+                             temperatura=0.7, keep_alive=KEEP_ALIVE_CHAT))
+
+
+def calificar_conexion(cfg, uno: dict, otro: dict, pregunta: str, respuesta: str) -> dict:
+    """Puntúa una respuesta de conexión. Aquí no hay respuesta de referencia.
+
+    Se juzga si la relación que cuenta se sostiene con lo que dicen las dos
+    tarjetas; una relación distinta a la esperada pero correcta vale igual.
+    """
+    a = f"{util.plain(uno['front'])} → {util.plain(uno['back'])}"
+    b = f"{util.plain(otro['front'])} → {util.plain(otro['back'])}"
+    usuario = (
+        f"Las dos cosas de las que va la pregunta:\nA) {a}\nB) {b}\n\n"
+        f"Pregunta: {pregunta}\nRespuesta hablada del estudiante: {respuesta}\n\n"
+        "Califica de 0 a 100 si la relación que explica se sostiene con lo que "
+        "dicen A y B. Escala estricta: 0 si no contesta o dice que no lo sabe; "
+        "1 a 30 si repite las definiciones sin relacionarlas; 31 a 59 si intuye "
+        "la relación pero no la explica; 60 a 79 si la explica; 80 a 100 si "
+        "además dice qué pasa cuando una falla o cambia. Una relación distinta a "
+        "la que esperabas vale igual si se sostiene. Ante la duda, la nota más "
+        "baja. 'veredicto' es UNA frase corta para leerle en voz alta y 'falto' "
+        "lo que no llegó a decir.")
+    crudo = _mensaje(cfg, [{"role": "system", "content": SISTEMA},
+                           {"role": "user", "content": usuario}],
+                     formato=ESQUEMA_EXAMEN, temperatura=0.2,
+                     keep_alive=KEEP_ALIVE_CHAT)
+    try:
+        datos = json.loads(crudo)
+    except json.JSONDecodeError:
+        trozo = re.search(r"\{.*\}", crudo, re.S)
+        if not trozo:
+            raise IAError("El modelo no devolvió una calificación que pueda leer.") from None
+        datos = json.loads(trozo.group(0))
+    try:
+        nota = max(0, min(100, int(datos.get("nota", 0))))
+    except (TypeError, ValueError):
+        nota = 0
+    return {"nota": nota,
+            "veredicto": _limpiar(str(datos.get("veredicto", "")).strip()),
+            "falto": _limpiar(str(datos.get("falto", "")).strip())}
 
 
 def explicar(cfg, card, trozo=None) -> str:

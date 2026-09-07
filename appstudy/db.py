@@ -833,12 +833,51 @@ def totals(con):
            WHERE d.enabled=1 AND s.leech=1""").fetchone()[0]
     d["objetivo"] = objetivo_diario(con)
     d["restan"] = max(0, d["objetivo"] - d["hoy"]) if d["objetivo"] else 0
+    d["nuevas_hoy"] = nuevas_hoy(con)
+    tope = nuevas_por_dia(con)
+    d["nuevas_tope"] = tope
+    # Sin tope no hay cupo que contar: quedan todas las que haya sin estrenar
+    d["nuevas_restantes"] = max(0, tope - d["nuevas_hoy"]) if tope else d["nuevas"]
     return d
 
 
 # ------------------------------------------------------------ objetivo diario
 
 OBJETIVO_POR_DEFECTO = 0        # 0 = sin objetivo
+
+
+# Cuántas tarjetas nuevas se dejan entrar por día. Sin tope, un mazo grande se
+# come de golpe: metes doscientas nuevas una tarde y tres semanas después te
+# vuelven todas juntas. Con el límite, un mazo de mil quinientas deja de ser una
+# montaña y pasa a ser un plan con fecha.
+NUEVAS_POR_DIA_DEFECTO = 15
+
+
+def nuevas_por_dia(con) -> int:
+    """Tope diario de tarjetas nuevas. 0 = sin tope."""
+    try:
+        return max(0, int(get_meta(con, "nuevas_por_dia", NUEVAS_POR_DIA_DEFECTO)))
+    except (TypeError, ValueError):
+        return NUEVAS_POR_DIA_DEFECTO
+
+
+def set_nuevas_por_dia(con, tarjetas: int):
+    set_meta(con, "nuevas_por_dia", max(0, int(tarjetas)))
+
+
+def nuevas_hoy(con) -> int:
+    """Cuántas tarjetas has estrenado hoy.
+
+    Estrenar es la primera vez que una tarjeta aparece en el registro; los
+    repasos siguientes de esa misma tarjeta ya no cuentan. El día lo corta
+    SQLite en hora local, igual que la racha.
+    """
+    return con.execute(
+        """SELECT COUNT(DISTINCT l.card_id) FROM log l
+           WHERE date(l.ts, 'unixepoch', 'localtime') = date('now', 'localtime')
+             AND NOT EXISTS (SELECT 1 FROM log p WHERE p.card_id = l.card_id
+                             AND date(p.ts, 'unixepoch', 'localtime')
+                                 < date('now', 'localtime'))""").fetchone()[0]
 
 
 def objetivo_diario(con) -> int:

@@ -1525,6 +1525,12 @@ class MainWindow(Adw.ApplicationWindow):
         self.objetivo_row.set_subtitle("0 para no ponerte objetivo")
         self.objetivo_row.connect("notify::value", self.on_objetivo)
         gmeta.add(self.objetivo_row)
+        self.nuevas_row = Adw.SpinRow.new_with_range(0, 200, 5)
+        self.nuevas_row.set_title("Tarjetas nuevas al día")
+        self.nuevas_row.set_subtitle("Cuántas estrena Bit como mucho cada día · 0 para sin tope")
+        self.nuevas_row.connect("notify::value", self.on_nuevas_por_dia)
+        gmeta.add(self.nuevas_row)
+
         self.objetivo_estado = Adw.ActionRow(title="Esta semana")
         self.objetivo_estado.set_subtitle_lines(2)
         gmeta.add(self.objetivo_estado)
@@ -2805,6 +2811,10 @@ echo hola
         db.set_objetivo_diario(self.con, int(fila.get_value()))
         self.refresh()
 
+    def on_nuevas_por_dia(self, fila, _p):
+        db.set_nuevas_por_dia(self.con, int(fila.get_value()))
+        self.refresh()
+
     def historial_para_calibrar(self):
         """Los repasos agrupados por tarjeta, en orden, como los quiere FSRS."""
         por_tarjeta: dict[int, list] = {}
@@ -3370,6 +3380,18 @@ echo hola
         self.objetivo_row.handler_block_by_func(self.on_objetivo)
         self.objetivo_row.set_value(t["objetivo"])
         self.objetivo_row.handler_unblock_by_func(self.on_objetivo)
+        self.nuevas_row.handler_block_by_func(self.on_nuevas_por_dia)
+        self.nuevas_row.set_value(t["nuevas_tope"])
+        self.nuevas_row.handler_unblock_by_func(self.on_nuevas_por_dia)
+        if t["nuevas_tope"]:
+            faltan = t["nuevas_restantes"]
+            dias = -(-t["nuevas"] // t["nuevas_tope"]) if t["nuevas"] else 0
+            self.nuevas_row.set_subtitle(
+                f"{t['nuevas_hoy']} estrenadas hoy · quedan {faltan} de cupo · "
+                f"{t['nuevas']} por ver, unos {dias} días a este ritmo")
+        else:
+            self.nuevas_row.set_subtitle(
+                f"Sin tope · {t['nuevas']} tarjetas sin estrenar")
         semana = db.repasos_por_dia(self.con, 7)
         if t["objetivo"]:
             cumplidos = sum(1 for d in semana if d["cumplido"])

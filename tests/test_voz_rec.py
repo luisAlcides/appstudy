@@ -170,3 +170,59 @@ class TestPalabraClave(unittest.TestCase):
         # Sin sitios donde caer, el motor mete cualquier saludo en «hola bit»
         for senuelo in voz_rec.SENUELOS_CLAVE:
             self.assertIn(senuelo, frases)
+
+
+class PronunciacionTest(unittest.TestCase):
+    """Puntuar cómo se dice una frase, no si la respuesta es correcta."""
+
+    @staticmethod
+    def oidas(*pares):
+        return [{"palabra": p, "conf": c} for p, c in pares]
+
+    def test_todo_limpio_es_sobresaliente(self):
+        r = voz_rec.evaluar_pronunciacion(
+            "She works on Sundays",
+            self.oidas(("she", 1.0), ("works", 0.95), ("on", 0.99), ("sundays", 0.92)))
+        self.assertEqual(r["nota"], 100)
+        self.assertEqual(r["repasar"], [])
+
+    def test_marca_la_palabra_dudosa(self):
+        r = voz_rec.evaluar_pronunciacion(
+            "She works on Sundays",
+            self.oidas(("she", 1.0), ("works", 0.55), ("on", 0.99), ("sundays", 0.90)))
+        estados = {d["palabra"]: d["estado"] for d in r["detalle"]}
+        self.assertEqual(estados["works"], "floja")
+        self.assertEqual(r["repasar"], ["works"])
+        self.assertLess(r["nota"], 100)
+        self.assertGreater(r["nota"], 70)
+
+    def test_una_palabra_que_no_sale_cuenta_como_mal(self):
+        r = voz_rec.evaluar_pronunciacion(
+            "She works on Sundays",
+            self.oidas(("she", 1.0), ("on", 0.99), ("sundays", 0.95)))
+        estados = {d["palabra"]: d["estado"] for d in r["detalle"]}
+        self.assertEqual(estados["works"], "mal")
+        self.assertIn("works", r["repasar"])
+
+    def test_el_detalle_sigue_el_orden_de_lo_esperado(self):
+        r = voz_rec.evaluar_pronunciacion("uno dos tres", self.oidas(("tres", 1.0)))
+        self.assertEqual([d["palabra"] for d in r["detalle"]], ["uno", "dos", "tres"])
+
+    def test_sin_confianzas_se_juzga_por_las_palabras(self):
+        # Con motores que no dan confianza (whisper), al menos se ve qué falta
+        r = voz_rec.evaluar_pronunciacion("hello world", [], dicho="hello")
+        estados = {d["palabra"]: d["estado"] for d in r["detalle"]}
+        self.assertEqual(estados["hello"], "bien")
+        self.assertEqual(estados["world"], "mal")
+
+    def test_frase_vacia_no_revienta(self):
+        r = voz_rec.evaluar_pronunciacion("", [])
+        self.assertEqual(r["nota"], 0)
+        self.assertEqual(r["detalle"], [])
+
+    def test_ignora_el_formato_de_la_tarjeta(self):
+        # La respuesta puede venir con HTML o cloze: se compara lo que se dice
+        r = voz_rec.evaluar_pronunciacion(
+            "<b>She</b> {{c1::works}} on Sundays",
+            self.oidas(("she", 1.0), ("works", 1.0), ("on", 1.0), ("sundays", 1.0)))
+        self.assertEqual(r["nota"], 100)

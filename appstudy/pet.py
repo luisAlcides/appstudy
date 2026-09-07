@@ -117,6 +117,36 @@ ACCESORIOS = (
 )
 
 
+# Cuántos repasos en el día cuentan como «has estudiado» cuando no hay objetivo
+# diario puesto. Con objetivo, manda el objetivo.
+MINIMO_FELIZ = 10
+
+
+def animo(t: dict, horas: float, energia: float, dormida: bool = False) -> str:
+    """El ánimo de Bit a partir de lo que dice la base.
+
+    El orden importa y es lo que evita que se ponga contenta de más: primero
+    pesa **cuánto llevas sin estudiar**, y solo si has repasado hace poco se
+    mira si has hecho lo tuyo. Antes bastaba una tarjeta suelta para ponerla
+    verde, y se quedaba verde el resto del día aunque no volvieras a aparecer.
+    """
+    if dormida:
+        return "dormido"
+    if horas >= HORAS_TRISTE:
+        return "triste"
+    if horas >= HORAS_HAMBRE:
+        return "hambre"
+    if horas >= HORAS_ABURRIDO:
+        return "aburrido"
+
+    meta = t.get("objetivo") or MINIMO_FELIZ
+    if t.get("pendientes", 0) == 0 and t.get("hoy", 0) >= meta:
+        return "feliz"
+    if energia < 0.3:
+        return "hambre"
+    return "normal"
+
+
 def evolucion(repasos: int) -> dict:
     """Etapa actual, siguiente meta y avance 0..1 dentro de la etapa."""
     n = max(0, int(repasos))
@@ -1607,6 +1637,10 @@ class PetWindow(Gtk.ApplicationWindow):
         self.chat = None              # {"historial": [...], "contexto": str} en modo chatbot
         self.conversacion = None      # EscuchaContinua cuando la charla es hablada
         self.oido = None              # EscuchaPalabraClave esperando el "hola bit"
+        self.examen = None            # ExamenOral o SesionConexiones en curso
+        self.ultimo_modo = None       # con qué se repite la ronda al terminar
+        self.recuerdo = None          # recuerdo libre en curso
+        self.escucha_recuerdo = None
         self.stats = {}
         self.ultimas_citas = []     # para no repetir la misma frase seguida
 
@@ -1801,20 +1835,7 @@ class PetWindow(Gtk.ApplicationWindow):
         energia = 1.0 - min(horas / 48.0, 1.0) * 0.75 - min(t["pendientes"] / 40.0, 1.0) * 0.35
         energia = max(0.05, min(1.0, energia + min(t["racha"], 7) * 0.02))
 
-        if self.dormida():
-            mood = "dormido"
-        elif horas >= HORAS_TRISTE:
-            mood = "triste"
-        elif horas >= HORAS_HAMBRE:
-            mood = "hambre"
-        elif t["pendientes"] == 0 and t["hoy"] > 0:
-            mood = "feliz"
-        elif horas >= HORAS_ABURRIDO:
-            mood = "aburrido"
-        elif energia < 0.3:
-            mood = "hambre"
-        else:
-            mood = "normal"
+        mood = animo(t, horas, energia, self.dormida())
 
         self.stats = {**t, "energia": energia, "horas": horas, "abandono": abandono}
         if abs(self.escala_guardada() - self.creature.escala) > 0.01:
@@ -2027,6 +2048,10 @@ class PetWindow(Gtk.ApplicationWindow):
     def close_bubble(self, *_):
         if getattr(self, "conversacion", None) is not None:
             self.parar_conversacion()
+        if getattr(self, "examen", None) is not None:
+            self.parar_examen(cerrar_globo=False)
+        if getattr(self, "recuerdo", None) is not None:
+            self.parar_recuerdo(cerrar_globo=False)
         if hasattr(self, "detener_voz"):
             self.detener_voz()
         if self.chat is not None or self.ia_cuerpo is not None:
@@ -2337,8 +2362,9 @@ class PetWindow(Gtk.ApplicationWindow):
             if len(self.recent_card_ids) > 30:
                 self.recent_card_ids.pop(0)
 
+        anterior = self.card["deck_key"] if self.card else None
         self.card = scheduler.next_card(self.con, exclude_ids=self.recent_card_ids,
-                                        exclude_id=current_id)
+                                        exclude_id=current_id, evitar_deck=anterior)
         if not self.card and current_id:
             # Si se excluyeron todas, limpiamos historial reciente y reintentamos
             self.recent_card_ids = [current_id]
@@ -2489,8 +2515,9 @@ class PetWindow(Gtk.ApplicationWindow):
             if len(self.recent_card_ids) > 30:
                 self.recent_card_ids.pop(0)
 
+        anterior = self.card["deck_key"] if self.card else None
         self.card = scheduler.next_card(self.con, exclude_ids=self.recent_card_ids,
-                                        exclude_id=current_id)
+                                        exclude_id=current_id, evitar_deck=anterior)
         if not self.card and current_id:
             self.recent_card_ids = [current_id]
             self.card = scheduler.next_card(self.con, exclude_id=current_id)
@@ -2816,6 +2843,10 @@ class PetWindow(Gtk.ApplicationWindow):
         """Cierra Bit soltando antes el micrófono y la IA."""
         self.parar_palabra_clave()
         self.parar_conversacion()
+        if getattr(self, "examen", None) is not None:
+            self.parar_examen(cerrar_globo=False)
+        if getattr(self, "recuerdo", None) is not None:
+            self.parar_recuerdo(cerrar_globo=False)
         self.get_application().quit()
 
     def arrancar_palabra_clave(self):
@@ -2847,6 +2878,396 @@ class PetWindow(Gtk.ApplicationWindow):
         self.sonar("listo")
         self.alternar_conversacion()
         return False
+
+    # ------------------------------------------------------- examen oral
+
+    def empezar_recuerdo_libre(self):
+        """Cierra el libro y suelta todo lo que recuerdes; luego se contrasta."""
+        from . import recuerdo
+        if not ia.config(self.con)["activa"]:
+            self.say("Actívame la IA en Ajustes y contrastamos lo que recuerdes.",
+                     titulo="🧠 Sin IA", boton=("Abrir AppStudy", self.open_main))
+            return
+        temas = recuerdo.temas_disponibles(self.con)
+        if not temas:
+            self.say("Necesito un mazo con algo de material para esto.",
+                     titulo="🧠 Nada que recordar")
+            return
+        self.elegir_tema_recuerdo(temas)
+
+    def elegir_tema_recuerdo(self, temas: list):
+        """De qué tema vas a intentar acordarte."""
+        self.clear_bubble()
+        self.card = None
+        self.reto = None
+        self.bubble_box.append(self.bubble_header("🧠 Recuerdo libre"))
+        self.bubble_box.append(Gtk.Label(
+            label="Elige un tema, cierra los ojos y cuéntame todo lo que te venga. "
+                  "Luego te digo qué te dejaste.",
+            wrap=True, xalign=0, max_width_chars=self.char_width(32),
+            css_classes=["as-bubble-text"]))
+        for tema in temas[:5]:
+            b = Gtk.Button(label=f"{tema['name']} · {tema['cuantas']} tarjetas",
+                           css_classes=["pill"])
+            b.connect("clicked", lambda _b, t=tema: self.arrancar_recuerdo(t))
+            self.bubble_box.append(b)
+        cerrar = Gtk.Button(label="Ahora no", css_classes=["flat", "as-bubble-link"])
+        cerrar.connect("clicked", self.close_bubble)
+        self.bubble_box.append(cerrar)
+        self.open_bubble()
+
+    def arrancar_recuerdo(self, tema: dict):
+        from . import recuerdo, voz_rec
+        self.parar_conversacion()
+        self.parar_palabra_clave()
+        self.recuerdo = {"tema": tema,
+                         "material": recuerdo.material_de(self.con, deck_key=tema["key"]),
+                         "dicho": []}
+        self.render_recuerdo()
+        self.escucha_recuerdo = voz_rec.EscuchaContinua(
+            idioma="es",
+            al_estado=lambda e: GLib.idle_add(self.estado_recuerdo, e),
+            al_oir=lambda t: GLib.idle_add(self.trozo_recordado, t))
+        if not self.escucha_recuerdo.iniciar():
+            self.escucha_recuerdo = None      # se podrá escribir, que también vale
+
+    def estado_recuerdo(self, estado: str):
+        if getattr(self, "lbl_recuerdo", None) is not None and self.recuerdo:
+            self.lbl_recuerdo.set_label(
+                {"escuchando": "🎙️ Te escucho… sigue, sin prisa",
+                 "procesando": "✍️ Anotando…"}.get(estado, ""))
+        return False
+
+    def trozo_recordado(self, texto: str):
+        """Cada tanda de lo que vas diciendo se va apuntando."""
+        if not getattr(self, "recuerdo", None) or not texto:
+            return False
+        self.recuerdo["dicho"].append(texto)
+        self.render_recuerdo()
+        if getattr(self, "escucha_recuerdo", None) is not None:
+            self.escucha_recuerdo.reanudar()
+        return False
+
+    def render_recuerdo(self, informe: dict | None = None):
+        if not getattr(self, "recuerdo", None):
+            return
+        self.clear_bubble()
+        tema = self.recuerdo["tema"]
+        self.bubble_box.append(self.bubble_header(f"🧠 {tema['name']}"))
+        self.lbl_recuerdo = Gtk.Label(label="🎙️ Te escucho… sigue, sin prisa", xalign=0,
+                                      css_classes=["as-bubble-cita"])
+        self.bubble_box.append(self.lbl_recuerdo)
+
+        dicho = " ".join(self.recuerdo["dicho"])
+        if dicho:
+            scroll = Gtk.ScrolledWindow(propagate_natural_height=True, max_content_height=140,
+                                        hscrollbar_policy=Gtk.PolicyType.NEVER)
+            scroll.set_child(Gtk.Label(label=dicho, wrap=True, xalign=0,
+                                       max_width_chars=self.char_width(32),
+                                       css_classes=["as-bubble-text"]))
+            self.bubble_box.append(scroll)
+
+        entrada = Gtk.Entry(placeholder_text="…o escríbelo aquí",
+                            css_classes=["as-reto-entrada"])
+        entrada.connect("activate", lambda w: (self.trozo_recordado(w.get_text().strip()),
+                                               w.set_text("")))
+        self.bubble_box.append(entrada)
+
+        if informe:
+            self.bubble_box.append(Gtk.Label(
+                label=f"<b>Recordaste el {informe['nota']}%</b> · {informe['veredicto']}",
+                use_markup=True, wrap=True, xalign=0, css_classes=["as-bubble-front"]))
+            if informe["falto"]:
+                self.bubble_box.append(Gtk.Label(label="Se te quedó fuera:", xalign=0,
+                                                 css_classes=["as-bubble-title"]))
+                for punto in informe["falto"][:6]:
+                    self.bubble_box.append(Gtk.Label(
+                        label=f"· {punto}", wrap=True, xalign=0,
+                        max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
+
+        fila = Gtk.Box(spacing=6, homogeneous=True)
+        cerrar = Gtk.Button(label="Dejarlo", css_classes=["pill"])
+        cerrar.connect("clicked", lambda *_: self.parar_recuerdo())
+        fila.append(cerrar)
+        listo = Gtk.Button(label="Ya está, contrasta", css_classes=["pill", "suggested-action"])
+        listo.connect("clicked", lambda *_: self.contrastar_recuerdo())
+        fila.append(listo)
+        self.bubble_box.append(fila)
+        self.open_bubble()
+
+    def contrastar_recuerdo(self):
+        """Compara lo que soltaste con el material y dice qué te dejaste."""
+        from . import recuerdo
+        if not getattr(self, "recuerdo", None):
+            return
+        if getattr(self, "escucha_recuerdo", None) is not None:
+            self.escucha_recuerdo.pausar()
+        self.creature.pensar()
+        material = self.recuerdo["material"]
+        dicho = " ".join(self.recuerdo["dicho"])
+        cfg = ia.config(self.con)
+
+        def _fin(informe):
+            if not getattr(self, "recuerdo", None):
+                return
+            recuerdo.guardar(self.con, self.recuerdo["tema"]["key"], informe)
+            self.render_recuerdo(informe)
+            faltaron = len(informe.get("falto", []))
+            resumen = f"Recordaste el {informe['nota']} por ciento. {informe['veredicto']}"
+            if faltaron:
+                resumen += f" Se te quedaron fuera {faltaron} cosas."
+            self.voz_cfg = voz.config(self.con)
+            duracion = voz.hablar(resumen, self.voz_cfg, on_done=self.on_voz_terminada)
+            if duracion > 0:
+                self.creature.hablar(duracion)
+
+        ia.hilo(lambda: recuerdo.evaluar(cfg, material, dicho), _fin,
+                lambda e: _fin({"nota": 0, "falto": [], "cubierto": [],
+                                "veredicto": str(e), "sin_ia": True}))
+
+    def parar_recuerdo(self, cerrar_globo: bool = True):
+        escucha, self.escucha_recuerdo = getattr(self, "escucha_recuerdo", None), None
+        if escucha is not None:
+            escucha.detener()
+        self.recuerdo = None
+        if cerrar_globo:
+            self.close_bubble()
+        GLib.timeout_add_seconds(2, lambda: (self.arrancar_palabra_clave(), False)[1])
+
+    def empezar_examen_oral(self):
+        """Bit te pregunta hablando y califica lo que respondes."""
+        from . import examen_oral, voz_rec
+        if not ia.config(self.con)["activa"]:
+            self.say("Actívame la IA en Ajustes y te tomo el examen.", titulo="🧠 Sin IA",
+                     boton=("Abrir AppStudy", self.open_main))
+            return
+        tarjetas = examen_oral.tarjetas_para_examen(self.con)
+        if not tarjetas:
+            self.say("Primero estudia algo: no te puedo examinar de lo que no has abierto.",
+                     titulo="🎓 Nada que preguntar")
+            return
+
+        self.parar_conversacion()
+        self.parar_palabra_clave()
+        self.ultimo_modo = self.empezar_examen_oral
+        self.examen = examen_oral.ExamenOral(self.con, ia.config(self.con), tarjetas)
+        self.escucha_examen = voz_rec.EscuchaContinua(
+            idioma="es",
+            al_estado=lambda e: GLib.idle_add(self.estado_examen, e),
+            al_oir=lambda t: GLib.idle_add(self.respuesta_de_examen, t))
+        if not self.escucha_examen.iniciar():
+            self.examen = None
+            self.say("No pude abrir el micrófono para escucharte.", titulo="🎙️ Sin micrófono")
+            return
+        self.escucha_examen.pausar()      # primero pregunta ella
+        self.creature.charlando = True
+        self.render_examen("Preparando la primera pregunta…")
+        self.lanzar_pregunta_examen()
+
+    def lanzar_pregunta_examen(self):
+        """Pide la pregunta al modelo en otro hilo y la dice en voz alta."""
+        if self.examen is None:
+            return
+        self.creature.pensar()
+
+        def _fin(pregunta):
+            if self.examen is None:
+                return
+            self.render_examen(pregunta)
+            self.hablar_examen(pregunta, luego_escuchar=True)
+
+        ia.hilo(self.examen.siguiente_pregunta, _fin, lambda e: _fin(str(e)))
+
+    def hablar_examen(self, texto: str, luego_escuchar: bool):
+        self.voz_cfg = voz.config(self.con)
+        self.cara_de_la_voz(texto)
+        fin = self.escuchar_respuesta_examen if luego_escuchar else self.on_voz_terminada
+        duracion = voz.hablar(texto, self.voz_cfg, on_done=fin)
+        if duracion > 0:
+            self.creature.hablar(duracion)
+        elif luego_escuchar:
+            self.escuchar_respuesta_examen()
+
+    def escuchar_respuesta_examen(self):
+        self.on_voz_terminada()
+        if getattr(self, "escucha_examen", None) is not None:
+            self.escucha_examen.reanudar()
+        return False
+
+    def estado_examen(self, estado: str):
+        if self.examen is None:
+            return False
+        etiquetas = {"escuchando": "🎙️ Te escucho… responde con tus palabras",
+                     "procesando": "🤔 Corrigiendo…",
+                     "hablando": "🔊 Bit está hablando…"}
+        if getattr(self, "lbl_examen", None) is not None:
+            self.lbl_examen.set_label(etiquetas.get(estado, ""))
+        return False
+
+    def respuesta_de_examen(self, dicho: str):
+        """Llega tu respuesta hablada: se califica y se pasa a la siguiente."""
+        if self.examen is None:
+            return False
+        if getattr(self, "escucha_examen", None) is not None:
+            self.escucha_examen.pausar()
+        self.estado_examen("procesando")
+
+        def _fin(resultado):
+            if self.examen is None:
+                return
+            self.render_examen(self.examen.pregunta_actual, resultado=resultado)
+            if resultado.get("nota", 0) >= 60:
+                self.creature.celebrar()
+            else:
+                self.creature.desanimar()
+            comentario = resultado.get("veredicto") or "Vamos con la siguiente."
+            if resultado.get("falto"):
+                comentario += f" Te faltó: {resultado['falto']}."
+            if self.examen.terminado():
+                self.cerrar_examen(comentario)
+            else:
+                self.hablar_examen(comentario, luego_escuchar=False)
+                GLib.timeout_add(600, lambda: (self.lanzar_pregunta_examen(), False)[1])
+
+        ia.hilo(lambda: self.examen.responder(dicho), _fin,
+                lambda e: _fin({"nota": 0, "veredicto": str(e), "falto": ""}))
+        return False
+
+    def cerrar_examen(self, comentario: str):
+        """Se acabó: acta, nota y a repasar lo flojo."""
+        guardar = getattr(self.examen, "guardar", None)
+        acta = guardar() if guardar else self.examen.acta()
+        self.render_acta(acta)
+        self.parar_examen(cerrar_globo=False)
+        self.hablar_examen(
+            f"{comentario} Nota final, {acta['nota']} sobre 100. {acta['juicio']}",
+            luego_escuchar=False)
+
+    def empezar_conexiones(self):
+        """Preguntas de relación: qué tiene que ver una cosa con la otra."""
+        from . import conexiones, voz_rec
+        if not ia.config(self.con)["activa"]:
+            self.say("Actívame la IA en Ajustes y te pregunto por las conexiones.",
+                     titulo="🧠 Sin IA", boton=("Abrir AppStudy", self.open_main))
+            return
+        parejas = conexiones.pares(self.con)
+        if not parejas:
+            self.say("Estudia un poco más de un mismo tema y te pregunto cómo encaja.",
+                     titulo="🔗 Aún no hay de qué")
+            return
+
+        self.parar_conversacion()
+        self.parar_palabra_clave()
+        self.ultimo_modo = self.empezar_conexiones
+        self.examen = conexiones.SesionConexiones(self.con, ia.config(self.con), parejas)
+        self.escucha_examen = voz_rec.EscuchaContinua(
+            idioma="es",
+            al_estado=lambda e: GLib.idle_add(self.estado_examen, e),
+            al_oir=lambda t: GLib.idle_add(self.respuesta_de_examen, t))
+        if not self.escucha_examen.iniciar():
+            self.examen = None
+            self.say("No pude abrir el micrófono para escucharte.", titulo="🎙️ Sin micrófono")
+            return
+        self.escucha_examen.pausar()
+        self.creature.charlando = True
+        self.render_examen("Buscando dos cosas que tengan que ver…")
+        self.lanzar_pregunta_examen()
+
+    def parar_examen(self, cerrar_globo: bool = True):
+        escucha, self.escucha_examen = getattr(self, "escucha_examen", None), None
+        if escucha is not None:
+            escucha.detener()
+        self.examen = None
+        self.creature.charlando = False
+        if cerrar_globo:
+            self.close_bubble()
+        GLib.timeout_add_seconds(2, lambda: (self.arrancar_palabra_clave(), False)[1])
+
+    def render_examen(self, pregunta: str, resultado: dict | None = None):
+        """El globo del examen: dónde vas, la pregunta y la nota de la anterior."""
+        if self.examen is None:
+            return
+        self.clear_bubble()
+        self.bubble_box.add_css_class("as-bubble-chat")
+        self.card = None
+        self.reto = None
+        icono = "🔗" if self.examen.marcador().startswith("Conexión") else "🎓"
+        self.bubble_box.append(self.bubble_header(f"{icono} {self.examen.marcador()}", CHAT))
+        self.lbl_examen = Gtk.Label(label="🔊 Bit está hablando…", xalign=0,
+                                    css_classes=["as-bubble-cita"])
+        self.bubble_box.append(self.lbl_examen)
+        self.bubble_box.append(Gtk.Label(
+            label=pregunta, wrap=True, xalign=0, max_width_chars=self.char_width(32),
+            css_classes=["as-bubble-front"]))
+        if resultado:
+            texto = f"<b>{resultado['nota']}/100</b> · {resultado.get('veredicto', '')}"
+            if resultado.get("falto"):
+                texto += f"\n<i>Te faltó: {resultado['falto']}</i>"
+            self.bubble_box.append(Gtk.Label(label=texto, use_markup=True, wrap=True,
+                                             xalign=0, css_classes=["as-bubble-text"]))
+        salir = Gtk.Button(label="Dejar el examen", css_classes=["pill"])
+        salir.connect("clicked", lambda *_: self.parar_examen())
+        self.bubble_box.append(salir)
+        self.open_bubble()
+
+    def render_acta(self, acta: dict):
+        self.clear_bubble()
+        self.bubble_box.add_css_class("as-bubble-chat")
+        self.bubble_box.append(self.bubble_header("🎓 Examen terminado", CHAT))
+        cabeza = f"<b>{acta['nota']}/100</b>"
+        if "aprobadas" in acta:
+            cabeza += f" · {acta['aprobadas']} de {acta['total']} bien"
+        self.bubble_box.append(Gtk.Label(
+            label=f"{cabeza}\n{acta['juicio']}",
+            use_markup=True, wrap=True, xalign=0, css_classes=["as-bubble-front"]))
+        if acta["flojas"]:
+            self.bubble_box.append(Gtk.Label(label="Lo que hay que repasar:", xalign=0,
+                                             css_classes=["as-bubble-title"]))
+            for floja in acta["flojas"][:3]:
+                # El examen trae la tarjeta; las conexiones, las dos que unía
+                titulo = floja.get("front") or " ↔ ".join(floja.get("entre", ()))
+                self.bubble_box.append(Gtk.Label(
+                    label=f"· {titulo} ({floja['nota']}/100)", wrap=True, xalign=0,
+                    max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
+        fila = Gtk.Box(spacing=6, homogeneous=True)
+        cerrar = Gtk.Button(label="Cerrar", css_classes=["pill"])
+        cerrar.connect("clicked", self.close_bubble)
+        fila.append(cerrar)
+        repetir = self.ultimo_modo or self.empezar_examen_oral
+        otra = Gtk.Button(label="Otra ronda", css_classes=["pill", "suggested-action"])
+        otra.connect("clicked", lambda *_: repetir())
+        fila.append(otra)
+        self.bubble_box.append(fila)
+        self.open_bubble()
+
+    def explicarselo_a_bit(self):
+        """Tú explicas y Bit hace de alumna que no se entera y repregunta.
+
+        Explicar en voz alta destapa los huecos que releer no destapa: releyendo
+        reconoces lo que ya viste, explicando tienes que producirlo tú.
+        """
+        if not ia.config(self.con)["activa"]:
+            self.say("Actívame la IA en Ajustes y te escucho la explicación.",
+                     titulo="🧠 Sin IA", boton=("Abrir AppStudy", self.open_main))
+            return
+        tema = ""
+        if self.card:
+            tema = util.plain(self.card["front"])
+        elif getattr(self, "stats", None):
+            carta = scheduler.next_card(self.con)
+            tema = util.plain(carta["front"]) if carta else ""
+
+        self.abrir_chat()
+        if self.chat is None:
+            return
+        self.chat["papel"] = "alumna"
+        self.chat["contexto"] = f"El estudiante te va a explicar: {tema}" if tema else ""
+        entrada = (f"Voy a explicarte «{tema}». Pregúntame lo que no entiendas."
+                   if tema else "Voy a explicarte un tema. Pregúntame lo que no entiendas.")
+        self.render_chat()
+        self.alternar_conversacion()      # manos libres: es una explicación hablada
+        if self.conversacion is not None:
+            self.enviar_chat(entrada)
 
     def alternar_conversacion(self):
         """Enciende o apaga la charla hablada: hablas y Bit contesta, sin botones."""
@@ -2974,7 +3395,11 @@ class PetWindow(Gtk.ApplicationWindow):
         self.reto = None
 
         hablando = self.conversacion is not None
-        cabecera = self.bubble_header("🎙️ Hablando con Bit" if hablando else "💬 Chat con Bit", CHAT)
+        if self.chat.get("papel") == "alumna":
+            titulo = "👩‍🎓 Explícaselo a Bit"
+        else:
+            titulo = "🎙️ Hablando con Bit" if hablando else "💬 Chat con Bit"
+        cabecera = self.bubble_header(titulo, CHAT)
         self.bubble_box.append(cabecera)
         self.lbl_conversacion = None
         if hablando:
@@ -3064,8 +3489,9 @@ class PetWindow(Gtk.ApplicationWindow):
         historial = list(self.chat["historial"][:-1])
         contexto = self.chat["contexto"]
         hablado = bool(self.chat.get("hablado"))
+        papel = self.chat.get("papel", "profesora")
         ia.hilo(lambda: ia.conversar(cfg, historial, texto, contexto,
-                                     trozo=self.escribir_ia, hablado=hablado),
+                                     trozo=self.escribir_ia, hablado=hablado, papel=papel),
                 self.fin_chat,
                 lambda e: self.fin_chat(f"<i>{GLib.markup_escape_text(str(e))}</i>"))
         return True
@@ -3277,6 +3703,8 @@ class PetWindow(Gtk.ApplicationWindow):
         racha = t.get("racha", 0)
         if racha:
             resumen += f" · racha de {racha} d"
+        if t.get("nuevas_tope"):
+            resumen += f"\n{t.get('nuevas_hoy', 0)} nuevas hoy · quedan {t.get('nuevas_restantes', 0)} de cupo"
         caja.append(Gtk.Label(label=resumen, xalign=0, css_classes=["as-menu-estado"]))
 
         # Lo que se usa a diario, en botones grandes y a dos columnas
@@ -3287,8 +3715,10 @@ class PetWindow(Gtk.ApplicationWindow):
             ("⚡ Ponme a prueba", lambda: (self.wake(), self.quiz())),
             ("🎙️ Hablar", lambda: (self.wake(), self.alternar_conversacion())),
             ("💬 Chat", lambda: (self.wake(), self.abrir_chat())),
-            ("❓ Pregúntame", lambda: (self.wake(), self.preguntar())),
-            ("📖 Una frase", lambda: (self.wake(), self.quote())),
+            ("🎓 Examen oral", lambda: (self.wake(), self.empezar_examen_oral())),
+            ("🗒️ Recuerdo libre", lambda: (self.wake(), self.empezar_recuerdo_libre())),
+            ("👩‍🎓 Te lo explico", lambda: (self.wake(), self.explicarselo_a_bit())),
+            ("🔗 Conexiones", lambda: (self.wake(), self.empezar_conexiones())),
         ]
         for i, (etiqueta, cb) in enumerate(principales):
             clases = ["pill", "suggested-action"] if i == 0 else ["pill"]
@@ -3297,6 +3727,8 @@ class PetWindow(Gtk.ApplicationWindow):
 
         caja.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
         for etiqueta, cb, sufijo in (
+                ("❓ Pregúntame algo", lambda: (self.wake(), self.preguntar()), None),
+                ("📖 Una frase de libro", lambda: (self.wake(), self.quote()), None),
                 ("📊 Cómo va la semana", lambda: (self.wake(), self.diario()), None),
                 ("⏱️ Sesión de estudio", self.study, None),
                 ("🕐 Tarjetas recientes", self.abrir_historial, None),

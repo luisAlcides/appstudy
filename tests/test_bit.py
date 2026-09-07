@@ -82,3 +82,48 @@ class RespuestaHabladaTest(unittest.TestCase):
         corto = ia.acortar_para_hablar(sin_puntos, maximo=12)
         self.assertEqual(len(corto.split()), 12)
         self.assertTrue(corto.endswith("."))
+
+
+class AnimoTest(unittest.TestCase):
+    """Cuándo se pone verde Bit. Antes: casi siempre."""
+
+    @staticmethod
+    def totales(**cambios):
+        base = {"pendientes": 0, "hoy": 0, "nuevas": 0, "racha": 0, "objetivo": 0}
+        return {**base, **cambios}
+
+    def test_una_tarjeta_suelta_no_la_pone_verde(self):
+        # Era el fallo: repasar una sola tarjeta la dejaba contenta
+        self.assertEqual(pet.animo(self.totales(hoy=1), horas=0.5, energia=0.9), "normal")
+        self.assertEqual(pet.animo(self.totales(hoy=9), horas=0.5, energia=0.9), "normal")
+
+    def test_verde_al_llegar_al_minimo_sin_pendientes(self):
+        t = self.totales(hoy=pet.MINIMO_FELIZ)
+        self.assertEqual(pet.animo(t, horas=0.5, energia=0.9), "feliz")
+
+    def test_con_objetivo_manda_el_objetivo(self):
+        t = self.totales(hoy=12, objetivo=30)
+        self.assertEqual(pet.animo(t, horas=0.5, energia=0.9), "normal")
+        self.assertEqual(pet.animo({**t, "hoy": 30}, horas=0.5, energia=0.9), "feliz")
+        # Un objetivo bajo también vale: no se exige el mínimo por encima de él
+        t_bajo = self.totales(hoy=5, objetivo=5)
+        self.assertEqual(pet.animo(t_bajo, horas=0.5, energia=0.9), "feliz")
+
+    def test_con_repasos_vencidos_no_hay_verde(self):
+        t = self.totales(hoy=50, pendientes=7)
+        self.assertEqual(pet.animo(t, horas=0.5, energia=0.9), "normal")
+
+    def test_el_verde_no_dura_todo_el_dia(self):
+        t = self.totales(hoy=40)
+        self.assertEqual(pet.animo(t, horas=0.5, energia=0.9), "feliz")
+        self.assertEqual(pet.animo(t, horas=pet.HORAS_ABURRIDO, energia=0.9), "aburrido")
+        self.assertEqual(pet.animo(t, horas=pet.HORAS_HAMBRE, energia=0.9), "hambre")
+        self.assertEqual(pet.animo(t, horas=pet.HORAS_TRISTE, energia=0.9), "triste")
+
+    def test_dormida_manda_sobre_todo(self):
+        t = self.totales(hoy=40)
+        self.assertEqual(pet.animo(t, horas=0.5, energia=0.9, dormida=True), "dormido")
+
+    def test_sin_energia_tiene_hambre(self):
+        t = self.totales(hoy=2, pendientes=30)
+        self.assertEqual(pet.animo(t, horas=1.0, energia=0.2), "hambre")
