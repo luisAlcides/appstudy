@@ -547,6 +547,32 @@ def calificar_conexion(cfg, uno: dict, otro: dict, pregunta: str, respuesta: str
             "falto": _limpiar(str(datos.get("falto", "")).strip())}
 
 
+def pregunta_de_dato(cfg, dato: str) -> str:
+    """Convierte un «sabías que» en la pregunta que lo haría recordar.
+
+    Guardar el dato tal cual da una tarjeta que se lee y no se responde. Lo que
+    hace que se fije es tener que producir la respuesta.
+    """
+    usuario = (f"Dato: {dato}\n\n"
+               "Escribe la pregunta cuya respuesta sea ese dato. Una sola frase, "
+               "clara, sin dar la respuesta dentro de la pregunta y sin decir "
+               "«sabías que». Devuelve solo la pregunta.")
+    return _limpiar(_mensaje(cfg, [{"role": "system", "content": SISTEMA},
+                                   {"role": "user", "content": usuario}],
+                             temperatura=0.3, keep_alive=KEEP_ALIVE_ONESHOT))
+
+
+def contar_mas_de(cfg, dato: str, categoria: str) -> str:
+    """Amplía un dato de cultura general, para cuando te pica la curiosidad."""
+    usuario = (f"Tema ({categoria}): {dato}\n\n"
+               "Cuéntame algo más sobre esto en dos o tres frases: el contexto, "
+               "por qué pasó o qué consecuencia tuvo. Si no estás seguro de algún "
+               "detalle, dilo en vez de inventarlo.")
+    return _limpiar(_mensaje(cfg, [{"role": "system", "content": SISTEMA},
+                                   {"role": "user", "content": usuario}],
+                             temperatura=0.4, keep_alive=KEEP_ALIVE_ONESHOT))
+
+
 def explicar(cfg, card, trozo=None) -> str:
     """Explica una tarjeta de otra manera: con otras palabras y un ejemplo."""
     frente, dorso = util.plain(card["front"]), util.plain(card["back"])

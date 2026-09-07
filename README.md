@@ -643,6 +643,39 @@ prefieren las que comparten etiquetas, nivel o el término técnico que las une.
 Hace falta haber estudiado **al menos dos tarjetas del mismo tema**; con una
 suelta por mazo te dirá que aún no hay de qué preguntar.
 
+## 💡 ¿Sabías que…?
+
+Bit suelta datos de cultura general y los va soltando sola de vez en cuando,
+cuando no hay nada que repasar. Hay **158 datos en 20 categorías** en
+`appstudy/sabias.py`, escritos a mano y elegidos por comprobables: historia,
+ciencia, cuerpo humano, lengua, arte, geografía, tecnología, matemáticas,
+economía, naturaleza, astronomía, filosofía, música, cine, deporte,
+gastronomía, medicina, psicología, inventos y **«Lo que crees y no es»**.
+
+Esa última categoría desmonta lo que todo el mundo repite y es falso: la Gran
+Muralla no se ve desde el espacio, no usamos el 10 % del cerebro, el mapa de
+sabores de la lengua nunca existió, los toros no ven el rojo, Einstein no
+suspendía matemáticas. Quitar un error de la cabeza vale tanto como meter un
+dato nuevo.
+
+Ninguna categoría baja de cinco datos, y hay una prueba que lo comprueba: con
+dos, pedir ese tema sería oír siempre lo mismo.
+
+Cada dato viene con **el hecho y el porqué**, que es lo que lo hace contable en
+una conversación en vez de quedarse en anécdota suelta.
+
+Lo importante es el botón **📌 Guárdamela**: el dato pasa a un mazo de Cultura
+general y entra en el repaso espaciado como cualquier otra tarjeta. Un dato que
+solo se lee se olvida en una semana; lo que te vuelve más culto no es haberlo
+leído, es acordarte de él tres meses después. Con la IA local activa, además, se
+guarda como **pregunta** en vez de como enunciado —le pide al modelo que redacte
+la pregunta cuya respuesta es el dato—, porque una tarjeta que se lee no fija
+nada y una que hay que responder sí. También está **«Cuéntame más»**, que amplía
+el dato con la IA local.
+
+Se filtra por tema con el desplegable del globo, no repite dato hasta agotar la
+vuelta y no guarda dos veces el mismo.
+
 ## Las lecturas
 
 150 capítulos, **1.410 minutos** de material, ordenados por nivel dentro de cada mazo:

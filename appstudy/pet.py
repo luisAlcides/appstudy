@@ -1639,6 +1639,8 @@ class PetWindow(Gtk.ApplicationWindow):
         self.oido = None              # EscuchaPalabraClave esperando el "hola bit"
         self.examen = None            # ExamenOral o SesionConexiones en curso
         self.ultimo_modo = None       # con qué se repite la ronda al terminar
+        self.ultimos_datos = []       # «sabías que» ya soltados, para no repetir
+        self.dato_actual = None
         self.recuerdo = None          # recuerdo libre en curso
         self.escucha_recuerdo = None
         self.stats = {}
@@ -2010,10 +2012,13 @@ class PetWindow(Gtk.ApplicationWindow):
             self.diario()
             return True
         if t["pendientes"] == 0 and t["nuevas"] == 0:
-            # Nada que repasar: entonces te deja una frase para el rato
-            self.quote()
+            # Nada que repasar: entonces te deja algo para el rato, un dato de
+            # cultura general o una frase de libro
+            self.sabias_que() if random.random() < 0.6 else self.quote()
         elif random.random() < 0.30:
-            self.quote()
+            # Aprender cosas sueltas también cuenta, y de estas te queda algo
+            # solo si las guardas: por eso el dato trae su botón.
+            self.sabias_que() if random.random() < 0.5 else self.quote()
         elif t["pendientes"] or t["nuevas"] or t["energia"] < 0.6:
             # A veces te explica algo y a veces te reta: así no se vuelve rutina
             if random.random() < 0.5:
@@ -2351,6 +2356,103 @@ class PetWindow(Gtk.ApplicationWindow):
         self.creature.pensar()
         self.open_bubble()
         self.voz_auto_si_toca()
+
+    def sabias_que(self, categoria: str | None = None):
+        """Un dato de cultura general, con la opción de quedárselo."""
+        from . import sabias
+        dato, cat, porque = sabias.aleatorio(self.ultimos_datos, categoria)
+        self.ultimos_datos = (self.ultimos_datos + [dato])[-20:]
+        self.card = None
+        self.reto = None
+        self.dato_actual = (dato, cat, porque)
+        self.texto_hablable = f"¿Sabías que… {dato} {porque}"
+
+        self.clear_bubble()
+        self.bubble_box.append(self.bubble_header(f"💡 ¿Sabías que… · {cat}"))
+        self.bubble_box.append(Gtk.Label(
+            label=GLib.markup_escape_text(dato), use_markup=True, wrap=True, xalign=0,
+            max_width_chars=self.char_width(32), css_classes=["as-bubble-front"]))
+        self.bubble_box.append(Gtk.Label(
+            label=f"<i>{GLib.markup_escape_text(porque)}</i>", use_markup=True, wrap=True,
+            xalign=0, max_width_chars=self.char_width(34), css_classes=["as-bubble-text"]))
+
+        fila = Gtk.Box(spacing=6, homogeneous=True)
+        otro = Gtk.Button(label="Otro dato", css_classes=["pill"])
+        otro.connect("clicked", lambda *_: self.sabias_que())
+        fila.append(otro)
+        guardar = Gtk.Button(label="📌 Guárdamela", css_classes=["pill", "suggested-action"])
+        guardar.connect("clicked", lambda *_: self.guardar_dato())
+        fila.append(guardar)
+        self.bubble_box.append(fila)
+
+        if ia.config(self.con)["activa"]:
+            mas = Gtk.Button(label="Cuéntame más", css_classes=["flat", "as-bubble-link"])
+            mas.connect("clicked", lambda *_: self.ampliar_dato())
+            self.bubble_box.append(mas)
+
+        # Por categorías, para cuando quieras insistir en algo concreto
+        temas = Gtk.Box(spacing=4)
+        temas.append(Gtk.Label(label="Tema:", css_classes=["as-bubble-cita"]))
+        combo = Gtk.DropDown.new_from_strings(["Cualquiera", *sabias.categorias()])
+        combo.set_selected(0 if not categoria
+                           else list(sabias.categorias()).index(categoria) + 1)
+        combo.connect("notify::selected", self.on_tema_dato)
+        temas.append(combo)
+        self.bubble_box.append(temas)
+
+        self.creature.pensar()
+        self.open_bubble()
+        self.voz_auto_si_toca()
+
+    def on_tema_dato(self, combo, _p):
+        from . import sabias
+        indice = combo.get_selected()
+        self.sabias_que(None if indice == 0 else list(sabias.categorias())[indice - 1])
+
+    def guardar_dato(self):
+        """Mete el dato en el mazo de cultura general, para repasarlo luego.
+
+        Si la IA está activa se le pide antes que redacte la pregunta: un dato
+        guardado tal cual da una tarjeta que se lee y no se responde, y lo que
+        fija el recuerdo es tener que producirlo.
+        """
+        from . import sabias
+        if not getattr(self, "dato_actual", None):
+            return
+        dato, cat, porque = self.dato_actual
+        cfg = ia.config(self.con)
+
+        def _guardar(pregunta=""):
+            guardada = sabias.guardar_como_tarjeta(self.con, dato, cat, porque, pregunta)
+            total = sabias.cuantas_guardadas(self.con)
+            self.sonar("listo" if guardada else "clic")
+            self.say("Ya la tenías guardada." if not guardada else
+                     f"Guardada en Cultura general. Ya llevas {total}.",
+                     titulo="💡 Al mazo",
+                     boton=("Otro dato", lambda: self.sabias_que()))
+            self.refresh_stats()
+
+        if cfg["activa"]:
+            ia.hilo(lambda: ia.pregunta_de_dato(cfg, dato), _guardar, lambda e: _guardar())
+        else:
+            _guardar()
+
+    def ampliar_dato(self):
+        """Le pide a la IA local que cuente algo más sobre el dato."""
+        if not getattr(self, "dato_actual", None):
+            return
+        dato, cat, _ = self.dato_actual
+        cfg = ia.config(self.con)
+        self.creature.pensar()
+
+        def _fin(texto):
+            self.texto_hablable = texto
+            self.say(texto, titulo=f"💡 Más sobre esto · {cat}",
+                     boton=("Otro dato", lambda: self.sabias_que()))
+            self.voz_auto_si_toca()
+
+        ia.hilo(lambda: ia.contar_mas_de(cfg, dato, cat), _fin,
+                lambda e: _fin(f"No he podido ampliarlo: {e}"))
 
     def teach(self):
         """Saca una tarjeta y te la explica: pregunta y respuesta, las dos."""
@@ -3728,6 +3830,7 @@ class PetWindow(Gtk.ApplicationWindow):
         caja.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
         for etiqueta, cb, sufijo in (
                 ("❓ Pregúntame algo", lambda: (self.wake(), self.preguntar()), None),
+                ("💡 ¿Sabías que…?", lambda: (self.wake(), self.sabias_que()), None),
                 ("📖 Una frase de libro", lambda: (self.wake(), self.quote()), None),
                 ("📊 Cómo va la semana", lambda: (self.wake(), self.diario()), None),
                 ("⏱️ Sesión de estudio", self.study, None),
