@@ -2,9 +2,85 @@
 # Instala AppStudy: comando en ~/.local/bin, lanzador de escritorio y atajo global.
 set -euo pipefail
 
+# --defaults salta las preguntas y usa lo que ya estuviera elegido. Es lo que
+# hace actualizar.sh: reinstalar no puede quedarse esperando una respuesta.
+INTERACTIVO=1
+ARGS=()
+for arg in "$@"; do
+  case "$arg" in
+    --defaults|-y) INTERACTIVO=0 ;;
+    *) ARGS+=("$arg") ;;
+  esac
+done
+set -- "${ARGS[@]+"${ARGS[@]}"}"
+[ -t 0 ] || INTERACTIVO=0          # sin terminal delante no hay a quién preguntar
+
 ATAJO="${1:-<Super><Shift>e}"
 ATAJO_CAPTURA="${2:-<Super><Shift>n}"
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Lo que se elija queda aquí, y las siguientes ejecuciones lo respetan: sin
+# esto, cada `actualizar.sh` volvería a intentar los tres gigas del modelo de IA
+# que dijiste que no querías.
+CONF_DIR="$HOME/.config/appstudy"
+CONF="$CONF_DIR/instalacion.conf"
+
+VOZ="kokoro"        # kokoro | piper | ninguna
+VOSK="si"
+IA="si"
+MASCOTA="si"
+DOCK="si"
+# shellcheck source=/dev/null
+[ -f "$CONF" ] && . "$CONF"
+
+preguntar() {       # $1 pregunta  $2 respuesta por defecto (s/n)
+  local respuesta defecto="$2" pista="[S/n]"
+  [ "$defecto" = "n" ] && pista="[s/N]"
+  printf "  %s %s " "$1" "$pista" >&2
+  read -r respuesta || respuesta=""
+  respuesta="$(printf '%s' "${respuesta:-$defecto}" | tr '[:upper:]' '[:lower:]')"
+  case "$respuesta" in s|si|sí|y|yes) return 0 ;; *) return 1 ;; esac
+}
+
+if [ "$INTERACTIVO" = "1" ]; then
+  echo "▸ Qué instalar"
+  echo "  Todo esto es opcional y se puede añadir después volviendo a ejecutarme."
+  echo
+  echo "  Voz para que Bit y las tarjetas lean en voz alta:"
+  echo "    1) Kokoro + Piper de reserva — la más natural · ~360 MB"
+  echo "    2) Solo Piper — suena bien y baja rápido · ~80 MB"
+  echo "    3) Ninguna — la app funciona igual, sin lectura en voz alta"
+  printf "  Elige [1/2/3] (ahora: %s): " "$VOZ"
+  read -r eleccion || eleccion=""
+  case "$eleccion" in
+    1) VOZ="kokoro" ;;
+    2) VOZ="piper" ;;
+    3) VOZ="ninguna" ;;
+  esac
+
+  preguntar "¿Reconocimiento de voz para hablarle a Bit? (~90 MB)" \
+    "$([ "$VOSK" = "si" ] && echo s || echo n)" && VOSK="si" || VOSK="no"
+  preguntar "¿Modelo de IA local gemma3:4b? Explica tarjetas y corrige redacción (~3,3 GB)" \
+    "$([ "$IA" = "si" ] && echo s || echo n)" && IA="si" || IA="no"
+  preguntar "¿Soltar a Bit en el escritorio al iniciar sesión?" \
+    "$([ "$MASCOTA" = "si" ] && echo s || echo n)" && MASCOTA="si" || MASCOTA="no"
+  preguntar "¿Anclar AppStudy al dock?" \
+    "$([ "$DOCK" = "si" ] && echo s || echo n)" && DOCK="si" || DOCK="no"
+  echo
+fi
+
+mkdir -p "$CONF_DIR"
+cat > "$CONF" <<CONFIG
+# Lo que elegiste al instalar AppStudy. Bórralo para que vuelva a preguntar,
+# o cambia un valor a mano y ejecuta ./install.sh otra vez.
+VOZ="$VOZ"
+VOSK="$VOSK"
+IA="$IA"
+MASCOTA="$MASCOTA"
+DOCK="$DOCK"
+CONFIG
+
+echo "▸ Se instalará: voz $VOZ · reconocimiento $VOSK · IA local $IA · mascota al inicio $MASCOTA"
 BIN_DIR="$HOME/.local/bin"
 APP_DIR="$HOME/.local/share/applications"
 ICON_DIR="$HOME/.local/share/icons/hicolor/scalable/apps"
@@ -27,14 +103,18 @@ python3 -c "import pygments" 2>/dev/null || \
   echo "  (aviso) falta pygments: el código se verá sin colores. sudo apt install python3-pygments"
 python3 -c "import bs4" 2>/dev/null || \
   echo "  (aviso) falta beautifulsoup4: el análisis HTML de libros usará el procesador básico. Instala con: pip install beautifulsoup4"
-python3 -c "import vosk" 2>/dev/null || \
-  echo "  (aviso) falta vosk: el reconocimiento de voz usará motores alternativos si existen. Instala con: pip install vosk"
+if [ "$VOSK" = "si" ]; then
+  python3 -c "import vosk" 2>/dev/null || \
+    echo "  (aviso) falta vosk: el reconocimiento de voz usará motores alternativos si existen. Instala con: pip install vosk"
+fi
 command -v curl >/dev/null || command -v wget >/dev/null || \
   echo "  (aviso) falta curl o wget para descargar modelos: sudo apt install curl"
 command -v paplay >/dev/null || command -v pw-play >/dev/null || command -v aplay >/dev/null || \
   echo "  (aviso) falta reproductor de audio: sudo apt install pulseaudio-utils"
-command -v ollama >/dev/null || \
-  echo "  (opcional) sin ollama no hay IA local. curl -fsSL https://ollama.com/install.sh | sh"
+if [ "$IA" = "si" ]; then
+  command -v ollama >/dev/null || \
+    echo "  (opcional) sin ollama no hay IA local. curl -fsSL https://ollama.com/install.sh | sh"
+fi
 
 echo "▸ Instalando el comando en $BIN_DIR/appstudy"
 mkdir -p "$BIN_DIR"
@@ -76,9 +156,11 @@ Exec=$RAIZ/bin/appstudy --pet
 DESKTOP
 update-desktop-database "$APP_DIR" 2>/dev/null || true
 
-echo "▸ Anclando AppStudy al dock"
-if command -v gsettings >/dev/null && \
+if [ "$DOCK" != "si" ]; then
+  echo "▸ Dock: lo dejas como está (puedes anclarlo con clic derecho en el icono)"
+elif command -v gsettings >/dev/null && \
    gsettings writable org.gnome.shell favorite-apps >/dev/null 2>&1; then
+  echo "▸ Anclando AppStudy al dock"
   python3 - "$APP_ID.desktop" <<'FAV'
 import subprocess, sys
 entrada = sys.argv[1]
@@ -98,9 +180,15 @@ else
   echo "  (aviso) sin GNOME Shell no puedo anclarlo: hazlo con clic derecho > Añadir a favoritos"
 fi
 
+AUTOSTART="$HOME/.config/autostart/appstudy-pet.desktop"
+if [ "$MASCOTA" != "si" ]; then
+  # Decir que no también deshace el sí de una instalación anterior
+  rm -f "$AUTOSTART"
+  echo "▸ Bit no saldrá al iniciar sesión (la sueltas cuando quieras: appstudy --pet)"
+else
 echo "▸ Dejando a Bit en el escritorio al iniciar sesión"
 mkdir -p "$HOME/.config/autostart"
-cat > "$HOME/.config/autostart/appstudy-pet.desktop" <<PET
+cat > "$AUTOSTART" <<PET
 [Desktop Entry]
 Type=Application
 Name=AppStudy · Bit
@@ -111,6 +199,7 @@ Terminal=false
 X-GNOME-Autostart-enabled=true
 X-GNOME-Autostart-Delay=8
 PET
+fi
 
 echo "▸ Instalando la extensión de la barra superior de GNOME"
 UUID="appstudy@luisalcides.github.io"
@@ -130,6 +219,9 @@ echo "▸ Registrando el atajo global $ATAJO"
 echo "▸ Registrando captura rápida $ATAJO_CAPTURA"
 "$RAIZ/bin/appstudy" --install-capture-hotkey "$ATAJO_CAPTURA"
 
+if [ "$VOZ" = "ninguna" ]; then
+  echo "▸ Voz: sin motores (se puede añadir después ejecutando ./install.sh)"
+else
 echo "▸ Configurando modelos neuronales de voz (Piper TTS)…"
 PIPER_DIR="$HOME/.local/share/appstudy/piper"
 mkdir -p "$PIPER_DIR"
@@ -200,6 +292,9 @@ descargar_voz "en/en_US/lessac/high" "en_US-lessac-high" || \
 # 3. Motor Kokoro (opcional, la voz más natural): vive en su propio entorno
 # porque necesita onnxruntime, que aún no tiene ruedas para los Python más
 # nuevos con los que puede venir el sistema. Si algo falla, queda Piper.
+if [ "$VOZ" != "kokoro" ]; then
+  echo "▸ Kokoro no se instala: Piper queda como voz única"
+else
 echo "▸ Configurando el motor de voz Kokoro (opcional)…"
 KOKORO_DIR="$HOME/.local/share/appstudy/kokoro"
 TTS_VENV="$HOME/.local/share/appstudy/tts-venv"
@@ -241,26 +336,33 @@ if [ -x "$TTS_VENV/bin/python" ] && "$TTS_VENV/bin/python" -c "import kokoro_onn
 else
   echo "  (aviso) Kokoro no quedó instalado: se usará Piper, que también suena bien."
 fi
+fi
 
 # 4. sox (opcional): permite ajustar el tono de la voz desde Ajustes
 command -v sox >/dev/null || \
   echo "  (aviso) falta sox: el control de tono de la voz quedará inactivo. sudo apt install sox"
+fi
 
 # 5. Modelo de IA local (Ollama)
-echo "▸ Verificando modelo de IA local (Ollama)…"
-if command -v ollama >/dev/null; then
+if [ "$IA" != "si" ]; then
+  echo "▸ IA local: no se descarga el modelo (Bit funciona igual, sin explicaciones generadas)"
+elif ! command -v ollama >/dev/null; then
+  echo "▸ IA local: falta Ollama. Instálalo y vuelve a ejecutarme:"
+  echo "    curl -fsSL https://ollama.com/install.sh | sh"
+else
+  echo "▸ Verificando modelo de IA local (Ollama)…"
   if ollama list 2>/dev/null | grep -q "gemma3:4b"; then
     echo "  ✓ Modelo gemma3:4b ya está disponible en Ollama"
   else
-    echo "  Descargando modelo gemma3:4b en Ollama (esto puede tardar unos minutos)…"
+    echo "  Descargando modelo gemma3:4b en Ollama (~3,3 GB, tarda unos minutos)…"
     ollama pull gemma3:4b || echo "  (aviso) no se pudo descargar gemma3:4b automáticamente. Ejecuta: ollama pull gemma3:4b"
   fi
-else
-  echo "  (opcional) Sin Ollama no hay IA local. Para instalar:"
-  echo "    curl -fsSL https://ollama.com/install.sh | sh && ollama pull gemma3:4b"
 fi
 
 # 6. Modelos de Reconocimiento de Voz (Vosk STT)
+if [ "$VOSK" != "si" ]; then
+  echo "▸ Reconocimiento de voz: no se descargan los modelos de Vosk"
+else
 echo "▸ Verificando modelos de reconocimiento de voz (Vosk STT)…"
 VOSK_DIR="$HOME/.local/share/appstudy/vosk"
 mkdir -p "$VOSK_DIR"
@@ -289,16 +391,26 @@ if [ ! -d "$VOSK_DIR/vosk-model-small-en-us-0.15" ]; then
 else
   echo "  ✓ Modelo Vosk en inglés listo"
 fi
+fi
 
 echo
 echo "✓ Listo."
 echo "  Popup:            pulsa el atajo desde cualquier aplicación"
 echo "  Captura rápida:   $ATAJO_CAPTURA"
 echo "  Ventana completa: appstudy   (o busca «AppStudy» en el menú)"
-echo "  Mascota:          appstudy --pet   (o Ajustes → Bit, la mascota)"
-echo "  Dock:             anclado con su icono (si algo falla, arrástralo tú)"
+if [ "$MASCOTA" = "si" ]; then
+  echo "  Mascota:          sale sola al iniciar sesión (o appstudy --pet)"
+else
+  echo "  Mascota:          appstudy --pet   (o Ajustes → Bit, la mascota)"
+fi
+[ "$DOCK" = "si" ] && echo "  Dock:             anclado con su icono (si algo falla, arrástralo tú)"
 echo "  Barra superior:   icono de AppStudy (tras reiniciar la sesión)"
-echo "  Voz neuronal:     Kokoro (si se instaló) con Piper de reserva en $PIPER_DIR"
-echo "  Reconocimiento:   Vosk STT (español e inglés en $VOSK_DIR)"
-echo "  IA local:         Ollama (gemma3:4b)"
+case "$VOZ" in
+  kokoro)  echo "  Voz neuronal:     Kokoro, con Piper de reserva en $PIPER_DIR" ;;
+  piper)   echo "  Voz neuronal:     Piper en $PIPER_DIR" ;;
+  ninguna) echo "  Voz:              sin instalar" ;;
+esac
+[ "$VOSK" = "si" ] && echo "  Reconocimiento:   Vosk STT (español e inglés en $VOSK_DIR)"
+[ "$IA" = "si" ] && echo "  IA local:         Ollama (gemma3:4b)"
 echo "  Cambiar el atajo: dentro de la app, pestaña Ajustes"
+echo "  Cambiar de idea:  ./install.sh vuelve a preguntar (se guarda en $CONF)"

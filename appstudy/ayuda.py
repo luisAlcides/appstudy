@@ -74,8 +74,9 @@ TEMAS = (
                 "editar, crear (<b>+</b>) e importar (<b>Abrir</b>).",
                 "<b>Progreso</b> — cinco gráficas, qué conviene reforzar y los logros.",
                 "<b>Biblioteca</b> — tus PDF y EPUB, con sus subrayados.",
-                "<b>Ajustes</b> — atajos, Bit, la IA, los repasos, sincronización y "
-                "respaldos.",
+                "<b>Ajustes</b> — en dos pestañas: <b>Básico</b> (objetivo diario, "
+                "atajos, Bit, voz y apariencia) y <b>Avanzado</b> (los repasos, la "
+                "IA, la biblioteca, la nube, sincronización y respaldos).",
             ]},
             {"note": "<b>Estudiar ahora</b>, en la cabecera, deja elegir cuánto quieres "
                      "estudiar; el atajo global abre un repaso libre, sin temporizador."},
@@ -197,7 +198,7 @@ TEMAS = (
                   "días) y lo que te cuesta a ti (dificultad, de 1 a 10), y con eso "
                   "calcula el día en que ibas a olvidarla."},
             {"h": "Retención objetivo"},
-            {"p": "Tú eliges cuánto quieres acordarte, en <b>Ajustes → Cómo se "
+            {"p": "Tú eliges cuánto quieres acordarte, en <b>Ajustes → Avanzado → Cómo se "
                   "programan los repasos</b>. Al 90 %, que es lo recomendado, una "
                   "tarjeta con 40 días de estabilidad vuelve a los 40 días; al 95 % "
                   "vuelve a los 18, y al 85 % a los 65. Subirla es estudiar más para "
@@ -343,7 +344,7 @@ TEMAS = (
                    "marcador", "estante"),
         "ver": ("capitulos", "atajos", "ia"),
         "body": [
-            {"p": "En <b>Ajustes → Biblioteca</b> eliges la carpeta donde tienes los "
+            {"p": "En <b>Ajustes → Avanzado → Biblioteca</b> eliges la carpeta donde tienes los "
                   "libros. La pestaña <b>Biblioteca</b> convierte tus carpetas en "
                   "estantes y, arriba, deja <b>Seguir leyendo</b> con los últimos que "
                   "abriste y por qué página ibas."},
@@ -444,7 +445,7 @@ TEMAS = (
                 "Instala Ollama (el servidor) y déjalo escuchando en "
                 "<code>http://localhost:11434</code>.",
                 "Descarga un modelo pequeño.",
-                "En <b>Ajustes → Inteligencia artificial</b>, activa el interruptor y "
+                "En <b>Ajustes → Avanzado → Inteligencia artificial</b>, activa el interruptor y "
                 "pulsa <b>Probar conexión</b>.",
             ]},
             {"code": {"lang": "bash", "text": _OLLAMA}},
@@ -525,7 +526,7 @@ TEMAS = (
         "body": [
             {"h": "Entrar"},
             {"steps": [
-                "En <b>Ajustes → Cuenta en la nube</b>, escribe tu correo y una "
+                "En <b>Ajustes → Avanzado → Cuenta en la nube</b>, escribe tu correo y una "
                 "contraseña.",
                 "Pulsa <b>Crear cuenta</b> la primera vez y <b>Entrar</b> las "
                 "siguientes.",
@@ -575,7 +576,7 @@ TEMAS = (
         "body": [
             {"h": "Entre dos equipos"},
             {"steps": [
-                "En <b>Ajustes → Sincronización entre equipos</b>, elige una carpeta "
+                "En <b>Ajustes → Avanzado → Sincronización entre equipos</b>, elige una carpeta "
                 "compartida por Nextcloud, Syncthing, Dropbox o una memoria.",
                 "Pulsa <b>Sincronizar</b> en este equipo: deja ahí su archivo.",
                 "Haz lo mismo en el otro, apuntando a la misma carpeta.",
@@ -594,7 +595,7 @@ TEMAS = (
             {"h": "Respaldos"},
             {"p": "Todo tu progreso vive en un solo archivo: "
                   "<code>~/.local/share/appstudy/appstudy.db</code>. En <b>Ajustes → "
-                  "Respaldo</b> hay copia manual, <b>respaldo automático diario</b> "
+                  "Avanzado → Respaldo</b> hay copia manual, <b>respaldo automático diario</b> "
                   "(activado de fábrica), <b>Restaurar…</b> y <b>Exportar…</b>."},
             {"key": "Restaurar no reinicia nada, y antes de pisar lo que tienes guarda "
                     "una copia «antes de restaurar»: equivocarse tiene vuelta atrás."},
@@ -626,7 +627,7 @@ TEMAS = (
                   "texto se ve igual, solo que sin resaltar."},
             {"h": "La IA no responde"},
             {"p": "Comprueba que el servidor está vivo y que el modelo está descargado; "
-                  "luego vuelve a <b>Ajustes → Inteligencia artificial → Probar "
+                  "luego vuelve a <b>Ajustes → Avanzado → Inteligencia artificial → Probar "
                   "conexión</b>."},
             {"code": {"lang": "bash", "text": "systemctl --user status ollama\nollama list"}},
             {"h": "El indicador de la barra superior no aparece"},

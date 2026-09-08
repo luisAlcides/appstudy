@@ -243,7 +243,7 @@ class EscrituraWindow(Adw.Window):
 
         cfg = ia.config(self.con)
         if not cfg.get("activa"):
-            self.mostrar_feedback("<i>La IA local no está activada. Puedes activarla en Ajustes → Modelo de IA.</i>")
+            self.mostrar_feedback("<i>La IA local no está activada. Puedes activarla en Ajustes → Avanzado → Inteligencia artificial.</i>")
             return
 
         self.btn_corregir.set_sensitive(False)

@@ -124,6 +124,12 @@ class Biblioteca(Adw.Bin):
         recolocar en cada una: eso es medio segundo de ventana congelada.
         """
         self.columna = self.columna_vacia()
+        sin_archivo = sum(b['ruta'].startswith('appstudy-book:') for b in db.books_todos(self.con).values())
+        if sin_archivo:
+            self.columna.append(Gtk.Label(
+                label=f'{sin_archivo} libros sincronizados pendientes de vincular. '
+                      'Añade sus archivos a tu biblioteca y ábrelos para recuperar el progreso y los subrayados.',
+                wrap=True, xalign=0))
         filtro = self.buscar.get_text().strip().lower()
 
         if not self.estante:

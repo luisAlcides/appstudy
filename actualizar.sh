@@ -36,7 +36,8 @@ from appstudy import hotkey
 print(hotkey.current_binding('') or '<Super><Shift>e')" 2>/dev/null || echo '<Super><Shift>e')"
 
 echo "▸ Reinstalando lo que son copias (icono, lanzador, dock, extensión)"
-"$RAIZ/install.sh" "$ATAJO" | sed 's/^/  /'
+# --defaults: actualizar no pregunta nada, respeta lo que elegiste al instalar
+"$RAIZ/install.sh" --defaults "$ATAJO" | sed 's/^/  /'
 
 echo "▸ Recargando el contenido incluido"
 "$RAIZ/bin/appstudy" --reload 2>/dev/null | sed 's/^/  /' || echo "  (nada que recargar)"

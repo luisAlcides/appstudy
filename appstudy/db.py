@@ -295,6 +295,9 @@ def migrate(con):
             con.execute(f"ALTER TABLE {tabla} ADD COLUMN {columna} {definicion}")
     con.commit()
     convertir_a_fsrs(con)
+    from . import portabilidad
+    portabilidad.preparar(con)
+    con.commit()
 
 
 def convertir_a_fsrs(con) -> int:
@@ -639,12 +642,15 @@ def book(con, ruta: str) -> dict | None:
 
 def book_abrir(con, ruta: str, titulo: str, tema: str, paginas: int) -> dict:
     """Registra el libro (si es la primera vez) y anota que lo acabas de abrir."""
+    from . import portabilidad
+    uid = portabilidad.vincular(con, ruta)
     con.execute(
         """INSERT INTO books(ruta, titulo, tema, paginas, pagina, abierto)
            VALUES(?,?,?,?,1,?)
            ON CONFLICT(ruta) DO UPDATE SET titulo=excluded.titulo, tema=excluded.tema,
                                            paginas=excluded.paginas, abierto=excluded.abierto""",
         (str(ruta), titulo, tema, paginas, time.time()))
+    con.execute("UPDATE books SET uid=? WHERE ruta=? AND uid!=?", (uid, str(ruta), uid))
     con.commit()
     return book(con, ruta)
 
@@ -718,6 +724,8 @@ def nota_add(con, ruta: str, pagina: int, rect, texto: str = "",
         (str(ruta), int(pagina), min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1),
          color if color in COLORES_NOTA else "amarillo", texto.strip(), nota.strip(),
          time.time()))
+    import uuid
+    con.execute("UPDATE notas SET uid=? WHERE id=?", (uuid.uuid4().hex, cur.lastrowid))
     con.commit()
     return cur.lastrowid
 
@@ -824,8 +832,13 @@ def totals(con):
            FROM cards c JOIN state s ON s.card_id=c.id
            JOIN decks d ON d.id=c.deck_id WHERE d.enabled=1""", (now,)).fetchone()
     d = {k: (r[k] or 0) for k in ("total", "nuevas", "pendientes", "dominadas")}
-    day = time.time() - 86400
-    d["hoy"] = con.execute("SELECT COUNT(*) FROM log WHERE ts>=?", (day,)).fetchone()[0]
+    # El día se corta en hora local, igual que la racha y las nuevas de hoy. Con
+    # una ventana de 24 horas, a las nueve de la mañana el panel seguía contando
+    # los repasos de anoche y se contradecía con la racha, que ya cortaba el día.
+    d["hoy"] = con.execute(
+        """SELECT COUNT(*) FROM log
+           WHERE date(ts, 'unixepoch', 'localtime') = date('now', 'localtime')"""
+    ).fetchone()[0]
     d["racha"] = streak(con)
     d["sanguijuelas"] = con.execute(
         """SELECT COUNT(*) FROM state s JOIN cards c ON c.id=s.card_id

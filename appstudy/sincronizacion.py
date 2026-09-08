@@ -18,7 +18,7 @@ from pathlib import Path
 
 from . import db, nube
 
-FORMATO = 1
+FORMATO = 2
 MAX_ARCHIVOS = 32
 MAX_BYTES = 50 * 1024 * 1024
 MAX_ELEMENTOS = 250_000
@@ -69,6 +69,11 @@ def _filas(con, sql, args=()):
     return [dict(f) for f in con.execute(sql, args)]
 
 
+class Snapshot(dict):
+    """La revisión local acompaña al envío, pero no se serializa."""
+    revision = 0
+
+
 def snapshot(con, equipo: str | None = None, ahora: float | None = None) -> dict:
     """Representación portable: nunca contiene IDs numéricos locales."""
     ahora = time.time() if ahora is None else float(ahora)
@@ -76,7 +81,13 @@ def snapshot(con, equipo: str | None = None, ahora: float | None = None) -> dict
     if not _DISPOSITIVO.fullmatch(equipo):
         raise ValueError("Identificador de equipo no válido")
     _versiones_iniciales(con, ahora)
+    # Referencias antiguas pueden existir sin entrada en la biblioteca.
+    for fila in con.execute("SELECT ruta FROM notas UNION SELECT ruta FROM card_sources WHERE kind='book'").fetchall():
+        if fila['ruta'] and not db.book(con, fila['ruta']):
+            db.book_abrir(con, fila['ruta'], Path(fila['ruta']).name, '', 0)
 
+    # Mantiene una vista consistente incluso si registrar un libro hizo commit.
+    con.execute("INSERT OR IGNORE INTO meta(k,v) VALUES('data_revision','0')")
     decks = _filas(con, "SELECT key,name,icon,color,pos,levels FROM decks")
     cards = _filas(con,
         """SELECT c.uid,d.key AS deck_key,c.kind,c.front,c.back,c.hint,c.choices,
@@ -102,10 +113,20 @@ def snapshot(con, equipo: str | None = None, ahora: float | None = None) -> dict
         """SELECT c.uid AS card_uid,s.kind,s.chapter_uid,s.ruta,s.page_start,
                   s.page_end,s.title FROM card_sources s
            JOIN cards c ON c.id=s.card_id WHERE c.builtin=0""")
-    return {"format": FORMATO, "device": equipo, "generated": ahora,
+    books = _filas(con, "SELECT uid,titulo,tema,paginas,pagina,abierto,minutos,favorito,marcas,zoom FROM books")
+    notes = _filas(con, """SELECT n.uid,b.uid AS book_uid,n.pagina,n.x0,n.y0,n.x1,n.y1,
+                  n.color,n.texto,n.nota,n.ts,c.uid AS card_uid FROM notas n
+                  JOIN books b ON b.ruta=n.ruta LEFT JOIN cards c ON c.id=n.card_id""")
+    for source in sources:
+        ruta = source.pop('ruta', '')
+        libro = db.book(con, ruta)
+        source['book_uid'] = libro['uid'] if libro else ''
+    datos = Snapshot({"format": FORMATO, "device": equipo, "generated": ahora,
             "decks": decks, "cards": cards, "chapters": chapters,
             "states": states, "logs": logs, "reading": reading,
-            "changes": changes, "sources": sources}
+            "changes": changes, "sources": sources, "books": books, "notes": notes})
+    datos.revision = revision(con)
+    return datos
 
 
 def _guardar_snapshot(datos: dict, carpeta: Path) -> Path:
@@ -136,12 +157,14 @@ def _leer(ruta: Path) -> dict:
 
 def validar(datos) -> dict:
     """Comprueba un snapshot venga de donde venga: de la carpeta o de la nube."""
-    if (not isinstance(datos, dict) or datos.get("format") != FORMATO
+    if (not isinstance(datos, dict) or datos.get("format") not in (1, FORMATO)
             or not _DISPOSITIVO.fullmatch(str(datos.get("device", "")))):
         raise ValueError("formato de sincronización no válido")
+    datos.setdefault("books", [])
+    datos.setdefault("notes", [])
     datos.setdefault("sources", [])       # compatible con los primeros archivos v1
     for clave in ("decks", "cards", "chapters", "states", "logs", "reading",
-                  "changes", "sources"):
+                  "changes", "sources", "books", "notes"):
         if not isinstance(datos.get(clave), list) or len(datos[clave]) > MAX_ELEMENTOS:
             raise ValueError(f"sección {clave} no válida")
     return datos
@@ -232,7 +255,7 @@ def fusionar(con, remotos: list[dict], equipo: str) -> dict:
 
     otros_equipos = len({r["device"] for r in remotos if r["device"] != equipo})
     resultado = {"equipos": otros_equipos, "tarjetas": 0, "capitulos": 0,
-                 "borrados": 0, "repasos": 0, "lecturas": 0}
+                 "borrados": 0, "repasos": 0, "lecturas": 0, "libros": 0, "subrayados": 0}
     candidatos: dict[tuple[str, str], tuple[float, float, bool, dict | None,
                                             dict, dict | None]] = {}
     estados: dict[str, tuple[float, float, dict]] = {}
@@ -242,16 +265,18 @@ def fusionar(con, remotos: list[dict], equipo: str) -> dict:
         generado = float(remoto.get("generated") or 0)
         cards = {str(x.get("uid")): x for x in remoto["cards"] if x.get("uid")}
         chapters = {str(x.get("uid")): x for x in remoto["chapters"] if x.get("uid")}
+        books = {str(x["uid"]): x for x in remoto.get("books", []) if x.get("uid")}
+        notes = {str(x["uid"]): x for x in remoto.get("notes", []) if x.get("uid")}
         sources = {str(x.get("card_uid")): x for x in remoto["sources"]
                    if x.get("card_uid")}
         mazos = _mazos(remoto["decks"])
         for cambio in remoto["changes"]:
             entity, uid = str(cambio.get("entity", "")), str(cambio.get("uid", ""))
-            if entity not in ("card", "chapter") or not uid:
+            if entity not in ("card", "chapter", "book", "note") or not uid:
                 continue
             mod = float(cambio.get("modified") or 0)
             borrado = bool(cambio.get("deleted"))
-            item = (cards if entity == "card" else chapters).get(uid)
+            item = {"card": cards, "chapter": chapters, "book": books, "note": notes}[entity].get(uid)
             if not borrado and item is None:
                 continue
             clave = (entity, uid)
@@ -271,11 +296,11 @@ def fusionar(con, remotos: list[dict], equipo: str) -> dict:
 
     try:
         con.execute("BEGIN IMMEDIATE")
-        for (entity, uid), (mod, _gen, borrado, item, mazos, source) in candidatos.items():
+        for (entity, uid), (mod, _gen, borrado, item, mazos, source) in sorted(candidatos.items(), key=lambda par: {"book": 0, "chapter": 1, "card": 2, "note": 3}[par[0][0]]):
             local_mod, _local_borrado = _version_local(con, entity, uid)
             if mod <= local_mod:
                 continue
-            tabla = "cards" if entity == "card" else "chapters"
+            tabla = {"card": "cards", "chapter": "chapters", "book": "books", "note": "notas"}[entity]
             if borrado:
                 con.execute(f"DELETE FROM {tabla} WHERE uid=?", (uid,))
                 resultado["borrados"] += 1
@@ -283,8 +308,37 @@ def fusionar(con, remotos: list[dict], equipo: str) -> dict:
                 _aplicar_card(con, item, mazos.get(str(item.get("deck_key"))))
                 if source:
                     cid = con.execute("SELECT id FROM cards WHERE uid=?", (uid,)).fetchone()["id"]
+                    source = dict(source)
+                    if not source.get('book_uid') and source.get('kind') == 'book' and source.get('ruta'):
+                        # Los archivos v1 no tenían identidad de libro. Conserva
+                        # la referencia como ficha pendiente, sin importar su ruta.
+                        source['book_uid'] = 'legacy:' + hashlib.sha256(source['ruta'].encode()).hexdigest()
+                        con.execute("""INSERT OR IGNORE INTO books(uid,ruta,titulo)
+                            VALUES(?,?,?)""", (source['book_uid'], 'appstudy-book:' + source['book_uid'], source.get('title') or 'Libro'))
+                    libro = con.execute("SELECT ruta FROM books WHERE uid=?", (source.get('book_uid', ''),)).fetchone()
+                    # Nunca se abre una ruta recibida de otro ordenador.
+                    source['ruta'] = libro['ruta'] if libro else ''
                     db.set_card_source(con, cid, source, touch=False)
                 resultado["tarjetas"] += 1
+            elif entity == "book":
+                columnas = ('titulo', 'tema', 'paginas', 'pagina', 'abierto', 'minutos', 'favorito', 'marcas', 'zoom')
+                valores = [item[k] for k in columnas]
+                if not con.execute('SELECT 1 FROM books WHERE uid=?', (uid,)).fetchone():
+                    con.execute("""INSERT INTO books(uid,ruta,titulo,tema,paginas,pagina,abierto,minutos,favorito,marcas,zoom)
+                        VALUES(?,?,?,?,?,?,?,?,?,?,?)""", (uid, 'appstudy-book:' + uid, *valores))
+                con.execute('UPDATE books SET ' + ','.join(k+'=?' for k in columnas) + ' WHERE uid=?', (*valores, uid))
+                resultado['libros'] += 1
+            elif entity == "note":
+                libro = con.execute('SELECT ruta FROM books WHERE uid=?', (item['book_uid'],)).fetchone()
+                if not libro:
+                    continue
+                card = con.execute('SELECT id FROM cards WHERE uid=?', (item.get('card_uid'),)).fetchone()
+                columnas = ('pagina', 'x0', 'y0', 'x1', 'y1', 'color', 'texto', 'nota', 'ts')
+                valores = [item[k] for k in columnas]
+                con.execute('DELETE FROM notas WHERE uid=?', (uid,))
+                con.execute('INSERT INTO notas(uid,ruta,card_id,' + ','.join(columnas) + ') VALUES(' + ','.join('?' for _ in range(12)) + ')',
+                            (uid, libro['ruta'], card['id'] if card else None, *valores))
+                resultado['subrayados'] += 1
             else:
                 _aplicar_chapter(con, item, mazos.get(str(item.get("deck_key"))))
                 resultado["capitulos"] += 1
@@ -373,8 +427,10 @@ def sincronizar(con, carpeta, equipo: str | None = None) -> dict:
 
     resultado = fusionar(con, remotos, equipo)
     resultado["ignorados"] = ignorados
-    resultado["ruta"] = _guardar_snapshot(snapshot(con, equipo), carpeta)
+    datos = snapshot(con, equipo)
     con.commit()
+    resultado["ruta"] = _guardar_snapshot(datos, carpeta)
+    _publicado(con, "sync", datos.revision, ignorados)
     return resultado
 
 
@@ -399,8 +455,10 @@ def sincronizar_nube(con, equipo: str | None = None) -> dict:
 
     resultado = fusionar(con, remotos, equipo)
     resultado["ignorados"] = ignorados
-    nube.subir_snapshot(snapshot(con, equipo))
+    datos = snapshot(con, equipo)
     con.commit()
+    nube.subir_snapshot(datos)
+    _publicado(con, "nube", datos.revision, ignorados)
     return resultado
 
 
@@ -421,5 +479,41 @@ def publicar_nube(con, equipo: str | None = None,
     fin = time.monotonic() + limite
     queda = lambda: max(1.0, fin - time.monotonic())      # noqa: E731
     acceso = nube.token(espera=queda())
-    nube.subir_snapshot(snapshot(con, equipo), espera=queda(), acceso=acceso)
+    datos = snapshot(con, equipo)
     con.commit()
+    nube.subir_snapshot(datos, espera=queda(), acceso=acceso)
+    _publicado(con, "nube", datos.revision)
+
+
+def revision(con):
+    return int(db.get_meta(con, 'data_revision', 0))
+
+
+def estado(con, canal):
+    error = db.get_meta(con, canal + '_error', '')
+    if error:
+        return 'Error', error
+    ultima = db.get_meta(con, canal + '_revision')
+    if ultima is None or int(ultima) != revision(con):
+        return 'Pendiente', 'Hay cambios por sincronizar'
+    return 'Sincronizado', 'Último intercambio completado; los PDF se vinculan al abrirlos en este equipo'
+
+
+def _publicado(con, canal, rev, ignorados=0):
+    db.set_meta(con, canal + '_error', f'{ignorados} archivos no se pudieron leer' if ignorados else '')
+    db.set_meta(con, canal + '_revision', rev)
+
+
+def _registrar(funcion, canal):
+    def ejecutar(con, *args, **kwargs):
+        try:
+            return funcion(con, *args, **kwargs)
+        except Exception as exc:
+            db.set_meta(con, canal + '_error', str(exc))
+            raise
+    return ejecutar
+
+
+sincronizar = _registrar(sincronizar, 'sync')
+sincronizar_nube = _registrar(sincronizar_nube, 'nube')
+publicar_nube = _registrar(publicar_nube, 'nube')

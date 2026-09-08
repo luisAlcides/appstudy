@@ -249,6 +249,86 @@ class TestObjetivoDiario(BaseTemporal):
         self.assertFalse(semana[0]["cumplido"])
 
 
+class TestConteoDelDia(BaseTemporal):
+    """«Repasos hoy» corta el día en hora local, no en las últimas 24 horas.
+
+    Con la ventana móvil, a las nueve de la mañana el panel seguía sumando los
+    repasos de anoche: decía dieciocho repasos hoy mientras la racha y el
+    objetivo, que sí cortan el día, contaban cero.
+    """
+
+    def ayer_por_la_noche(self):
+        """Un instante de ayer que la ventana de 24 h sí atraparía."""
+        ayer = time.localtime(time.time() - 86400)
+        de_noche = (*ayer[:3], 23, 50, 0, *ayer[6:])
+        return time.mktime(de_noche)
+
+    def test_un_repaso_de_anoche_no_cuenta_como_de_hoy(self):
+        cid = self.tarjeta(self.mazo(), "la de anoche")
+        anoche = self.ayer_por_la_noche()
+        if time.time() - anoche > 86400:      # se corre de madrugada: no aplica
+            self.skipTest("a esta hora anoche ya cae fuera de las 24 horas")
+        self.repasar(cid, GOOD, cuando=anoche)
+        self.assertEqual(db.totals(self.con)["hoy"], 0)
+
+    def test_lo_repasado_hoy_si_cuenta(self):
+        deck = self.mazo()
+        for i in range(3):
+            self.repasar(self.tarjeta(deck, f"t{i}"), GOOD)
+        self.assertEqual(db.totals(self.con)["hoy"], 3)
+
+    def test_cuadra_con_la_racha_y_con_lo_que_falta_del_objetivo(self):
+        deck = self.mazo()
+        db.set_objetivo_diario(self.con, 5)
+        self.repasar(self.tarjeta(deck, "de anoche"), GOOD,
+                     cuando=self.ayer_por_la_noche())
+        t = db.totals(self.con)
+        self.assertEqual(t["restan"], t["objetivo"] - t["hoy"])
+
+
+class TestNuevasQueSePuedenEstrenar(BaseTemporal):
+    """Lo que el panel anuncia tiene que ser lo que el planificador dejará ver."""
+
+    def anunciadas(self):
+        """Las tarjetas que el héroe del panel promete (main_window.refresh_panel)."""
+        t = db.totals(self.con)
+        return t["pendientes"] + min(t["nuevas"], t["nuevas_restantes"])
+
+    def test_el_cupo_diario_limita_lo_que_se_anuncia(self):
+        deck = self.mazo()
+        db.set_nuevas_por_dia(self.con, 15)
+        for i in range(40):
+            self.tarjeta(deck, f"sin estrenar {i}")
+        self.assertEqual(self.anunciadas(), 15)
+
+    def test_lo_ya_estrenado_hoy_descuenta_del_anuncio(self):
+        deck = self.mazo()
+        db.set_nuevas_por_dia(self.con, 15)
+        ids = [self.tarjeta(deck, f"t{i}") for i in range(40)]
+        for cid in ids[:5]:
+            self.repasar(cid, GOOD)
+        self.assertEqual(db.totals(self.con)["nuevas_hoy"], 5)
+        self.assertEqual(self.anunciadas(), 10)
+
+    def test_sin_tope_se_anuncian_todas_las_sin_estrenar(self):
+        deck = self.mazo()
+        db.set_nuevas_por_dia(self.con, 0)
+        for i in range(30):
+            self.tarjeta(deck, f"t{i}")
+        self.assertEqual(self.anunciadas(), 30)
+
+    def test_agotado_el_cupo_no_promete_nuevas_y_el_planificador_tampoco_las_da(self):
+        deck = self.mazo()
+        db.set_nuevas_por_dia(self.con, 2)
+        ids = [self.tarjeta(deck, f"t{i}") for i in range(10)]
+        for cid in ids[:2]:
+            self.repasar(cid, GOOD)
+        vistas = {cid for cid in ids[:2]}
+        self.assertEqual(self.anunciadas(), db.totals(self.con)["pendientes"])
+        siguiente = scheduler.next_card(self.con)
+        self.assertTrue(siguiente is None or siguiente["id"] in vistas)
+
+
 class TestMigracionDesdeSM2(BaseTemporal):
     """Una base con historial de SM-2 tiene que entrar en FSRS sin perder nada."""
 

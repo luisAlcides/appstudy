@@ -122,7 +122,74 @@ class SincronizacionTest(BaseTemporal):
         card_b = self.otra.execute("SELECT id FROM cards").fetchone()[0]
         fuente = db.source_for_card(self.otra, card_b)
         self.assertEqual((fuente["ruta"], fuente["page_start"], fuente["page_end"]),
-                         ("/libros/manual.pdf", 12, 14))
+                         (self.otra.execute("SELECT ruta FROM books").fetchone()[0], 12, 14))
+        self.assertNotEqual(fuente["ruta"], "/libros/manual.pdf")
+
+    def test_libro_portable_subrayados_y_borrados(self):
+        a, b = self.tmp / 'original.pdf', self.tmp / 'movido.pdf'
+        a.write_bytes(b'contenido PDF identico')
+        b.write_bytes(a.read_bytes())
+        db.book_abrir(self.con, str(a), 'Manual', 'Python', 20)
+        db.book_progreso(self.con, str(a), 12, 5)
+        nid = db.nota_add(self.con, str(a), 12, (.1, .2, .7, .8), 'Texto', 'Comentario')
+        self.sync_a(); self.sync_b()
+        snap = sincronizacion.snapshot(self.con, EQUIPO_A)
+        self.assertNotIn(str(a), str(snap))
+        libro = db.book_abrir(self.otra, str(b), 'Manual', 'Python', 20)
+        self.assertEqual(libro['pagina'], 12)
+        self.assertEqual(libro['minutos'], 5)
+        notas = db.notas_de(self.otra, str(b))
+        self.assertEqual(len(notas), 1)
+        self.assertEqual(notas[0]['nota'], 'Comentario')
+        db.nota_editar(self.otra, notas[0]['id'], nota='Editado')
+        self.sync_b(); self.sync_a()
+        self.assertEqual(db.notas_de(self.con, str(a))[0]['nota'], 'Editado')
+        db.nota_borrar(self.con, db.notas_de(self.con, str(a))[0]['id'])
+        self.sync_a(); self.sync_b(); self.sync_a()
+        self.assertEqual(db.notas_de(self.otra, str(b)), [])
+
+    def test_estado_pendiente_error_y_recuperacion(self):
+        self.tarjeta_a()
+        self.assertEqual(sincronizacion.estado(self.con, 'sync')[0], 'Pendiente')
+        self.sync_a()
+        self.assertEqual(sincronizacion.estado(self.con, 'sync')[0], 'Sincronizado')
+        self.tarjeta_a('Otra pregunta')
+        self.assertEqual(sincronizacion.estado(self.con, 'sync')[0], 'Pendiente')
+        invalida = self.tmp / 'archivo'
+        invalida.write_text('no es carpeta')
+        with self.assertRaises(OSError):
+            sincronizacion.sincronizar(self.con, invalida, EQUIPO_A)
+        self.assertEqual(sincronizacion.estado(self.con, 'sync')[0], 'Error')
+        self.sync_a()
+        self.assertEqual(sincronizacion.estado(self.con, 'sync')[0], 'Sincronizado')
+
+    def test_acepta_formato_anterior(self):
+        snap = sincronizacion.snapshot(self.con, EQUIPO_A)
+        snap['format'] = 1
+        del snap['books'], snap['notes']
+        self.assertEqual(sincronizacion.validar(snap)['books'], [])
+
+    def test_cambios_durante_subida_siguen_pendientes(self):
+        from unittest.mock import patch
+        self.tarjeta_a()
+        def subir(datos):
+            self.tarjeta_a('Escrita durante el envío')
+        with patch.object(sincronizacion.nube, 'descargar_snapshots', return_value=[]), \
+             patch.object(sincronizacion.nube, 'subir_snapshot', side_effect=subir):
+            sincronizacion.sincronizar_nube(self.con, EQUIPO_A)
+        self.assertEqual(sincronizacion.estado(self.con, 'nube')[0], 'Pendiente')
+
+    def test_migracion_conserva_notas_y_progreso(self):
+        ruta = self.tmp / 'migrado.pdf'
+        ruta.write_bytes(b'libro de una version anterior')
+        self.con.execute("INSERT INTO books(ruta,titulo,pagina) VALUES(?,?,?)", (str(ruta), 'Libro', 9))
+        self.con.execute("INSERT INTO notas(ruta,nota) VALUES(?,?)", (str(ruta), 'Antes de migrar'))
+        db.migrate(self.con)
+        db.migrate(self.con)
+        self.assertTrue(db.book(self.con, str(ruta))['uid'].startswith('sha256:'))
+        self.sync_a(); self.sync_b()
+        self.assertEqual(self.otra.execute('SELECT pagina FROM books').fetchone()[0], 9)
+        self.assertEqual(self.otra.execute('SELECT nota FROM notas').fetchone()[0], 'Antes de migrar')
 
 
 if __name__ == "__main__":

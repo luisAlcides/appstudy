@@ -10,10 +10,11 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 
-from . import ayuda, buscador, cloze, db, estadisticas, fsrs, graficas  # noqa: E402
+from . import ayuda, bienvenida, buscador, cloze, db, estadisticas  # noqa: E402
+from . import fsrs, graficas  # noqa: E402
 from . import freecodecamp, historial, hotkey, ia, importador, lecturas  # noqa: E402
 from . import libros, logros, pet, recordatorios, respaldo, scheduler  # noqa: E402
-from . import nube, sincronizacion  # noqa: E402
+from . import recomendaciones, nube, sincronizacion  # noqa: E402
 from . import sesiones, sonido, util, voz  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
 
@@ -211,6 +212,12 @@ class MainWindow(Adw.ApplicationWindow):
         nueva = Gtk.Button(icon_name="list-add-symbolic", tooltip_text="Nueva tarjeta")
         nueva.connect("clicked", lambda *_: self.card_editor())
         header.pack_end(nueva)
+        self.sync_estado = Gtk.Button(css_classes=['flat'])
+        self.sync_estado.connect('clicked', lambda *_: self.stack.set_visible_child_name('ajustes'))
+        header.pack_end(self.sync_estado)
+        self.actualizar_estado_sync()
+        GLib.timeout_add_seconds(3, self.actualizar_estado_sync)
+
 
         buscar = Gtk.Button(icon_name="system-search-symbolic",
                             tooltip_text="Buscar en todo (Ctrl+K)")
@@ -300,7 +307,9 @@ class MainWindow(Adw.ApplicationWindow):
         hero = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
                        css_classes=["as-card", "as-hero"])
         saludo = Gtk.Label(xalign=0, use_markup=True, wrap=True)
-        pend = t["pendientes"] + min(t["nuevas"], 20)
+        # Lo que se anuncia es lo que se podrá estudiar: las nuevas van topadas por
+        # el cupo que quede hoy, no por un 20 fijo que ignoraba los ajustes.
+        pend = t["pendientes"] + min(t["nuevas"], t["nuevas_restantes"])
         saludo.set_markup(
             f"<span size='x-large' weight='bold'>{self.saludo()}</span>\n"
             f"Tienes <b>{pend}</b> tarjetas listas para repasar."
@@ -332,11 +341,27 @@ class MainWindow(Adw.ApplicationWindow):
         if t["sanguijuelas"]:
             box.append(self.aviso_sanguijuelas(t["sanguijuelas"]))
 
-        siguiente = self.next_unread()
+        plan = recomendaciones.recomendar(self.con, int(db.get_meta(self.con, 'tema_elegido', 0)))
+        propuesta = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, css_classes=['as-card'])
+        propuesta.append(Gtk.Label(label=plan['texto'], xalign=0, wrap=True, css_classes=['heading']))
+        propuesta.append(Gtk.Label(label=plan['razon'], xalign=0, wrap=True))
+        acciones = Gtk.Box(spacing=8)
+        if plan['repasos']:
+            repasar = Gtk.Button(label='Repasar ahora')
+            repasar.connect('clicked', lambda *_: self.get_application().show_popup(
+                deck_key=plan['deck']['key'], session_plan=sesiones.Plan(5, plan['repasos'], 'Repaso recomendado')))
+            acciones.append(repasar)
+        if plan['ejercicios']:
+            practicar = Gtk.Button(label='Hacer ejercicios')
+            practicar.connect('clicked', lambda *_: self.abrir_simulacro_examen(
+                deck_id=plan['deck']['id'], n=plan['ejercicios']))
+            acciones.append(practicar)
+        propuesta.append(acciones)
+        box.append(propuesta)
+        siguiente = plan['capitulo']
         if siguiente:
             box.append(self.continue_reading_card(siguiente))
 
-        box.append(self.section_title("Modos de estudio"))
         box.append(self.tarjeta_modos_estudio())
 
         box.append(self.section_title("Mazos"))
@@ -347,44 +372,58 @@ class MainWindow(Adw.ApplicationWindow):
             lista.append(self.deck_row(d, avance.get(d["id"], [])))
         box.append(lista)
 
+    MODOS_ABIERTOS = "panel_modos_abierto"
+
     def tarjeta_modos_estudio(self):
+        """Los modos que no son el repaso diario, plegados hasta que hagan falta.
+
+        Eran cuatro tarjetas grandes en mitad del panel, y quien acaba de
+        instalar la aplicación se encontraba con cuatro caminos antes de haber
+        repasado una sola tarjeta. Lo de arriba —la propuesta del día y seguir
+        leyendo— es lo que se usa a diario; esto es para cuando ya se sabe qué
+        se busca, así que se abre solo si lo abres, y entonces se queda abierto.
+        """
         modos = [
-            ("📝 Modo Examen",
+            ("📝", "Modo Examen",
              "Simulacro de 20 o 40 preguntas sin calificar hasta el final, con nota y desglose.",
              lambda *_: self.abrir_simulacro_examen()),
-            ("✍️ Escritura Libre",
+            ("✍️", "Escritura Libre",
              "Redacta un párrafo sobre un tema del mazo y recibe corrección con IA local.",
              lambda *_: self.abrir_escritura_libre()),
-            ("🔥 Cursos de freeCodeCamp",
+            ("🔥", "Cursos de freeCodeCamp",
              "Currículo completo con su editor y sus pruebas: haz las lecciones aquí y "
              "conviértelas en lecturas o tarjetas.",
              lambda *_: self.abrir_cursos_freecodecamp()),
-            ("🎬 Cursos Online",
+            ("🎬", "Cursos Online",
              "Reproductor integrado de Platzi y Udemy con detección de último y siguiente video.",
              lambda *_: self.abrir_reproductor_cursos()),
         ]
 
-        columnas = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        for desde in range(0, len(modos), 2):
-            fila = Gtk.Box(spacing=12, homogeneous=True)
-            for titulo, texto, accion in modos[desde:desde + 2]:
-                fila.append(self.tarjeta_modo(titulo, texto, accion))
-            columnas.append(fila)
-        return columnas
+        expansor = Adw.ExpanderRow(
+            title="Otras formas de estudiar",
+            subtitle=f"Examen, escritura y cursos · {len(modos)} modos")
+        expansor.set_expanded(bool(db.get_meta(self.con, self.MODOS_ABIERTOS)))
+        expansor.connect("notify::expanded", self.on_modos_expandido)
+        for icono, titulo, texto, accion in modos:
+            fila = Adw.ActionRow(title=titulo, subtitle=texto)
+            fila.set_subtitle_lines(2)
+            fila.add_prefix(Gtk.Label(label=icono, css_classes=["as-deck-row-icon"]))
+            boton = Gtk.Button(label="Abrir", valign=Gtk.Align.CENTER)
+            boton.connect("clicked", accion)
+            fila.add_suffix(boton)
+            fila.set_activatable_widget(boton)
+            expansor.add_row(fila)
 
-    @staticmethod
-    def tarjeta_modo(titulo, texto, accion):
-        """Una de las tarjetas grandes de «Modos de estudio»."""
-        boton = Gtk.Button(css_classes=["card"])
-        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        for lado in ("top", "bottom", "start", "end"):
-            getattr(caja, f"set_margin_{lado}")(12)
-        caja.append(Gtk.Label(label=titulo, css_classes=["heading"], xalign=0))
-        caja.append(Gtk.Label(label=texto, wrap=True, xalign=0,
-                              css_classes=["caption", "as-dim"]))
-        boton.set_child(caja)
-        boton.connect("clicked", accion)
-        return boton
+        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
+                            css_classes=["boxed-list"])
+        lista.append(expansor)
+        return lista
+
+    def on_modos_expandido(self, expansor, _p):
+        """Abrirlo una vez basta: la próxima sesión ya lo encuentra abierto."""
+        db.set_meta(self.con, self.MODOS_ABIERTOS,
+                    "1" if expansor.get_expanded() else "")
+        self.con.commit()
 
     def abrir_cursos_freecodecamp(self, superblock=None):
         """Abre el catálogo de freeCodeCamp para tomar sus cursos desde aquí."""
@@ -412,11 +451,8 @@ class MainWindow(Adw.ApplicationWindow):
         win.present()
 
     def next_unread(self):
-        """El primer capítulo sin leer, respetando el orden de básico a avanzado."""
-        for c in db.chapters(self.con):
-            if not c["leido"]:
-                return c
-        return None
+        return recomendaciones.recomendar(
+            self.con, int(db.get_meta(self.con, 'tema_elegido', 0)))['capitulo']
 
     def continue_reading_card(self, cap):
         boton = Gtk.Button(css_classes=["card"])
@@ -646,6 +682,7 @@ class MainWindow(Adw.ApplicationWindow):
         return row
 
     def open_tema(self, deck_id):
+        db.set_meta(self.con, 'tema_elegido', deck_id)
         """La página del tema: aquí sí está todo desglosado por niveles."""
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
         caja.set_margin_top(20)
@@ -886,6 +923,7 @@ class MainWindow(Adw.ApplicationWindow):
         return row
 
     def open_tema_tarjetas(self, deck):
+        db.set_meta(self.con, 'tema_elegido', deck['id'])
         """La página del tema: las tarjetas, desglosadas por niveles."""
         lista = ListaTarjetas(self, deck=deck)
         self.tema_lista = lista
@@ -1233,7 +1271,15 @@ class MainWindow(Adw.ApplicationWindow):
     # ----------------------------------------------------------------- ajustes
 
     def build_settings(self):
-        page = Adw.PreferencesPage()
+        """Ajustes en dos pestañas: lo de todos los días y lo que casi nunca.
+
+        Estaban los catorce grupos en una sola página: para cambiar el objetivo
+        diario había que pasar por los pesos de FSRS, la nube y los respaldos.
+        Lo que se toca a menudo va en «Básico»; lo que se configura una vez y se
+        olvida, en «Avanzado». La pestaña donde estabas se recuerda.
+        """
+        basico = Adw.PreferencesPage()
+        avanzado = Adw.PreferencesPage()
 
         g = Adw.PreferencesGroup(
             title="Atajo global",
@@ -1266,7 +1312,6 @@ class MainWindow(Adw.ApplicationWindow):
         cq.connect("clicked", lambda *_: self.remove_hotkey("capture"))
         captura_quitar.add_suffix(cq)
         g.add(captura_quitar)
-        page.add(g)
 
         gp = Adw.PreferencesGroup(
             title=f"{pet.NOMBRE}, la mascota",
@@ -1321,7 +1366,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.reminder_end.set_subtitle("La misma hora de inicio y fin permite todo el día")
         self.reminder_end.connect("notify::value", self.on_reminder_hours)
         gp.add(self.reminder_end)
-        page.add(gp)
 
         motor = voz.motor_actual()
         if motor in ("kokoro", "piper"):
@@ -1386,7 +1430,6 @@ class MainWindow(Adw.ApplicationWindow):
         btn_probar_voz.connect("clicked", lambda *_: self.probar_voz())
         probar_voz_row.add_suffix(btn_probar_voz)
         gvoz.add(probar_voz_row)
-        page.add(gvoz)
 
         gia = Adw.PreferencesGroup(
             title="Inteligencia artificial",
@@ -1422,7 +1465,6 @@ class MainWindow(Adw.ApplicationWindow):
         liberar_btn.connect("clicked", lambda *_: self.pausar_ia_manual())
         self.ia_liberar_row.add_suffix(liberar_btn)
         gia.add(self.ia_liberar_row)
-        page.add(gia)
 
         glib_ = Adw.PreferencesGroup(
             title="Biblioteca",
@@ -1434,7 +1476,6 @@ class MainWindow(Adw.ApplicationWindow):
         cambiar.connect("clicked", lambda *_: self.biblioteca.elegir_carpeta())
         self.libros_row.add_suffix(cambiar)
         glib_.add(self.libros_row)
-        page.add(glib_)
 
         gpr = Adw.PreferencesGroup(
             title="Apariencia y progreso",
@@ -1477,7 +1518,6 @@ class MainWindow(Adw.ApplicationWindow):
         rr.connect("clicked", lambda *_: self.confirm_reset_streak())
         self.racha_row.add_suffix(rr)
         gpr.add(self.racha_row)
-        page.add(gpr)
 
         gfsrs = Adw.PreferencesGroup(
             title="Cómo se programan los repasos",
@@ -1514,7 +1554,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.calibrar_btn.connect("clicked", lambda *_: self.calibrar_fsrs())
         self.calibrar_row.add_suffix(self.calibrar_btn)
         gfsrs.add(self.calibrar_row)
-        page.add(gfsrs)
 
         gmeta = Adw.PreferencesGroup(
             title="Objetivo diario",
@@ -1534,7 +1573,16 @@ class MainWindow(Adw.ApplicationWindow):
         self.objetivo_estado = Adw.ActionRow(title="Esta semana")
         self.objetivo_estado.set_subtitle_lines(2)
         gmeta.add(self.objetivo_estado)
-        page.add(gmeta)
+
+        # Estos dos números salen del asistente la primera vez; desde aquí se
+        # vuelve a hacer si cambian el tema de estudio o el tiempo disponible.
+        plan_row = Adw.ActionRow(
+            title="Rehacer mi plan de estudio",
+            subtitle="Elegir otra vez temas, tiempo al día y nivel de partida.")
+        plan_btn = Gtk.Button(label="Empezar", valign=Gtk.Align.CENTER)
+        plan_btn.connect("clicked", lambda *_: self.rehacer_plan())
+        plan_row.add_suffix(plan_btn)
+        gmeta.add(plan_row)
 
         gnube = Adw.PreferencesGroup(
             title="Cuenta en la nube",
@@ -1588,7 +1636,6 @@ class MainWindow(Adw.ApplicationWindow):
             subtitle="Para no tener que acordarte antes de cambiar de equipo")
         self.nube_auto.connect("notify::active", self.on_nube_auto)
         gnube.add(self.nube_auto)
-        page.add(gnube)
         # Deja a la vista solo lo que toca ya, sin esperar al primer refresco
         self.pintar_nube()
 
@@ -1613,7 +1660,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.sync_btn.connect("clicked", lambda *_: self.sincronizar_ahora())
         self.sync_now_row.add_suffix(self.sync_btn)
         gsync.add(self.sync_now_row)
-        page.add(gsync)
 
         gres = Adw.PreferencesGroup(
             title="Respaldo",
@@ -1653,7 +1699,6 @@ class MainWindow(Adw.ApplicationWindow):
                                               subtitle=str(respaldo.CARPETA))
         self.resp_carpeta_row.set_subtitle_selectable(True)
         gres.add(self.resp_carpeta_row)
-        page.add(gres)
 
         g2 = Adw.PreferencesGroup(title="Contenido")
         recargar = Adw.ActionRow(
@@ -1668,7 +1713,6 @@ class MainWindow(Adw.ApplicationWindow):
         self.db_row = Adw.ActionRow(title="Base de datos", subtitle=str(db.ruta_db()))
         self.db_row.set_subtitle_selectable(True)
         g2.add(self.db_row)
-        page.add(g2)
 
         gay = Adw.PreferencesGroup(title="Ayuda")
         guia = Adw.ActionRow(
@@ -1679,7 +1723,6 @@ class MainWindow(Adw.ApplicationWindow):
         guia.add_suffix(gb)
         guia.set_activatable_widget(gb)
         gay.add(guia)
-        page.add(gay)
 
         g3 = Adw.PreferencesGroup(title="Atajos dentro del popup")
         for tecla, desc in (("Ctrl+R", "Recargar el contenido (también F5)"),
@@ -1692,8 +1735,38 @@ class MainWindow(Adw.ApplicationWindow):
             r.add_prefix(Gtk.Label(label=tecla, css_classes=["as-kbd"],
                                    valign=Gtk.Align.CENTER))
             g3.add(r)
-        page.add(g3)
-        return page
+        # El orden es el de uso, no el de construcción: primero la meta del día.
+        for grupo in (gmeta, g, gp, gvoz, gpr, gay, g3):
+            basico.add(grupo)
+        for grupo in (gfsrs, gia, glib_, gnube, gsync, gres, g2):
+            avanzado.add(grupo)
+
+        self.ajustes_stack = Adw.ViewStack()
+        self.ajustes_stack.add_titled_with_icon(
+            basico, "basico", "Básico", "preferences-system-symbolic")
+        self.ajustes_stack.add_titled_with_icon(
+            avanzado, "avanzado", "Avanzado", "applications-engineering-symbolic")
+        guardada = db.get_meta(self.con, self.AJUSTES_PESTANA)
+        if guardada not in ("basico", "avanzado"):
+            guardada = "basico"
+        self.ajustes_stack.set_visible_child_name(guardada)
+        self.ajustes_stack.connect("notify::visible-child-name", self.on_pestana_ajustes)
+
+        conmutador = Adw.ViewSwitcher(stack=self.ajustes_stack,
+                                      policy=Adw.ViewSwitcherPolicy.WIDE,
+                                      halign=Gtk.Align.CENTER)
+        conmutador.set_margin_top(12)
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        caja.append(conmutador)
+        caja.append(self.ajustes_stack)
+        self.ajustes_stack.set_vexpand(True)
+        return caja
+
+    AJUSTES_PESTANA = "ajustes_pestana"
+
+    def on_pestana_ajustes(self, stack, _p):
+        db.set_meta(self.con, self.AJUSTES_PESTANA, stack.get_visible_child_name())
+        self.con.commit()
 
     def launch_pet(self):
         self.get_application().launch_pet()
@@ -2607,6 +2680,10 @@ echo hola
                 return True
         if fuente and fuente["kind"] == "book" and fuente.get("ruta"):
             ruta = fuente["ruta"]
+            if ruta.startswith('appstudy-book:'):
+                self.notify_user('Abre el archivo de este libro en la biblioteca para vincular sus subrayados y progreso')
+                self.stack.set_visible_child_name('biblioteca')
+                return False
             guardado = db.book(self.con, ruta)
             libro = {"ruta": ruta,
                      "nombre": (guardado["titulo"] if guardado else fuente["title"]),
@@ -2810,6 +2887,16 @@ echo hola
     def on_objetivo(self, fila, _p):
         db.set_objetivo_diario(self.con, int(fila.get_value()))
         self.refresh()
+
+    def rehacer_plan(self):
+        """Vuelve a abrir el asistente de bienvenida desde Ajustes."""
+        def terminado(arranque):
+            self.refresh()
+            if arranque and arranque.get("deck_key"):
+                self.get_application().show_popup(**arranque)
+            return False
+
+        bienvenida.Asistente(self, self.con, terminado).present()
 
     def on_nuevas_por_dia(self, fila, _p):
         db.set_nuevas_por_dia(self.con, int(fila.get_value()))
@@ -3505,8 +3592,22 @@ echo hola
             self.sucias.discard(nombre)
             self.refrescar_seccion(nombre)
 
+    def actualizar_estado_sync(self):
+        if not self.get_application():
+            return False
+        canales = []
+        if nube.usuario():
+            canales.append(('Nube', 'nube'))
+        if db.get_meta(self.con, 'sync_dir', ''):
+            canales.append(('Carpeta', 'sync'))
+        estados = [(nombre, *sincronizacion.estado(self.con, canal)) for nombre, canal in canales]
+        self.sync_estado.set_label(' · '.join(f'{n}: {e}' for n, e, _ in estados) or 'Sincronización sin configurar')
+        self.sync_estado.set_tooltip_text('\n'.join(f'{n}: {d}' for n, _, d in estados) or 'Configurar sincronización en Ajustes')
+        return True
+
     def refresh(self):
         """Los datos han cambiado: se rehace lo que se ve y se apunta el resto."""
+        self.actualizar_estado_sync()
         visible = self.stack.get_visible_child_name() or "panel"
         self.sucias = set(self.SECCIONES) - {visible}
         self.refrescar_seccion(visible)

@@ -84,13 +84,32 @@ gramática, phrasal verbs y vocabulario.
 ```bash
 ./install.sh                      # atajo por defecto: Super + Shift + E
 ./install.sh '<Control><Alt>e'    # o el que prefieras
+./install.sh --defaults           # sin preguntas, con lo ya elegido
 ```
 
 El instalador deja el comando `appstudy` en `~/.local/bin`, el icono en el tema
 del escritorio, el lanzador (con sus acciones «Estudiar ahora» y «Soltar a Bit»),
-**lo ancla al dock**, registra el atajo global, deja a Bit en el autoarranque e
-instala la extensión de la barra superior. Se puede repetir sin miedo: no duplica
-nada.
+registra el atajo global e instala la extensión de la barra superior. Se puede
+repetir sin miedo: no duplica nada.
+
+Antes de descargar nada **pregunta qué quieres**, con el tamaño de cada cosa al
+lado, porque entre todo suman casi cuatro gigas:
+
+| Pregunta | Opciones | Descarga |
+|---|---|---|
+| Voz | Kokoro + Piper de reserva · solo Piper · ninguna | ~360 MB · ~80 MB · nada |
+| Reconocimiento de voz (Vosk) | sí / no | ~90 MB |
+| IA local (`gemma3:4b` en Ollama) | sí / no | ~3,3 GB |
+| Bit al iniciar sesión | sí / no | — |
+| Anclar al dock | sí / no | — |
+
+Las respuestas quedan en `~/.config/appstudy/instalacion.conf`, y las siguientes
+ejecuciones las respetan: `actualizar.sh` no volverá a intentar los tres gigas
+del modelo de IA que dijiste que no querías. Para cambiar de idea basta volver a
+ejecutar `./install.sh` y responder otra cosa —decir que no a la mascota también
+la quita del autoarranque—, o editar ese archivo a mano. Sin terminal delante
+(una tubería, un script) no pregunta: usa lo guardado, y en una instalación nueva
+lo instala todo, como antes.
 
 Requiere Python 3 con GTK4 y libadwaita, que ya vienen en Ubuntu/Mint con GNOME
 (`sudo apt install python3-gi gir1.2-gtk-4.0 gir1.2-adw-1` si faltaran),
@@ -133,8 +152,8 @@ solo volver a abrir lo que estuviera corriendo.
 
 ### Actualizar en una máquina que ya tenía AppStudy
 
-`actualizar.sh` llama a `install.sh`, y este salta lo que ya esté y descarga solo
-lo que falte. Así que **para la voz y el oído no hay que hacer nada más**: la
+`actualizar.sh` llama a `install.sh --defaults`, y este salta lo que ya esté,
+respeta lo que elegiste al instalar y descarga solo lo que falte de eso. Así que **para la voz y el oído no hay que hacer nada más**: la
 primera actualización después de un cambio de motor se lleva un rato porque baja
 lo que no tuvieras (Kokoro y su entorno son ~490 MB, una voz de Piper ~75 MB, los
 modelos de Vosk ~126 MB), y las siguientes no bajan nada.
@@ -1184,7 +1203,7 @@ que pediste no está y AppStudy tiene que elegir por ti (`elegir_modelo()`).
 
 ### Tomar cursos de freeCodeCamp dentro de AppStudy
 
-En el **Panel**, dentro de «Modos de estudio», la tarjeta **🔥 Cursos de freeCodeCamp**
+En el **Panel**, desplegando «Otras formas de estudiar», la fila **🔥 Cursos de freeCodeCamp**
 abre el catálogo completo del currículo de [freeCodeCamp.org](https://www.freecodecamp.org/)
 sin salir de la aplicación. Son tres pasos: **curso → módulo → lección**.
 
@@ -1534,3 +1553,26 @@ rm -rf ~/.local/share/gnome-shell/extensions/appstudy@luisalcides.github.io
 Y quita el atajo desde Ajustes → **Quitar**; del dock, clic derecho → **Quitar de
 favoritos**. Tu progreso queda en `~/.local/share/appstudy/`.
 # appstudy
+
+
+### Recomendación diaria y sincronización portable
+
+El panel propone repasos pendientes, una lectura y hasta tres ejercicios con accesos
+directos. Prioriza el tema elegido, las lecturas empezadas y recientes y las dificultades
+registradas en tarjetas del mismo nivel y etiquetas. Excluye los mazos desactivados.
+
+La sincronización por carpeta y por nube incluye libros, progreso, marcadores y
+subrayados. Los libros se reconocen por SHA-256 del archivo: copia el mismo archivo
+al otro equipo y ábrelo desde la biblioteca para vincularlo. Los archivos de los libros
+no se transfieren. Si el archivo original no estaba disponible al asignar la identidad,
+la ficha conserva una identidad provisional; no se puede reconocer automáticamente
+una copia por contenido hasta disponer del original.
+
+La cabecera muestra el estado de cada destino: **Pendiente**, **Sincronizado** o
+**Error**, con el detalle al pasar el cursor y acceso a Ajustes. «Sincronizado» confirma
+el último intercambio con ese destino; los demás equipos necesitan sincronizar también.
+Los errores automáticos quedan guardados, incluidos los del cierre, y los archivos
+ilegibles impiden mostrar una sincronización completa. Las ediciones simultáneas de
+un libro o subrayado se resuelven por la fecha más reciente, igual que el contenido propio.
+El formato 2 admite importaciones del formato 1; actualiza ambos equipos para
+intercambiar el nuevo formato.

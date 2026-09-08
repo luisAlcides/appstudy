@@ -10,7 +10,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
-from . import db, hotkey, ia, nube, pet, respaldo, seed  # noqa: E402
+from . import bienvenida, db, hotkey, ia, nube, pet, respaldo, seed  # noqa: E402
 from . import sincronizacion, util  # noqa: E402
 from .main_window import MainWindow  # noqa: E402
 from .popup import PopupWindow  # noqa: E402
@@ -245,11 +245,24 @@ class AppStudy(Adw.Application):
         return False
 
     def show_main_window(self):
-        if self.main_window is None:
+        estrenando = self.main_window is None
+        if estrenando:
             self.main_window = MainWindow(self, self.con)
             self.main_window.connect("close-request", self.on_main_closed)
         self.main_window.refresh()
         self.main_window.present()
+        if estrenando:
+            # Primer arranque: el asistente decide temas, ritmo y nivel antes de
+            # que nadie se enfrente a nueve mazos y mil quinientas tarjetas.
+            bienvenida.mostrar_si_toca(self.main_window, self.con,
+                                       self.on_bienvenida_terminada)
+
+    def on_bienvenida_terminada(self, arranque):
+        """Sale del asistente: si no lo saltó, abre su primera sesión."""
+        self.main_window.refresh()
+        if arranque and arranque.get("deck_key"):
+            self.show_popup(**arranque)
+        return False
 
     def show_capture(self):
         self.show_main_window()
@@ -343,7 +356,13 @@ class AppStudy(Adw.Application):
             if self.main_window:
                 self.main_window.refresh()
 
-        util.hilo(trabajo, listo, lambda _e: None, largo=True)
+        def fallo(error):
+            db.set_meta(self.con, "nube_error", str(error))
+            if self.main_window:
+                self.main_window.actualizar_estado_sync()
+                self.main_window.notify_user(f"No se pudo sincronizar automáticamente: {error}")
+
+        util.hilo(trabajo, listo, fallo, largo=True)
 
     def publicar_en_la_nube(self):
         """Sube lo estudiado antes de cerrar. Nunca impide salir."""
@@ -351,8 +370,8 @@ class AppStudy(Adw.Application):
             return
         try:
             sincronizacion.publicar_nube(self.con)
-        except Exception:                 # sin red se sube en el próximo arranque
-            pass
+        except Exception as error:
+            db.set_meta(self.con, "nube_error", str(error))
 
     def on_main_closed(self, *_):
         self.main_window = None
