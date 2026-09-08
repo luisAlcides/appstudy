@@ -770,6 +770,596 @@
    "tags": "fcc_proyectos,time_series",
    "front": "En el proyecto Page View de freeCodeCamp, las fechas se leen e indexan directamente con {{pd.read_csv('fcc-forum-pageviews.csv', parse_dates=['date'], index_col='date')}}.",
    "back": "Carga la columna de fechas directamente parseada como datetime y la sitúa de inmediato como el índice del DataFrame."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "comprensiones",
+   "front": "¿Qué ventaja real tiene una comprensión de lista frente a un bucle <code>for</code> con <code>append</code>?",
+   "back": "• <b>Velocidad</b>: la comprensión reserva la lista y ejecuta el bucle en C, sin llamar a <code>list.append</code> una vez por elemento (que es una búsqueda de atributo y una llamada de función cada vuelta).\n• <b>Intención</b>: dice «esto construye una lista» en la primera línea, no en la última.\n\nNo la uses si el cuerpo tiene efectos secundarios o si necesitas varias sentencias: ahí el bucle explícito es más honesto.",
+   "reverse": false
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "comprensiones,diccionarios",
+   "front": "¿Cómo se invierte un diccionario <code>d</code> (que sus valores pasen a ser claves) en una sola línea?",
+   "back": "<code>invertido = {v: k for k, v in d.items()}</code>\n\n<b>Cuidado</b>: si dos claves comparten valor, la última gana y pierdes una entrada. Para conservarlas todas:\n<code>from collections import defaultdict</code>\n<code>inv = defaultdict(list)</code>\n<code>for k, v in d.items(): inv[v].append(k)</code>"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "comprensiones,filtros",
+   "front": "¿Cuál construye la lista de los cuadrados de los números pares de 0 a 9?",
+   "choices": [
+    "[x**2 for x in range(10) if x % 2 == 0]",
+    "[x**2 if x % 2 == 0 for x in range(10)]",
+    "[for x in range(10): x**2 if x % 2 == 0]",
+    "[x**2 for x in range(10)] if x % 2 == 0"
+   ],
+   "answer": 0,
+   "back": "El filtro va <b>al final</b> y sin <code>else</code>. Cuando el <code>if</code> va delante del <code>for</code> es un operador ternario y entonces <b>exige</b> <code>else</code>, porque tiene que producir un valor para cada elemento:\n<code>[x**2 if x % 2 == 0 else x for x in range(10)]</code>"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "comprensiones,generadores",
+   "front": "¿En qué se diferencian <code>[x*2 for x in datos]</code> y <code>(x*2 for x in datos)</code>?",
+   "back": "Los corchetes construyen la <b>lista entera en memoria</b>; los paréntesis crean un <b>generador</b> que produce cada elemento cuando se le pide.\n\n• Con un fichero de un millón de líneas, la lista lo carga todo y el generador no guarda más de un elemento a la vez.\n• El generador se agota: se recorre una vez y ya está.\n• Si vas a recorrerlo dos veces o necesitas <code>len()</code> o indexar, necesitas la lista."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "generadores",
+   "front": "Una función que contiene la palabra clave {{yield}} no devuelve un valor: devuelve un generador que se pausa y reanuda en cada elemento.",
+   "back": "Al llamarla no se ejecuta ni una línea de su cuerpo: se obtiene el generador. El cuerpo avanza en cada <code>next()</code> (o en cada vuelta del <code>for</code>) hasta el siguiente <code>yield</code>, conservando entre pausas las variables locales."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "generadores,memoria",
+   "front": "¿Cuándo conviene escribir un generador en lugar de devolver una lista?",
+   "back": "• Cuando la secuencia <b>no cabe cómodamente en memoria</b> (un fichero de registros, una consulta grande).\n• Cuando es <b>infinita o muy larga</b> y quien la consume decide dónde parar.\n• Cuando quieres <b>encadenar transformaciones</b> sin materializar cada paso intermedio.\n\nDevuelve una lista cuando el consumidor va a necesitarla entera de todas formas, o va a recorrerla más de una vez."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "funciones,argumentos",
+   "front": "¿Qué significan <code>*args</code> y <code>**kwargs</code> en la firma de una función?",
+   "back": "• <code>*args</code> recoge los argumentos <b>posicionales</b> sobrantes en una <b>tupla</b>.\n• <code>**kwargs</code> recoge los argumentos <b>con nombre</b> sobrantes en un <b>diccionario</b>.\n\nLos nombres no son obligatorios (podrías escribir <code>*a</code>), pero son la convención y conviene respetarla. En una llamada, el mismo <code>*</code> y <code>**</code> hacen lo contrario: desempaquetan."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "funciones,errores_comunes",
+   "front": "¿Por qué es un error escribir <code>def f(elementos=[])</code>?",
+   "back": "El valor por defecto se evalúa <b>una sola vez</b>, al definir la función, no en cada llamada. Esa lista queda compartida por todas las llamadas y va acumulando lo que le añadas:\n<code>def f(x, acc=[]):\n    acc.append(x); return acc</code>\n<code>f(1)  # [1]</code>\n<code>f(2)  # [1, 2]  ← no [2]</code>\n\nLa forma correcta:\n<code>def f(x, acc=None):\n    acc = [] if acc is None else acc</code>",
+   "hint": "¿Cuántas veces se evalúa ese corchete?"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "funciones,ambito",
+   "front": "Dentro de una función asignas <code>contador = contador + 1</code> sobre una variable global. ¿Qué ocurre?",
+   "choices": [
+    "UnboundLocalError: la asignación la convierte en local",
+    "Se modifica la global sin problema",
+    "NameError: la global no es visible",
+    "Se crea una copia y se descarta al salir"
+   ],
+   "answer": 0,
+   "back": "Asignar a un nombre en cualquier punto del cuerpo lo convierte en <b>local para toda la función</b>, así que al leerlo antes de asignarlo salta <code>UnboundLocalError</code>. Para escribir en la global hace falta <code>global contador</code>; para la de la función que la envuelve, <code>nonlocal</code>. Casi siempre es mejor recibirla como parámetro y devolver el resultado."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "decoradores",
+   "front": "¿Qué es exactamente un decorador en Python?",
+   "back": "Una función que <b>recibe una función y devuelve otra</b> que la sustituye. La sintaxis con <code>@</code> es solo azúcar:\n<code>@medir\ndef tarea(): ...</code>\nes idéntico a <code>tarea = medir(tarea)</code>.\n\nSirve para envolver un comportamiento común —medir tiempos, cachear, registrar, comprobar permisos— sin tocar el cuerpo de cada función."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "decoradores",
+   "front": "¿Para qué sirve <code>functools.wraps</code> dentro de un decorador?",
+   "back": "Para que la función envuelta <b>conserve su identidad</b>. Sin él, la función decorada pasa a llamarse como la interna (<code>envoltura</code>) y pierde su docstring y su firma, lo que rompe la ayuda, la introspección y muchos depuradores.\n\n<code>from functools import wraps\n\ndef medir(f):\n    @wraps(f)\n    def envoltura(*args, **kwargs):\n        return f(*args, **kwargs)\n    return envoltura</code>"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "decoradores,cache",
+   "front": "¿Qué hace <code>@functools.lru_cache</code> y cuándo <b>no</b> debe usarse?",
+   "back": "Guarda los resultados de la función indexados por sus argumentos, de modo que una llamada repetida no recalcula nada.\n\n<b>No lo uses cuando</b>:\n• Los argumentos no son <i>hashables</i> (listas, diccionarios): lanza <code>TypeError</code>.\n• La función tiene efectos secundarios o depende de algo que cambia (la hora, un fichero, la base de datos): te devolverá respuestas viejas.\n• Los argumentos son casi siempre distintos: solo acumula memoria."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "funciones,orden_superior",
+   "front": "Para ordenar una lista de diccionarios por el campo «edad» se pasa {{key=lambda d: d[\"edad\"]}} a sorted().",
+   "back": "<code>key</code> recibe una función que se aplica a cada elemento y devuelve el valor por el que comparar. Se evalúa <b>una vez por elemento</b>, no en cada comparación. Para varios criterios se devuelve una tupla: <code>key=lambda d: (d[\"apellido\"], d[\"nombre\"])</code>."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "errores,excepciones",
+   "front": "¿Cuál es la diferencia entre <code>except Exception</code> y <code>except BaseException</code> (o un <code>except:</code> a secas)?",
+   "back": "<code>Exception</code> cubre los errores del programa. <code>BaseException</code> cubre además <code>KeyboardInterrupt</code> (Ctrl+C) y <code>SystemExit</code>.\n\nCapturar <code>BaseException</code> —o escribir <code>except:</code> sin nada— hace que tu programa <b>ignore el Ctrl+C</b> y sea imposible de parar. Captura siempre lo más concreto que puedas, y como red de seguridad, <code>Exception</code>."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "errores,excepciones",
+   "front": "¿Qué hacen las cláusulas <code>else</code> y <code>finally</code> en un bloque <code>try</code>?",
+   "back": "• <code>else</code> se ejecuta <b>solo si no hubo excepción</b>. Sirve para dejar en el <code>try</code> únicamente la línea que puede fallar, y el resto fuera.\n• <code>finally</code> se ejecuta <b>siempre</b>: haya error o no, e incluso si el bloque hace <code>return</code>. Es el sitio de cerrar y liberar.\n\n<code>try:\n    f = abrir()\nexcept OSError:\n    avisar()\nelse:\n    usar(f)\nfinally:\n    limpiar()</code>"
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "errores,excepciones",
+   "front": "¿Qué diferencia hay entre <code>raise ValueError(\"x\")</code> dentro de un <code>except</code> y <code>raise ValueError(\"x\") from e</code>?",
+   "choices": [
+    "from e encadena la causa y se ve en el traceback completo",
+    "No hay diferencia, from e es decorativo",
+    "from e silencia la excepción original",
+    "from e obliga a capturarla de nuevo"
+   ],
+   "answer": 0,
+   "back": "Con <code>from e</code>, el traceback muestra «The above exception was the direct cause…» y conserva la excepción original en <code>__cause__</code>. Sin él, Python la enseña igual pero como contexto implícito («During handling…»), que se lee peor. Para ocultarla del todo: <code>from None</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "errores,depuracion",
+   "front": "En un traceback de Python, ¿por dónde se empieza a leer?",
+   "back": "<b>Por abajo</b>. La última línea dice el tipo de error y el mensaje; la penúltima, la línea de código exacta que lo provocó.\n\nHacia arriba está la cadena de llamadas que llevó hasta ahí, de la más antigua a la más reciente. El truco práctico: lee la última línea, y luego sube hasta el primer fichero que sea <b>tuyo</b> — el fallo suele estar ahí, no dentro de la biblioteca."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "errores,excepciones",
+   "front": "¿Cómo se define una excepción propia y por qué merece la pena?",
+   "back": "<code>class ImportarError(Exception):\n    \"\"\"El archivo no se pudo importar.\"\"\"</code>\n\nMerece la pena porque quien llama puede distinguir <b>tu</b> fallo previsto de un error inesperado: <code>except ImportarError</code> captura el caso contemplado y deja pasar el <code>TypeError</code> que delata un bug. Hereda de <code>Exception</code>, no de <code>BaseException</code>."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "ficheros,context_manager",
+   "front": "¿Por qué se abre un fichero con <code>with open(...) as f</code> y no con <code>f = open(...)</code>?",
+   "back": "Porque <code>with</code> garantiza que se cierra <b>aunque salte una excepción</b> en mitad del bloque. Un fichero sin cerrar mantiene el descriptor abierto y, al escribir, puede dejar datos en el búfer sin volcar.\n\n<code>with open(ruta, encoding=\"utf-8\") as f:\n    for linea in f:\n        procesar(linea)</code>\n\nRecorrer el fichero así lee <b>línea a línea</b>, sin cargarlo entero."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "ficheros,codificacion",
+   "front": "¿Por qué conviene escribir siempre <code>encoding=\"utf-8\"</code> al abrir un fichero de texto?",
+   "back": "Porque sin ese argumento Python usa la codificación <b>por defecto del sistema</b>, que cambia de máquina en máquina (en Windows suele ser cp1252). El mismo programa lee bien en tu portátil y falla con <code>UnicodeDecodeError</code> en otro, o peor: lee mal las tildes sin avisar.\n\nEl modo binario (<code>\"rb\"</code>) no lleva <code>encoding</code>: ahí no hay texto, hay bytes."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "ficheros,pathlib",
+   "front": "¿Cuál es la forma recomendada hoy de construir la ruta <code>datos/enero.csv</code>?",
+   "choices": [
+    "Path(\"datos\") / \"enero.csv\"",
+    "\"datos\" + \"/\" + \"enero.csv\"",
+    "os.path.join(\"datos\", \"enero.csv\") y nada más",
+    "\"datos\\\\enero.csv\""
+   ],
+   "answer": 0,
+   "back": "<code>pathlib.Path</code> usa el separador correcto en cada sistema y trae los métodos que antes había que buscar en tres módulos: <code>.exists()</code>, <code>.read_text()</code>, <code>.stat().st_size</code>, <code>.suffix</code>, <code>.mkdir(parents=True, exist_ok=True)</code>. Concatenar cadenas a mano rompe en Windows."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "context_manager",
+   "front": "¿Cómo se escribe un gestor de contexto propio con <code>contextlib</code>?",
+   "back": "<code>from contextlib import contextmanager\n\n@contextmanager\ndef cronometro(nombre):\n    inicio = time.time()\n    try:\n        yield\n    finally:\n        print(nombre, time.time() - inicio)</code>\n\nLo de antes del <code>yield</code> es la entrada; lo del <code>finally</code>, la salida garantizada. Lo que se ponga tras el <code>yield</code> se entrega al <code>as</code>."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "entorno,venv",
+   "front": "¿Qué es un entorno virtual y por qué se usa uno por proyecto?",
+   "back": "Una carpeta con su propio Python y sus propios paquetes, aislada del sistema.\n\nSin él, dos proyectos que necesiten versiones distintas de la misma biblioteca no pueden convivir, y un <code>pip install</code> puede romper herramientas del sistema.\n\n<code>python3 -m venv .venv</code>\n<code>source .venv/bin/activate</code>\n<code>pip install -r requirements.txt</code>"
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "modulos",
+   "front": "¿Qué significa <code>if __name__ == \"__main__\":</code> al final de un archivo?",
+   "back": "«Ejecuta esto solo si el archivo se está corriendo directamente, no si alguien lo importa».\n\nAl ejecutar <code>python script.py</code>, la variable <code>__name__</code> del módulo vale <code>\"__main__\"</code>; al importarlo vale el nombre del módulo. Sin esa guarda, importar tu script para reutilizar una función ejecutaría además todo el programa."
+  },
+  {
+   "kind": "cloze",
+   "level": 1,
+   "tags": "modulos,imports",
+   "front": "Importar con {{from modulo import *}} es mala práctica porque llena el espacio de nombres y oculta de dónde viene cada cosa.",
+   "back": "Además, un nombre importado así puede <b>pisar en silencio</b> algo que ya tenías definido. Importa lo que uses (<code>from math import sqrt</code>) o el módulo entero (<code>import math</code>) y escribe <code>math.sqrt</code>: cuesta cinco letras más y se lee sin adivinar."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "clases,oop",
+   "front": "¿Qué es <code>self</code> y por qué hay que escribirlo siempre?",
+   "back": "Es la <b>instancia concreta</b> sobre la que se llama el método, y llega como primer argumento. Python la pasa explícitamente en lugar de esconderla como <code>this</code>.\n\n<code>class Mazo:\n    def __init__(self, nombre):\n        self.nombre = nombre</code>\n\nSin <code>self.</code>, <code>nombre</code> sería una variable local que muere al acabar el método."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "clases,dataclasses",
+   "front": "¿Qué escribe por ti <code>@dataclass</code>?",
+   "back": "<code>__init__</code>, <code>__repr__</code> y <code>__eq__</code> a partir de los campos anotados:\n\n<code>from dataclasses import dataclass\n\n@dataclass(frozen=True)\nclass Plan:\n    minutos: int\n    tarjetas: int</code>\n\nCon <code>frozen=True</code> las instancias son inmutables y <i>hashables</i>, que es lo que quieres para un valor de configuración. Para listas o diccionarios como valor por defecto: <code>field(default_factory=list)</code>."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "clases,metodos",
+   "front": "¿En qué se diferencian <code>@staticmethod</code> y <code>@classmethod</code>?",
+   "choices": [
+    "classmethod recibe la clase (cls); staticmethod no recibe nada implícito",
+    "Son sinónimos",
+    "staticmethod recibe la clase; classmethod recibe la instancia",
+    "classmethod solo funciona en herencia múltiple"
+   ],
+   "answer": 0,
+   "back": "<code>@classmethod</code> recibe la clase como <code>cls</code>, y por eso es la forma habitual de un constructor alternativo (<code>Fecha.desde_texto(\"2026-09-08\")</code>) que funciona bien al heredar. <code>@staticmethod</code> es una función normal que vive dentro de la clase por cercanía temática."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "clases,dunder",
+   "front": "¿Qué métodos especiales hacen que un objeto propio se comporte como una secuencia?",
+   "back": "• <code>__len__</code> → <code>len(obj)</code>\n• <code>__getitem__</code> → <code>obj[i]</code>, y de regalo el <code>for</code> y el <code>in</code>\n• <code>__iter__</code> → el recorrido explícito, si necesitas control\n• <code>__contains__</code> → un <code>in</code> más eficiente que recorrer\n\nDefinir <code>__getitem__</code> con índices enteros basta para que <code>for x in obj</code> funcione: Python irá pidiendo 0, 1, 2… hasta un <code>IndexError</code>."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "clases,igualdad",
+   "front": "Si defines <code>__eq__</code> en una clase, ¿qué más tienes que definir y por qué?",
+   "back": "<code>__hash__</code>. Al definir <code>__eq__</code>, Python pone <code>__hash__</code> a <code>None</code> y tus objetos dejan de poder meterse en un <code>set</code> o de ser claves de un diccionario.\n\nLa regla que hay que respetar: <b>si dos objetos son iguales, su hash debe ser el mismo</b>. Lo más simple es derivar ambos de la misma tupla de campos, o usar <code>@dataclass(frozen=True)</code>, que lo hace por ti."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "colecciones,listas",
+   "front": "¿Qué diferencia hay entre <code>lista.sort()</code> y <code>sorted(lista)</code>?",
+   "back": "• <code>lista.sort()</code> ordena <b>en el sitio</b> y devuelve <code>None</code>.\n• <code>sorted(lista)</code> deja el original intacto y devuelve una <b>lista nueva</b>.\n\nEl error clásico es <code>lista = lista.sort()</code>, que deja <code>lista</code> valiendo <code>None</code>. Además <code>sorted</code> acepta cualquier iterable (una tupla, un generador, las claves de un diccionario), no solo listas."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "colecciones,copias",
+   "front": "¿Por qué <code>b = a</code> no copia una lista, y cómo se copia de verdad?",
+   "back": "Porque asignar solo crea <b>otro nombre para el mismo objeto</b>: al modificar <code>b</code> cambia <code>a</code>.\n\n• Copia superficial: <code>b = a.copy()</code> o <code>b = a[:]</code> o <code>list(a)</code>.\n• Copia profunda (listas dentro de listas): <code>import copy; b = copy.deepcopy(a)</code>.\n\nLa superficial duplica el contenedor, pero los objetos de dentro siguen siendo compartidos."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "colecciones,rendimiento",
+   "front": "Vas a comprobar un millón de veces si un elemento está en una colección de 50 000 elementos. ¿Qué usas?",
+   "choices": [
+    "Un set",
+    "Una lista",
+    "Una tupla",
+    "Una lista ordenada"
+   ],
+   "answer": 0,
+   "back": "Buscar en un <code>set</code> (o en las claves de un <code>dict</code>) es <b>O(1)</b> gracias al hash; en una lista o una tupla es <b>O(n)</b>, porque hay que recorrerla.\n\nCon 50 000 elementos y un millón de consultas la diferencia es de segundos a minutos. El precio del set: no guarda orden, y sus elementos deben ser <i>hashables</i> (nada de listas dentro)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "colecciones,diccionarios",
+   "front": "¿Qué hacen <code>dict.get</code>, <code>dict.setdefault</code> y <code>collections.defaultdict</code>?",
+   "back": "• <code>d.get(k, x)</code> → devuelve <code>x</code> si la clave falta, <b>sin tocar</b> el diccionario.\n• <code>d.setdefault(k, x)</code> → si la clave falta, la <b>crea</b> con <code>x</code> y la devuelve.\n• <code>defaultdict(list)</code> → crea el valor solo cuando se accede a una clave que falta, invocando la función que le pasaste.\n\nPara agrupar, <code>defaultdict(list)</code> es lo más limpio; para leer con un respaldo, <code>get</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "colecciones,counter",
+   "front": "¿Cómo se cuentan las apariciones de cada elemento de una lista sin escribir el bucle?",
+   "back": "<code>from collections import Counter\n\nconteo = Counter(palabras)\nconteo.most_common(3)   # los tres más frecuentes</code>\n\n<code>Counter</code> es un diccionario que devuelve <code>0</code> —en vez de <code>KeyError</code>— para lo que no ha visto, y sabe sumarse y restarse con otro <code>Counter</code>."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "colecciones,zip",
+   "front": "Para recorrer dos listas en paralelo se usa {{zip(a, b)}}, que se detiene al agotarse la más corta.",
+   "back": "Si necesitas que avise cuando no miden lo mismo: <code>zip(a, b, strict=True)</code> (Python 3.10+) lanza <code>ValueError</code>. Y para recorrer con el índice a mano, <code>enumerate(a, start=1)</code> en lugar de <code>range(len(a))</code>."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pruebas,unittest",
+   "front": "¿Qué hacen <code>setUp</code> y <code>addCleanup</code> en una prueba de <code>unittest</code>?",
+   "back": "• <code>setUp</code> se ejecuta <b>antes de cada prueba</b> y prepara el escenario.\n• <code>addCleanup(f)</code> registra una limpieza que se ejecuta <b>siempre</b>, aunque la prueba falle a mitad — y en orden inverso al registro.\n\n<code>addCleanup</code> es más seguro que <code>tearDown</code> cuando la preparación tiene varios pasos: cada recurso registra su limpieza justo después de crearse, así que no se limpia lo que no llegó a existir."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pruebas,diseño",
+   "front": "¿Qué hace que una prueba sea buena, más allá de que pase?",
+   "back": "• <b>Comprueba comportamiento, no implementación</b>: si refactorizas por dentro sin cambiar lo que hace, la prueba debe seguir en verde.\n• <b>Falla por una sola razón</b> y su nombre dice cuál.\n• <b>No depende del orden</b> ni de otras pruebas, ni del reloj, ni de la red.\n• <b>Falla antes de arreglar</b>: una prueba que nunca has visto en rojo no has demostrado que compruebe nada."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "pruebas,mocks",
+   "front": "Quieres probar una función que llama a una API por red. ¿Qué haces?",
+   "choices": [
+    "Sustituir la llamada por un doble (mock) y probar tu lógica",
+    "Llamar a la API real en cada prueba",
+    "No probar esa función",
+    "Poner un sleep para que dé tiempo a responder"
+   ],
+   "answer": 0,
+   "back": "Una prueba que sale a la red es lenta, falla sin conexión y depende de algo que no controlas. Con <code>unittest.mock.patch</code> sustituyes la llamada y compruebas <b>tu</b> lógica: qué envías, qué haces con la respuesta y cómo reaccionas a un error o a un tiempo agotado.\n\nLa integración real se comprueba aparte, en una verificación opcional fuera de la suite."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "rendimiento,perfilado",
+   "front": "Tu script tarda demasiado. ¿Cuál es el primer paso, antes de optimizar nada?",
+   "back": "<b>Medir</b>, para no optimizar la parte que no importa:\n\n<code>python -m cProfile -s cumtime script.py | head -20</code>\n\nY para comparar dos formas de escribir lo mismo:\n<code>python -m timeit -s \"setup\" \"código\"</code>\n\nLa intuición sobre dónde se va el tiempo acierta poco: casi siempre está en una consulta repetida, en una lectura de disco dentro de un bucle o en una estructura de datos equivocada."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "rendimiento,cadenas",
+   "front": "¿Por qué es lento construir una cadena grande con <code>texto += trozo</code> dentro de un bucle?",
+   "back": "Porque las cadenas son <b>inmutables</b>: cada <code>+=</code> crea una cadena nueva y copia todo lo anterior, así que el coste crece con el cuadrado del número de trozos.\n\nLa forma correcta es acumular en una lista y unir una sola vez al final:\n<code>partes = []\nfor t in trozos:\n    partes.append(t)\ntexto = \"\".join(partes)</code>"
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "numpy,arrays",
+   "front": "¿Qué diferencia a un <code>numpy.ndarray</code> de una lista de Python?",
+   "back": "• <b>Tipo único y memoria contigua</b>: los elementos son todos del mismo <code>dtype</code> y están pegados, no repartidos por el montón como punteros a objetos.\n• <b>Operaciones vectorizadas</b>: <code>a * 2</code> multiplica todo el array en C, sin bucle en Python.\n• <b>Tamaño fijo</b>: crecer implica reservar otro array.\n\nDe ahí que sea entre diez y cien veces más rápido en cálculo numérico, y que gaste bastante menos memoria."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "numpy,broadcasting",
+   "front": "¿Qué es el <i>broadcasting</i> en NumPy?",
+   "back": "La regla que permite operar arrays de formas distintas sin copiarlos: NumPy compara las dimensiones <b>de derecha a izquierda</b> y estira las de tamaño 1.\n\n<code>a = np.ones((3, 4))     # 3×4\nb = np.array([1, 2, 3, 4])  # 4\na + b                    # 3×4, b se aplica a cada fila</code>\n\nSi dos dimensiones no coinciden y ninguna vale 1, salta <code>ValueError</code>. Restar la media por columnas de una matriz es una línea gracias a esto."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "numpy,vistas",
+   "front": "<code>b = a[2:5]</code> sobre un array de NumPy y luego <code>b[0] = 99</code>. ¿Qué pasa con <code>a</code>?",
+   "choices": [
+    "a también cambia: el corte es una vista, no una copia",
+    "a no cambia: los cortes copian",
+    "Lanza un error de solo lectura",
+    "Depende del dtype"
+   ],
+   "answer": 0,
+   "back": "A diferencia de las listas, <b>cortar un array devuelve una vista</b> sobre la misma memoria. Es lo que lo hace barato, y también la fuente de bugs silenciosos. Si quieres independencia: <code>b = a[2:5].copy()</code>. Para saber si algo es una vista: <code>b.base is a</code>."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "numpy,nan",
+   "front": "En NumPy y pandas, la comparación {{np.nan == np.nan}} devuelve False, así que los ausentes se detectan con isna() o np.isnan().",
+   "back": "<code>NaN</code> es «no es un número» y por definición no es igual a nada, ni a sí mismo. Por eso <code>df[df.col == np.nan]</code> devuelve siempre vacío y hay que escribir <code>df[df.col.isna()]</code>. Lo mismo vale para ordenar: los <code>NaN</code> se van al final salvo que digas otra cosa."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,estructuras",
+   "front": "¿Qué son una <code>Series</code> y un <code>DataFrame</code> en pandas?",
+   "back": "• <b>Series</b>: una columna — un array de valores con un <b>índice</b> asociado.\n• <b>DataFrame</b>: una tabla — un conjunto de Series que comparten índice.\n\nLa clave que se olvida es el <b>índice</b>: no es un número de fila, es una etiqueta que se conserva al filtrar y que alinea automáticamente las operaciones entre objetos. Sumar dos Series con índices distintos no suma posición con posición: alinea por etiqueta y rellena con <code>NaN</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,seleccion",
+   "front": "¿Cuándo se usa <code>.loc</code> y cuándo <code>.iloc</code>?",
+   "back": "• <code>.loc</code> selecciona por <b>etiqueta</b> del índice y de las columnas: <code>df.loc[\"2026-01\", \"ventas\"]</code>. Su rango es <b>inclusivo</b> en el extremo.\n• <code>.iloc</code> selecciona por <b>posición</b> entera: <code>df.iloc[0, 2]</code>. Su rango excluye el extremo, como los cortes de Python.\n\nIndexar directamente (<code>df[...]</code>) mezcla ambos criterios según el caso y es la fuente de la mitad de las confusiones: en código serio, usa <code>.loc</code> o <code>.iloc</code>."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pandas,groupby",
+   "front": "¿Qué hace <code>df.groupby(\"tema\")[\"nota\"].agg([\"mean\", \"count\"])</code>?",
+   "back": "Aplica el patrón <b>dividir–aplicar–combinar</b>: parte la tabla en grupos por el valor de <code>tema</code>, calcula sobre la columna <code>nota</code> la media y el número de filas de cada grupo, y devuelve una tabla indexada por tema con dos columnas.\n\nDetalles que importan: los grupos salen ordenados por la clave (<code>sort=False</code> lo evita y es más rápido) y <code>count</code> <b>no cuenta los NaN</b> — para eso está <code>size</code>."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "pandas,rendimiento",
+   "front": "Necesitas aplicar un cálculo a cada fila de un DataFrame de un millón de filas. ¿Qué evitas?",
+   "choices": [
+    "Recorrerlo con iterrows()",
+    "Usar operaciones vectorizadas sobre columnas",
+    "Usar np.where para las condiciones",
+    "Usar .map sobre una Series"
+   ],
+   "answer": 0,
+   "back": "<code>iterrows()</code> crea una <code>Series</code> nueva por cada fila: es el orden de magnitud más lento de todos. La escala habitual, de mejor a peor: operación vectorizada de columnas → <code>np.where</code> / <code>.map</code> → <code>.apply</code> → <code>itertuples()</code> → <code>iterrows()</code>.\n\nCasi todo lo que parece necesitar un bucle por filas se puede escribir con máscaras booleanas sobre columnas."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pandas,warnings",
+   "front": "¿Qué significa <code>SettingWithCopyWarning</code> y cómo se evita?",
+   "back": "Que estás asignando sobre algo que pandas <b>no sabe si es una vista o una copia</b>, así que tu cambio puede no llegar al DataFrame original.\n\nSuele venir del encadenamiento:\n<code>df[df.edad > 30][\"grupo\"] = \"mayor\"   # ⚠️</code>\n\nLa forma correcta es una sola operación con <code>.loc</code>:\n<code>df.loc[df.edad > 30, \"grupo\"] = \"mayor\"</code>\n\nY si de verdad querías trabajar aparte, sé explícito: <code>sub = df[df.edad > 30].copy()</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "pandas,ausentes",
+   "front": "¿Qué opciones hay ante los valores ausentes de una columna, y cuándo se usa cada una?",
+   "back": "• <code>dropna()</code> — descarta las filas. Sirve si son pocas y no sesgan.\n• <code>fillna(valor)</code> — rellena con una constante, la media o la mediana. La mediana aguanta mejor los valores extremos.\n• <code>ffill()</code> / <code>bfill()</code> — arrastra el anterior o el siguiente. Es lo natural en series temporales.\n• <b>Dejarlos</b> — muchas operaciones ya los ignoran, y a veces «no hay dato» es información.\n\nAntes de decidir, mira <code>df.isna().sum()</code>: no es lo mismo el 2 % que el 60 %."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "pandas,lectura",
+   "front": "Al leer un CSV con fechas conviene pasar {{parse_dates=[\"fecha\"]}} para que la columna sea datetime y no texto.",
+   "back": "Con la columna en <code>datetime64</code> puedes restar fechas, agrupar por mes (<code>df.groupby(df.fecha.dt.to_period(\"M\"))</code>) y ordenar cronológicamente. Como texto, «10/01» va antes que «9/01» y todo lo demás sale mal. Si el formato no es estándar: <code>pd.to_datetime(col, format=\"%d/%m/%Y\")</code>."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "pandas,combinar",
+   "front": "¿En qué se diferencian <code>merge</code>, <code>join</code> y <code>concat</code> en pandas?",
+   "back": "• <code>merge</code> — cruce estilo SQL <b>por columnas</b> comunes, con <code>how=</code> inner, left, right u outer.\n• <code>join</code> — atajo de <code>merge</code> que cruza <b>por el índice</b>.\n• <code>concat</code> — <b>apila</b> tablas, una debajo de otra (<code>axis=0</code>) o al lado (<code>axis=1</code>), sin emparejar por clave.\n\nDespués de un <code>merge</code>, comprueba siempre el número de filas: si crece, la clave estaba duplicada en alguno de los dos lados."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "cadenas,metodos",
+   "front": "¿Qué hacen <code>strip</code>, <code>split</code> y <code>join</code> sobre cadenas?",
+   "back": "• <code>\" hola \".strip()</code> → <code>\"hola\"</code>: quita espacios (o los caracteres que le pases) de los extremos.\n• <code>\"a,b,c\".split(\",\")</code> → <code>[\"a\", \"b\", \"c\"]</code>. Sin argumentos parte por cualquier espacio y descarta los vacíos.\n• <code>\", \".join(lista)</code> → une una lista <b>de cadenas</b>. Si hay números, hay que convertirlos: <code>\", \".join(str(x) for x in nums)</code>.\n\nLa terna resuelve la mayoría del trabajo con texto plano."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "cadenas,formato",
+   "front": "¿Cuál es la forma recomendada hoy de insertar variables en una cadena?",
+   "choices": [
+    "f\"Hola, {nombre}\"",
+    "\"Hola, %s\" % nombre",
+    "\"Hola, \" + nombre",
+    "\"Hola, {}\".format(nombre)"
+   ],
+   "answer": 0,
+   "back": "Las <b>f-strings</b> (Python 3.6+) se leen en el orden en que se imprimen y son las más rápidas. Además admiten formato dentro: <code>f\"{precio:.2f} €\"</code>, <code>f\"{n:,}\"</code> para separar miles, y <code>f\"{valor=}\"</code> para depurar, que imprime «valor=3»."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "regex",
+   "front": "¿Cuándo conviene una expresión regular y cuándo no?",
+   "back": "<b>Sí</b>: extraer un patrón de texto libre, validar un formato sencillo, partir por un separador variable.\n\n<b>No</b>: analizar HTML, XML o JSON —tienen estructura anidada y hay bibliotecas para eso—, ni cuando basta con <code>in</code>, <code>startswith</code> o <code>split</code>.\n\nSi la usas, precompílala si va en un bucle (<code>re.compile</code>) y usa cadenas crudas (<code>r\"\\d+\"</code>) para que las barras no las interprete Python."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "regex",
+   "front": "En una expresión regular, {{re.search}} busca el patrón en cualquier posición mientras que re.match solo lo intenta al principio de la cadena.",
+   "back": "Y <code>re.fullmatch</code> exige que coincida la cadena entera, que es lo que casi siempre quieres al <b>validar</b> un formato. Los tres devuelven <code>None</code> si no hay coincidencia, así que el patrón habitual es <code>if (m := re.search(...)):</code> y luego <code>m.group(1)</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "fechas",
+   "front": "¿Qué diferencia hay entre un <code>datetime</code> «ingenuo» y uno «consciente»?",
+   "back": "El <b>ingenuo</b> (<i>naive</i>) no lleva zona horaria: no sabe si esas 15:00 son de Madrid o de Bogotá. El <b>consciente</b> (<i>aware</i>) lleva <code>tzinfo</code>.\n\nMezclarlos lanza <code>TypeError</code> al restarlos o compararlos. La regla que ahorra disgustos: guarda y calcula en <b>UTC consciente</b> (<code>datetime.now(timezone.utc)</code>) y convierte a la zona local solo al mostrar."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "fechas,formato",
+   "front": "¿Cómo se pasa de texto a fecha y de fecha a texto en Python?",
+   "back": "• Texto → fecha: <code>datetime.strptime(\"08/09/2026\", \"%d/%m/%Y\")</code> (<i>parse</i>).\n• Fecha → texto: <code>fecha.strftime(\"%d de %B de %Y\")</code> (<i>format</i>).\n\nPara intercambio entre sistemas, mejor el formato ISO: <code>fecha.isoformat()</code> y <code>datetime.fromisoformat(txt)</code>, que no dependen del idioma ni del orden día/mes que cada país escribe distinto."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "json",
+   "front": "¿Qué diferencia hay entre <code>json.load</code> y <code>json.loads</code>?",
+   "back": "La <b>s</b> es de <i>string</i>:\n• <code>json.load(f)</code> lee de un <b>fichero abierto</b>.\n• <code>json.loads(texto)</code> lee de una <b>cadena</b>.\n\nLo mismo con <code>dump</code> (escribe en fichero) y <code>dumps</code> (devuelve cadena). Para escribir en español y que se lea: <code>json.dumps(d, ensure_ascii=False, indent=2)</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "csv,ficheros",
+   "front": "¿Por qué se abre un CSV con <code>newline=\"\"</code> y por qué usar el módulo <code>csv</code> en vez de <code>split(\",\")</code>?",
+   "back": "• <code>newline=\"\"</code> deja que el módulo <code>csv</code> gestione los saltos de línea; sin él, en Windows aparecen filas en blanco entre registros.\n• <code>split(\",\")</code> se rompe con el primer campo que contenga una coma dentro de comillas, con comillas escapadas o con saltos de línea dentro de un campo.\n\n<code>csv.DictReader</code> además te da cada fila como diccionario con las cabeceras."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "tipado",
+   "front": "¿Qué hacen —y qué no hacen— las anotaciones de tipo en Python?",
+   "back": "<b>Sí hacen</b>: documentar la intención, permitir que el editor autocomplete y avise, y que <code>mypy</code> o <code>pyright</code> encuentren errores antes de ejecutar.\n\n<b>No hacen</b>: comprobar nada en tiempo de ejecución. <code>def f(x: int)</code> acepta una cadena sin rechistar; el intérprete las guarda en <code>__annotations__</code> y sigue.\n\nSon un contrato para las personas y las herramientas, no una barrera."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "tipado",
+   "front": "Un valor que puede ser un entero o no existir se anota como {{int | None}} (antes Optional[int]).",
+   "back": "Desde Python 3.10 la barra vertical sustituye a <code>Union</code> y a <code>Optional</code>: <code>int | str</code>, <code>list[str] | None</code>. Y desde 3.9 se pueden usar los tipos nativos en las anotaciones (<code>list[str]</code>, <code>dict[str, int]</code>) sin importar nada de <code>typing</code>."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "asincronia",
+   "front": "¿Qué problema resuelve <code>async</code>/<code>await</code> y cuál no?",
+   "back": "Resuelve la <b>espera</b>: mientras una petición de red o una consulta tarda, el bucle de eventos atiende otras tareas. Con cien descargas, el total se acerca al de la más lenta y no a la suma.\n\n<b>No</b> resuelve el cálculo intensivo: un bucle que ocupa la CPU bloquea el bucle de eventos igual. Para eso están los procesos (<code>multiprocessing</code>), porque el GIL impide que los hilos ejecuten Python en paralelo."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "asincronia",
+   "front": "¿Qué devuelve llamar a una función <code>async def</code> sin <code>await</code>?",
+   "choices": [
+    "Una corrutina, que no se ejecuta hasta esperarla o programarla",
+    "El resultado, igual que una función normal",
+    "None",
+    "Un error de sintaxis"
+   ],
+   "answer": 0,
+   "back": "Devuelve un objeto <b>corrutina</b>; el cuerpo no corre. Si nadie la espera, Python avisa con «coroutine was never awaited». Para lanzarlas en paralelo no basta con esperarlas en fila una a una: <code>await asyncio.gather(*tareas)</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "estadistica,resumen",
+   "front": "¿Cuándo describe mejor la mediana que la media?",
+   "back": "Cuando la distribución es <b>asimétrica</b> o tiene valores extremos: sueldos, precios de vivienda, tiempos de respuesta. Un solo valor enorme arrastra la media y deja de representar a nadie; la mediana no se mueve.\n\nEn pandas, <code>df.describe()</code> te da las dos y los cuartiles: si la media está lejos de la mediana, ya sabes que hay cola."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "estadistica,correlacion",
+   "front": "¿Qué mide un coeficiente de correlación de Pearson y qué no?",
+   "back": "Mide la fuerza y el sentido de la relación <b>lineal</b> entre dos variables, de −1 a 1.\n\n<b>No</b> mide relaciones curvas (una parábola perfecta puede dar cerca de 0), no implica causalidad, y es muy sensible a los valores extremos. Antes de creerte un 0,9, dibuja el diagrama de dispersión: el cuarteto de Anscombe son cuatro nubes de puntos completamente distintas con la misma correlación."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "estadistica,muestreo",
+   "front": "Dividir los datos en entrenamiento y prueba sirve para medir el {{sobreajuste}}: un modelo puede memorizar el conjunto que ha visto y fallar con datos nuevos.",
+   "back": "Por eso la puntuación que cuenta es siempre la del conjunto de prueba, que el modelo no vio al ajustarse. Y si además se usa para elegir hiperparámetros, hace falta un tercer conjunto de validación, o validación cruzada."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "estilo,pep8",
+   "front": "¿Qué es PEP 8 y cuáles son sus reglas más visibles?",
+   "back": "La guía de estilo oficial de Python. Lo que más se nota:\n• 4 espacios por nivel de indentación, nunca tabuladores.\n• <code>snake_case</code> para funciones y variables, <code>CamelCase</code> para clases, <code>MAYÚSCULAS</code> para constantes.\n• Líneas de hasta 79 caracteres (muchos proyectos usan 100).\n• Dos líneas en blanco entre funciones de nivel superior.\n\nNo se aprende de memoria: lo aplican <code>black</code>, <code>ruff</code> o <code>flake8</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "estilo,verdad",
+   "front": "¿Qué valores son «falsos» en Python, y qué implica al comprobar una lista?",
+   "back": "Son falsos: <code>False</code>, <code>None</code>, <code>0</code>, <code>0.0</code>, <code>\"\"</code>, <code>[]</code>, <code>{}</code>, <code>()</code>, <code>set()</code>.\n\nPor eso se escribe <code>if lista:</code> y no <code>if len(lista) > 0:</code>.\n\n<b>El matiz peligroso</b>: si un valor puede ser <code>0</code> legítimamente, <code>if valor:</code> lo trata como ausente. Ahí hay que ser explícito: <code>if valor is not None:</code>."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "estilo,igualdad",
+   "front": "¿Cómo se comprueba correctamente que una variable es <code>None</code>?",
+   "choices": [
+    "if x is None:",
+    "if x == None:",
+    "if not x:",
+    "if x is not True:"
+   ],
+   "answer": 0,
+   "back": "<code>None</code> es un <b>singleton</b>: solo existe uno, así que la comparación correcta es de identidad (<code>is</code>). Además, <code>==</code> puede estar redefinido por la clase y dar cualquier cosa, y <code>not x</code> confunde <code>None</code> con <code>0</code>, <code>\"\"</code> o una lista vacía."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "estilo,logging",
+   "front": "¿Por qué usar <code>logging</code> en vez de <code>print</code> en un programa que va a durar?",
+   "back": "• Tiene <b>niveles</b> (debug, info, warning, error) y puedes subir o bajar el detalle sin tocar el código.\n• Va a <b>stderr</b> o a un fichero, sin ensuciar la salida del programa.\n• Añade hora, módulo y nivel a cada línea.\n• Se apaga por configuración, no borrando líneas a mano y olvidando una.\n\nRegla práctica: <code>print</code> es para la salida que el usuario ha pedido; <code>logging</code>, para lo que quieres saber tú."
   }
  ]
 }

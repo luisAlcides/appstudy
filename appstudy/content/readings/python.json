@@ -212,6 +212,452 @@
      "p": "Utiliza <code>scipy.stats.linregress</code> para ajustar una recta de regresión sobre el histórico de nivel del mar desde 1880 y proyectar el ascenso estimado hasta el año 2050. Posteriormente, ajusta una segunda línea considerando únicamente los datos recientes a partir del año 2000, evidenciando la aceleración de la tendencia."
     }
    ]
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "comprensiones,generadores,iteradores",
+   "title": "Comprensiones y generadores: construir sin bucles",
+   "subtitle": "Por qué una línea puede ser más clara que cinco, y cuándo deja de serlo.",
+   "body": [
+    {
+     "p": "Casi todo el trabajo con datos consiste en lo mismo: recorrer una colección, quedarse con algunos elementos y transformarlos. Python tiene una sintaxis dedicada a eso, y no es un capricho estético: las <b>comprensiones</b> dicen en la primera línea qué se está construyendo, mientras que un bucle con <code>append</code> obliga a leer hasta el final para averiguarlo."
+    },
+    {
+     "h": "La forma básica"
+    },
+    {
+     "code": "# Con bucle\ncuadrados = []\nfor x in range(10):\n    if x % 2 == 0:\n        cuadrados.append(x ** 2)\n\n# Con comprensión\ncuadrados = [x ** 2 for x in range(10) if x % 2 == 0]"
+    },
+    {
+     "p": "El orden de lectura es: <b>qué produzco</b> (<code>x ** 2</code>), <b>de dónde</b> (<code>for x in range(10)</code>), <b>con qué condición</b> (<code>if x % 2 == 0</code>). Ese <code>if</code> del final es un <i>filtro</i>: los elementos que no lo cumplen simplemente no aparecen."
+    },
+    {
+     "key": "Hay un segundo <code>if</code> que parece igual pero no lo es. Si lo escribes <b>delante</b> del <code>for</code>, es un operador ternario y tiene que producir un valor para cada elemento, así que exige <code>else</code>: <code>[x**2 if x % 2 == 0 else x for x in range(10)]</code>. Filtro detrás, decisión delante."
+    },
+    {
+     "h": "También hay comprensiones de diccionario y de conjunto"
+    },
+    {
+     "code": "# Diccionario: invertir claves y valores\ninvertido = {v: k for k, v in d.items()}\n\n# Conjunto: extensiones distintas de una lista de ficheros\nextensiones = {f.suffix.lower() for f in rutas}"
+    },
+    {
+     "p": "La de conjunto tiene una ventaja escondida: elimina duplicados por el camino, sin una segunda pasada."
+    },
+    {
+     "h": "Cuándo NO usar una comprensión"
+    },
+    {
+     "p": "Una comprensión que necesita dos condiciones anidadas, un <code>try</code> o una llamada con efectos secundarios ya no se lee: se descifra. La prueba práctica es leerla en voz alta. Si no cabe en una frase, escribe el bucle."
+    },
+    {
+     "warn": "Las comprensiones no son para provocar efectos, son para <b>construir</b>. Si escribes <code>[guardar(x) for x in datos]</code> estás creando una lista de <code>None</code> que nadie usará, solo para disimular un bucle. Escribe el <code>for</code>: es una línea más y dice la verdad."
+    },
+    {
+     "h": "Generadores: lo mismo, pero sin traerlo todo a la vez"
+    },
+    {
+     "p": "Cambia los corchetes por paréntesis y ya no tienes una lista, sino un <b>generador</b>: un objeto que produce cada elemento cuando se lo piden y no guarda los anteriores."
+    },
+    {
+     "code": "suma = sum(len(linea) for linea in open(\"registro.log\"))\n#             ↑ sin corchetes: no carga el fichero entero en memoria"
+    },
+    {
+     "p": "Con un fichero de un millón de líneas, la versión con corchetes construye una lista de un millón de enteros antes de sumar nada. La versión con paréntesis mantiene un solo número. Es la misma operación con dos consumos de memoria completamente distintos."
+    },
+    {
+     "h": "Funciones generadoras: yield"
+    },
+    {
+     "p": "Cuando la lógica no cabe en una expresión, una función con <code>yield</code> hace lo mismo. Lo llamativo es que su cuerpo <b>no se ejecuta al llamarla</b>: se ejecuta a trozos, y entre trozo y trozo la función se queda congelada con sus variables intactas."
+    },
+    {
+     "code": "def leer_registros(ruta):\n    with open(ruta, encoding=\"utf-8\") as f:\n        for linea in f:\n            linea = linea.strip()\n            if linea and not linea.startswith(\"#\"):\n                yield json.loads(linea)\n\nfor registro in leer_registros(\"datos.jsonl\"):\n    procesar(registro)"
+    },
+    {
+     "p": "Fíjate en lo que se ha ganado: quien llama no sabe si son diez registros o diez millones, ni si vienen de un fichero o de la red. Y el fichero se cierra solo al terminar el recorrido, porque el <code>with</code> sigue vivo dentro de la función pausada."
+    },
+    {
+     "note": "Un generador se agota. Recorrerlo dos veces devuelve nada la segunda vez, y no admite <code>len()</code> ni índices. Si necesitas cualquiera de esas cosas, envuélvelo: <code>lista = list(generador)</code> — pero entonces ya has pagado la memoria."
+    },
+    {
+     "h": "En resumen"
+    },
+    {
+     "list": [
+      "Comprensión de lista para construir una colección corta y clara.",
+      "Generador cuando la secuencia es grande, infinita, o se consume una vez.",
+      "Bucle explícito cuando hay efectos, varias sentencias o condiciones anidadas."
+     ]
+    }
+   ],
+   "pos": 1
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "funciones,decoradores,closures",
+   "title": "Funciones que reciben y devuelven funciones",
+   "subtitle": "Closures y decoradores: envolver un comportamiento sin tocar el código que envuelve.",
+   "body": [
+    {
+     "p": "En Python las funciones son objetos: se guardan en variables, se pasan como argumento y se devuelven. De ahí sale una herramienta que aparece en cualquier proyecto mediano —el <b>decorador</b>— y que asusta más de lo que debería, porque en realidad es una sola idea repetida."
+    },
+    {
+     "h": "Primero: una función puede recordar"
+    },
+    {
+     "code": "def multiplicador(n):\n    def multiplicar(x):\n        return x * n        # ← n viene de fuera y sigue ahí\n    return multiplicar\n\ndoble = multiplicador(2)\ndoble(21)      # 42"
+    },
+    {
+     "p": "<code>multiplicar</code> se lleva consigo el valor de <code>n</code> aunque <code>multiplicador</code> ya haya terminado. A eso se le llama <b>closure</b>: la función cerrada sobre las variables del entorno donde nació. Es lo que hace posible todo lo demás."
+    },
+    {
+     "h": "Un decorador es exactamente eso"
+    },
+    {
+     "code": "import time\nfrom functools import wraps\n\ndef medir(f):\n    @wraps(f)\n    def envoltura(*args, **kwargs):\n        inicio = time.perf_counter()\n        try:\n            return f(*args, **kwargs)\n        finally:\n            print(f\"{f.__name__}: {time.perf_counter() - inicio:.3f}s\")\n    return envoltura\n\n@medir\ndef consultar(sql):\n    ..."
+    },
+    {
+     "p": "La arroba no hace magia. <code>@medir</code> encima de <code>consultar</code> significa literalmente <code>consultar = medir(consultar)</code>. El nombre <code>consultar</code> pasa a apuntar a <code>envoltura</code>, que hace lo suyo y llama a la original."
+    },
+    {
+     "key": "<code>*args, **kwargs</code> en la envoltura no es decoración: es lo que permite que el decorador sirva para funciones con cualquier firma. Y el <code>finally</code> garantiza que el tiempo se imprime aunque la función lance una excepción."
+    },
+    {
+     "h": "Por qué @wraps no es opcional"
+    },
+    {
+     "p": "Sin <code>@wraps(f)</code>, la función decorada pasa a llamarse <code>envoltura</code>, pierde su docstring y su firma. La ayuda deja de servir, los depuradores mienten y las herramientas que inspeccionan argumentos —muchos frameworks web lo hacen— dejan de funcionar. Es una línea que evita horas de desconcierto."
+    },
+    {
+     "h": "Los tres decoradores que ya usas"
+    },
+    {
+     "list": [
+      "<b><code>@property</code></b> — convierte un método en un atributo de lectura: <code>obj.area</code> en vez de <code>obj.area()</code>, calculado al vuelo.",
+      "<b><code>@staticmethod</code> y <code>@classmethod</code></b> — cambian qué recibe el método: nada, o la clase en vez de la instancia.",
+      "<b><code>@functools.lru_cache</code></b> — recuerda los resultados por argumentos y no recalcula lo ya visto."
+     ]
+    },
+    {
+     "code": "@lru_cache(maxsize=None)\ndef fib(n):\n    return n if n < 2 else fib(n - 1) + fib(n - 2)\n\nfib(35)   # instantáneo; sin la caché, minutos"
+    },
+    {
+     "warn": "<code>lru_cache</code> guarda para siempre lo que ve. Si la función lee un fichero, consulta la base o depende de la hora, te devolverá respuestas caducadas sin avisar. Y si sus argumentos no son <i>hashables</i> —una lista, un diccionario— lanza <code>TypeError</code>."
+    },
+    {
+     "h": "Decoradores con parámetros"
+    },
+    {
+     "p": "Si el decorador necesita configuración, hace falta un nivel más: una función que devuelve el decorador que devuelve la envoltura."
+    },
+    {
+     "code": "def reintentar(veces=3):\n    def decorador(f):\n        @wraps(f)\n        def envoltura(*args, **kwargs):\n            for intento in range(veces):\n                try:\n                    return f(*args, **kwargs)\n                except OSError:\n                    if intento == veces - 1:\n                        raise\n        return envoltura\n    return decorador\n\n@reintentar(veces=5)\ndef descargar(url):\n    ..."
+    },
+    {
+     "p": "Se lee de dentro afuera: <code>reintentar(veces=5)</code> se ejecuta primero y devuelve <code>decorador</code>, que es lo que se aplica a <code>descargar</code>."
+    },
+    {
+     "note": "Un decorador bien elegido quita ruido de muchas funciones a la vez. Uno mal elegido esconde comportamiento en un sitio donde nadie lo busca. La pregunta antes de escribirlo: ¿esto es una preocupación transversal —tiempos, permisos, reintentos, caché— o es la lógica de esta función en concreto?"
+    }
+   ],
+   "pos": 2
+  },
+  {
+   "level": 1,
+   "minutes": 9,
+   "tags": "errores,excepciones,depuracion",
+   "title": "Cuando algo falla: excepciones y depuración",
+   "subtitle": "Leer un traceback, capturar lo justo y dejar pistas para el yo del futuro.",
+   "body": [
+    {
+     "p": "Un programa que falla con un mensaje claro es mejor que uno que sigue adelante con datos corruptos. Las excepciones de Python están diseñadas para eso: interrumpir cuanto antes y contar qué pasó y dónde."
+    },
+    {
+     "h": "Un traceback se lee de abajo arriba"
+    },
+    {
+     "code": "Traceback (most recent call last):\n  File \"informe.py\", line 42, in <module>\n    generar(ventas)\n  File \"informe.py\", line 20, in generar\n    total = suma_columna(datos, \"importe\")\n  File \"util.py\", line 8, in suma_columna\n    return sum(fila[col] for fila in filas)\nKeyError: 'importe'"
+    },
+    {
+     "p": "La <b>última línea</b> dice qué pasó: no existe la clave <code>'importe'</code>. La penúltima, dónde exactamente. Hacia arriba está el camino de llamadas que llevó hasta ahí, del origen al fallo."
+    },
+    {
+     "key": "El truco práctico: lee la última línea y después sube hasta <b>el primer fichero que sea tuyo</b>. Cuando el error salta dentro de una biblioteca, casi siempre es porque le pasaste algo que no esperaba desde tu código."
+    },
+    {
+     "h": "Capturar lo justo"
+    },
+    {
+     "code": "# Mal: se traga cualquier cosa, incluido Ctrl+C\ntry:\n    procesar()\nexcept:\n    pass\n\n# Bien: un error previsto, y se dice qué se hace con él\ntry:\n    datos = json.loads(texto)\nexcept json.JSONDecodeError as e:\n    log.warning(\"Respuesta no era JSON: %s\", e)\n    datos = {}"
+    },
+    {
+     "warn": "<code>except:</code> a secas captura también <code>KeyboardInterrupt</code> y <code>SystemExit</code>: tu programa deja de poder interrumpirse con Ctrl+C. Si necesitas una red de seguridad amplia, usa <code>except Exception</code>, que deja fuera esos dos."
+    },
+    {
+     "p": "Y un <code>except</code> que solo tiene <code>pass</code> es una decisión que nadie podrá revisar: no queda rastro de qué se ignoró ni por qué. Como mínimo, registra el error."
+    },
+    {
+     "h": "try, except, else, finally"
+    },
+    {
+     "steps": [
+      "<b>try</b> — solo la línea que puede fallar. Cuanto más código metas, más fácil es capturar un error que no esperabas.",
+      "<b>except</b> — qué hacer con ese fallo concreto.",
+      "<b>else</b> — se ejecuta si no hubo excepción. Aquí va el resto del trabajo.",
+      "<b>finally</b> — se ejecuta siempre, con error o sin él, incluso si hay <code>return</code>. Aquí se cierra y se libera."
+     ]
+    },
+    {
+     "h": "Lanzar las tuyas"
+    },
+    {
+     "code": "class ImportarError(Exception):\n    \"\"\"El archivo no se pudo importar.\"\"\"\n\ndef leer(ruta):\n    if not ruta.is_file():\n        raise ImportarError(\"No se encontró el archivo\")"
+    },
+    {
+     "p": "Una excepción propia permite a quien te llama distinguir <b>tu fallo previsto</b> de un error inesperado. Con <code>except ImportarError</code> captura el caso contemplado y deja pasar el <code>TypeError</code> que delata un bug de verdad — que es exactamente lo que quieres que ocurra."
+    },
+    {
+     "h": "Encadenar en vez de tapar"
+    },
+    {
+     "code": "try:\n    con.execute(sql)\nexcept sqlite3.OperationalError as e:\n    raise ImportarError(\"La colección no tiene un formato compatible\") from e"
+    },
+    {
+     "p": "Con <code>from e</code>, el traceback muestra las dos: la tuya, comprensible, y la original con el detalle técnico. Es la diferencia entre un mensaje útil y un mensaje que además se puede depurar."
+    },
+    {
+     "h": "Depurar sin adivinar"
+    },
+    {
+     "list": [
+      "<code>print(f\"{variable=}\")</code> imprime el nombre y el valor: rápido para salir de dudas.",
+      "<code>breakpoint()</code> abre un depurador en ese punto: <code>n</code> siguiente línea, <code>s</code> entrar, <code>c</code> continuar, <code>p expr</code> evaluar.",
+      "<code>logging.debug</code> para lo que quieras poder encender más adelante sin volver a tocar el código."
+     ]
+    },
+    {
+     "note": "Antes de cambiar nada, reproduce el fallo con el caso más pequeño que lo provoque. Un error que solo aparece «a veces» casi siempre depende de un dato concreto, de un fichero que falta o del orden en que ocurren dos cosas."
+    }
+   ],
+   "pos": 3
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "ficheros,pathlib,csv,json",
+   "title": "Ficheros, rutas y formatos sin sustos",
+   "subtitle": "pathlib, codificaciones, CSV y JSON: los errores que solo aparecen en otra máquina.",
+   "body": [
+    {
+     "p": "Leer un fichero parece lo más simple que hace un programa, y es donde aparecen los fallos más molestos: los que funcionan en tu portátil y revientan en el de al lado. Casi todos salen de tres descuidos — la ruta, la codificación y el cierre."
+    },
+    {
+     "h": "Rutas: pathlib y nada más"
+    },
+    {
+     "code": "from pathlib import Path\n\nbase = Path.home() / \".local/share/appstudy\"\nbase.mkdir(parents=True, exist_ok=True)\ndestino = base / \"copia.db\"\n\ndestino.exists()        # ¿está?\ndestino.stat().st_size  # cuánto ocupa\ndestino.suffix          # '.db'\ndestino.stem            # 'copia'"
+    },
+    {
+     "p": "El operador <code>/</code> construye la ruta con el separador correcto en cada sistema. Concatenar cadenas a mano funciona en Linux y rompe en Windows, y es un fallo que no verás hasta que otra persona ejecute tu código."
+    },
+    {
+     "key": "Una ruta relativa se interpreta desde el <b>directorio actual</b>, que no es necesariamente donde vive tu script. Si necesitas un fichero que acompaña al código: <code>Path(__file__).parent / \"datos.json\"</code>."
+    },
+    {
+     "h": "Abrir: with y encoding, siempre"
+    },
+    {
+     "code": "with open(ruta, encoding=\"utf-8\") as f:\n    for linea in f:\n        procesar(linea.rstrip(\"\\n\"))"
+    },
+    {
+     "p": "El <code>with</code> cierra el fichero aunque salte una excepción a mitad. Y recorrerlo con un <code>for</code> lee <b>línea a línea</b>: un registro de dos gigas se procesa igual de bien que uno de dos kilobytes."
+    },
+    {
+     "warn": "Sin <code>encoding=\"utf-8\"</code>, Python usa la codificación por defecto del sistema — que cambia de máquina en máquina. El mismo fichero se lee bien aquí y lanza <code>UnicodeDecodeError</code> allí, o peor: mete caracteres raros donde había tildes y nadie se entera hasta que el dato está en un informe."
+    },
+    {
+     "h": "CSV: no lo partas tú"
+    },
+    {
+     "code": "import csv\n\nwith open(ruta, newline=\"\", encoding=\"utf-8\") as f:\n    for fila in csv.DictReader(f):\n        print(fila[\"nombre\"], fila[\"importe\"])"
+    },
+    {
+     "p": "<code>linea.split(\",\")</code> se rompe con el primer campo que contenga una coma entre comillas, o comillas escapadas, o un salto de línea dentro del campo — y los tres casos aparecen en cuanto los datos vienen de una hoja de cálculo real. El <code>newline=\"\"</code> evita las filas en blanco intercaladas en Windows."
+    },
+    {
+     "note": "<code>csv.DictReader</code> devuelve todo como <b>texto</b>. Los números hay que convertirlos, y ahí conviene decidir qué se hace con las celdas vacías antes de que un <code>int(\"\")</code> tumbe el proceso a mitad del fichero."
+    },
+    {
+     "h": "JSON: la ese es de string"
+    },
+    {
+     "code": "datos = json.loads(texto)          # desde una cadena\ndatos = json.load(fichero)         # desde un fichero abierto\n\ntexto = json.dumps(datos, ensure_ascii=False, indent=2)\njson.dump(datos, fichero, ensure_ascii=False, indent=2)"
+    },
+    {
+     "p": "<code>ensure_ascii=False</code> guarda «Mecánica» y no «Mec\\u00e1nica»: el fichero pesa menos y se puede leer y editar a mano. Y <code>indent</code> lo hace legible en un diff de git, que es donde de verdad se nota."
+    },
+    {
+     "h": "Escribir sin dejar el fichero a medias"
+    },
+    {
+     "p": "Si el programa se interrumpe mientras escribe, el fichero queda truncado. El patrón seguro es escribir en un temporal al lado y renombrar al final, porque renombrar en el mismo sistema de ficheros es una operación atómica."
+    },
+    {
+     "code": "tmp = destino.with_suffix(\".tmp\")\ntmp.write_text(json.dumps(datos, ensure_ascii=False), encoding=\"utf-8\")\ntmp.replace(destino)     # o queda el viejo entero, o el nuevo entero"
+    }
+   ],
+   "pos": 4
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "clases,oop,dataclasses",
+   "title": "Clases, dataclasses y métodos especiales",
+   "subtitle": "Cuándo merece la pena una clase, y cómo hacer que se comporte como las de Python.",
+   "body": [
+    {
+     "p": "Una clase agrupa unos datos con las operaciones que tienen sentido sobre ellos. Antes de escribir una, conviene la pregunta honesta: ¿esto tiene <b>estado</b> que varias operaciones comparten? Si la respuesta es no, una función suelta es más fácil de probar y de entender."
+    },
+    {
+     "h": "Lo mínimo"
+    },
+    {
+     "code": "class Sesion:\n    def __init__(self, plan):\n        self.plan = plan\n        self.inicio = time.time()\n        self.respuestas = []\n\n    def registrar(self, nota):\n        self.respuestas.append(nota)\n\n    def terminada(self):\n        return len(self.respuestas) >= self.plan.tarjetas"
+    },
+    {
+     "p": "<code>self</code> es la instancia concreta y llega como primer argumento de todo método. Sin <code>self.</code>, lo que asignas es una variable local que desaparece al acabar el método — el error más común de quien empieza."
+    },
+    {
+     "h": "dataclass: cuando la clase es sobre todo datos"
+    },
+    {
+     "code": "from dataclasses import dataclass, field\n\n@dataclass(frozen=True)\nclass Plan:\n    minutos: int\n    tarjetas: int\n    nombre: str = \"Sesión\"\n\nPlan(5, 8) == Plan(5, 8)    # True, sin escribir __eq__"
+    },
+    {
+     "p": "El decorador escribe por ti <code>__init__</code>, <code>__repr__</code> y <code>__eq__</code> a partir de los campos anotados. Con <code>frozen=True</code> las instancias son inmutables y <i>hashables</i>: puedes usarlas como clave de un diccionario y nadie te las modifica a distancia."
+    },
+    {
+     "warn": "Nunca pongas una lista o un diccionario como valor por defecto — ni en una <code>dataclass</code> ni en una función normal. Se evalúa <b>una sola vez</b> y queda compartido entre todas las instancias. En dataclasses el aviso salta solo; la forma correcta es <code>field(default_factory=list)</code>."
+    },
+    {
+     "h": "Métodos especiales: hablar el idioma de Python"
+    },
+    {
+     "list": [
+      "<code>__repr__</code> — lo que se ve al depurar. Que muestre cómo reconstruir el objeto: <code>Plan(minutos=5, tarjetas=8)</code>.",
+      "<code>__len__</code> y <code>__getitem__</code> — hacen que funcione <code>len(obj)</code>, <code>obj[i]</code> y hasta el <code>for</code>.",
+      "<code>__eq__</code> — define qué significa que dos objetos sean iguales.",
+      "<code>__enter__</code> y <code>__exit__</code> — permiten usarlo con <code>with</code>."
+     ]
+    },
+    {
+     "key": "Si defines <code>__eq__</code>, Python pone <code>__hash__</code> a <code>None</code> y tus objetos dejan de poder entrar en un <code>set</code>. La regla que hay que respetar: objetos iguales, hash igual. Deriva ambos de la misma tupla de campos — o usa <code>@dataclass(frozen=True)</code> y olvídate."
+    },
+    {
+     "h": "Herencia: menos de la que crees"
+    },
+    {
+     "p": "La herencia sirve cuando de verdad hay una relación «es un»: <code>PopupWindow</code> <b>es una</b> ventana. Para reutilizar código sin esa relación, casi siempre es mejor <b>composición</b>: guardar el otro objeto como atributo y llamarlo."
+    },
+    {
+     "code": "# Herencia: comparto identidad con la clase padre\nclass SesionCronometrada(Sesion): ...\n\n# Composición: uso al otro, no soy el otro\nclass Informe:\n    def __init__(self, sesion):\n        self.sesion = sesion"
+    },
+    {
+     "p": "La composición se prueba mejor —puedes sustituir la pieza por un doble— y no te ata a los cambios internos de la clase padre, que es donde más duele una jerarquía profunda."
+    },
+    {
+     "note": "Un atributo con guion bajo delante (<code>self._cache</code>) es una convención que dice «esto es interno, no lo toques desde fuera». Python no lo impide: confía en que quien lee el código entienda la señal."
+    }
+   ],
+   "pos": 5
+  },
+  {
+   "level": 3,
+   "minutes": 12,
+   "tags": "numpy,pandas,analisis,rendimiento",
+   "title": "NumPy y pandas: pensar en columnas",
+   "subtitle": "El cambio de mentalidad que separa un script lento de uno que vuela.",
+   "body": [
+    {
+     "p": "El error que más tiempo cuesta al analizar datos con Python no es de sintaxis: es seguir pensando fila a fila. NumPy y pandas están construidos para operar sobre <b>columnas enteras</b> de una vez, en código compilado. Escribir un bucle sobre un millón de filas puede ser cien veces más lento que la línea equivalente vectorizada."
+    },
+    {
+     "h": "Por qué un array no es una lista"
+    },
+    {
+     "list": [
+      "<b>Tipo único</b>: todos los elementos son del mismo <code>dtype</code>, así que ocupan lo mismo y se pueden recorrer sin comprobar nada.",
+      "<b>Memoria contigua</b>: están pegados, no repartidos como punteros a objetos. La caché del procesador lo agradece muchísimo.",
+      "<b>Operaciones en C</b>: <code>a * 2</code> recorre el array entero sin volver al intérprete de Python en cada elemento."
+     ]
+    },
+    {
+     "code": "import numpy as np\n\na = np.arange(1_000_000)\nb = a * 2 + 1          # una línea, sin bucle\nmedia = a.mean()\ngrandes = a[a > 500_000]   # máscara booleana"
+    },
+    {
+     "p": "Esa última línea es la clave del estilo: <code>a > 500_000</code> produce un array de <code>True</code>/<code>False</code> del mismo tamaño, y usarlo como índice devuelve solo los elementos marcados. Casi cualquier <code>if</code> dentro de un bucle se puede reescribir así."
+    },
+    {
+     "h": "Broadcasting"
+    },
+    {
+     "p": "Cuando las formas no coinciden, NumPy compara las dimensiones de derecha a izquierda y estira las de tamaño 1. Restar la media de cada columna a toda una matriz es una línea:"
+    },
+    {
+     "code": "datos = np.random.rand(1000, 5)\ncentrados = datos - datos.mean(axis=0)   # (1000,5) - (5,) → funciona"
+    },
+    {
+     "math": "z_{ij} = \\frac{x_{ij} - \\bar{x}_j}{\\sigma_j}"
+    },
+    {
+     "warn": "Cortar un array devuelve una <b>vista</b>, no una copia: <code>b = a[2:5]</code> y luego <code>b[0] = 99</code> modifica también <code>a</code>. Es lo que lo hace barato y también la fuente de bugs silenciosos. Si quieres independencia, <code>.copy()</code>."
+    },
+    {
+     "h": "pandas: columnas con etiqueta"
+    },
+    {
+     "p": "Un <code>DataFrame</code> es un conjunto de columnas que comparten un <b>índice</b>. Ese índice no es el número de fila: es una etiqueta que se conserva al filtrar y que <b>alinea</b> las operaciones. Sumar dos Series no suma posición con posición: empareja por etiqueta y pone <code>NaN</code> donde una no tiene pareja."
+    },
+    {
+     "code": "import pandas as pd\n\ndf = pd.read_csv(\"ventas.csv\", parse_dates=[\"fecha\"])\ndf.info()          # tipos y ausentes por columna\ndf.describe()      # media, mediana, cuartiles\ndf.isna().sum()    # cuántos faltan en cada columna"
+    },
+    {
+     "p": "Esas tres líneas antes de cualquier análisis ahorran horas. Si <code>info()</code> dice que la columna de importes es <code>object</code>, hay texto colado; si la media está muy lejos de la mediana, hay cola o valores extremos."
+    },
+    {
+     "h": "Seleccionar: .loc y .iloc"
+    },
+    {
+     "code": "df.loc[df.fecha.dt.year == 2026, [\"fecha\", \"importe\"]]   # por etiqueta\ndf.iloc[0:5, 0:3]                                        # por posición"
+    },
+    {
+     "key": "Usa siempre <code>.loc</code> o <code>.iloc</code> en código que vaya a durar. Indexar directamente con <code>df[...]</code> unas veces selecciona columnas y otras filas según lo que le pases, y es el origen de la mitad de las confusiones — y del <code>SettingWithCopyWarning</code>."
+    },
+    {
+     "h": "Agrupar: dividir, aplicar, combinar"
+    },
+    {
+     "code": "resumen = (df.groupby(df.fecha.dt.to_period(\"M\"))\n             .agg(total=(\"importe\", \"sum\"),\n                  operaciones=(\"importe\", \"size\"),\n                  media=(\"importe\", \"mean\"))\n             .sort_values(\"total\", ascending=False))"
+    },
+    {
+     "p": "<code>size</code> cuenta filas; <code>count</code> cuenta las que no son <code>NaN</code>. Confundirlos es una de esas diferencias que no rompen nada y falsean el informe entero."
+    },
+    {
+     "h": "Lo que hay que dejar de escribir"
+    },
+    {
+     "code": "# Muy lento: crea una Series por fila\nfor i, fila in df.iterrows():\n    df.loc[i, \"grupo\"] = \"alto\" if fila.importe > 100 else \"bajo\"\n\n# Rápido y más claro\ndf[\"grupo\"] = np.where(df.importe > 100, \"alto\", \"bajo\")"
+    },
+    {
+     "p": "De mejor a peor: operación vectorizada de columnas → <code>np.where</code> o <code>.map</code> → <code>.apply</code> → <code>itertuples()</code> → <code>iterrows()</code>. Si te descubres escribiendo el último, casi siempre hay una máscara booleana esperando."
+    },
+    {
+     "note": "Los ausentes se comprueban con <code>.isna()</code>, nunca con <code>== np.nan</code>: <code>NaN</code> no es igual ni a sí mismo, así que esa comparación devuelve siempre falso y el filtro sale vacío sin dar ningún error."
+    }
+   ],
+   "pos": 6
   }
  ]
 }

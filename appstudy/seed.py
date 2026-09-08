@@ -11,7 +11,7 @@ READINGS_DIR = CONTENT_DIR / "readings"
 # existía recibe las correcciones al arrancar, sin tener que recargar a mano:
 # reimportar respeta el progreso porque las tarjetas se identifican por su
 # enunciado y los capítulos por su título.
-CONTENT_VERSION = "27"
+CONTENT_VERSION = "28"
 
 
 # Etiqueta con la que se marca la cara inversa, para poder filtrarla después

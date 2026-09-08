@@ -13,7 +13,8 @@ from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 from . import ayuda, bienvenida, buscador, cloze, db, estadisticas  # noqa: E402
 from . import fsrs, graficas  # noqa: E402
 from . import freecodecamp, historial, hotkey, ia, importador, lecturas  # noqa: E402
-from . import libros, logros, pet, recordatorios, respaldo, scheduler  # noqa: E402
+from . import lectura_diaria, libros, logros, pet, recordatorios  # noqa: E402
+from . import respaldo, scheduler  # noqa: E402
 from . import recomendaciones, nube, sincronizacion  # noqa: E402
 from . import sesiones, sonido, util, voz  # noqa: E402
 from .biblioteca import Biblioteca  # noqa: E402
@@ -352,9 +353,9 @@ class MainWindow(Adw.ApplicationWindow):
 
         plan = self.plan_del_dia()
         box.append(self.tarjeta_plan_del_dia(plan))
-        siguiente = plan["capitulo"]
-        if siguiente:
-            box.append(self.continue_reading_card(siguiente))
+        lectura = lectura_diaria.del_dia(self.con)
+        if lectura:
+            box.append(self.tarjeta_lectura_del_dia(lectura))
 
         box.append(self.tarjeta_modos_estudio())
 
@@ -487,23 +488,35 @@ class MainWindow(Adw.ApplicationWindow):
         caja.append(acciones)
         return caja
 
-    def continue_reading_card(self, cap):
+    def tarjeta_lectura_del_dia(self, cap):
+        """La lectura de hoy: una sola, la misma en cada refresco.
+
+        Sustituye al antiguo «Continuar leyendo», que se recalculaba en cada
+        refresco y podía cambiar de capítulo a media tarde. Cuando está
+        terminada no desaparece: se queda diciendo que el día está cumplido,
+        que es la mitad del premio.
+        """
+        hecha = bool(cap.get("leido"))
+        dias = lectura_diaria.racha(self.con)
         boton = Gtk.Button(css_classes=["card"])
         caja = Gtk.Box(spacing=14)
-        caja.set_margin_top(14)
-        caja.set_margin_bottom(14)
-        caja.set_margin_start(16)
-        caja.set_margin_end(16)
-        caja.append(Gtk.Label(label=cap["deck_icon"], css_classes=["as-deck-row-icon"],
-                              valign=Gtk.Align.CENTER))
+        for lado, px in (("top", 14), ("bottom", 14), ("start", 16), ("end", 16)):
+            getattr(caja, f"set_margin_{lado}")(px)
+        caja.append(Gtk.Label(label="✅" if hecha else cap["deck_icon"],
+                              css_classes=["as-deck-row-icon"], valign=Gtk.Align.CENTER))
+
         texto = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2, hexpand=True)
-        texto.append(Gtk.Label(label="CONTINUAR LEYENDO", xalign=0,
+        encabezado = "LECTURA DE HOY, HECHA" if hecha else "LECTURA DE HOY"
+        if dias > 1:
+            encabezado += f" · {dias} DÍAS SEGUIDOS"
+        texto.append(Gtk.Label(label=encabezado, xalign=0,
                                css_classes=["as-stat-label"]))
         texto.append(Gtk.Label(label=util.as_label(cap["title"]), xalign=0, wrap=True,
                                use_markup=True, css_classes=["as-nav-title"]))
         texto.append(Gtk.Label(
             label=f"{cap['deck_name']} · "
-                  f"{db.level_name(cap['deck_levels'], cap['level'])} · {cap['minutes']} min",
+                  f"{db.level_name(cap['deck_levels'], cap['level'])} · {cap['minutes']} min"
+                  + (" · vuelve a leerla si quieres" if hecha else ""),
             xalign=0, css_classes=["caption", "as-dim"]))
         caja.append(texto)
         caja.append(Gtk.Image.new_from_icon_name("go-next-symbolic"))
