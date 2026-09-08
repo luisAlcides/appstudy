@@ -585,6 +585,455 @@
      "note": "Permiten la <b>interpolación esférica (SLERP)</b>, que garantiza una animación cinematográfica suave entre dos cámaras o articulaciones robóticas a velocidad angular rigurosamente constante."
     }
    ]
+  },
+  {
+   "level": 1,
+   "minutes": 9,
+   "tags": "calculo_mental,multiplicacion,trucos",
+   "title": "Cálculo mental: atajos que sí se usan",
+   "subtitle": "Redondear y corregir, cuadrados acabados en cinco y la diferencia de cuadrados.",
+   "body": [
+    {
+     "p": "El cálculo mental rápido no consiste en hacer más deprisa lo mismo que en el papel, sino en <b>cambiar el camino</b>. Casi todos los atajos salen de una sola idea: sustituir el número incómodo por uno redondo y arreglar la diferencia después."
+    },
+    {
+     "h": "Redondear y corregir"
+    },
+    {
+     "list": [
+      "<b>×9</b> → ×10 menos el número. 47×9 = 470 − 47 = <b>423</b>",
+      "<b>×11</b> → ×10 más el número. 47×11 = 470 + 47 = <b>517</b>",
+      "<b>×99</b> → ×100 menos el número. 47×99 = 4700 − 47 = <b>4653</b>",
+      "<b>×5</b> → ×10 entre 2. 84×5 = 840/2 = <b>420</b>",
+      "<b>×25</b> → ×100 entre 4. 84×25 = 8400/4 = <b>2100</b>"
+     ]
+    },
+    {
+     "p": "Fíjate en que todos convierten una multiplicación difícil en una fácil más una suma o una división por 2 o 4, que son las operaciones que la cabeza hace sin esfuerzo."
+    },
+    {
+     "h": "Cuadrados que acaban en 5"
+    },
+    {
+     "p": "Para cualquier número terminado en 5: multiplica la parte de delante por su siguiente y pega 25."
+    },
+    {
+     "code": "35²  →  3 × 4 = 12   →  1225\n65²  →  6 × 7 = 42   →  4225\n95²  →  9 × 10 = 90  →  9025\n115² →  11 × 12 = 132 → 13225"
+    },
+    {
+     "key": "No es magia: <code>(10a+5)² = 100a² + 100a + 25 = 100·a(a+1) + 25</code>. El «pegar 25» es literalmente el +25, y el producto <code>a(a+1)</code> son las centenas."
+    },
+    {
+     "h": "La diferencia de cuadrados"
+    },
+    {
+     "p": "Cuando dos factores están a la misma distancia de un número redondo, el producto se calcula de un vistazo:"
+    },
+    {
+     "math": "(a-b)(a+b) = a^2 - b^2"
+    },
+    {
+     "code": "48 × 52  = 50² − 2²  = 2500 − 4   = 2496\n97 × 103 = 100² − 3² = 10000 − 9  = 9991\n38 × 42  = 40² − 2²  = 1600 − 4   = 1596"
+    },
+    {
+     "h": "Divisibilidad de un vistazo"
+    },
+    {
+     "steps": [
+      "<b>Por 3</b>: suma las cifras; si el resultado es múltiplo de 3, el número también.",
+      "<b>Por 9</b>: igual, pero la suma debe ser múltiplo de 9.",
+      "<b>Por 4</b>: mira solo las dos últimas cifras.",
+      "<b>Por 8</b>: las tres últimas.",
+      "<b>Por 11</b>: suma las cifras alternando signo (+ − + −); si sale 0 o múltiplo de 11, lo es."
+     ]
+    },
+    {
+     "note": "Estos criterios sirven para simplificar fracciones sin calculadora, que es donde más tiempo se pierde. 3729/1243: ambos suman múltiplo de… comprueba primero por 11, que es el que casi nadie prueba."
+    },
+    {
+     "h": "Sumar y restar de izquierda a derecha"
+    },
+    {
+     "p": "En papel se suma por la derecha porque hay que llevar; de cabeza es al revés, porque así tienes desde el primer momento el orden de magnitud y puedes parar cuando ya sabes bastante."
+    },
+    {
+     "code": "487 + 356\n  400 + 300 = 700\n   80 +  50 = 130   → 830\n    7 +   6 =  13   → 843"
+    }
+   ],
+   "pos": 1
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "porcentajes,proporciones,iva",
+   "title": "Porcentajes sin liarse",
+   "subtitle": "El truco de darles la vuelta, por qué subir y bajar lo mismo no deja igual, y el IVA.",
+   "body": [
+    {
+     "p": "Los porcentajes son el cálculo que más aparece en la vida real y el que más errores produce, casi siempre por la misma razón: <b>olvidar sobre qué cantidad se está calculando</b>."
+    },
+    {
+     "h": "Darles la vuelta"
+    },
+    {
+     "p": "Un porcentaje es una multiplicación disfrazada, y la multiplicación es conmutativa:"
+    },
+    {
+     "math": "a\\%\\ \\text{de}\\ b = \\frac{a \\cdot b}{100} = b\\%\\ \\text{de}\\ a"
+    },
+    {
+     "code": "18 % de 50  =  50 % de 18  =  9\n 4 % de 75  =  75 % de  4  =  3\n12 % de 25  =  25 % de 12  =  3"
+    },
+    {
+     "key": "La versión práctica: si uno de los dos números es 50, 25, 20 o 10, ponlo delante. La mitad, la cuarta parte o la décima parte se calculan sin pensar."
+    },
+    {
+     "h": "Trabajar con factores, no con porcentajes"
+    },
+    {
+     "p": "Este es el cambio que resuelve la mayoría de los problemas. Un aumento del 15 % no es «sumar 15»: es <b>multiplicar por 1,15</b>. Una rebaja del 30 % es multiplicar por 0,70."
+    },
+    {
+     "list": [
+      "Subir un 15 % → <code>×1,15</code>",
+      "Bajar un 30 % → <code>×0,70</code>",
+      "Subir un 100 % → <code>×2</code>",
+      "Bajar un 100 % → <code>×0</code> (no queda nada, y por eso no existe bajar un 120 %)"
+     ]
+    },
+    {
+     "h": "Por qué +20 % y −20 % no dejan las cosas igual"
+    },
+    {
+     "code": "100 → (+20 %) → 120 → (−20 %) → 96"
+    },
+    {
+     "p": "La subida se calcula sobre 100 y la bajada sobre 120, que es mayor. En factores queda evidente: <code>1,20 × 0,80 = 0,96</code>, un 4 % menos."
+    },
+    {
+     "warn": "La consecuencia incómoda: una caída del 50 % necesita después una subida del <b>100 %</b> para volver al punto de partida. Y una caída del 80 %, una subida del 400 %. Por eso las pérdidas grandes cuestan tanto de recuperar."
+    },
+    {
+     "h": "El IVA: quitar no es restar"
+    },
+    {
+     "p": "Si un precio final con 21 % de IVA son 121 €, la base <b>no</b> se obtiene restando el 21 %."
+    },
+    {
+     "code": "Base = 121 / 1,21 = 100 €        ✔ correcto\nBase = 121 × 0,79 = 95,59 €      ✘ error de 4,41 €"
+    },
+    {
+     "p": "El motivo: el 21 % se calculó sobre 100, no sobre 121. Para deshacer una multiplicación se divide, siempre."
+    },
+    {
+     "h": "Puntos porcentuales y porcentajes"
+    },
+    {
+     "p": "Si el paro pasa del 8 % al 10 %, ha subido <b>2 puntos porcentuales</b>, que es un <b>25 % de aumento</b> relativo. Las dos cifras son correctas y dicen cosas distintas; en un titular, elegir una u otra ya es tomar partido."
+    },
+    {
+     "note": "Regla de supervivencia ante cualquier porcentaje: pregunta siempre «¿por ciento <b>de qué</b>?». La mitad de las cifras engañosas se desmontan solo con esa pregunta."
+    }
+   ],
+   "pos": 2
+  },
+  {
+   "level": 2,
+   "minutes": 9,
+   "tags": "estimacion,unidades,ordenes_magnitud",
+   "title": "Estimar antes de calcular",
+   "subtitle": "Órdenes de magnitud, cifras significativas y el análisis dimensional que caza errores.",
+   "body": [
+    {
+     "p": "Una calculadora hace exactamente lo que le pides, incluso cuando le pides una barbaridad. La única defensa contra un factor 10 o una coma mal puesta es <b>saber de antemano</b> más o menos cuánto tiene que salir."
+    },
+    {
+     "h": "Redondea a una cifra y calcula de cabeza"
+    },
+    {
+     "code": "487 × 213   ≈  500 × 200  = 100 000   (real: 103 731)\n8945 / 31   ≈  9000 / 30   = 300       (real: 288,5)\n0,047 × 620 ≈  0,05 × 600  = 30        (real: 29,14)"
+    },
+    {
+     "p": "No buscas el resultado: buscas la <b>década</b>. Si la calculadora dice 10 373 y tú esperabas 100 000, hay un cero perdido en alguna parte y lo sabes antes de seguir."
+    },
+    {
+     "h": "Análisis dimensional: que las unidades te corrijan"
+    },
+    {
+     "p": "Escribe las conversiones como fracciones que valen 1 y cancela unidades como si fueran números:"
+    },
+    {
+     "code": "90 km/h × (1000 m / 1 km) × (1 h / 3600 s) = 25 m/s"
+    },
+    {
+     "key": "Si al terminar te quedan unidades absurdas —«km·h/s», «m²/kg»— has puesto una fracción del revés. El método <b>te avisa del error sin que tengas que revisar el resultado</b>, y por eso es el más fiable que existe para convertir."
+    },
+    {
+     "h": "El salto de las superficies y los volúmenes"
+    },
+    {
+     "steps": [
+      "Longitudes: de 10 en 10. 1 m = 10 dm = 100 cm.",
+      "Superficies: de <b>100 en 100</b>. 1 m² = 100 dm² = 10 000 cm².",
+      "Volúmenes: de <b>1000 en 1000</b>. 1 m³ = 1000 dm³ = 1 000 000 cm³."
+     ]
+    },
+    {
+     "p": "Y la equivalencia que hay que tener grabada porque aparece en todos los oficios: <b>1 m³ = 1000 litros</b>, <b>1 dm³ = 1 litro</b>."
+    },
+    {
+     "warn": "En una escala 1:50, las <b>áreas</b> no se multiplican por 50 sino por 2500, y los volúmenes por 125 000. Es el error que convierte un presupuesto de material en una anécdota cara."
+    },
+    {
+     "h": "Cifras significativas: no inventar precisión"
+    },
+    {
+     "p": "Si mides un terreno con precisión de centímetros y obtienes 12,34 × 8,71 m, el área no es 107,4814 m². Es <b>107,5 m²</b>: el resultado no puede ser más preciso que el peor de los datos que entraron."
+    },
+    {
+     "note": "Los decimales de más no son inocentes: comunican una confianza que la medida no respalda. En un informe técnico, escribir 107,4814 m² a partir de una cinta métrica es un error de fondo, no de forma."
+    },
+    {
+     "h": "Problemas de Fermi"
+    },
+    {
+     "p": "Preguntas imposibles que se responden partiéndolas en factores estimables. «¿Cuántos litros de pintura hacen falta para este edificio?»: superficie por fachada → número de fachadas → manos de pintura → rendimiento por litro."
+    },
+    {
+     "p": "Cada factor puede estar equivocado por un factor 2, pero unos por exceso y otros por defecto: el resultado suele caer dentro del orden de magnitud correcto. Es exactamente la técnica con la que se presupuesta cuando aún no hay datos."
+    }
+   ],
+   "pos": 3
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "geometria,pitagoras,trigonometria,medida",
+   "title": "Geometría que se usa con metro en mano",
+   "subtitle": "Escuadrar sin escuadra, áreas y volúmenes, pendientes y alturas inaccesibles.",
+   "body": [
+    {
+     "p": "Casi toda la geometría útil en un oficio cabe en tres ideas: el teorema de Pitágoras, la proporción entre figuras semejantes y la tangente de un ángulo. Con eso se replantea una obra, se calcula un material y se mide lo que no se puede alcanzar."
+    },
+    {
+     "h": "Escuadrar con el 3-4-5"
+    },
+    {
+     "p": "Mide 3 unidades en un lado, 4 en el otro y comprueba que la diagonal entre las marcas es exactamente 5. Si sale más, el ángulo se ha abierto; si sale menos, se ha cerrado."
+    },
+    {
+     "math": "3^2 + 4^2 = 9 + 16 = 25 = 5^2"
+    },
+    {
+     "key": "Funciona con cualquier múltiplo, y cuanto más grande, más precisión: con 30-40-50 cm afinas centímetros; con 3-4-5 metros, milímetros. Es el mismo teorema que se usa para calcular la longitud de un tirante o la diagonal de un hueco."
+    },
+    {
+     "h": "Cuadrados y cubos: por qué la intuición falla"
+    },
+    {
+     "p": "Si el radio de un tubo se duplica, su sección no se duplica: se multiplica por cuatro, porque el área va con el cuadrado. Y si se duplica el lado de un depósito, su capacidad se multiplica por ocho."
+    },
+    {
+     "code": "Área del círculo:   A = π r²        →  doblar r  ⇒ ×4\nVolumen del cilindro: V = π r² h     →  doblar r  ⇒ ×4\nVolumen del cubo:   V = l³          →  doblar l  ⇒ ×8"
+    },
+    {
+     "p": "De ahí que un tubo del doble de diámetro transporte mucho más del doble de caudal, y que un cable del doble de sección admita bastante más del doble de corriente."
+    },
+    {
+     "h": "Capacidades"
+    },
+    {
+     "code": "Depósito cilíndrico: Ø 80 cm, altura 1,2 m\nV = π × (0,4)² × 1,2 = 0,603 m³ = 603 litros"
+    },
+    {
+     "warn": "El fallo habitual es mezclar unidades antes de elevar: si el radio va en centímetros y la altura en metros, el resultado no significa nada. Pasa todo a metros primero, y recuerda que <b>1 m³ = 1000 L</b>."
+    },
+    {
+     "h": "La tangente: medir lo que no se alcanza"
+    },
+    {
+     "p": "Para saber la altura de un poste, un edificio o un árbol basta con separarse una distancia conocida y medir el ángulo hasta la punta:"
+    },
+    {
+     "math": "\\text{altura} = \\text{distancia} \\times \\tan(\\alpha) + \\text{altura del ojo}"
+    },
+    {
+     "p": "Las tres razones trigonométricas se recuerdan con la posición del ángulo: el <b>seno</b> usa el cateto opuesto, el <b>coseno</b> el adyacente, y la <b>tangente</b> relaciona los dos catetos — que son las dos medidas que se pueden tomar desde el suelo."
+    },
+    {
+     "h": "Pendientes"
+    },
+    {
+     "p": "Una pendiente del 12 % significa 12 metros de subida por cada 100 de avance horizontal: es la tangente expresada en porcentaje."
+    },
+    {
+     "code": "12 %  →  arctan(0,12)  ≈  6,8°\n100 % →  arctan(1)     =  45°   (no es vertical)"
+    },
+    {
+     "note": "La confusión entre porcentaje y grados es constante en señalización y en obra. Un tejado del 30 % no tiene 30°, tiene unos 17°. Y una rampa accesible del 8 % son menos de 5°."
+    }
+   ],
+   "pos": 4
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "funciones,exponencial,logaritmos,interes",
+   "title": "Funciones: lo que crece recto y lo que se dispara",
+   "subtitle": "Lineal, exponencial y logarítmica, y por qué el interés compuesto sorprende siempre.",
+   "body": [
+    {
+     "p": "Distinguir un crecimiento lineal de uno exponencial no es un asunto académico: es la diferencia entre un préstamo que se paga y otro que no, entre una epidemia controlada y otra que no, entre un ahorro que da igual y otro que cambia una vida."
+    },
+    {
+     "h": "Lineal: sumar siempre lo mismo"
+    },
+    {
+     "math": "y = mx + n"
+    },
+    {
+     "list": [
+      "<b>m</b> — la pendiente: cuánto cambia y por cada unidad de x. Un precio por metro, un consumo por hora, una velocidad.",
+      "<b>n</b> — lo que hay cuando x vale cero. El coste fijo, la tara, la posición inicial."
+     ]
+    },
+    {
+     "p": "En una factura eléctrica, <code>n</code> es el término de potencia —se paga aunque no consumas— y <code>m</code> el precio del kWh. Entender la fórmula es entender por qué bajar el consumo tiene un suelo."
+    },
+    {
+     "h": "Exponencial: multiplicar siempre por lo mismo"
+    },
+    {
+     "math": "y = C \\cdot (1+i)^t"
+    },
+    {
+     "p": "Aquí no se suma una cantidad fija: se aplica un <b>porcentaje sobre lo que ya hay</b>, así que el incremento crece con el propio valor. Al principio parece más lento que el lineal, y luego lo pulveriza."
+    },
+    {
+     "code": "1000 € al 7 % anual\n año 1:  1070 €      (+70)\n año 10: 1967 €      (+129 ese año)\n año 30: 7612 €      (+498 ese año)"
+    },
+    {
+     "h": "La regla del 72"
+    },
+    {
+     "p": "Para saber cuánto tarda algo en duplicarse a un ritmo constante:"
+    },
+    {
+     "math": "\\text{años} \\approx \\frac{72}{\\text{porcentaje anual}}"
+    },
+    {
+     "list": [
+      "Al 7 % → unos 10 años.",
+      "Al 3 % → unos 24 años.",
+      "Una inflación del 6 % → el poder adquisitivo cae a la mitad en 12 años."
+     ]
+    },
+    {
+     "key": "La regla funciona igual para lo bueno y para lo malo. Un interés del 20 % en una tarjeta duplica la deuda en menos de cuatro años si no se amortiza — que es exactamente el modelo de negocio."
+    },
+    {
+     "h": "Logaritmos: domesticar lo enorme"
+    },
+    {
+     "p": "El logaritmo es la operación inversa: responde a «¿a qué exponente hay que elevar para llegar aquí?». Su utilidad práctica es doble."
+    },
+    {
+     "steps": [
+      "<b>Convierte multiplicaciones en sumas</b>: <code>log(a·b) = log a + log b</code>. Es lo que hacía posible calcular con reglas de cálculo antes de las calculadoras.",
+      "<b>Comprime escalas enormes</b>: decibelios, pH y escala Richter caben en dos cifras porque cada unidad es un factor de 10.",
+      "<b>Endereza las exponenciales</b>: en una gráfica con eje logarítmico, un crecimiento exponencial se ve como una recta, y su pendiente <i>es</i> la tasa de crecimiento."
+     ]
+    },
+    {
+     "note": "Cuando en una noticia veas una gráfica con el eje vertical en escala logarítmica, mira dos veces: una curva que sube suavemente puede estar describiendo algo que se multiplica por diez cada pocos días."
+    }
+   ],
+   "pos": 5
+  },
+  {
+   "level": 3,
+   "minutes": 10,
+   "tags": "probabilidad,estadistica,intuicion",
+   "title": "Probabilidad contra la intuición",
+   "subtitle": "Cuándo sumar y cuándo multiplicar, falsos positivos y las trampas de los gráficos.",
+   "body": [
+    {
+     "p": "La probabilidad es la rama de las matemáticas donde la intuición falla más y con más confianza. Merece la pena conocer los tres o cuatro sitios exactos donde nos equivocamos todos."
+    },
+    {
+     "h": "Sumar o multiplicar"
+    },
+    {
+     "list": [
+      "<b>«O»</b>, con sucesos incompatibles → se <b>suman</b>: sacar 1 o 6 en un dado = 1/6 + 1/6 = 1/3.",
+      "<b>«Y»</b>, con sucesos independientes → se <b>multiplican</b>: dos seises seguidos = 1/6 × 1/6 = 1/36."
+     ]
+    },
+    {
+     "p": "Si los sucesos pueden ocurrir a la vez, hay que descontar lo contado dos veces:"
+    },
+    {
+     "math": "P(A \\cup B) = P(A) + P(B) - P(A \\cap B)"
+    },
+    {
+     "h": "La falacia del jugador"
+    },
+    {
+     "p": "Han salido cinco caras seguidas. La probabilidad de cara en la sexta sigue siendo <b>1/2</b>: la moneda no recuerda nada."
+    },
+    {
+     "key": "La confusión está en mezclar dos preguntas distintas. «Seis caras seguidas» es improbable (1/64) <b>antes de empezar</b>. Una vez que las cinco primeras ya han ocurrido, lo único que queda por decidir es un lanzamiento, y ese vale 1/2."
+    },
+    {
+     "h": "Falsos positivos: el error que cuesta diagnósticos"
+    },
+    {
+     "p": "Una prueba acierta el 99 % de las veces y la enfermedad afecta a 1 de cada 10 000. Das positivo. ¿Cuál es la probabilidad de estar enfermo?"
+    },
+    {
+     "steps": [
+      "De 10 000 personas, <b>1</b> está enferma y da positivo.",
+      "De las 9999 sanas, el 1 % da falso positivo: unas <b>100</b> personas.",
+      "Positivos totales: 101. Enfermos entre ellos: 1.",
+      "Probabilidad real: <b>1/101 ≈ 1 %</b>, no el 99 %."
+     ]
+    },
+    {
+     "warn": "Cuando lo que se busca es raro, los falsos positivos superan a los verdaderos aunque la prueba sea buenísima. Por eso los cribados se confirman con una segunda prueba distinta, y por eso una alarma que salta mucho acaba ignorándose: casi siempre se equivoca."
+    },
+    {
+     "h": "Orden sí o no: variaciones y combinaciones"
+    },
+    {
+     "code": "Contraseña de 4 dígitos (orden importa):  10⁴ = 10 000\nLotería, 6 números de 49 (no importa):    C(49,6) = 13 983 816"
+    },
+    {
+     "p": "La pregunta que decide: ¿«AB» y «BA» son el mismo caso? Si lo son, son combinaciones y hay que dividir por las formas de ordenar lo elegido."
+    },
+    {
+     "h": "Media, mediana y lo que esconden"
+    },
+    {
+     "p": "Dos talleres tardan 20 minutos de media por reparación. En uno, la desviación típica es de 2 minutos: todo es previsible. En el otro es de 15: unas reparaciones duran 5 minutos y otras 50. La media idéntica describe dos negocios opuestos."
+    },
+    {
+     "note": "Cuando la media y la mediana están lejos, la distribución tiene cola y la media ha dejado de representar a nadie. Es lo que pasa con los sueldos: la media sube con unos pocos muy altos, la mediana no se mueve."
+    },
+    {
+     "h": "Mentir con gráficos sin falsear datos"
+    },
+    {
+     "list": [
+      "<b>Truncar el eje vertical</b> en un gráfico de barras: una diferencia del 2 % parece que triplica.",
+      "<b>Escalar áreas</b> en vez de longitudes: si doblas ancho y alto de un icono para representar el doble, el ojo ve cuatro veces más.",
+      "<b>Elegir el intervalo</b>: la misma serie sube o baja según dónde empieces a contar."
+     ]
+    },
+    {
+     "p": "Ninguna de las tres necesita un solo dato falso, y las tres aparecen a diario. En barras el eje debe empezar en cero, porque lo que se compara es la longitud."
+    }
+   ],
+   "pos": 6
   }
  ]
 }

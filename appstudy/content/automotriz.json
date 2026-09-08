@@ -1017,6 +1017,265 @@
    "tags": "híbridos,eléctricos,regeneración",
    "front": "Frenada regenerativa: ¿cómo recupera energía el motor de tracción eléctrico?",
    "back": "Al levantar el pie del acelerador o pisar el pedal de freno, el inversor conmuta los transistores IGBT/SiC para cambiar el ángulo de fase del campo magnético del estator.\n\nEl motor eléctrico pasa a funcionar como <b>generador trifásico</b>: la inercia del vehículo mueve el rotor contra el campo magnético (generando par de frenado mecánico) y la corriente inducida se rectifica para recargar la batería de alta tensión."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "diagnostico,obd",
+   "front": "¿Qué significan las letras y los números de un código OBD-II como P0301?",
+   "back": "• <b>Primera letra</b> — sistema: <b>P</b> motor y transmisión, <b>B</b> carrocería, <b>C</b> chasis, <b>U</b> red de comunicaciones.\n• <b>Primer dígito</b> — <b>0</b> código genérico (igual en todas las marcas), <b>1</b> código propio del fabricante.\n• <b>Segundo dígito</b> — subsistema: 3 = encendido/fallo de combustión.\n• <b>Dos últimos</b> — el fallo concreto: 01 = cilindro 1.\n\nAsí que <b>P0301</b> es «fallo de combustión detectado en el cilindro 1»."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "diagnostico,obd,metodo",
+   "front": "Un código dice P0171 (mezcla pobre banco 1). ¿Por qué es un error cambiar la sonda lambda?",
+   "back": "Porque el código <b>no dice qué pieza está mal</b>: dice qué ha observado la centralita. La sonda está informando correctamente de que entra más aire del que se contabiliza.\n\nCausas reales, por frecuencia:\n• Entrada de aire falso — manguitos, junta del colector, tapón de aceite mal puesto.\n• Caudalímetro sucio o descalibrado.\n• Presión de combustible baja: filtro, bomba, regulador.\n• Inyectores obstruidos.\n\nLa sonda es la testigo, no la culpable."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "diagnostico,datos",
+   "front": "¿Para qué sirve el «freeze frame» (fotograma congelado) de un diagnóstico OBD?",
+   "choices": [
+    "Guarda las condiciones del motor en el instante del fallo",
+    "Congela la pantalla del escáner",
+    "Borra los códigos pendientes",
+    "Graba vídeo del panel de instrumentos"
+   ],
+   "answer": 0,
+   "back": "Registra revoluciones, carga, temperatura, velocidad y ajustes de combustible <b>en el momento exacto</b> en que se guardó el código.\n\nEs lo que distingue un fallo en frío de uno en caliente, uno a ralentí de uno a plena carga. Sin el freeze frame estás reproduciendo la avería a ciegas; con él, sabes en qué condiciones buscarla."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "diagnostico,combustible",
+   "front": "Los ajustes de combustible {{STFT y LTFT}} indican cuánto está corrigiendo la centralita la inyección; por encima de ±10 % combinados, hay un problema real.",
+   "back": "• <b>STFT</b> (corto plazo) — corrección instantánea, oscila constantemente.\n• <b>LTFT</b> (largo plazo) — la corrección aprendida y memorizada.\n\nLTFT positivo alto = la centralita añade combustible → entra aire falso o falta presión. Negativo alto = quita combustible → inyector goteando o presión excesiva. Y si el desvío desaparece a altas revoluciones, apunta a una entrada de aire (proporcionalmente menor cuando el motor traga mucho)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "sensores,lambda",
+   "front": "¿Qué mide la sonda lambda y qué diferencia hay entre la anterior y la posterior al catalizador?",
+   "back": "Mide el <b>oxígeno residual</b> en el escape, que revela si la mezcla fue rica o pobre.\n\n• <b>Anterior (pre-cat)</b> — es la que regula: su señal entra en el bucle cerrado y la centralita ajusta la inyección continuamente. Debe oscilar rápido entre ~0,1 y ~0,9 V.\n• <b>Posterior (post-cat)</b> — vigila el <b>catalizador</b>. Su señal debe ser casi plana en torno a 0,6-0,7 V.\n\nSi la posterior copia el zigzag de la anterior, el catalizador ya no está trabajando."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "sensores,map_maf",
+   "front": "¿Qué diferencia hay entre un sensor MAP y un MAF, y qué pasa si fallan?",
+   "back": "• <b>MAF</b> (caudalímetro) — mide directamente la <b>masa de aire</b> que entra, con un hilo caliente. Sucio o roto, la centralita calcula mal y aparecen mezclas pobres, tirones y falta de potencia.\n• <b>MAP</b> — mide la <b>presión absoluta</b> en el colector y la centralita deduce la carga.\n\nUna prueba de campo: desconectar el MAF con el motor en marcha. Si el motor mejora, el sensor estaba mintiendo (la centralita pasa a un valor sustituto)."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "sensores,ckp",
+   "front": "El motor gira con el arranque pero no arranca, y no hay señal de revoluciones en el cuadro. ¿Qué sensor se sospecha primero?",
+   "choices": [
+    "El sensor de posición del cigüeñal (CKP)",
+    "El sensor de temperatura del refrigerante",
+    "El sensor de posición de la mariposa",
+    "El sensor de picado"
+   ],
+   "answer": 0,
+   "back": "Sin señal de <b>CKP</b>, la centralita no sabe dónde están los pistones y <b>no inyecta ni da chispa</b>: es un no-arranque total, y el cuentarrevoluciones que no se mueve al dar al arranque es la pista.\n\nSuele fallar en caliente (el bobinado se abre por dilatación): el coche se para y arranca al rato. El de árbol de levas (CMP) permite arrancar con retraso, porque la centralita puede sincronizar por prueba y error."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "sensores,temperatura",
+   "front": "¿Por qué un sensor de temperatura del refrigerante averiado provoca un consumo altísimo?",
+   "back": "Porque la centralita usa esa lectura para decidir el <b>enriquecimiento en frío</b>. Si el sensor dice permanentemente «−20 °C», el motor funciona siempre como si acabara de arrancar en invierno: mezcla rica, consumo disparado, olor a gasolina y catalizador sufriendo.\n\nEs una avería que casi nunca enciende el testigo si la señal está dentro del rango eléctrico válido: solo se detecta comparando el dato con la temperatura real del motor."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "diesel,common_rail",
+   "front": "¿Qué aporta el common rail frente a la inyección diésel mecánica?",
+   "back": "Separa la <b>generación de presión</b> de la <b>inyección</b>. Una bomba mantiene el conducto común a 1500-2500 bar y cada inyector se abre eléctricamente cuando la centralita quiere.\n\nConsecuencias:\n• Presión alta <b>a cualquier régimen</b>, también a ralentí.\n• Varias inyecciones por ciclo: piloto (reduce el ruido), principal y post (regenera el filtro de partículas).\n• Control fino del momento y la cantidad → menos humo, menos NOx, más par abajo."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "diesel,retorno",
+   "front": "¿Qué indica una prueba de retorno de inyectores diésel y cómo se interpreta?",
+   "back": "Se conectan probetas a los retornos y se hace girar el motor: cada inyector devuelve al depósito el gasóleo que no inyecta.\n\n• <b>Retornos parecidos</b> → inyectores sanos.\n• <b>Uno mucho más lleno</b> → ese inyector tiene fugas internas: la presión se escapa por él y el motor arranca mal o no arranca.\n\nEs de las pruebas más rentables del taller: cuesta poco, no requiere desmontar nada y señala al cilindro culpable directamente."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "diesel,dpf",
+   "front": "El filtro de partículas (DPF) se limpia solo mediante la {{regeneración}}, que quema el hollín acumulado subiendo la temperatura del escape.",
+   "back": "La regeneración <b>pasiva</b> ocurre sola en carretera, con el escape caliente. La <b>activa</b> la fuerza la centralita con una post-inyección cuando la contrapresión sube demasiado.\n\nPor eso un coche que solo hace trayectos cortos acaba con el DPF saturado y, peor, con el aceite diluido por el gasóleo de las post-inyecciones que no llegan a completar el ciclo."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "turbo",
+   "front": "¿Cómo funciona un turbocompresor y para qué sirve el intercooler?",
+   "back": "Los gases de escape mueven una turbina que arrastra, en el mismo eje, un compresor que mete <b>más aire</b> en los cilindros. Más aire permite más combustible, y por tanto más potencia con la misma cilindrada.\n\nAl comprimirlo, el aire se calienta y pierde densidad — justo lo contrario de lo que se busca. El <b>intercooler</b> lo enfría antes de entrar al motor: más masa de aire en el mismo volumen y menos riesgo de detonación."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "turbo,averias",
+   "front": "Un coche turbo consume aceite, echa humo azul y el turbo sopla bien. ¿Qué se comprueba antes de sustituir el turbo?",
+   "choices": [
+    "La ventilación del cárter y el retorno de aceite del turbo",
+    "Las bujías de precalentamiento",
+    "El líquido de frenos",
+    "El sensor de oxígeno"
+   ],
+   "answer": 0,
+   "back": "Un retorno de aceite obstruido o una <b>sobrepresión en el cárter</b> (respiradero atascado) empujan el aceite por los retenes del turbo y lo hacen aparecer como avería del turbo.\n\nCambiarlo sin corregir la causa destruye el turbo nuevo en poco tiempo. Comprobar la presión del cárter y el estado del retorno cuesta minutos."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "turbo,geometria_variable",
+   "front": "¿Qué es un turbo de geometría variable y por qué se agarrota?",
+   "back": "Lleva álabes móviles que cambian el ángulo de entrada de los gases: cerrados a bajas vueltas (aceleran el flujo y eliminan el retraso) y abiertos arriba (dejan pasar caudal sin ahogar).\n\nSe agarrota porque esos álabes viven en el escape, entre <b>hollín y carbonilla</b>, sobre todo en coches de trayectos cortos que nunca calientan bien. Síntoma típico: falta de potencia con entrada en modo emergencia, o sobrepresión que también hace saltar el aviso."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "encendido,bujias",
+   "front": "¿Qué información da el aspecto de una bujía usada?",
+   "back": "• <b>Marrón claro / grisáceo</b> — combustión correcta.\n• <b>Negra y seca (hollín)</b> — mezcla rica, filtro de aire obstruido o mucho recorrido corto.\n• <b>Negra y aceitosa</b> — entra aceite: segmentos o guías de válvula.\n• <b>Blanca y erosionada</b> — mezcla pobre o exceso de temperatura; riesgo de detonación.\n• <b>Electrodo fundido o roto</b> — detonación fuerte o grado térmico equivocado.\n\nLeer las cuatro bujías juntas dice más que leer una: si una sola difiere, el problema es de ese cilindro."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "encendido,bobina",
+   "front": "Para saber si un fallo de un cilindro es de encendido o de inyección, se {{permuta}} la bobina con la de otro cilindro y se comprueba si el código cambia de cilindro.",
+   "back": "Si P0301 pasa a P0302 al intercambiar bobinas, la bobina es la culpable. Si el fallo se queda en el cilindro 1, el problema es del inyector, de la compresión o de la propia bujía.\n\nEs el método de sustitución cruzada: cambia una sola variable cada vez y deja que el código te diga dónde se ha ido."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "frenos,hidraulico",
+   "front": "¿Por qué el pedal de freno se va al fondo tras un rato de bajada de puerto?",
+   "back": "Por <b>fading</b>, y hay dos tipos:\n• <b>De material</b> — pastillas y disco sobrecalentados pierden coeficiente de rozamiento. El pedal sigue duro, pero no frena.\n• <b>Por vapor</b> — el líquido de frenos hierve y forma burbujas. Como el gas <b>sí es compresible</b>, el pedal se hunde.\n\nEl segundo es el peligroso, y aparece antes si el líquido está viejo: al ser higroscópico, absorbe humedad y su punto de ebullición cae de ~230 °C a menos de 150 °C."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "frenos,mantenimiento",
+   "front": "¿Por qué se cambia el líquido de frenos cada dos años aunque el nivel esté correcto?",
+   "choices": [
+    "Porque absorbe humedad y baja su punto de ebullición",
+    "Porque se ensucia con el desgaste de las pastillas",
+    "Porque pierde color",
+    "Porque se evapora"
+   ],
+   "answer": 0,
+   "back": "El líquido DOT 3, 4 y 5.1 es <b>higroscópico</b>: absorbe agua del ambiente a través de latiguillos y depósito. Un 3 % de humedad puede rebajar el punto de ebullición unos 70 °C.\n\nEl nivel no avisa de nada: el líquido está ahí, solo que hierve mucho antes. Se comprueba con un medidor de humedad y se sustituye por tiempo, no por kilómetros."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "frenos,abs",
+   "front": "¿Qué hace exactamente el ABS y por qué la distancia de frenado no siempre es menor?",
+   "back": "Detecta que una rueda se bloquea (por su sensor de velocidad) y <b>libera y reaplica</b> presión decenas de veces por segundo, manteniendo la rueda al borde del deslizamiento.\n\nSu objetivo real es <b>conservar la dirección</b>: una rueda bloqueada no gira el coche. En asfalto seco o mojado suele acortar la distancia, pero <b>sobre grava o nieve profunda la alarga</b>, porque una rueda bloqueada acumula material delante y ayuda a detener."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "frenos,discos",
+   "front": "Una vibración en el pedal al frenar a alta velocidad suele indicar {{alabeo}} del disco, no que esté «rayado».",
+   "back": "El alabeo es una deformación de décimas de milímetro, medible con comparador. Se produce por sobrecalentamiento seguido de enfriamiento brusco (un charco), por apretar los tornillos de rueda en desorden o sin par, o por óxido acumulado entre buje y disco.\n\nPor eso se limpia siempre la cara del buje al montar y se aprieta en estrella con dinamométrica."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "suspension,amortiguadores",
+   "front": "¿Qué hace realmente un amortiguador, y cómo se nota que está gastado?",
+   "back": "El <b>muelle</b> sostiene el peso; el <b>amortiguador</b> disipa la energía de la oscilación para que la rueda no siga botando. Sin él, el coche sigue subiendo y bajando y la rueda pierde contacto con el suelo.\n\nSíntomas de desgaste:\n• Rebote: al hundir una esquina, el coche oscila más de una vez.\n• Desgaste irregular del neumático en «parches».\n• Distancia de frenado más larga y balanceo en curva.\n• Rastro de aceite en el cuerpo del amortiguador."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "direccion,alineacion",
+   "front": "¿Qué son la convergencia, la caída y el avance en una alineación?",
+   "back": "• <b>Convergencia (toe)</b> — vistas desde arriba, si las ruedas apuntan hacia dentro o hacia fuera. Mal ajustada, <b>come neumáticos</b> muy deprisa.\n• <b>Caída (camber)</b> — inclinación vertical vista de frente. Negativa mejora el agarre en curva; excesiva desgasta el hombro interior.\n• <b>Avance (caster)</b> — inclinación del eje de dirección vista de lado. Da estabilidad en recta y hace que el volante <b>vuelva solo</b>.\n\nUn desgaste en un solo borde del neumático es casi siempre caída; en forma de sierra, convergencia."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "neumaticos",
+   "front": "En el marcado 205/55 R16 91V de un neumático, ¿qué es el 55?",
+   "choices": [
+    "La altura del flanco como porcentaje del ancho",
+    "La altura del flanco en milímetros",
+    "El diámetro de la llanta",
+    "El índice de carga"
+   ],
+   "answer": 0,
+   "back": "Es el <b>perfil</b>: la altura del flanco es el 55 % de los 205 mm de ancho, es decir, unos 113 mm.\n\nEl resto: <b>R</b> radial, <b>16</b> pulgadas de llanta, <b>91</b> índice de carga (615 kg por rueda) y <b>V</b> índice de velocidad (240 km/h). Montar un índice de carga inferior al homologado es motivo de rechazo en la ITV."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "transmision,embrague",
+   "front": "¿Cómo se comprueba si un embrague patina sin desmontar nada?",
+   "back": "Con el freno de mano puesto y una marcha larga (3ª o 4ª), suelta el embrague despacio con algo de gas: el motor <b>debe calarse</b>. Si sigue girando y sube de vueltas, el disco patina.\n\nEn carretera, el síntoma es que las revoluciones suben al acelerar en marcha larga sin que la velocidad acompañe, y a veces olor a quemado subiendo una cuesta."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "transmision,automatica",
+   "front": "¿Qué diferencia hay entre una caja automática convencional, una CVT y una de doble embrague?",
+   "back": "• <b>Convertidor de par (automática clásica)</b> — acoplamiento hidráulico y trenes epicicloidales. Suave y robusta, algo menos eficiente.\n• <b>CVT</b> — variador continuo por correa o cadena: relación infinita, sin escalones. Muy eficiente, con la sensación de «motor que se queda en un régimen» y sensible al mantenimiento del fluido.\n• <b>Doble embrague (DSG/DCT)</b> — dos embragues, uno para marchas pares y otro para impares: cambia en milisegundos porque la siguiente ya está preseleccionada. Rápida, pero más delicada en tráfico denso.\n\nLas tres exigen su fluido específico y su intervalo de cambio: usar el genérico es la avería más cara y más evitable."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "transmision,diferencial",
+   "front": "El diferencial permite que las ruedas de un mismo eje giren a {{distinta velocidad}} al tomar una curva, ya que la exterior recorre más camino.",
+   "back": "Su punto débil: reparte par al camino de <b>menor resistencia</b>, así que si una rueda pierde adherencia se lleva todo el par y la otra se queda quieta.\n\nDe ahí los autoblocantes, los bloqueos y los sistemas electrónicos que frenan la rueda que patina para forzar que el par pase a la que agarra."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "hibridos,arquitecturas",
+   "front": "¿Qué diferencia a un híbrido en serie, en paralelo y a un enchufable?",
+   "back": "• <b>Serie</b> — el motor térmico solo genera electricidad; a las ruedas siempre mueve el eléctrico.\n• <b>Paralelo</b> — ambos pueden mover las ruedas, juntos o por separado.\n• <b>Enchufable (PHEV)</b> — paralelo o mixto con batería mayor y carga externa: permite decenas de kilómetros en eléctrico puro.\n\nTodos comparten dos ideas: <b>frenada regenerativa</b> (recuperar energía que se perdía en calor) y hacer trabajar al térmico en su zona de máximo rendimiento, no allí donde el pie lo pida."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "electricos,seguridad",
+   "front": "¿Qué precauciones específicas exige trabajar en un vehículo híbrido o eléctrico?",
+   "back": "El sistema de tracción trabaja a <b>400-800 V continua</b>, y la continua no tiene pasos por cero: un arco no se extingue solo.\n\n• Formación y <b>habilitación</b> específicas: no es opcional.\n• Desconectar el <b>seccionador de servicio</b> y esperar el tiempo que indique el fabricante (los condensadores del inversor siguen cargados varios minutos).\n• Verificar ausencia de tensión con instrumento adecuado y EPI aislante (guantes clase 0 revisados).\n• Los cables de <b>naranja</b> son de alta tensión: no se tocan, no se pinzan y no se puentean."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "electricos,baterias",
+   "front": "¿Por qué la autonomía de un coche eléctrico cae tanto en invierno?",
+   "choices": [
+    "Por la calefacción y la peor química de la batería en frío",
+    "Porque el aire frío es menos denso",
+    "Porque los neumáticos se endurecen",
+    "Porque el motor eléctrico pierde rendimiento con el frío"
+   ],
+   "answer": 0,
+   "back": "Dos causas suman: la <b>calefacción</b> del habitáculo tira directamente de la batería (en un térmico es calor residual gratis), y en frío las <b>reacciones químicas</b> de la celda son más lentas, lo que reduce capacidad y potencia disponibles.\n\nDe ahí que los eléctricos modernos preacondicionen la batería antes de una carga rápida y usen bomba de calor en vez de resistencia."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "mantenimiento,aceite",
+   "front": "En un aceite 5W-30, ¿qué significan el 5W y el 30?",
+   "back": "• <b>5W</b> — comportamiento en <b>frío</b> (W de <i>winter</i>): cuanto menor el número, más fluido arranca y antes llega a lubricar. El 75 % del desgaste del motor ocurre en los primeros segundos.\n• <b>30</b> — viscosidad a <b>100 °C</b>, temperatura de trabajo.\n\nEl número no lo elige el mecánico: lo fija el fabricante junto con una <b>norma</b> (ACEA, API o la propia de la marca), que es lo que de verdad importa cuando hay filtro de partículas de por medio."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "mantenimiento,distribucion",
+   "front": "La correa de distribución se sustituye por {{tiempo y kilómetros}}, lo que antes se cumpla, porque el caucho envejece aunque el coche no ruede.",
+   "back": "En un motor de «interferencia» —la mayoría— la rotura hace que pistones y válvulas ocupen el mismo espacio: culata destrozada y, a veces, motor entero.\n\nY se cambian con ella la <b>bomba de agua</b>, los rodillos y el tensor: son piezas de vida similar y volver a abrir el frontal cuesta más que las piezas."
   }
  ],
  "levels": [

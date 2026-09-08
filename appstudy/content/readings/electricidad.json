@@ -530,6 +530,428 @@
      "key": "Para conmutar en 30 ns necesitas inyectar varios amperios de pico en la puerta. Los chips <b>Gate Drivers dedicados</b> son obligatorios para gobernar MOSFETs en fuentes conmutadas, inversores y puentes H."
     }
    ]
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "alterna,impedancia,reactancia",
+   "title": "Corriente alterna: por qué no basta la ley de Ohm",
+   "subtitle": "Valores eficaces, reactancia y desfase, explicados desde lo que se mide.",
+   "body": [
+    {
+     "p": "En continua todo es sencillo: la tensión empuja, la resistencia frena y la ley de Ohm cierra el asunto. En alterna la tensión cambia de valor y de signo cien veces por segundo, y aparecen dos componentes que no disipan energía pero <b>sí ocupan el cable</b>. Entender eso es la diferencia entre calcular una instalación y adivinarla."
+    },
+    {
+     "h": "El valor eficaz: por qué 230 y no 325"
+    },
+    {
+     "p": "Cuando decimos que la red es de 230 V, no es el máximo que alcanza la onda. Es el <b>valor eficaz</b>: la tensión continua que produciría el mismo calor en una resistencia."
+    },
+    {
+     "math": "U_{ef} = \\frac{U_{pico}}{\\sqrt{2}} \\qquad U_{pico} = 230 \\times 1{,}414 \\approx 325\\ \\text{V}"
+    },
+    {
+     "key": "El aislamiento y los condensadores no ven 230 V: ven <b>325 V de pico</b>, y en un pico de red algo más. Por eso un condensador para conectar a red se elige de 400 V, y el que pone 250 V dura hasta el primer transitorio."
+    },
+    {
+     "h": "Lo que la bobina y el condensador hacen con el tiempo"
+    },
+    {
+     "p": "Una resistencia no tiene memoria: la corriente sigue a la tensión al instante. Una bobina y un condensador sí la tienen, y eso <b>desfasa</b> la corriente respecto a la tensión."
+    },
+    {
+     "list": [
+      "<b>Bobina</b>: se opone a que cambie la corriente, porque su campo magnético la sostiene. La corriente llega <b>90° tarde</b>.",
+      "<b>Condensador</b>: se opone a que cambie la tensión entre placas. Primero circula corriente y después sube la tensión, así que la corriente va <b>90° adelantada</b>."
+     ]
+    },
+    {
+     "p": "Su oposición al paso de corriente ya no es una resistencia fija, sino una <b>reactancia</b> que depende de la frecuencia:"
+    },
+    {
+     "math": "X_L = 2\\pi f L \\qquad X_C = \\frac{1}{2\\pi f C}"
+    },
+    {
+     "p": "Léelo como comportamiento, no como fórmula: la bobina frena más cuanto más rápido cambia la señal (por eso filtra el ruido) y el condensador hace justo lo contrario (por eso bloquea la continua y deja pasar la alterna)."
+    },
+    {
+     "h": "Impedancia: todo junto"
+    },
+    {
+     "math": "Z = \\sqrt{R^2 + (X_L - X_C)^2}"
+    },
+    {
+     "p": "Las reactancias se restan entre sí porque desfasan en sentidos opuestos, y el resultado se compone con la resistencia en ángulo recto. De ahí que sumar impedancias «como resistencias» dé siempre de más."
+    },
+    {
+     "note": "Cuando <code>X_L = X_C</code> las dos se cancelan y solo queda <code>R</code>: es la <b>resonancia</b>. Útil en un sintonizador de radio, peligrosa en una instalación con condensadores de corrección y armónicos, donde puede multiplicar corrientes sin que nadie entienda de dónde salen."
+    },
+    {
+     "h": "Qué significa esto con el polímetro en la mano"
+    },
+    {
+     "steps": [
+      "Un motor parado consume muchísimo porque su impedancia es casi solo resistencia de hilo; al girar, la fuerza contraelectromotriz limita la corriente.",
+      "Un cable largo tiene inductancia: en continua no importa, en alterna suma reactancia y caída de tensión.",
+      "Un polímetro que no sea <i>true RMS</i> supone que la onda es senoidal perfecta. Con variadores o fuentes conmutadas cerca, miente."
+     ]
+    }
+   ],
+   "pos": 1
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "trifasica,motores,factor_potencia",
+   "title": "Trifásica y factor de potencia",
+   "subtitle": "Por qué √3 aparece en todas las fórmulas y qué se está pagando cuando el cos φ es bajo.",
+   "body": [
+    {
+     "p": "La trifásica no se inventó para llevar más potencia, sino para llevarla <b>mejor</b>: con tres ondas desfasadas 120° la potencia instantánea total es constante —no pulsa como en monofásico—, se puede generar un campo giratorio sin trucos, y se ahorra cobre para la misma energía transportada."
+    },
+    {
+     "h": "De dónde sale el √3"
+    },
+    {
+     "p": "Entre fase y neutro hay 230 V. Entre dos fases no hay 460, porque las dos ondas no llegan al máximo a la vez: hay que sumarlas como vectores separados 120°."
+    },
+    {
+     "math": "U_{linea} = \\sqrt{3} \\cdot U_{fase} = 1{,}732 \\times 230 \\approx 400\\ \\text{V}"
+    },
+    {
+     "key": "El mismo factor aparece en la potencia: <code>P = √3 · U · I · cos φ</code> cuando U e I son <b>de línea</b>. La mitad de los errores de cálculo de sección salen de mezclar valores de línea con valores de fase en la misma fórmula."
+    },
+    {
+     "h": "Estrella y triángulo"
+    },
+    {
+     "p": "Un motor trifásico tiene tres bobinados y dos formas de conectarlos. La diferencia práctica está en qué tensión recibe cada bobinado."
+    },
+    {
+     "list": [
+      "<b>Estrella (Y)</b>: los tres extremos se unen en un punto común. Cada bobinado recibe <code>U_línea/√3</code>.",
+      "<b>Triángulo (Δ)</b>: cada bobinado va entre dos fases y recibe <code>U_línea</code> completa."
+     ]
+    },
+    {
+     "p": "Como la potencia va con el cuadrado de la tensión, el mismo motor en estrella da <b>un tercio</b> de la potencia que en triángulo — y consume un tercio en el arranque. Eso es todo el secreto del arrancador estrella-triángulo: arrancar suave y conmutar cuando ya gira."
+    },
+    {
+     "warn": "Conectar en triángulo un motor cuya placa dice 400 V en estrella significa aplicar 400 V a un bobinado diseñado para 230: se quema en segundos. La placa indica ambas tensiones, y la conexión depende de la red donde se instale."
+    },
+    {
+     "h": "El neutro y los armónicos"
+    },
+    {
+     "p": "Con tres cargas iguales, las corrientes suman cero y el neutro no lleva nada. Pero las cargas modernas —LED, fuentes conmutadas, ordenadores, variadores— no consumen una senoide: consumen picos, e inyectan <b>armónicos de tercer orden</b>."
+    },
+    {
+     "note": "Los armónicos de orden múltiplo de tres están en fase en las tres líneas, así que <b>no se cancelan en el neutro: se suman</b>. En oficinas con mucha carga electrónica se han medido neutros con más corriente que las fases, en instalaciones perfectamente «equilibradas» sobre el papel."
+    },
+    {
+     "h": "Factor de potencia: lo que ocupa el cable sin hacer trabajo"
+    },
+    {
+     "p": "Un motor necesita energía para magnetizar su hierro. Esa energía no se consume: va y vuelve entre la red y el motor sesenta veces por segundo. No la mide el contador de activa, pero <b>sí circula por el cable</b> y lo calienta."
+    },
+    {
+     "math": "S = \\sqrt{P^2 + Q^2} \\qquad \\cos\\varphi = \\frac{P}{S}"
+    },
+    {
+     "steps": [
+      "<b>Activa (P, W)</b> — hace trabajo: gira, calienta, ilumina.",
+      "<b>Reactiva (Q, VAr)</b> — magnetiza y vuelve. Ni se gasta ni es gratis.",
+      "<b>Aparente (S, VA)</b> — la suma vectorial. Es la que dimensiona cables, protecciones y transformadores."
+     ]
+    },
+    {
+     "p": "Con cos φ = 0,7, entregar 700 W útiles obliga a hacer circular 1000 VA: un 43 % más de corriente, con sus pérdidas por <code>I²R</code> en todo el recorrido. Por eso se penaliza en la factura industrial."
+    },
+    {
+     "h": "Corregirlo"
+    },
+    {
+     "p": "Se instala una batería de <b>condensadores en paralelo</b>: aportan localmente la reactiva que los motores piden, de modo que ya no tiene que viajar desde la subestación."
+    },
+    {
+     "math": "Q_c = P \\cdot (\\tan\\varphi_1 - \\tan\\varphi_2)"
+    },
+    {
+     "warn": "Sobrecompensar tiene su propia penalización y puede provocar resonancia con los armónicos de la instalación, amplificando corrientes que nadie ha pedido. La corrección se calcula, no se estima al alza «por si acaso»."
+    }
+   ],
+   "pos": 2
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "protecciones,seguridad,diferencial",
+   "title": "Protecciones: qué corta cada cosa y por qué",
+   "subtitle": "Diferencial, magnetotérmico, curvas y poder de corte, sin confundirlos.",
+   "body": [
+    {
+     "p": "En un cuadro conviven dos familias de aparatos que la gente llama igual y hacen cosas distintas. Uno protege <b>a las personas</b>; el otro, <b>a la instalación</b>. Ninguno hace el trabajo del otro, y por eso están los dos."
+    },
+    {
+     "h": "El diferencial protege a quien toca"
+    },
+    {
+     "p": "Suma la corriente que va por la fase y la que vuelve por el neutro. En condiciones normales son idénticas y la suma da cero. Si parte de la corriente se está yendo por otro camino —una persona, la humedad de una pared, un aislamiento envejecido— la suma deja de ser cero y el aparato dispara."
+    },
+    {
+     "key": "30 mA es el umbral habitual en viviendas porque está por debajo del que provoca <b>fibrilación ventricular</b>. No es una cifra técnica: es una cifra fisiológica."
+    },
+    {
+     "warn": "Un cortocircuito franco entre fase y neutro <b>no desequilibra nada</b>: el diferencial ni se entera. Y una persona que toque fase y neutro a la vez tampoco crea desequilibrio. El diferencial protege del contacto <b>indirecto</b> y del directo a tierra, no de todo."
+    },
+    {
+     "h": "El magnetotérmico protege el cable"
+    },
+    {
+     "list": [
+      "<b>Disparo térmico</b> — un bimetal que se curva con el calor. Lento a propósito: aguanta una punta de arranque, pero corta una sobrecarga sostenida antes de que el aislante se degrade.",
+      "<b>Disparo magnético</b> — un electroimán que actúa en milisegundos ante un cortocircuito."
+     ]
+    },
+    {
+     "p": "El calibre se elige por el <b>cable</b>, no por el aparato conectado: un magnetotérmico de 25 A sobre 1,5 mm² deja que el cable se caliente indefinidamente sin cortar nunca, que es exactamente el escenario del incendio."
+    },
+    {
+     "h": "Curvas B, C y D"
+    },
+    {
+     "steps": [
+      "<b>B</b> (3-5 In) — líneas largas y cargas resistivas, donde la corriente de cortocircuito puede ser baja.",
+      "<b>C</b> (5-10 In) — uso general: viviendas, oficinas, alumbrado.",
+      "<b>D</b> (10-20 In) — cargas con punta fuerte: motores, transformadores, equipos de soldadura."
+     ]
+    },
+    {
+     "p": "Si un motor dispara el automático en cada arranque, la respuesta no es subir el calibre —eso deja el cable sin protección— sino cambiar la curva."
+    },
+    {
+     "h": "Poder de corte: el dato que nadie mira"
+    },
+    {
+     "p": "Es la corriente de cortocircuito máxima que el aparato puede interrumpir sin destruirse: 4,5 kA, 6 kA, 10 kA. Si en ese punto de la instalación la corriente de cortocircuito prevista es mayor, el automático no corta: se funde o se suelda, y el defecto sigue alimentado."
+    },
+    {
+     "note": "La corriente de cortocircuito es enorme cerca del transformador y va cayendo con la distancia, porque la propia resistencia del cable la limita. Por eso un 4,5 kA puede ser suficiente en la última planta y claramente insuficiente en el cuadro general."
+    },
+    {
+     "h": "Cuando salta el diferencial: método"
+    },
+    {
+     "steps": [
+      "Bajar todos los magnetotérmicos y rearmar el diferencial. Si no aguanta ni así, la fuga está en la instalación fija o en el propio aparato.",
+      "Subir los circuitos de uno en uno hasta que dispare: eso aísla el circuito culpable.",
+      "Dentro de ese circuito, desconectar los receptores y repetir. Los termos, las lavadoras y las luminarias de exterior son los sospechosos de siempre.",
+      "Si la fuga es pequeña y repartida, sumar varios aparatos viejos puede superar los 30 mA sin que ninguno esté averiado del todo."
+     ]
+    },
+    {
+     "warn": "Subir la sensibilidad a 300 mA para que «deje de saltar» elimina la protección de personas. El diferencial no falla por gusto: está detectando algo que se va por donde no debe."
+    }
+   ],
+   "pos": 3
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "motores,arranque,variadores",
+   "title": "El motor asíncrono y cómo se le manda",
+   "subtitle": "Deslizamiento, arranque, variadores y las averías que se diagnostican sin desmontar nada.",
+   "body": [
+    {
+     "p": "El motor de jaula de ardilla es la máquina más extendida de la industria: sin escobillas, sin colector, sin apenas mantenimiento. Toda su elegancia está en que el rotor no está conectado a nada — la corriente que lo mueve <b>se induce</b> en él."
+    },
+    {
+     "h": "Por qué tiene que ir siempre por detrás"
+    },
+    {
+     "p": "Las tres fases crean un campo magnético que gira a la velocidad de sincronismo:"
+    },
+    {
+     "math": "n_{sinc} = \\frac{60 \\cdot f}{p} = \\frac{60 \\times 50}{2} = 1500\\ \\text{rpm (4 polos)}"
+    },
+    {
+     "p": "Ese campo giratorio corta las barras del rotor e induce en ellas una corriente, que a su vez crea otro campo, y la interacción de los dos produce el par. Pero si el rotor alcanzara la velocidad del campo, dejaría de haber movimiento relativo, no se induciría nada y el par desaparecería."
+    },
+    {
+     "key": "De ahí el nombre: <b>asíncrono</b>. El rotor siempre va por detrás, y esa diferencia es el <b>deslizamiento</b>. En vacío es casi cero; a plena carga, del 3 al 6 %. Un motor de 1500 rpm nominales gira en realidad a unas 1440."
+    },
+    {
+     "h": "El arranque, y por qué es el momento delicado"
+    },
+    {
+     "p": "Con el rotor parado el deslizamiento es del 100 %: el motor se comporta como un transformador con el secundario en cortocircuito y absorbe <b>6 a 8 veces</b> su corriente nominal."
+    },
+    {
+     "list": [
+      "<b>Directo</b> — solo para motores pequeños o redes fuertes. Simple y brutal.",
+      "<b>Estrella-triángulo</b> — reduce corriente y par a un tercio. Necesita que la carga arranque suave y que el motor admita las dos conexiones.",
+      "<b>Arrancador suave</b> — tiristores que suben la tensión en rampa. Bueno para bombas: evita el golpe de ariete.",
+      "<b>Variador de frecuencia</b> — arranca a frecuencia baja con par nominal disponible. Es lo que se pone hoy cuando además interesa regular la velocidad."
+     ]
+    },
+    {
+     "h": "El variador y la relación V/f"
+    },
+    {
+     "p": "Un variador rectifica la red, la filtra y la vuelve a construir a la frecuencia que quiera con IGBT conmutando miles de veces por segundo. La regla que gobierna su funcionamiento es mantener constante la relación entre tensión y frecuencia."
+    },
+    {
+     "math": "\\frac{V}{f} = \\text{constante} \\;\\Rightarrow\\; \\Phi \\text{ constante} \\;\\Rightarrow\\; \\text{par disponible constante}"
+    },
+    {
+     "warn": "Si se baja la frecuencia sin bajar la tensión, el flujo crece, el hierro se satura y el motor se calienta sin dar más par. Y a baja velocidad el ventilador propio del motor casi no refrigera: para funcionamiento prolongado a pocas revoluciones hace falta ventilación forzada independiente."
+    },
+    {
+     "h": "Diagnóstico sin desmontar"
+    },
+    {
+     "steps": [
+      "<b>Zumba, se calienta y arranca con dificultad</b> — falta una fase. Mide las tres tensiones en bornes <b>con el motor conectado</b>: un fusible fundido puede no notarse en vacío.",
+      "<b>Gira al revés</b> — permuta dos fases cualesquiera. No hace falta tocar nada más.",
+      "<b>Salta el térmico al cabo de un rato</b> — sobrecarga mecánica, refrigeración obstruida o térmico mal ajustado. Compara la corriente medida con la de la placa.",
+      "<b>Ruido metálico y vibración</b> — rodamientos. Se oye antes de que se note en la corriente.",
+      "<b>Salta el diferencial al arrancar</b> — aislamiento degradado por humedad. Mide con megóhmetro a 500 V."
+     ]
+    },
+    {
+     "note": "El relé térmico se regula a la <b>corriente de la placa</b> para la conexión empleada, no al calibre del magnetotérmico ni a ojo. Es lo único que protege el bobinado frente a una sobrecarga que dure horas."
+    }
+   ],
+   "pos": 4
+  },
+  {
+   "level": 1,
+   "minutes": 9,
+   "tags": "medida,polimetro,seguridad,diagnostico",
+   "title": "Medir sin romper nada (ni romperte tú)",
+   "subtitle": "Polímetro, pinza y método: qué se mide, cómo se conecta y qué no se hace nunca.",
+   "body": [
+    {
+     "p": "Un electricista sin método mide donde puede; con método, mide donde tiene sentido. La diferencia se nota en el tiempo que tarda en encontrar la avería y en la cantidad de aparatos que sobrevive."
+    },
+    {
+     "h": "Las tres magnitudes y cómo se conectan"
+    },
+    {
+     "list": [
+      "<b>Tensión</b> — en <b>paralelo</b>, tocando los dos puntos entre los que quieres saber la diferencia. El aparato tiene resistencia altísima y no perturba el circuito.",
+      "<b>Corriente</b> — en <b>serie</b>: hay que abrir el circuito e intercalar el polímetro, que tiene resistencia casi nula. O, mucho mejor, usar una pinza sin tocar nada.",
+      "<b>Resistencia</b> — con el circuito <b>sin tensión</b> y descargado. El óhmetro inyecta su propia corriente para medir."
+     ]
+    },
+    {
+     "warn": "El error que destruye polímetros —y manos— es dejar las puntas en la escala de amperios y medir una tensión. Es un cortocircuito franco a través del aparato. Después de medir corriente, devuelve la punta a su borne antes de guardar el polímetro."
+    },
+    {
+     "h": "La pinza amperimétrica"
+    },
+    {
+     "p": "Mide el campo magnético alrededor del conductor, así que hay que abrazar <b>un solo cable</b>. Si cierras la pinza sobre una manguera de dos hilos, la ida y la vuelta se cancelan y lees cero — que es exactamente el principio con el que funciona un diferencial."
+    },
+    {
+     "key": "En instalaciones con variadores, LED o fuentes conmutadas, usa un aparato <b>true RMS</b>. Los demás suponen una onda senoidal perfecta y pueden equivocarse en más de un 30 % cuando no lo es."
+    },
+    {
+     "h": "Verificar ausencia de tensión: el paso que se salta la gente con prisa"
+    },
+    {
+     "steps": [
+      "Comprueba el detector en una fuente conocida que sí tenga tensión.",
+      "Verifica el punto de trabajo: entre todas las combinaciones de fase, neutro y tierra.",
+      "Vuelve a comprobar el detector en la fuente conocida. Si se ha estropeado entre medias, lo sabrás ahora y no cuando ya estés tocando."
+     ]
+    },
+    {
+     "p": "Ese ida y vuelta parece exagerado hasta el día en que un comprobador con la pila agotada dice «sin tensión» en un circuito vivo."
+    },
+    {
+     "h": "Buscar una avería con orden"
+    },
+    {
+     "steps": [
+      "<b>Reproduce el fallo</b>: ¿siempre, o solo con algo conectado? ¿En frío o después de un rato?",
+      "<b>Divide</b>: mide en la mitad del recorrido. Si hay tensión, el problema está aguas abajo; si no, aguas arriba. Cada medida descarta la mitad del circuito.",
+      "<b>Mide con carga</b>: un cable con un solo hilo intacto da 230 V en vacío y se hunde al conectar algo. La tensión sin carga engaña.",
+      "<b>Sospecha de las conexiones antes que de los aparatos</b>: bornes flojos, regletas ennegrecidas, empalmes en cajas. Es donde está la mayoría de las averías."
+     ]
+    },
+    {
+     "note": "Una conexión floja no dispara ninguna protección: la corriente es normal, el calor está en el punto de unión. Se detecta mirando (bornes oscurecidos, aislante deformado), tocando con el dorso de la mano en zonas seguras, o con una cámara térmica si la hay."
+    }
+   ],
+   "pos": 5
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "solar,fotovoltaica,baterias",
+   "title": "Fotovoltaica y almacenamiento, de la placa a la batería",
+   "subtitle": "Dimensionar sin fórmulas mágicas: Voc, MPPT, profundidad de descarga y ciclos.",
+   "body": [
+    {
+     "p": "Una instalación solar pequeña tiene cuatro piezas —paneles, regulador, batería e inversor— y casi todos los fallos vienen de dimensionar una sin mirar a las otras tres."
+    },
+    {
+     "h": "Leer la placa de un panel"
+    },
+    {
+     "list": [
+      "<b>Voc</b> — tensión en circuito abierto. Es la <b>máxima</b> que verá el regulador, y <b>sube cuando hace frío</b>.",
+      "<b>Isc</b> — corriente de cortocircuito: la máxima que puede entregar.",
+      "<b>Vmp / Imp</b> — el punto de máxima potencia, donde el panel entrega su <code>Pmp</code>."
+     ]
+    },
+    {
+     "warn": "El regulador se dimensiona con la <b>Voc a la temperatura mínima</b> del emplazamiento, no con la Vmp de catálogo. Un panel a −5 °C en una mañana despejada entrega bastante más tensión que en las condiciones de ensayo, y ahí es donde se queman los reguladores calculados «con lo que pone la etiqueta»."
+    },
+    {
+     "h": "PWM o MPPT"
+    },
+    {
+     "p": "Un regulador <b>PWM</b> conecta el panel a la batería y recorta: el panel trabaja a la tensión que le impone la batería, casi siempre lejos de su punto óptimo. Un <b>MPPT</b> es un convertidor que busca ese punto y transforma el exceso de tensión en corriente útil."
+    },
+    {
+     "math": "P = V \\cdot I \\;\\Rightarrow\\; \\text{bajar V de 36 a 13 V con MPPT} \\;\\Rightarrow\\; \\text{casi triplicar I}"
+    },
+    {
+     "p": "En la práctica, un MPPT saca entre un 15 y un 30 % más de energía, y permite paneles de más tensión — lo que a su vez reduce las pérdidas en el cable, porque la misma potencia viaja con menos corriente."
+    },
+    {
+     "h": "Baterías: capacidad no es energía disponible"
+    },
+    {
+     "p": "Una batería de 100 Ah a 12 V almacena 1200 Wh sobre el papel. Lo que puedes usar depende de la química:"
+    },
+    {
+     "steps": [
+      "<b>Plomo-ácido</b>: no bajar del 50 % si quieres que dure. Quedan ~600 Wh reales, y cada descarga profunda le resta vida.",
+      "<b>AGM/GEL</b>: algo mejor, sin mantenimiento y sin gases, a más precio.",
+      "<b>LiFePO₄</b>: se puede usar el 80-90 %, admite miles de ciclos y no le importa quedarse a media carga. Cuesta bastante más y sale más barato por ciclo."
+     ]
+    },
+    {
+     "key": "La comparación honesta entre baterías no es por precio ni por amperios-hora, sino por <b>euros por kWh entregado a lo largo de su vida</b>: capacidad útil × ciclos. Ahí es donde el litio gana casi siempre."
+    },
+    {
+     "h": "Las tres fases de carga del plomo"
+    },
+    {
+     "steps": [
+      "<b>Bulk</b> — corriente máxima disponible hasta alcanzar la tensión de absorción. Recupera el 80 %.",
+      "<b>Absorción</b> — tensión constante (~14,4 V) mientras la corriente cae sola. Completa el 20 % restante; saltársela deja la batería sulfatándose poco a poco.",
+      "<b>Flotación</b> — ~13,5 V, solo para compensar la autodescarga sin gasificar el electrolito."
+     ]
+    },
+    {
+     "note": "El litio no lleva flotación: se carga y se deja. Mantenerlo al 100 % de forma permanente lo envejece, al revés que el plomo, que odia quedarse a media carga. Configurar un cargador de plomo para una batería de litio es una de las formas más caras de aprender esto."
+    }
+   ],
+   "pos": 6
   }
  ]
 }

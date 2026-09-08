@@ -951,6 +951,434 @@
    ],
    "answer": 0,
    "back": "El transformador Flyback actúa en realidad como un inductor acoplado con entrehierro: almacena energía durante el tiempo ON y la libera al secundario a través del diodo durante el tiempo OFF. Es la topología reina para cargadores de móviles y fuentes aisladas de baja potencia (< 100 W)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "alterna,valores",
+   "front": "¿Qué significa que la red doméstica sea de 230 V «eficaces», y cuánto vale su tensión de pico?",
+   "back": "El valor <b>eficaz</b> (RMS) es la tensión continua que produciría el mismo calor en una resistencia. Es el que miden los polímetros y el que define el aislamiento del material.\n\nEn una onda senoidal:\n• Pico = eficaz × √2 ≈ 230 × 1,414 ≈ <b>325 V</b>\n• Pico a pico ≈ 650 V\n\nPor eso un condensador para red se elige de 400 V o más, no de 250 V."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "alterna,frecuencia",
+   "front": "En una red de 50 Hz, ¿cuánto dura un ciclo completo y cuántas veces por segundo pasa la tensión por cero?",
+   "choices": [
+    "20 ms y 100 pasos por cero",
+    "50 ms y 50 pasos por cero",
+    "20 ms y 50 pasos por cero",
+    "10 ms y 100 pasos por cero"
+   ],
+   "answer": 0,
+   "back": "El periodo es <b>T = 1/f = 1/50 = 20 ms</b>. La senoide cruza el cero <b>dos veces por ciclo</b> (al subir y al bajar), así que son <b>100 veces por segundo</b>.\n\nEsos pasos por cero son los que aprovechan los triacs para conmutar sin chispazo y los que hacen que un arco en alterna se extinga solo, cosa que en continua no ocurre."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "alterna,impedancia",
+   "front": "¿Qué es la impedancia y en qué se diferencia de la resistencia?",
+   "back": "La <b>impedancia (Z)</b> es la oposición total al paso de la corriente alterna, y se mide en ohmios. Combina:\n• <b>R</b> — resistencia, que disipa energía en calor.\n• <b>X</b> — reactancia, que la almacena y devuelve (bobinas y condensadores).\n\n<code>Z = √(R² + X²)</code>\n\nLa resistencia es lo único que existe en continua; en alterna, una bobina de 1 Ω de hilo puede presentar 300 Ω de impedancia."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "alterna,reactancia",
+   "front": "La reactancia de una bobina {{aumenta}} con la frecuencia, mientras que la de un condensador disminuye.",
+   "back": "<code>X_L = 2πfL</code> y <code>X_C = 1/(2πfC)</code>.\n\nDe ahí sale todo el filtrado: una bobina en serie frena lo rápido y deja pasar lo lento (y la continua); un condensador hace lo contrario. Por eso el condensador de arranque no funciona en continua y la bobina de un motor consume muchísimo al arrancar, cuando aún no gira."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "alterna,desfase",
+   "front": "¿Por qué en una bobina la corriente va retrasada respecto a la tensión, y en un condensador adelantada?",
+   "back": "Porque cada uno se opone a un cambio distinto:\n• La <b>bobina</b> se opone a que cambie la <b>corriente</b> (su campo magnético la sostiene), así que la corriente llega tarde: <b>90° de retraso</b>.\n• El <b>condensador</b> se opone a que cambie la <b>tensión</b>: primero circula corriente y luego sube la tensión entre placas, <b>90° de adelanto</b>.\n\nRegla mnemotécnica: en una bobina (L), la tensión va delante."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "trifasica",
+   "front": "¿Qué relación hay entre tensión de línea y tensión de fase en un sistema trifásico?",
+   "back": "<code>U_línea = √3 × U_fase ≈ 1,732 × U_fase</code>\n\nEn la red española: 230 V entre fase y neutro, <b>400 V entre dos fases</b>.\n\nNo es el doble aunque haya dos fases implicadas, porque están desfasadas 120°: la suma vectorial es √3, no 2. Confundirlo es el origen de la mitad de los errores de cálculo de sección."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "trifasica,conexiones",
+   "front": "¿Qué cambia al conectar un motor trifásico en estrella en lugar de en triángulo?",
+   "back": "En <b>estrella</b> cada bobinado recibe la tensión de línea dividida por √3, así que:\n• Tensión por bobinado: 3 veces menor en cuadrado → <b>la potencia cae a un tercio</b>.\n• La corriente de arranque baja también a un tercio.\n\nDe ahí el arrancador <b>estrella-triángulo</b>: se arranca en estrella para limitar la punta de corriente y, cuando ya gira, se conmuta a triángulo para dar toda la potencia.",
+   "hint": "Piensa en qué tensión recibe cada bobinado."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "trifasica,potencia",
+   "front": "¿Cuál es la fórmula de la potencia activa en un sistema trifásico equilibrado?",
+   "choices": [
+    "P = √3 · U · I · cos φ",
+    "P = 3 · U · I · cos φ",
+    "P = U · I · cos φ",
+    "P = √3 · U · I"
+   ],
+   "answer": 0,
+   "back": "Con <b>U de línea</b> e <b>I de línea</b>: <code>P = √3 · U · I · cos φ</code>.\n\nSi trabajas con valores de fase, entonces sí es <code>P = 3 · U_fase · I_fase · cos φ</code> — las dos expresiones dan lo mismo. El error habitual es mezclar tensión de línea con corriente de fase."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "trifasica,neutro",
+   "front": "¿Por qué en una instalación trifásica equilibrada el neutro no lleva corriente, y cuándo deja de ser cierto?",
+   "back": "Con tres cargas iguales desfasadas 120°, las corrientes suman <b>cero</b> en cualquier instante: no hay retorno que hacer.\n\nDeja de ser cierto cuando:\n• Las cargas están <b>desequilibradas</b> (lo normal en viviendas).\n• Hay <b>cargas no lineales</b> — fuentes conmutadas, LED, variadores — que inyectan armónicos de tercer orden. Estos <b>no se cancelan, se suman</b> en el neutro, que puede llevar más corriente que las fases aunque todo parezca equilibrado."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "potencia,factor_potencia",
+   "front": "¿Qué son la potencia activa, la reactiva y la aparente?",
+   "back": "• <b>Activa (P, vatios)</b> — la que hace trabajo: calor, luz, movimiento.\n• <b>Reactiva (Q, VAr)</b> — va y vuelve entre la fuente y las bobinas o condensadores. No hace trabajo, pero <b>ocupa el cable</b>.\n• <b>Aparente (S, VA)</b> — la suma vectorial de las dos. Es la que dimensiona cables, magnetotérmicos y transformadores.\n\n<code>S = √(P² + Q²)</code> y <code>cos φ = P / S</code>"
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "potencia,factor_potencia",
+   "front": "¿Por qué las compañías penalizan un factor de potencia bajo?",
+   "back": "Porque un cos φ de 0,7 significa que para entregar 700 W útiles hay que hacer circular la corriente de 1000 VA. Esa corriente extra:\n• Calienta cables y transformadores (pérdidas por <code>I²R</code>).\n• Obliga a sobredimensionar toda la instalación de distribución.\n• No aparece en el contador de energía activa.\n\nSe corrige con una <b>batería de condensadores</b> que aporta la reactiva que los motores consumen, para que no tenga que viajar desde la central."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "potencia,correccion",
+   "front": "Para corregir el factor de potencia de una instalación con muchos motores se instalan {{condensadores}} en paralelo, porque aportan la energía reactiva que las bobinas consumen.",
+   "back": "La bobina y el condensador desfasan la corriente en sentidos opuestos, así que se compensan. Se conecta en <b>paralelo</b> con la carga y se calcula:\n<code>Q_c = P · (tan φ₁ − tan φ₂)</code>\n\nCuidado con pasarse: sobrecompensar deja la instalación capacitiva, que también penaliza y puede provocar resonancias con los armónicos."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "protecciones,diferencial",
+   "front": "¿Qué protege un diferencial y qué protege un magnetotérmico? No es lo mismo.",
+   "back": "• El <b>diferencial</b> protege a las <b>personas</b>. Compara la corriente que entra con la que vuelve; si faltan más de 30 mA, es que se están yendo por algún sitio —una persona, la humedad— y corta en milisegundos.\n• El <b>magnetotérmico</b> protege la <b>instalación</b>. Corta por sobrecarga (lento, bimetal) y por cortocircuito (instantáneo, electroimán).\n\nUno no sustituye al otro: un cortocircuito perfecto entre fase y neutro no desequilibra nada y el diferencial ni se entera."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "protecciones,diferencial",
+   "front": "El diferencial de una vivienda salta repetidamente. ¿Cuál es el primer paso lógico?",
+   "choices": [
+    "Bajar todos los magnetotérmicos y subirlos de uno en uno",
+    "Cambiar el diferencial por uno de 300 mA",
+    "Puentear el diferencial mientras se investiga",
+    "Sustituir el cuadro entero"
+   ],
+   "answer": 0,
+   "back": "Bajar todos los circuitos, rearmar el diferencial y subir uno a uno hasta que salte: eso aísla el circuito con la fuga en un minuto y sin instrumentos.\n\nSubir la sensibilidad a 300 mA <b>elimina la protección de personas</b> (el umbral de fibrilación está muy por debajo), y puentear un diferencial es directamente ilegal y peligroso. Si no salta con nada conectado, la fuga está en la instalación fija."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "protecciones,curvas",
+   "front": "¿Qué diferencia hay entre un magnetotérmico de curva B, C y D?",
+   "back": "Es el umbral del disparo <b>magnético</b> (el instantáneo), en múltiplos de la corriente nominal:\n• <b>Curva B</b> — 3 a 5 veces. Cables largos, cargas resistivas, protección de personas en TT.\n• <b>Curva C</b> — 5 a 10 veces. El uso general: viviendas y oficinas.\n• <b>Curva D</b> — 10 a 20 veces. Cargas con picos fuertes de arranque: motores, transformadores, soldadura.\n\nPoner curva C donde hace falta D produce disparos en cada arranque; al revés, deja el cable sin protección real ante un cortocircuito débil."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "protecciones,poder_corte",
+   "front": "¿Qué es el poder de corte de un interruptor automático y por qué no se puede ignorar?",
+   "back": "Es la corriente de cortocircuito máxima que el aparato puede interrumpir <b>sin destruirse</b>: 4,5 kA, 6 kA, 10 kA…\n\nSi la corriente de cortocircuito prevista en ese punto supera el poder de corte, el automático no corta: se funde, se suelda o explota, y el defecto sigue alimentado. Cerca del transformador la corriente de cortocircuito es enorme; al final de una línea larga, la propia resistencia del cable la limita."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "tierra,seguridad",
+   "front": "¿Para qué sirve realmente la puesta a tierra?",
+   "back": "Para que la carcasa metálica de un aparato <b>nunca alcance una tensión peligrosa</b>. Si un cable de fase toca el chasis, la tierra ofrece un camino de baja resistencia que:\n• Deriva la corriente y mantiene el chasis cerca de 0 V.\n• Provoca un desequilibrio que hace <b>saltar el diferencial</b>.\n\nSin tierra, el chasis queda a 230 V esperando a que alguien lo toque, y el diferencial no actúa hasta que esa persona hace de camino."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "tierra,medida",
+   "front": "La resistencia de la toma de tierra debe ser lo bastante baja para que, con la sensibilidad del diferencial, la tensión de contacto no supere los {{24 V}} en locales húmedos (50 V en secos).",
+   "back": "De ahí sale el criterio: <code>R_tierra ≤ U_contacto / I_diferencial</code>.\n\nCon un diferencial de 30 mA y 50 V de límite: <code>R ≤ 50 / 0,03 ≈ 1666 Ω</code>. La norma es más exigente en la práctica (habitualmente por debajo de 37 Ω, y cuanto menos, mejor), porque la tierra se degrada con la sequedad del terreno."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "motores,asincrono",
+   "front": "¿Por qué un motor asíncrono se llama así, y qué es el deslizamiento?",
+   "back": "Porque el rotor <b>nunca alcanza</b> la velocidad del campo magnético giratorio. Si la alcanzara, no habría variación de flujo, no se induciría corriente en el rotor y no habría par.\n\nEl <b>deslizamiento</b> es esa diferencia:\n<code>s = (n_sinc − n_rotor) / n_sinc</code>\n\nA plena carga suele ser del 3 al 6 %. Un motor de 4 polos a 50 Hz gira a 1500 rpm en vacío y a unas 1440 rpm cargado."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "motores,arranque",
+   "front": "¿Por qué la corriente de arranque de un motor es tan alta y qué se hace al respecto?",
+   "back": "Con el rotor parado, el deslizamiento es 1 y el motor se comporta casi como un <b>transformador en cortocircuito</b>: consume entre <b>6 y 8 veces</b> su corriente nominal.\n\nFormas de limitarla:\n• <b>Estrella-triángulo</b> — la reduce a un tercio, pero también el par.\n• <b>Arrancador suave</b> — rampa de tensión con tiristores.\n• <b>Variador de frecuencia</b> — arranca a baja frecuencia manteniendo el par; es lo que se usa hoy cuando el proceso lo permite."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "motores,variadores",
+   "front": "En un variador de frecuencia, ¿por qué se mantiene constante la relación V/f?",
+   "choices": [
+    "Para conservar el flujo magnético y el par disponible",
+    "Para ahorrar energía a baja velocidad",
+    "Para proteger los rodamientos",
+    "Para reducir el ruido acústico"
+   ],
+   "answer": 0,
+   "back": "El flujo en el hierro es proporcional a <code>V/f</code>. Si bajas la frecuencia sin bajar la tensión, el flujo crece, el hierro se satura y el motor se calienta sin dar más par. Si bajas la tensión de más, pierdes par.\n\nManteniendo la relación constante, el par nominal está disponible en todo el rango — hasta la frecuencia base, a partir de la cual se entra en debilitamiento de campo y el par cae."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "motores,averias",
+   "front": "Un motor trifásico arranca con dificultad, zumba y se calienta. ¿Qué se sospecha primero?",
+   "back": "<b>Falta de una fase</b> (marcha en monofásico). El motor queda con dos fases, no genera campo giratorio limpio y consume mucho más por las que quedan.\n\nComprobaciones en orden:\n1. Tensión entre las tres fases en bornes del motor, <b>con el motor conectado</b> (un fusible fundido puede no verse en vacío).\n2. Continuidad de los tres bobinados y equilibrio entre ellos.\n3. Aislamiento a masa con megóhmetro.\n\nSi arranca a mano y sigue girando, es prácticamente seguro que le falta una fase."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "motores,proteccion",
+   "front": "El relé térmico de un motor se regula a la corriente {{nominal de la placa}}, no a la del magnetotérmico ni a la de arranque.",
+   "back": "El térmico protege el <b>bobinado</b> frente a sobrecargas prolongadas: se ajusta al valor de intensidad que figura en la placa de características para la tensión de conexión empleada. Su curva es lenta a propósito, para aguantar la punta de arranque sin disparar, mientras que el cortocircuito lo cubren los fusibles aM o el magnetotérmico."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "electronica,semiconductores",
+   "front": "¿Qué diferencia a un diodo, un tiristor y un transistor en una aplicación de potencia?",
+   "back": "• <b>Diodo</b> — conduce en un sentido cuando se le polariza. No se controla.\n• <b>Tiristor (SCR)</b> — se dispara con un pulso en la puerta y <b>sigue conduciendo</b> hasta que la corriente pasa por cero. Ideal en alterna, inútil para cortar en continua.\n• <b>Transistor (MOSFET, IGBT)</b> — conduce mientras se le mantenga la señal de puerta, así que se puede <b>encender y apagar</b> a voluntad, miles de veces por segundo.\n\nDe ahí que los variadores modernos usen IGBT: necesitan cortar cuando quieren, no cuando la onda lo permita."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "electronica,rectificacion",
+   "front": "¿Qué hace un puente rectificador y por qué necesita un condensador después?",
+   "back": "El puente de cuatro diodos convierte la alterna en <b>continua pulsante</b>: voltea los semiciclos negativos, pero la tensión sigue bajando a cero cien veces por segundo.\n\nEl <b>condensador de filtro</b> se carga en los picos y se descarga en los valles, alisando esa onda hasta un rizado pequeño. Cuanta más corriente consuma la carga, más se descarga entre picos y más rizado aparece."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "electronica,fuentes",
+   "front": "¿Por qué una fuente conmutada es mucho más pequeña y eficiente que una lineal de la misma potencia?",
+   "choices": [
+    "Trabaja a decenas de kHz, y a esa frecuencia el transformador es diminuto",
+    "No necesita transformador de ningún tipo",
+    "Disipa el exceso en un radiador mayor",
+    "Usa componentes de más calidad"
+   ],
+   "answer": 0,
+   "back": "El tamaño del núcleo magnético depende de la frecuencia: a 50 Hz hace falta mucho hierro, a 100 kHz basta una ferrita pequeña.\n\nAdemás el transistor trabaja en conmutación —o cortado o saturado—, así que disipa poco, mientras que el regulador lineal quema en calor toda la diferencia de tensión. Precio a pagar: ruido eléctrico de alta frecuencia, que obliga a filtrar."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "electronica,armonicos",
+   "front": "¿Qué son los armónicos y qué problemas causan en una instalación?",
+   "back": "Corrientes a múltiplos de la frecuencia fundamental (150 Hz, 250 Hz…) que generan las cargas <b>no lineales</b>: fuentes conmutadas, LED, variadores, ordenadores.\n\nProblemas:\n• <b>Sobrecarga del neutro</b>: los de tercer orden se suman en vez de cancelarse.\n• <b>Calentamiento de transformadores y motores</b> por pérdidas en el hierro.\n• Disparos inexplicables de diferenciales convencionales.\n• Medidas erróneas con polímetros que no sean de <i>true RMS</i>."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "medida,polimetro",
+   "front": "¿Cómo se conecta un polímetro para medir tensión y cómo para medir corriente?",
+   "back": "• <b>Tensión</b>: en <b>paralelo</b> con el elemento. El polímetro tiene resistencia altísima y casi no toma corriente.\n• <b>Corriente</b>: en <b>serie</b>, abriendo el circuito para que pase por el aparato. Su resistencia es casi cero.\n\n<b>El error que destruye polímetros</b>: dejar las puntas en la escala de amperios y medir una tensión. Es un cortocircuito franco a través del fusible interno — o de tu cara si el fusible no es el adecuado."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "medida,pinza",
+   "front": "¿Por qué una pinza amperimétrica no mide nada si la cierras alrededor de un cable de dos conductores?",
+   "back": "Porque mide el <b>campo magnético</b> que rodea al conductor, y en un cable de dos hilos la ida y la vuelta llevan la misma corriente en sentidos opuestos: los campos se cancelan y la lectura es cero.\n\nHay que abrazar <b>un solo conductor</b>. Es exactamente el mismo principio del diferencial, que suma las corrientes de todos los conductores activos y espera cero."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "medida,continuidad",
+   "front": "Vas a medir continuidad o resistencia en un circuito de una instalación. ¿Qué es imprescindible?",
+   "choices": [
+    "Que esté sin tensión y descargado",
+    "Que esté en tensión para ver el consumo real",
+    "Medir siempre en corriente alterna",
+    "Usar la escala más alta del aparato"
+   ],
+   "answer": 0,
+   "back": "El óhmetro <b>inyecta su propia corriente</b> desde la pila del aparato para medir. Con tensión presente, la medida no vale nada y el polímetro puede destruirse.\n\nAdemás hay que descargar los condensadores: un filtro de fuente puede guardar cientos de voltios después de desconectar, y en un variador de frecuencia se esperan varios minutos por norma."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "diagnostico,aislamiento",
+   "front": "¿Qué mide un megóhmetro y por qué no sirve un polímetro normal para eso?",
+   "back": "Mide la <b>resistencia de aislamiento</b> aplicando una tensión alta de prueba (250, 500 o 1000 V continua) y viendo cuánta corriente se fuga.\n\nUn polímetro mide con la tensión de su pila —unos voltios—, y a esa tensión un aislamiento deteriorado parece perfecto. Los defectos aparecen solo cuando el aislante está sometido a tensión de trabajo.\n\nValor de referencia: por encima de 1 MΩ en instalaciones de baja tensión; en motores, cuanto más alto y más estable en el tiempo, mejor."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "diagnostico,caida_tension",
+   "front": "Una caída de tensión excesiva en una línea larga se corrige aumentando la {{sección}} del conductor.",
+   "back": "<code>ΔU = 2 · L · I · ρ / S</code> en monofásico (el 2 es ida y vuelta).\n\nEl reglamento limita la caída al 3 % en alumbrado y 5 % en fuerza. Es la razón por la que una línea de 60 metros hasta un taller no se hace con la sección que pediría la corriente: la manda la distancia, no el amperaje."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "seguridad,cinco_reglas",
+   "front": "¿Cuáles son las cinco reglas de oro para trabajar sin tensión?",
+   "back": "En este orden, y sin saltarse ninguna:\n1. <b>Desconectar</b> y aislar todas las fuentes.\n2. <b>Prevenir cualquier reconexión</b>: bloquear y señalizar el mando.\n3. <b>Verificar la ausencia de tensión</b> con un detector, comprobándolo antes y después en una fuente conocida.\n4. <b>Poner a tierra y en cortocircuito</b> (obligatorio en alta tensión).\n5. <b>Delimitar y señalizar</b> la zona de trabajo.\n\nLa tercera es la que se salta la gente con prisa, y es la que mata."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "seguridad,riesgo",
+   "front": "¿Qué determina la gravedad de una descarga eléctrica: la tensión o la corriente?",
+   "back": "La <b>corriente</b> que atraviesa el cuerpo, y el <b>camino</b> que recorre. La tensión solo importa porque, junto con la resistencia del cuerpo, determina esa corriente.\n\nÓrdenes de magnitud en alterna:\n• 1 mA — se percibe.\n• 10 mA — contracción muscular: ya no puedes soltar.\n• 30 mA — parálisis respiratoria (de ahí la sensibilidad del diferencial).\n• 50-100 mA — fibrilación ventricular.\n\nLa piel seca ofrece decenas de miles de ohmios; mojada, unos cientos. Por eso el mismo contacto es inofensivo o mortal según dónde ocurra."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "instalaciones,cuadro",
+   "front": "¿Qué hace el IGA (interruptor general automático) y por qué va antes que los diferenciales?",
+   "back": "Es el <b>corte general</b> de la vivienda y protege la derivación individual —el cable que viene del contador— frente a sobrecarga y cortocircuito.\n\nVa el primero porque su misión es dejar todo el cuadro sin tensión de una vez, para poder trabajar aguas abajo. Su calibre lo fija la potencia contratada: 25 A para 5,75 kW en monofásico, por ejemplo."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "instalaciones,colores",
+   "front": "¿Qué colores identifican fase, neutro y protección en baja tensión?",
+   "back": "• <b>Fase</b> — marrón, negro o gris (las tres fases: L1 marrón, L2 negro, L3 gris).\n• <b>Neutro</b> — <b>azul</b> claro.\n• <b>Tierra</b> — <b>amarillo-verde</b>, y ese bicolor no puede usarse para ninguna otra cosa.\n\nNo es estética: en una caja con seis cables, el color es lo único que te dice qué estás tocando antes de medir. Y aun así, se mide."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "instalaciones,secciones",
+   "front": "En una vivienda, ¿qué sección corresponde habitualmente al circuito de tomas de corriente de 16 A?",
+   "choices": [
+    "2,5 mm²",
+    "1,5 mm²",
+    "4 mm²",
+    "6 mm²"
+   ],
+   "answer": 0,
+   "back": "El reparto habitual en vivienda:\n• <b>1,5 mm²</b> — alumbrado (10 A)\n• <b>2,5 mm²</b> — tomas de uso general y frigorífico (16 A)\n• <b>4 mm²</b> — lavavajillas, lavadora, termo (20 A)\n• <b>6 mm²</b> — cocina y horno (25 A)\n\nLa sección la manda la <b>corriente</b>, pero en tiradas largas puede mandar la caída de tensión y hay que subirla."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "instalaciones,esquemas",
+   "front": "¿Qué es un conmutado y en qué se diferencia de un cruzamiento?",
+   "back": "• <b>Conmutado</b>: dos interruptores conmutadores encienden la misma lámpara desde dos puntos (entrada de una escalera y rellano). Se unen por dos hilos «puentes».\n• <b>Cruzamiento</b>: para <b>tres o más</b> puntos de mando, se intercalan interruptores de cruce entre los dos conmutadores; cada uno intercambia los dos puentes.\n\nCon un conmutado no se puede mandar desde tres sitios por muchos interruptores que se pongan en paralelo: haría cortocircuito."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "instalaciones,ip",
+   "front": "En el grado de protección IP54, el primer dígito indica la protección contra {{sólidos y polvo}} y el segundo contra el agua.",
+   "back": "• Primer dígito (0-6): objetos y polvo. 5 = protegido contra polvo, 6 = estanco al polvo.\n• Segundo dígito (0-8): agua. 4 = salpicaduras, 5 = chorros, 7 = inmersión temporal.\n\nUn IP44 vale para un baño; para exterior expuesto se pide IP65 o más, y además resistencia a impactos (IK)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "iluminacion,magnitudes",
+   "front": "¿Qué diferencia hay entre lumen, lux y candela?",
+   "back": "• <b>Lumen (lm)</b> — flujo total que emite la fuente. Es lo que compras.\n• <b>Lux (lx)</b> — iluminancia: lúmenes que caen por metro cuadrado. Es lo que ves. <code>1 lx = 1 lm/m²</code>\n• <b>Candela (cd)</b> — intensidad en una dirección concreta.\n\nUna bombilla de 1000 lm da mucha luz en un aseo y ninguna en un taller: el lux depende de la superficie y de la distancia."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "iluminacion,led",
+   "front": "¿Por qué un LED necesita un driver y no se puede conectar sin más a la tensión?",
+   "back": "Porque su curva es exponencial: por encima de la tensión de umbral, un pequeño aumento de tensión dispara la corriente y lo destruye por avalancha térmica (a más temperatura, menos resistencia, más corriente).\n\nEl <b>driver</b> es una fuente de <b>corriente constante</b>: fija los miliamperios y deja que la tensión se acomode. En montajes pequeños basta una resistencia limitadora, pero disipa energía y no compensa la deriva térmica."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "iluminacion,temperatura_color",
+   "front": "Una lámpara de 2700 K, ¿qué luz da?",
+   "choices": [
+    "Cálida, amarillenta",
+    "Fría, azulada",
+    "Neutra, como el mediodía",
+    "Depende del vatiaje"
+   ],
+   "answer": 0,
+   "back": "Contra la intuición, <b>menos kelvin es más cálido</b>: 2700 K es luz de bombilla incandescente, 4000 K neutra y 6500 K luz de día azulada.\n\nOtro dato que se ignora al comprar: el <b>IRC</b> (índice de reproducción cromática). Por debajo de 80 los colores se ven falseados, y para un taller donde hay que distinguir el color de un cable, eso importa más que los lúmenes."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "solar,fotovoltaica",
+   "front": "¿Qué significan Voc, Isc y Pmp en la placa de un panel solar?",
+   "back": "• <b>Voc</b> — tensión en circuito abierto, sin carga. Es la <b>máxima</b> que verá el regulador, y sube cuando hace frío.\n• <b>Isc</b> — corriente de cortocircuito, la máxima que puede dar.\n• <b>Pmp</b> — potencia en el punto de máxima potencia, con su Vmp e Imp.\n\nEl dimensionado del regulador se hace con <b>Voc a la temperatura mínima</b> del lugar, no con Vmp: es cuando el panel más tensión entrega y donde se queman los reguladores mal calculados."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "solar,reguladores",
+   "front": "¿Qué diferencia hay entre un regulador solar PWM y uno MPPT?",
+   "back": "• <b>PWM</b> — conecta el panel a la batería y recorta; el panel trabaja a la tensión de la batería, fuera de su punto óptimo. Barato, y razonable si el panel es de 12 V nominales.\n• <b>MPPT</b> — convertidor continua-continua que busca el punto de máxima potencia y <b>convierte el exceso de tensión en corriente</b>.\n\nEl MPPT saca entre un 15 y un 30 % más de energía y permite paneles de más tensión (menos pérdidas en el cable), a cambio de más precio."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "baterias,capacidad",
+   "front": "Una batería de 100 Ah a 12 V almacena {{1,2 kWh}} de energía, porque los vatios-hora son amperios-hora por tensión.",
+   "back": "<code>E = C · U = 100 Ah × 12 V = 1200 Wh</code>\n\nPero la energía <b>utilizable</b> es menor: en plomo-ácido no conviene bajar del 50 % de descarga si quieres que dure, así que quedan ~600 Wh reales. En litio (LiFePO₄) se puede usar el 80-90 %, que es la razón de que salga más barato por ciclo aunque cueste el triple."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "baterias,carga",
+   "front": "¿Cuáles son las tres fases de carga de una batería de plomo y para qué sirve cada una?",
+   "back": "1. <b>Bulk</b> (corriente constante) — se inyecta toda la corriente disponible hasta llegar a la tensión de absorción. Recupera el 80 % de la carga.\n2. <b>Absorción</b> (tensión constante, ~14,4 V) — la corriente va cayendo sola mientras se completa el 20 % restante. Saltársela deja la batería sulfatándose.\n3. <b>Flotación</b> (~13,5 V) — compensa la autodescarga sin gasificar el electrolito.\n\nEn litio no hay flotación: se carga y se deja, y mantenerla al 100 % permanentemente la envejece."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "automatismos,contactor",
+   "front": "¿Qué es un contactor y por qué se usa un circuito de mando aparte del de potencia?",
+   "back": "Un contactor es un <b>interruptor accionado por un electroimán</b>: una bobina de 24 o 230 V cierra unos contactos que manejan decenas de amperios.\n\nSepararlo permite:\n• Mandar un motor de 400 V con pulsadores de <b>baja tensión</b>, seguros al tacto.\n• Poner el mando lejos, con cable fino.\n• Enclavar, temporizar y automatizar sin tocar la potencia.\n\nAdemás, al faltar la tensión de mando el contactor cae solo: la máquina no rearranca sola al volver la luz."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "automatismos,marcha_paro",
+   "front": "En un circuito de marcha-paro con contactor, ¿qué función cumple el contacto auxiliar en paralelo con el pulsador de marcha?",
+   "choices": [
+    "Realimentación: mantiene la bobina alimentada al soltar el pulsador",
+    "Proteger la bobina de sobretensiones",
+    "Invertir el sentido de giro",
+    "Señalizar la marcha en el cuadro"
+   ],
+   "answer": 0,
+   "back": "Es el <b>enclavamiento de retención</b> (o autoalimentación): al pulsar marcha, el contactor cierra y su propio contacto auxiliar NA puentea el pulsador, así que la bobina sigue alimentada cuando lo sueltas.\n\nEl pulsador de paro va en <b>serie y normalmente cerrado</b>: al abrirlo cae la bobina y todo se suelta. Que el paro sea NC no es un detalle: si se corta el cable, la máquina para, no se queda encendida."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "automatismos,plc",
+   "front": "¿Qué es un PLC y qué le aporta frente a la lógica cableada con contactores?",
+   "back": "Un autómata programable: un microcontrolador industrial con entradas y salidas robustas que ejecuta un programa en ciclo continuo (lee entradas → ejecuta → escribe salidas).\n\nVentajas:\n• Cambiar la lógica es cambiar el programa, no recablear el cuadro.\n• Temporizadores, contadores y comparaciones sin componentes añadidos.\n• Diagnóstico y comunicación con la supervisión.\n\nLa lógica cableada sigue ganando en dos casos: instalaciones muy simples y <b>circuitos de seguridad</b>, donde se exige hardware certificado independiente del programa."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "automatismos,seguridad",
+   "front": "Una seta de emergencia debe actuar por {{contacto normalmente cerrado}} y con apertura positiva, para que un cable cortado también detenga la máquina.",
+   "back": "Es el principio de <b>seguridad positiva</b>: el estado seguro se consigue por ausencia de señal, no por presencia. Si la seta funcionara con un contacto normalmente abierto, un cable roto o un falso contacto haría que el pulsador dejara de servir <b>sin que nadie lo notara</b> hasta el día del accidente."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "cableado,conexiones",
+   "front": "¿Por qué una conexión mal apretada acaba provocando un incendio?",
+   "back": "Porque una conexión floja tiene <b>resistencia de contacto</b>, y esa resistencia disipa calor (<code>P = I²R</code>). El calor oxida el metal, la oxidación aumenta la resistencia y el proceso se realimenta hasta carbonizar el aislante.\n\nEs la avería que más incendios causa en cuadros, y no la detecta ningún automático: la corriente sigue siendo normal, el calor está en el punto de unión. Se detecta con termografía o simplemente mirando si hay bornes ennegrecidos."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "cableado,secciones",
+   "front": "¿De qué depende la corriente máxima admisible de un cable, además de su sección?",
+   "back": "De todo lo que dificulte evacuar el calor:\n• <b>Tipo de instalación</b> — al aire, en tubo empotrado, enterrado, en bandeja.\n• <b>Agrupamiento</b> — varios circuitos en el mismo tubo se calientan entre sí; hay factores de corrección.\n• <b>Temperatura ambiente</b> — un cuadro a 50 °C admite bastante menos que uno a 25 °C.\n• <b>Aislamiento</b> — el XLPE aguanta 90 °C; el PVC, 70 °C.\n\nPor eso la misma sección aparece en las tablas con valores muy distintos según la columna."
   }
  ]
 }

@@ -768,6 +768,431 @@
      "p": "Los diferenciales de deslizamiento limitado (LSD mecánicos por embragues, viscosos o sensibles al par Torsen) bloquean parcialmente la diferencia de velocidad entre semiejes, redirigiendo el par disponible hacia la rueda con tracción."
     }
    ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "diagnostico,obd,metodo",
+   "title": "Diagnóstico con OBD-II: el código no es la avería",
+   "subtitle": "Leer, interpretar y confirmar, en vez de cambiar la pieza que menciona el error.",
+   "body": [
+    {
+     "p": "El escáner ha cambiado el taller, pero también ha creado un vicio nuevo: leer un código y cambiar la pieza que aparece en su descripción. Un código dice <b>qué ha observado la centralita</b>, no qué está roto. La diferencia entre las dos cosas es todo el diagnóstico."
+    },
+    {
+     "h": "Anatomía de un código"
+    },
+    {
+     "code": "P 0 3 01\n│ │ │ └── fallo concreto: cilindro 1\n│ │ └──── subsistema: encendido / fallo de combustión\n│ └────── 0 genérico · 1 propio del fabricante\n└──────── P motor · B carrocería · C chasis · U red"
+    },
+    {
+     "p": "Los genéricos (dígito 0) significan lo mismo en cualquier marca; los del fabricante requieren su documentación. Un mismo síntoma puede almacenar varios códigos, y el orden en que se guardaron importa: el primero suele ser la causa y el resto, consecuencias."
+    },
+    {
+     "h": "El freeze frame vale más que el código"
+    },
+    {
+     "p": "Junto al código, la centralita guarda las condiciones exactas del instante: revoluciones, carga, temperatura de refrigerante, velocidad, ajustes de combustible."
+    },
+    {
+     "key": "Con esos datos sabes si el fallo ocurrió <b>en frío o en caliente</b>, a ralentí o a plena carga, en aceleración o reteniendo. Sin ellos estás intentando reproducir la avería a ciegas, que es donde se van las horas."
+    },
+    {
+     "h": "Los ajustes de combustible: la radiografía de la mezcla"
+    },
+    {
+     "list": [
+      "<b>STFT</b> — corrección a corto plazo, oscila constantemente en torno a cero.",
+      "<b>LTFT</b> — corrección aprendida, la memoria de lo que la centralita lleva tiempo corrigiendo."
+     ]
+    },
+    {
+     "p": "Sumados, por encima de ±10 % hay un problema real aunque no haya testigo encendido. El signo orienta:"
+    },
+    {
+     "steps": [
+      "<b>Positivo alto</b> (añade combustible) → entra aire no contabilizado, presión de combustible baja o caudalímetro que lee de menos.",
+      "<b>Negativo alto</b> (quita combustible) → inyector goteando, presión excesiva o sensor de temperatura que dice que el motor está helado.",
+      "<b>Positivo a ralentí que se corrige al acelerar</b> → entrada de aire falso: a alto caudal, esa fuga pesa proporcionalmente mucho menos.",
+      "<b>Desvío constante en todo el rango</b> → apunta más al caudalímetro o a la presión de combustible."
+     ]
+    },
+    {
+     "h": "Un ejemplo completo: P0171"
+    },
+    {
+     "p": "«Mezcla pobre banco 1». Cambiar la sonda lambda es el error clásico: la sonda está informando <b>correctamente</b> de que entra más aire del que se contabiliza. Orden razonable de comprobación:"
+    },
+    {
+     "steps": [
+      "Inspección visual y sonora de manguitos, junta del colector y tapón de aceite — el aire falso es la causa más frecuente y la más barata.",
+      "Datos en vivo del caudalímetro: comparar con el valor esperado para ese motor a ralentí y a 2500 rpm.",
+      "Presión de combustible con manómetro, en marcha y con la bomba exigida.",
+      "Estanqueidad con máquina de humo si sigue sin aparecer."
+     ]
+    },
+    {
+     "warn": "Borrar los códigos antes de anotar el freeze frame destruye la única prueba que tenías. Anota primero, borra después, y vuelve a probar en las mismas condiciones para confirmar que la reparación funcionó."
+    },
+    {
+     "h": "Monitores de disponibilidad"
+    },
+    {
+     "p": "Tras borrar códigos o desconectar la batería, los <b>monitores</b> del sistema quedan «no listos» y el coche no pasa la inspección aunque no haya ningún fallo. Se completan solos tras un ciclo de conducción variado, y por eso no se borra la memoria justo antes de llevar el coche a la ITV."
+    }
+   ],
+   "pos": 1
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "sensores,gestion_motor,diagnostico",
+   "title": "Los sensores que gobiernan el motor",
+   "subtitle": "Qué mide cada uno, cómo miente cuando falla y qué síntoma produce.",
+   "body": [
+    {
+     "p": "Una centralita no ve el motor: lo deduce de media docena de señales eléctricas. Entender qué mide cada sensor —y sobre todo qué decide la centralita con esa lectura— convierte una lista de síntomas dispersos en una hipótesis comprobable."
+    },
+    {
+     "h": "Cigüeñal (CKP) y árbol de levas (CMP)"
+    },
+    {
+     "p": "El CKP es el sensor <b>maestro</b>: sin él, la centralita no sabe dónde están los pistones y no hay inyección ni chispa. Su fallo típico es térmico: el motor se para en caliente y vuelve a arrancar al enfriarse."
+    },
+    {
+     "key": "Pista de campo: si al accionar el arranque el <b>cuentarrevoluciones no se mueve</b>, sospecha del CKP. Con el CMP averiado el motor suele arrancar, aunque tarde más, porque la centralita puede sincronizar por prueba y error."
+    },
+    {
+     "h": "Medir el aire: MAF y MAP"
+    },
+    {
+     "list": [
+      "<b>MAF (caudalímetro)</b> — mide la masa de aire con un hilo caliente. Se ensucia con el aceite del filtro y empieza a leer <b>de menos</b>: mezcla pobre, tirones y falta de potencia arriba.",
+      "<b>MAP</b> — mide la presión absoluta del colector; la centralita deduce la carga. Se afecta por manguitos rotos y por carbonilla."
+     ]
+    },
+    {
+     "p": "Prueba rápida del MAF: desconectarlo con el motor en marcha. La centralita pasa a un valor sustituto calculado; si el motor <b>mejora</b>, es que el sensor estaba mintiendo."
+    },
+    {
+     "h": "Sonda lambda: la anterior manda, la posterior vigila"
+    },
+    {
+     "steps": [
+      "<b>Pre-catalizador</b> — regula la mezcla en bucle cerrado. En datos en vivo debe oscilar rápido entre ~0,1 y ~0,9 V, varias veces por segundo.",
+      "<b>Post-catalizador</b> — comprueba el catalizador. Su señal debe ser casi plana, en torno a 0,6-0,7 V."
+     ]
+    },
+    {
+     "warn": "Si la posterior copia el zigzag de la anterior, el catalizador ha dejado de almacenar oxígeno: está agotado. Y una sonda perezosa —que oscila despacio— no enciende testigo pero dispara consumo y emisiones."
+    },
+    {
+     "h": "Temperatura del refrigerante: el sensor que arruina el consumo"
+    },
+    {
+     "p": "La centralita decide el enriquecimiento en frío con esa lectura. Un sensor que dice permanentemente −20 °C hace que el motor funcione siempre como recién arrancado en invierno: consumo disparado, olor a gasolina, aceite diluido y catalizador sufriendo."
+    },
+    {
+     "note": "Rara vez enciende el testigo, porque la señal sigue dentro del rango eléctrico válido. Solo se detecta comparando el dato del escáner con la temperatura real medida en el motor — y por eso pasa desapercibido durante meses."
+    },
+    {
+     "h": "Mariposa (TPS) y pedal"
+    },
+    {
+     "p": "En un acelerador electrónico hay dos pistas redundantes en el pedal y dos en la mariposa: si no coinciden entre sí, el sistema entra en <b>modo emergencia</b> y limita las revoluciones. Es un fallo de seguridad deliberado."
+    },
+    {
+     "h": "Picado (knock)"
+    },
+    {
+     "p": "Un micrófono piezoeléctrico que escucha la detonación. Cuando la detecta, la centralita <b>retrasa el encendido</b> para proteger el motor, y con ello se pierde potencia sin que se encienda ningún aviso: un combustible de octanaje bajo puede explicar una pérdida de rendimiento que no aparece en ningún código."
+    }
+   ],
+   "pos": 2
+  },
+  {
+   "level": 3,
+   "minutes": 12,
+   "tags": "diesel,common_rail,dpf,egr",
+   "title": "Diésel moderno: common rail, EGR y filtro de partículas",
+   "subtitle": "Alta presión, gestión de emisiones y por qué los trayectos cortos los destrozan.",
+   "body": [
+    {
+     "p": "El diésel de inyección mecánica era casi indestructible y bastante sucio. El moderno es mucho más limpio, más silencioso y con más par, a cambio de una complejidad que castiga sin piedad un uso para el que no está pensado."
+    },
+    {
+     "h": "Common rail: separar presión de inyección"
+    },
+    {
+     "p": "Una bomba mantiene un conducto común a <b>1500-2500 bar</b> y cada inyector se abre eléctricamente cuando la centralita decide. Ese desacople permite algo que la bomba mecánica no podía dar: presión alta a cualquier régimen, incluso a ralentí."
+    },
+    {
+     "list": [
+      "<b>Inyección piloto</b> — una cantidad mínima antes de la principal. Suaviza el aumento de presión y elimina el «picado» característico del diésel.",
+      "<b>Inyección principal</b> — la que produce el par.",
+      "<b>Post-inyección</b> — quema tardía para elevar la temperatura del escape y regenerar el filtro de partículas."
+     ]
+    },
+    {
+     "h": "La prueba de retorno: mucho por muy poco"
+    },
+    {
+     "p": "Se conectan probetas a los retornos de los inyectores y se hace girar el motor. Cada inyector devuelve al depósito el gasóleo que no inyecta."
+    },
+    {
+     "steps": [
+      "Retornos parecidos → inyectores sanos.",
+      "Uno claramente más lleno → fuga interna en ese inyector: la presión se escapa por ahí y el motor arranca mal o no arranca.",
+      "Todos altos y presión de rail baja → mirar la bomba y el regulador antes que los inyectores."
+     ]
+    },
+    {
+     "key": "No hay que desmontar nada, cuesta minutos y señala el cilindro culpable. Es probablemente la prueba con mejor relación resultado-esfuerzo de todo el diagnóstico diésel."
+    },
+    {
+     "h": "EGR: menos NOx, más carbonilla"
+    },
+    {
+     "p": "La válvula EGR recircula parte de los gases de escape hacia la admisión. Al haber menos oxígeno, la combustión es menos caliente y se forman menos óxidos de nitrógeno."
+    },
+    {
+     "warn": "El precio es hollín en la admisión, que con el vapor de aceite del respiradero del cárter forma una pasta que estrecha los conductos. En trayectos cortos, donde nunca se alcanza temperatura, el depósito crece mucho más deprisa."
+    },
+    {
+     "h": "El filtro de partículas y su regeneración"
+    },
+    {
+     "steps": [
+      "<b>Pasiva</b> — ocurre sola en carretera: el escape está lo bastante caliente para quemar el hollín acumulado.",
+      "<b>Activa</b> — la fuerza la centralita con post-inyección cuando la contrapresión sube. Necesita un rato de conducción sostenida para completarse.",
+      "<b>Forzada</b> — la provoca el técnico con la máquina de diagnosis, ya como último recurso antes de la limpieza o la sustitución."
+     ]
+    },
+    {
+     "note": "Interrumpir regeneraciones activas —apagar el coche a los cinco minutos, día tras día— tiene dos consecuencias: el filtro se satura y el gasóleo de las post-inyecciones <b>diluye el aceite</b> del motor. Un nivel de aceite que <i>sube</i> en un diésel moderno es una señal de alarma, no una buena noticia."
+    },
+    {
+     "h": "Qué preguntar antes de tocar nada"
+    },
+    {
+     "p": "En un diésel moderno, el historial de uso explica más averías que cualquier medición: cuántos kilómetros por trayecto, cuánto tiempo hasta que el motor coge temperatura, si hay avisos que aparecen y desaparecen, cuándo se cambió el aceite y con qué norma."
+    },
+    {
+     "p": "Un coche con 60 000 km de recorridos urbanos de tres kilómetros está mucho más castigado que uno con 200 000 de autopista, y ninguna de las dos cifras aparece en el cuentakilómetros."
+    }
+   ],
+   "pos": 3
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "frenos,hidraulico,abs,seguridad",
+   "title": "Frenos: hidráulica, calor y ABS",
+   "subtitle": "Por qué el pedal se hunde, qué hace de verdad el ABS y qué se revisa siempre.",
+   "body": [
+    {
+     "p": "El sistema de frenos convierte energía cinética en calor. Todo lo que falla en él tiene que ver con dos cosas: un líquido que <b>no debe comprimirse</b> y un calor que <b>hay que evacuar</b>."
+    },
+    {
+     "h": "Por qué el líquido se cambia por tiempo"
+    },
+    {
+     "p": "El líquido DOT 3, 4 y 5.1 es <b>higroscópico</b>: absorbe humedad del ambiente a través de latiguillos y depósito, poco a poco, esté el coche parado o no."
+    },
+    {
+     "code": "Líquido nuevo DOT 4:      punto de ebullición ≈ 230 °C\nCon 3 % de humedad:       punto de ebullición ≈ 155 °C"
+    },
+    {
+     "key": "El nivel no avisa de nada: el líquido sigue ahí. Simplemente hierve mucho antes, y cuando hierve aparece vapor — que <b>sí</b> se comprime. Ese es el pedal que se va al fondo en una bajada larga."
+    },
+    {
+     "h": "Dos fadings distintos"
+    },
+    {
+     "list": [
+      "<b>De material</b> — pastillas y disco sobrecalentados pierden coeficiente de rozamiento. El pedal sigue duro pero el coche no frena.",
+      "<b>Por vapor</b> — el líquido hierve y el pedal se hunde. Es el peligroso, y el que delata un líquido viejo."
+     ]
+    },
+    {
+     "p": "La respuesta correcta en carretera es la misma en los dos casos: reducir marcha para frenar con el motor y no ir «apoyando» el pie, que es lo que acumula el calor."
+    },
+    {
+     "h": "Vibración al frenar: alabeo, no «disco rayado»"
+    },
+    {
+     "p": "Una vibración en el pedal a alta velocidad suele ser <b>alabeo</b>: una deformación de unas décimas de milímetro que se mide con comparador. Las causas habituales no están en el disco:"
+    },
+    {
+     "steps": [
+      "Sobrecalentamiento seguido de enfriamiento brusco — un charco tras una frenada fuerte.",
+      "Óxido o suciedad entre el buje y el disco, que lo monta torcido desde el primer día.",
+      "Tornillos de rueda apretados en desorden o sin par: deforman la campana."
+     ]
+    },
+    {
+     "warn": "Por eso se limpia siempre la cara del buje antes de montar el disco y se aprieta <b>en estrella y con dinamométrica</b>. Un impacto neumático a tope es una forma barata de estropear un disco nuevo."
+    },
+    {
+     "h": "Qué hace el ABS (y qué no)"
+    },
+    {
+     "p": "Detecta por los sensores de rueda que una está a punto de bloquearse y libera y reaplica presión decenas de veces por segundo. Su objetivo principal <b>no</b> es frenar antes: es que la rueda siga girando, porque una rueda bloqueada no dirige."
+    },
+    {
+     "note": "En asfalto seco o mojado suele acortar la distancia. Sobre <b>grava o nieve profunda la alarga</b>, porque una rueda bloqueada acumula material delante que ayuda a detener. Es una de las pocas situaciones donde el sistema trabaja en tu contra, y aun así compensa: conservas la dirección."
+    },
+    {
+     "h": "La revisión que nunca sobra"
+    },
+    {
+     "list": [
+      "Espesor de pastillas <b>y</b> de disco (el disco también tiene mínimo grabado).",
+      "Latiguillos: grietas, rozaduras, hinchazón al pisar fuerte.",
+      "Guías de pinza: si se agarrotan, una pastilla se come y la otra no, y la rueda arrastra en caliente.",
+      "Humedad del líquido con medidor, y purga completa si supera el umbral."
+     ]
+    }
+   ],
+   "pos": 4
+  },
+  {
+   "level": 2,
+   "minutes": 10,
+   "tags": "suspension,direccion,neumaticos,alineacion",
+   "title": "Tren rodante: leer un neumático es diagnosticar",
+   "subtitle": "Amortiguadores, geometría y el desgaste como fuente de información.",
+   "body": [
+    {
+     "p": "El neumático es el único punto de contacto con la carretera y, casualmente, el mejor informe de estado del coche: su desgaste cuenta lo que pasa en la suspensión, en la dirección y en la presión de inflado."
+    },
+    {
+     "h": "Leer el desgaste"
+    },
+    {
+     "steps": [
+      "<b>Los dos hombros gastados y el centro bien</b> — presión baja crónica. El flanco flexa de más y calienta.",
+      "<b>Centro gastado y hombros bien</b> — presión alta: solo apoya la banda central.",
+      "<b>Un solo hombro</b> — caída (camber) excesiva o brazos deformados. Casi siempre el interior, que no se ve sin girar la rueda.",
+      "<b>Dientes de sierra al pasar la mano</b> — convergencia mal ajustada. Se nota antes con la mano que con la vista.",
+      "<b>Parches redondeados repartidos</b> — amortiguadores agotados: la rueda bota y desgasta a saltos."
+     ]
+    },
+    {
+     "key": "Un desgaste anómalo sustituido sin corregir la causa se repite en unos miles de kilómetros. El neumático nuevo no arregla la geometría."
+    },
+    {
+     "h": "Qué hace un amortiguador"
+    },
+    {
+     "p": "El <b>muelle</b> sostiene el peso; el amortiguador <b>disipa</b> la energía de la oscilación para que la rueda no siga botando después de un bache. Sin él, la rueda pierde contacto y el coche frena y gira peor."
+    },
+    {
+     "list": [
+      "Rebote: al hundir una esquina, el coche oscila más de una vez.",
+      "Distancia de frenado mayor y balanceo en curva.",
+      "Rastro de aceite por el cuerpo del amortiguador.",
+      "Desgaste en parches del neumático."
+     ]
+    },
+    {
+     "h": "Los tres ángulos de la alineación"
+    },
+    {
+     "steps": [
+      "<b>Convergencia (toe)</b> — vista desde arriba: si las ruedas apuntan hacia dentro o hacia fuera. Es la que <b>come neumáticos</b> más deprisa y la que se ajusta con más frecuencia.",
+      "<b>Caída (camber)</b> — inclinación vista de frente. Negativa mejora el apoyo en curva; excesiva desgasta el hombro interior.",
+      "<b>Avance (caster)</b> — inclinación del eje de dirección vista de lado. Da estabilidad en recta y hace que el volante vuelva solo tras una curva."
+     ]
+    },
+    {
+     "note": "Antes de alinear hay que revisar rótulas, silentblocs y bieletas: alinear con holguras es medir sobre algo que se mueve. La máquina dará números perfectos que dejarán de serlo en la primera curva."
+    },
+    {
+     "h": "El marcado del neumático"
+    },
+    {
+     "code": "205 / 55 R 16  91 V\n│     │   │  │   │  └── índice de velocidad (V = 240 km/h)\n│     │   │  │   └───── índice de carga (91 = 615 kg)\n│     │   │  └───────── diámetro de llanta en pulgadas\n│     │   └──────────── construcción radial\n│     └──────────────── perfil: altura = 55 % del ancho\n└────────────────────── ancho en mm"
+    },
+    {
+     "warn": "Montar un índice de carga o velocidad inferior al homologado es motivo de rechazo en la inspección y, en un reventón, de mucho más que eso. La antigüedad también cuenta: el código DOT del flanco indica semana y año, y un neumático de más de seis años endurece aunque tenga dibujo."
+    }
+   ],
+   "pos": 5
+  },
+  {
+   "level": 3,
+   "minutes": 11,
+   "tags": "hibridos,electricos,alta_tension,seguridad",
+   "title": "Híbridos y eléctricos: lo que cambia en el taller",
+   "subtitle": "Arquitecturas, frenada regenerativa y trabajar con 400 voltios de continua.",
+   "body": [
+    {
+     "p": "Un eléctrico tiene menos piezas móviles y menos mantenimiento, pero introduce un riesgo que no existía en el taller: <b>corriente continua a cientos de voltios</b>, que no perdona la improvisación."
+    },
+    {
+     "h": "Tres arquitecturas"
+    },
+    {
+     "list": [
+      "<b>Híbrido en serie</b> — el motor térmico solo genera electricidad; a las ruedas siempre las mueve el eléctrico.",
+      "<b>Híbrido en paralelo</b> — ambos pueden impulsar las ruedas, solos o juntos.",
+      "<b>Enchufable (PHEV)</b> — batería mayor y carga externa: decenas de kilómetros en eléctrico puro antes de que arranque el térmico."
+     ]
+    },
+    {
+     "p": "Todos comparten la misma idea de fondo: hacer trabajar al motor térmico en su zona de mejor rendimiento en vez de allí donde el pie lo pida, y <b>recuperar</b> en las frenadas la energía que antes se tiraba en forma de calor."
+    },
+    {
+     "h": "Frenada regenerativa y sus consecuencias"
+    },
+    {
+     "p": "Al levantar el pie, el motor eléctrico actúa como generador y frena el coche cargando la batería. El freno hidráulico solo interviene al final o en frenadas fuertes."
+    },
+    {
+     "note": "De ahí una avería contraintuitiva: en híbridos y eléctricos los discos y pastillas <b>se oxidan y agarrotan</b> por falta de uso, no por desgaste. Las guías de pinza y la limpieza pasan a ser el punto de revisión importante."
+    },
+    {
+     "h": "Trabajar con alta tensión"
+    },
+    {
+     "p": "El sistema de tracción trabaja entre <b>400 y 800 V de continua</b>. La continua no tiene pasos por cero, así que un arco no se extingue solo, y la corriente provoca contracción muscular que impide soltar."
+    },
+    {
+     "steps": [
+      "<b>Formación y habilitación específicas</b>: no es una recomendación, es un requisito legal y de seguro.",
+      "Retirar el <b>seccionador de servicio</b> y guardarlo — no en el coche, para que nadie lo reconecte.",
+      "Esperar el tiempo que indique el fabricante: los condensadores del inversor siguen cargados varios minutos.",
+      "Verificar ausencia de tensión con instrumento de categoría adecuada, comprobándolo antes y después en una fuente conocida.",
+      "EPI: guantes aislantes clase 0 en vigor, revisados antes de cada uso."
+     ]
+    },
+    {
+     "warn": "Los cables <b>naranjas</b> son de alta tensión: no se tocan, no se pinzan, no se cortan y no se puentean. Un pinchazo con la punta del polímetro en un cable naranja es una forma habitual de accidente grave."
+    },
+    {
+     "h": "La batería y el frío"
+    },
+    {
+     "p": "La autonomía cae en invierno por dos motivos que se suman: la <b>calefacción</b> tira directamente de la batería —en un térmico el calor era un residuo gratis— y en frío las reacciones químicas de la celda son más lentas, lo que reduce capacidad y potencia disponible."
+    },
+    {
+     "p": "Por eso los modelos recientes <b>preacondicionan</b> la batería antes de una carga rápida y usan bomba de calor en lugar de una resistencia: recuperar calor del ambiente cuesta tres veces menos energía que generarlo."
+    },
+    {
+     "h": "Qué se revisa en un eléctrico"
+    },
+    {
+     "list": [
+      "Estado de salud de la batería (SoH) con la diagnosis del fabricante.",
+      "Refrigeración del paquete y del inversor: es un circuito de líquido con su propio mantenimiento.",
+      "Frenos, por agarrotamiento más que por desgaste.",
+      "Neumáticos: pesan más y dan par instantáneo, así que se gastan antes.",
+      "Aislamiento del sistema de alta tensión, que la propia centralita vigila y registra."
+     ]
+    }
+   ],
+   "pos": 6
   }
  ]
 }

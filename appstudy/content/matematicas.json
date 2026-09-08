@@ -1051,6 +1051,300 @@
    "tags": "cálculo mental,porcentajes,atajos",
    "front": "Propiedad reversible de los porcentajes: $x\\,\\%$ de $y = y\\,\\%$ de $x$",
    "back": "Dado que el porcentaje es una multiplicación conmutativa ($x \\times y / 100$):\n$$\\mathbf{x\\,\\% \\text{ de } y = y\\,\\% \\text{ de } x}$$\n\nEjemplos mentales instantáneos:\n- ¿El $16\\,\\%$ de $75$? $\\rightarrow$ Calcula el $75\\,\\%$ de $16 = \\frac{3}{4} \\times 16 = \\mathbf{12}$.\n- ¿El $18\\,\\%$ de $50$? $\\rightarrow$ Calcula el $50\\,\\%$ de $18 = \\mathbf{9}$."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "calculo_mental,multiplicacion",
+   "front": "¿Cómo se multiplica mentalmente por 5, por 25 y por 50?",
+   "back": "Convirtiéndolos en divisiones, que son más fáciles:\n• <b>×5</b> = ×10 ÷ 2 → 84 × 5 = 840/2 = <b>420</b>\n• <b>×50</b> = ×100 ÷ 2 → 84 × 50 = 8400/2 = <b>4200</b>\n• <b>×25</b> = ×100 ÷ 4 → 84 × 25 = 8400/4 = <b>2100</b>\n\nEl principio general: sustituye el número incómodo por uno redondo y arregla después."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "calculo_mental,multiplicacion",
+   "front": "¿Cómo se multiplica mentalmente por 9, por 11 y por 99?",
+   "back": "• <b>×9</b> = ×10 − el número → 47 × 9 = 470 − 47 = <b>423</b>\n• <b>×11</b> = ×10 + el número → 47 × 11 = 470 + 47 = <b>517</b>\n• <b>×99</b> = ×100 − el número → 47 × 99 = 4700 − 47 = <b>4653</b>\n\nPara ×11 con números de dos cifras hay un atajo aún más rápido: separa las cifras y mete la suma en medio. 47 → 4_(4+7)_7 → 4_11_7 → <b>517</b> llevando una."
+  },
+  {
+   "kind": "quiz",
+   "level": 1,
+   "tags": "calculo_mental,cuadrados",
+   "front": "¿Cuánto es 35² sin calculadora?",
+   "choices": [
+    "1225",
+    "1025",
+    "1235",
+    "1125"
+   ],
+   "answer": 0,
+   "back": "Truco para cualquier número acabado en 5: toma la primera cifra (3), multiplícala por su siguiente (4) → 12, y pega <b>25</b> al final: <b>1225</b>.\n\nFunciona siempre: 65² → 6×7=42 → <b>4225</b>. 95² → 9×10=90 → <b>9025</b>."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "calculo_mental,diferencia_cuadrados",
+   "front": "El producto 48 × 52 se calcula rápido como 50² − 2², es decir {{2496}}, usando la diferencia de cuadrados.",
+   "back": "<code>(a−b)(a+b) = a² − b²</code>\n\nSirve siempre que los dos factores estén a la misma distancia de un número redondo: 97 × 103 = 100² − 3² = 9991; 38 × 42 = 40² − 4 = 1596."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "calculo_mental,division",
+   "front": "¿Cómo se comprueba de cabeza si un número es divisible por 3, 4, 6, 8, 9 u 11?",
+   "back": "• <b>3</b> — la suma de sus cifras es múltiplo de 3.\n• <b>9</b> — la suma de sus cifras es múltiplo de 9.\n• <b>4</b> — sus dos últimas cifras forman un múltiplo de 4.\n• <b>8</b> — sus tres últimas cifras forman un múltiplo de 8.\n• <b>6</b> — es par <b>y</b> divisible por 3.\n• <b>11</b> — la suma alterna de cifras (+ − + −) es múltiplo de 11.\n\nEjemplo: 3729 → 3+7+2+9 = 21, múltiplo de 3 pero no de 9."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "porcentajes",
+   "front": "¿Por qué el 18 % de 50 es lo mismo que el 50 % de 18, y para qué sirve saberlo?",
+   "back": "Porque <code>a% de b = (a × b)/100 = b% de a</code>: la multiplicación es conmutativa.\n\nSirve para darle la vuelta al cálculo cuando uno de los dos lados es fácil:\n• 18 % de 50 → 50 % de 18 = <b>9</b>\n• 4 % de 75 → 75 % de 4 = <b>3</b>\n• 12 % de 25 → 25 % de 12 = <b>3</b>\n\nEs el truco de porcentajes que más veces salva en una tienda."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "porcentajes,variacion",
+   "front": "Un precio sube un 20 % y después baja un 20 %. ¿Cómo queda respecto al original?",
+   "choices": [
+    "Un 4 % más barato",
+    "Igual que al principio",
+    "Un 4 % más caro",
+    "Un 20 % más barato"
+   ],
+   "answer": 0,
+   "back": "Los porcentajes se aplican sobre bases distintas: <code>100 → 120 → 96</code>.\n\nEn factores: <code>1,20 × 0,80 = 0,96</code>, es decir, un <b>4 % menos</b>. La subida se calcula sobre 100 y la bajada sobre 120, que es más grande. Por eso una caída del 50 % necesita luego una subida del 100 % para volver al punto de partida."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "porcentajes,factores",
+   "front": "¿Cómo se encadenan varios cambios porcentuales sin equivocarse?",
+   "back": "Multiplicando <b>factores</b>, nunca sumando porcentajes:\n• Subir un 15 % → ×1,15\n• Bajar un 30 % → ×0,70\n• Bajar un 8 % → ×0,92\n\nTres cambios seguidos: <code>1,15 × 0,70 × 0,92 = 0,74</code> → el resultado es un <b>26 % menos</b> que el original, no «+15 −30 −8 = −23».\n\nPara volver atrás se divide por el factor, no se aplica el porcentaje inverso."
+  },
+  {
+   "kind": "cloze",
+   "level": 2,
+   "tags": "porcentajes,iva",
+   "front": "Para quitar el 21 % de IVA a un precio final se {{divide entre 1,21}}, no se resta el 21 %.",
+   "back": "Si el precio con IVA es 121 €, la base es <code>121 / 1,21 = 100 €</code>, y el IVA son 21 €.\n\nRestar el 21 % daría <code>121 × 0,79 = 95,59 €</code>, que es incorrecto: el 21 % se calculó sobre 100, no sobre 121. Es el error de facturación más repetido."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "proporciones,regla_de_tres",
+   "front": "¿Cuándo una regla de tres es directa y cuándo inversa?",
+   "back": "• <b>Directa</b> — al aumentar una magnitud aumenta la otra: más metros de cable, más precio. Se cruza: <code>x = (b × c)/a</code>\n• <b>Inversa</b> — al aumentar una, la otra disminuye: más operarios, menos horas. Se multiplica en línea: <code>x = (a × b)/c</code>\n\nLa comprobación que evita el error: pregúntate si el resultado debe salir mayor o menor <b>antes</b> de calcular. Si sale al revés de lo que esperabas, has usado la fórmula equivocada."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "proporciones,escalas",
+   "front": "En un plano a escala 1:50, un muro mide 8 cm. ¿Cuánto mide en la realidad?",
+   "choices": [
+    "4 m",
+    "40 m",
+    "0,4 m",
+    "50 m"
+   ],
+   "answer": 0,
+   "back": "La escala dice que 1 unidad del plano son 50 en la realidad: <code>8 cm × 50 = 400 cm = 4 m</code>.\n\nCuidado con las <b>superficies</b>: en una escala 1:50, las áreas no se multiplican por 50 sino por <b>50² = 2500</b>. Y los volúmenes, por 50³. Es el error que hace que un presupuesto de material salga cincuenta veces corto."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "proporciones,repartos",
+   "front": "¿Cómo se reparte una cantidad de forma proporcional?",
+   "back": "Sumando las partes y calculando el valor de una:\n\n<i>Repartir 6300 € entre tres socios que pusieron 2, 3 y 4 partes:</i>\n1. Total de partes: 2+3+4 = <b>9</b>\n2. Valor de una parte: 6300/9 = <b>700 €</b>\n3. Reparto: 1400 €, 2100 €, 2800 €\n\nComprobación obligatoria: la suma debe dar exactamente el total. Si no, hay un redondeo mal hecho."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "estimacion,ordenes_magnitud",
+   "front": "¿Qué es una estimación de orden de magnitud y por qué se hace antes del cálculo exacto?",
+   "back": "Es redondear todo a una cifra significativa y calcular de cabeza, para saber <b>en qué década</b> está la respuesta: decenas, miles, millones.\n\nSirve para detectar el error grave —el factor 10, la coma mal puesta, la unidad equivocada— que una calculadora nunca detecta porque hace exactamente lo que le pides.\n\nEjemplo: 487 × 213 ≈ 500 × 200 = <b>100 000</b>. Si la calculadora dice 10 373, sabes que has tecleado mal antes de mirar el resultado."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "estimacion,fermi",
+   "front": "Un problema de {{Fermi}} se resuelve descomponiendo una pregunta imposible en factores estimables, cada uno con un error que tiende a compensarse.",
+   "back": "«¿Cuántos afinadores de piano hay en Chicago?» se ataca así: habitantes → hogares → fracción con piano → afinaciones al año → afinaciones que hace uno al año.\n\nCada factor puede estar equivocado por 2 o 3, pero unos por exceso y otros por defecto: el resultado suele quedar dentro del orden de magnitud correcto. Es la misma técnica que se usa para presupuestar sin datos."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "estimacion,redondeo",
+   "front": "¿Cuántas cifras significativas debe tener un resultado?",
+   "back": "Como mucho, tantas como el <b>dato menos preciso</b> que entró en el cálculo.\n\nSi mides un terreno con una cinta con precisión de centímetros y obtienes 12,34 m × 8,71 m, el área no es 107,4814 m²: es <b>107,5 m²</b>. Las cifras de más no añaden información, solo aparentan una precisión que no existe.\n\nEn medidas físicas, escribir más decimales de los que el instrumento puede resolver es un error, no un detalle."
+  },
+  {
+   "kind": "card",
+   "level": 1,
+   "tags": "unidades,conversion",
+   "front": "¿Cómo se convierten unidades sin equivocarse de sentido (multiplicar o dividir)?",
+   "back": "Escribiendo la conversión como una fracción que valga 1 y cancelando unidades:\n\n<code>90 km/h × (1000 m / 1 km) × (1 h / 3600 s) = 25 m/s</code>\n\nLas unidades se tachan como si fueran números. Si al final te queda «km·h/s» en vez de «m/s», has puesto una fracción del revés y lo ves sin necesidad de pensar en el resultado.\n\nAtajo útil: para pasar de km/h a m/s se divide entre 3,6."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "unidades,superficie",
+   "front": "¿Cuántos metros cuadrados tiene una hectárea?",
+   "choices": [
+    "10 000 m²",
+    "1000 m²",
+    "100 m²",
+    "100 000 m²"
+   ],
+   "answer": 0,
+   "back": "Una hectárea es un cuadrado de 100 × 100 m = <b>10 000 m²</b>.\n\nLas unidades de superficie saltan de <b>100 en 100</b>, no de 10 en 10: 1 m² = 100 dm² = 10 000 cm². Y las de volumen, de 1000 en 1000. Olvidarlo es el origen del típico presupuesto de material equivocado por un factor 100."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "geometria,pitagoras",
+   "front": "¿Cómo se comprueba en obra que una esquina está a escuadra sin escuadra?",
+   "back": "Con el <b>triángulo 3-4-5</b>: mide 3 unidades por un lado, 4 por el otro, y la diagonal entre esas dos marcas debe ser exactamente 5. Si sale más, el ángulo es obtuso; si sale menos, agudo.\n\nFunciona con cualquier múltiplo (30-40-50 cm, 90-120-150 cm), y cuanto mayor, más precisión. Es Pitágoras al revés: <code>3² + 4² = 9 + 16 = 25 = 5²</code>."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "geometria,circulo",
+   "front": "Si el radio de un círculo se duplica, ¿qué pasa con su área?",
+   "choices": [
+    "Se multiplica por 4",
+    "Se duplica",
+    "Se multiplica por π",
+    "Se multiplica por 8"
+   ],
+   "answer": 0,
+   "back": "El área va con el <b>cuadrado</b> del radio: <code>A = πr²</code>, así que doblar r multiplica el área por <b>4</b>.\n\nEs la razón de que un tubo del doble de diámetro transporte mucho más del doble de caudal, y de que un cable del doble de sección admita bastante más del doble de corriente."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "geometria,volumenes",
+   "front": "¿Cuántos litros caben en un depósito cilíndrico de 80 cm de diámetro y 1,2 m de alto?",
+   "back": "<code>V = π · r² · h = π × (0,4 m)² × 1,2 m = 0,603 m³</code>\n\nY <b>1 m³ = 1000 litros</b>, así que son unos <b>603 litros</b>.\n\nLa equivalencia que hay que tener grabada: <code>1 m³ = 1000 L</code> y <code>1 dm³ = 1 L</code>. Casi todos los errores de capacidad vienen de mezclar centímetros con metros antes de elevar al cubo."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "geometria,trigonometria",
+   "front": "Para hallar la altura de un poste midiendo su sombra y el ángulo del sol se usa la {{tangente}}: altura = distancia × tan(ángulo).",
+   "back": "Las tres razones, con el ángulo conocido:\n• <b>sen</b> = opuesto / hipotenusa\n• <b>cos</b> = adyacente / hipotenusa\n• <b>tan</b> = opuesto / adyacente\n\nLa tangente es la de los problemas de altura y pendiente porque relaciona los dos catetos, que son las dos medidas que se pueden tomar desde el suelo."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "geometria,pendientes",
+   "front": "¿Qué significa una pendiente del 12 % y cómo se pasa a grados?",
+   "back": "Que por cada 100 m recorridos en horizontal se suben 12 m en vertical. Es <b>la tangente del ángulo</b> expresada en porcentaje:\n\n<code>ángulo = arctan(0,12) ≈ 6,8°</code>\n\nOjo con la intuición: una pendiente del 100 % no es vertical, son <b>45°</b>. Y la vertical sería una pendiente infinita."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "algebra,despejar",
+   "front": "¿Cuál es la regla para despejar una incógnita sin equivocarse?",
+   "back": "Hacer <b>lo mismo a los dos lados</b> y deshacer las operaciones en orden inverso al que se aplicaron — como quitarse la ropa: lo último que se puso, lo primero que sale.\n\n<i>Despejar t en</i> <code>d = v·t + d₀</code>:\n1. Resta <code>d₀</code> a los dos lados → <code>d − d₀ = v·t</code>\n2. Divide entre <code>v</code> → <code>t = (d − d₀)/v</code>\n\nComprobación: sustituye el resultado en la original. Si cuadra, está bien; si no, has invertido un signo."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "algebra,ecuaciones",
+   "front": "En la ecuación <code>ax² + bx + c = 0</code>, ¿qué indica el discriminante <code>b² − 4ac</code>?",
+   "choices": [
+    "Cuántas soluciones reales tiene",
+    "El valor de la primera raíz",
+    "Si la parábola es creciente",
+    "El vértice de la parábola"
+   ],
+   "answer": 0,
+   "back": "• <b>&gt; 0</b> → dos soluciones reales distintas.\n• <b>= 0</b> → una solución doble (la parábola toca el eje en un punto).\n• <b>&lt; 0</b> → ninguna solución real (la parábola no corta el eje).\n\nEn problemas físicos, un discriminante negativo suele significar que el planteamiento pide algo imposible: un proyectil que no llega a esa altura, por ejemplo."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "algebra,sistemas",
+   "front": "¿Cuándo conviene sustitución, igualación o reducción en un sistema de dos ecuaciones?",
+   "back": "• <b>Sustitución</b> — cuando una incógnita ya está despejada o es fácil de despejar (coeficiente 1).\n• <b>Igualación</b> — cuando la misma incógnita se despeja cómodamente en ambas.\n• <b>Reducción</b> — cuando los coeficientes se pueden igualar con un par de multiplicaciones. Es la más rápida con números grandes y la que se generaliza a sistemas de muchas ecuaciones.\n\nSi al operar desaparecen las dos incógnitas: <code>0 = 0</code> significa infinitas soluciones (son la misma recta) y <code>0 = 5</code>, ninguna (rectas paralelas)."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "funciones,lineal",
+   "front": "En <code>y = mx + n</code>, ¿qué significan m y n en un problema real?",
+   "back": "• <b>m</b> es la <b>pendiente</b>: cuánto cambia y por cada unidad que cambia x. Es una velocidad, un precio por unidad, un consumo por hora.\n• <b>n</b> es la <b>ordenada en el origen</b>: el valor de y cuando x = 0. Es el coste fijo, la posición inicial, la tara.\n\nEn una tarifa eléctrica, <code>n</code> es el término de potencia (se paga aunque no consumas) y <code>m</code> el precio del kWh."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "funciones,exponencial",
+   "front": "Un crecimiento del 7 % anual duplica el capital en aproximadamente {{10 años}}, según la regla del 72.",
+   "back": "<b>Regla del 72</b>: <code>años ≈ 72 / porcentaje</code>. Con un 7 %, 72/7 ≈ 10,3 años; con un 3 %, unos 24 años.\n\nSirve igual para lo que decrece: una inflación del 6 % anual reduce a la mitad el poder adquisitivo en unos 12 años. Es la forma más rápida de entender un interés compuesto sin calculadora."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "funciones,logaritmos",
+   "front": "¿Para qué sirven los logaritmos en la práctica, más allá de la clase?",
+   "back": "Para <b>convertir multiplicaciones en sumas</b> y manejar escalas enormes en un rango cómodo:\n• <b>Decibelios</b>: el sonido y las señales abarcan factores de un billón; en dB caben en 0-120.\n• <b>Escala Richter y pH</b>: cada unidad es un factor de 10.\n• <b>Gráficas log</b>: un crecimiento exponencial se ve como una recta, y la pendiente <i>es</i> la tasa de crecimiento.\n\nRegla básica: <code>log(a·b) = log a + log b</code>."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "probabilidad",
+   "front": "¿Cuándo se suman probabilidades y cuándo se multiplican?",
+   "back": "• <b>Se suman</b> cuando es «esto <b>o</b> aquello» y los sucesos son incompatibles: sacar un 1 o un 6 → 1/6 + 1/6 = 1/3.\n• <b>Se multiplican</b> cuando es «esto <b>y</b> aquello» y son independientes: sacar dos seises seguidos → 1/6 × 1/6 = 1/36.\n\nSi pueden ocurrir a la vez, hay que restar la intersección: <code>P(A o B) = P(A) + P(B) − P(A y B)</code>, o estarás contando dos veces el mismo caso."
+  },
+  {
+   "kind": "quiz",
+   "level": 3,
+   "tags": "probabilidad,intuicion",
+   "front": "Una moneda ha salido cara cinco veces seguidas. ¿Qué probabilidad hay de cara en la sexta?",
+   "choices": [
+    "1/2, exactamente igual que siempre",
+    "Menos de 1/2, toca cruz",
+    "Más de 1/2, está sesgada",
+    "1/64"
+   ],
+   "answer": 0,
+   "back": "La moneda no tiene memoria: cada lanzamiento es independiente y sigue siendo <b>1/2</b>.\n\nEs la <b>falacia del jugador</b>. Lo que sí es improbable (1/64) es la <i>secuencia completa</i> de seis caras <b>antes</b> de empezar; una vez que las cinco primeras ya han ocurrido, no cambian nada de lo que viene."
+  },
+  {
+   "kind": "card",
+   "level": 3,
+   "tags": "probabilidad,condicional",
+   "front": "Una prueba detecta una enfermedad con un 99 % de acierto y la enfermedad la tiene 1 de cada 10 000. Si das positivo, ¿qué probabilidad tienes de estar enfermo?",
+   "back": "Alrededor del <b>1 %</b>, no del 99 %.\n\nEn 10 000 personas: 1 enferma (que da positivo) y 9999 sanas, de las cuales el 1 % —unas <b>100</b>— da <b>falso positivo</b>. De los 101 positivos, solo 1 está enfermo: 1/101 ≈ 1 %.\n\nCuando la enfermedad es rara, los falsos positivos superan con mucho a los verdaderos. Es el motivo de que las pruebas de cribado se repitan antes de diagnosticar."
+  },
+  {
+   "kind": "cloze",
+   "level": 3,
+   "tags": "probabilidad,combinatoria",
+   "front": "Si el orden importa se cuentan {{variaciones}}; si no importa, combinaciones.",
+   "back": "• <b>Variaciones</b> (orden sí importa): una contraseña de 4 dígitos → 10⁴ = 10 000.\n• <b>Combinaciones</b> (orden no importa): elegir 6 números de 49 en la lotería → <code>C(49,6) = 13 983 816</code>.\n\nLa pregunta que decide cuál usar: ¿«AB» y «BA» son el mismo caso? Si lo son, son combinaciones."
+  },
+  {
+   "kind": "card",
+   "level": 2,
+   "tags": "estadistica,dispersion",
+   "front": "¿Qué añade la desviación típica que no dice la media?",
+   "back": "La media dice dónde está el centro; la desviación típica, <b>cuánto se separa la gente de ese centro</b>.\n\nDos talleres con 20 minutos de media por reparación: uno con desviación de 2 min (previsible, se puede planificar) y otro de 15 min (unos 5 minutos, otros 50). La media idéntica esconde dos realidades opuestas.\n\nRegla útil en distribuciones normales: el 68 % de los datos cae a ±1 desviación de la media, y el 95 % a ±2."
+  },
+  {
+   "kind": "quiz",
+   "level": 2,
+   "tags": "estadistica,graficos",
+   "front": "¿Cuál es la forma más común de mentir con un gráfico de barras sin falsear ni un dato?",
+   "choices": [
+    "Empezar el eje vertical en un valor distinto de cero",
+    "Usar colores llamativos",
+    "Poner las barras horizontales",
+    "Ordenar las barras de mayor a menor"
+   ],
+   "answer": 0,
+   "back": "Truncar el eje amplifica visualmente diferencias mínimas: una subida del 2 % puede parecer que triplica si el eje empieza en el 98 %.\n\nEn barras, el eje <b>debe</b> empezar en cero, porque lo que se compara es la longitud. En gráficos de línea, donde lo que importa es la tendencia, truncar sí puede estar justificado — pero conviene señalarlo."
   }
  ]
 }
