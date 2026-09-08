@@ -79,6 +79,11 @@ en cambio, aparecen cuando toca, sin importar el nivel.
 El mazo de inglés está **íntegramente en inglés** y va de A2 a C1, repartido entre
 gramática, phrasal verbs y vocabulario.
 
+**Fuentes y extensiones:** Wikipedia, OpenStax, MIT OpenCourseWare, carpetas Markdown,
+OCR, consultas a documentos con citas, subtítulos y Anki multimedia. Se abren desde
+**Biblioteca → Fuentes** o **Ajustes → Avanzado → Extensiones y fuentes**.
+Consulta la [guía de uso y creación de plugins](docs/extensiones.md).
+
 ## Instalación
 
 ```bash

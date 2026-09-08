@@ -208,14 +208,30 @@ def leer_apkg(ruta: str | Path) -> list[dict]:
             raise ImportarError("La colección de Anki no tiene un formato compatible") from e
 
     salida = []
-    for f in filas:
-        campos = (f["flds"] or "").split(_SEP)
-        tarjeta = _tarjeta(
-            campos[0] if campos else "", campos[1] if len(campos) > 1 else "",
-            (f["tags"] or "").strip().replace(" ", ", "),
-            decks.get(str(f["did"]), "Anki"))
-        if tarjeta:
-            salida.append(tarjeta)
+    from . import multimedia
+    total_media = 0
+    with zipfile.ZipFile(path) as z:
+        indice = multimedia.indice_anki(z)
+        for f in filas:
+            campos = (f["flds"] or "").split(_SEP)
+            tarjeta = _tarjeta(
+                campos[0] if campos else "", campos[1] if len(campos) > 1 else "",
+                (f["tags"] or "").strip().replace(" ", ", "),
+                decks.get(str(f["did"]), "Anki"))
+            adjuntos = multimedia.de_anki(z, campos[:2], indice)
+            total_media += sum(len(a["data"]) for a in adjuntos)
+            if total_media > multimedia.MAX_TOTAL:
+                raise ImportarError("Los adjuntos del paquete superan 100 MB")
+            if not tarjeta and adjuntos:
+                tarjeta = _tarjeta("[Audio]", campos[1] if len(campos) > 1 else "")
+            if tarjeta:
+                # Distingue tarjetas cuyo enunciado solo era una imagen o audio.
+                if adjuntos and tarjeta["front"] in ("[imagen]", "[Audio]"):
+                    import hashlib
+                    ident = hashlib.sha256("".join(campos[:1]).encode()).hexdigest()[:8]
+                    tarjeta["front"] += f" · {ident}"
+                tarjeta["media"] = adjuntos
+                salida.append(tarjeta)
     return salida
 
 
@@ -223,4 +239,12 @@ def leer(ruta: str | Path) -> list[dict]:
     path = Path(ruta)
     if not path.is_file():
         raise ImportarError("No se encontró el archivo")
+    if path.suffix.casefold() == ".json":
+        from . import exportador
+        if path.stat().st_size > MAX_ARCHIVO:
+            raise ImportarError("El archivo supera 200 MB")
+        data = json.loads(path.read_text(encoding="utf-8-sig"))
+        if not isinstance(data, dict) or data.get("format") != 1:
+            raise ImportarError("Formato JSON de tarjetas no reconocido")
+        return exportador.validar_tarjetas(data.get("cards"))
     return leer_apkg(path) if path.suffix.casefold() == ".apkg" else leer_texto(path)

@@ -93,6 +93,10 @@ def snapshot(con, equipo: str | None = None, ahora: float | None = None) -> dict
         """SELECT c.uid,d.key AS deck_key,c.kind,c.front,c.back,c.hint,c.choices,
                   c.answer,c.tags,c.level,c.created
            FROM cards c JOIN decks d ON d.id=c.deck_id WHERE c.builtin=0""")
+    from . import multimedia
+    for card in cards:
+        cid = con.execute("SELECT id FROM cards WHERE uid=?", (card["uid"],)).fetchone()[0]
+        card["media"] = multimedia.serializar(multimedia.leer(con, cid))
     chapters = _filas(con,
         """SELECT c.uid,d.key AS deck_key,c.level,c.pos,c.title,c.subtitle,
                   c.minutes,c.tags,c.body
@@ -306,6 +310,10 @@ def fusionar(con, remotos: list[dict], equipo: str) -> dict:
                 resultado["borrados"] += 1
             elif entity == "card":
                 _aplicar_card(con, item, mazos.get(str(item.get("deck_key"))))
+                if "media" in item:
+                    from . import multimedia
+                    cid = con.execute("SELECT id FROM cards WHERE uid=?", (uid,)).fetchone()[0]
+                    multimedia.guardar(con, cid, multimedia.deserializar(item["media"]), touch=False)
                 if source:
                     cid = con.execute("SELECT id FROM cards WHERE uid=?", (uid,)).fetchone()["id"]
                     source = dict(source)

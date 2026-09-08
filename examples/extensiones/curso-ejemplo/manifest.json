@@ -1,0 +1,9 @@
+{
+  "id": "curso-ejemplo",
+  "name": "Mi primer paquete de estudio",
+  "version": "1.0.0",
+  "api_version": 1,
+  "type": "content",
+  "permissions": [],
+  "content": "content.json"
+}

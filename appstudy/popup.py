@@ -357,6 +357,8 @@ class PopupWindow(Adw.Window):
         front = Gtk.Label(label=util.to_markup(texto), use_markup=True, wrap=True,
                           xalign=0, css_classes=["as-front"], selectable=True)
         inner.append(front)
+        from . import multimedia
+        inner.append(multimedia.widget(self.con, c["id"], "front"))
 
         # Pista si existe
         if c.get("hint"):
@@ -384,6 +386,8 @@ class PopupWindow(Adw.Window):
         else:
             self.render_basic_body(inner)
 
+        if self.revealed or self.answered is not None or c["kind"] == "lesson":
+            inner.append(multimedia.widget(self.con, c["id"], "back"))
         card_box.append(inner)
         self.body.append(card_box)
 

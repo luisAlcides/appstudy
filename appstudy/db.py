@@ -120,6 +120,33 @@ CREATE TABLE IF NOT EXISTS books (
 
 CREATE TABLE IF NOT EXISTS meta (k TEXT PRIMARY KEY, v TEXT NOT NULL);
 
+CREATE TABLE IF NOT EXISTS source_imports (
+    provider TEXT NOT NULL,
+    origin TEXT NOT NULL,
+    deck_id INTEGER NOT NULL REFERENCES decks(id) ON DELETE CASCADE,
+    chapter_id INTEGER REFERENCES chapters(id) ON DELETE SET NULL,
+    fingerprint TEXT NOT NULL,
+    metadata TEXT NOT NULL,
+    imported REAL NOT NULL,
+    PRIMARY KEY(provider, origin, deck_id)
+);
+CREATE TABLE IF NOT EXISTS card_media (
+    card_id INTEGER NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+    side TEXT NOT NULL,
+    name TEXT NOT NULL,
+    mime TEXT NOT NULL,
+    data BLOB NOT NULL,
+    PRIMARY KEY(card_id, side, name)
+);
+CREATE TABLE IF NOT EXISTS document_chunks (
+    origin TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    locator TEXT NOT NULL,
+    text TEXT NOT NULL,
+    PRIMARY KEY(origin, position)
+);
+
 -- Reloj por elemento para fusionar cambios entre equipos sin depender de los
 -- identificadores numéricos locales. Una fila borrada conserva aquí su lápida.
 CREATE TABLE IF NOT EXISTS sync_changes (
@@ -268,7 +295,6 @@ def connect() -> sqlite3.Connection:
     # La sincronización escribe desde otro hilo con su propia conexión: mejor
     # esperar unos segundos a que el otro suelte la base que fallar al momento.
     con.execute("PRAGMA busy_timeout = 5000")
-    con.executescript(SCHEMA)
     migrate(con)
     con.executescript(INDEXES)
     return con
@@ -276,6 +302,9 @@ def connect() -> sqlite3.Connection:
 
 def migrate(con):
     """Añade a una base anterior las columnas que hayan aparecido después."""
+    # También al restaurar una copia anterior: las nuevas funciones necesitan
+    # sus tablas sin exigir cerrar y volver a abrir la aplicación.
+    con.executescript(SCHEMA)
     for tabla, columna, definicion in (
             ("cards", "level", "INTEGER NOT NULL DEFAULT 1"),
             ("decks", "levels", "TEXT NOT NULL DEFAULT ''"),

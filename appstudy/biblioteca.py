@@ -68,6 +68,9 @@ class Biblioteca(Adw.Bin):
                              tooltip_text="Elegir la carpeta de los libros")
         carpeta.connect("clicked", lambda *_: self.elegir_carpeta())
         cabecera.append(carpeta)
+        fuentes_btn = Gtk.Button(label="Fuentes", tooltip_text="Añadir fuentes y extensiones")
+        fuentes_btn.connect("clicked", lambda *_: self.ventana.abrir_fuentes())
+        cabecera.append(fuentes_btn)
 
         self.columna = self.columna_vacia()
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -106,6 +109,15 @@ class Biblioteca(Adw.Bin):
                   lambda e: self.esperando(str(e)), fondo=True)
 
     def recibir_estante(self, estante):
+        # Los PDF de fuentes se guardan en la carpeta de datos, fuera del estante personal.
+        from pathlib import Path
+        existentes = {l["ruta"] for l in estante}
+        for ruta, guardado in self.guardados.items():
+            if ruta not in existentes and Path(ruta).is_file():
+                p = Path(ruta)
+                estante.append({"ruta": ruta, "nombre": guardado["titulo"], "archivo": p.name,
+                                "tema": guardado.get("tema") or "Importados", "tam": p.stat().st_size,
+                                "ext": p.suffix.lower().lstrip(".")})
         self.estante = estante
         self.pintar()
 

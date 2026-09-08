@@ -245,6 +245,15 @@ class MainWindow(Adw.ApplicationWindow):
     def notify_user(self, texto):
         self.toast.add_toast(Adw.Toast(title=texto, timeout=3))
 
+    def abrir_fuentes(self):
+        from .fuentes_window import FuentesWindow
+        ventana = getattr(self, "fuentes_window", None)
+        if ventana is None:
+            ventana = FuentesWindow(self)
+            self.fuentes_window = ventana
+            ventana.connect("close-request", lambda *_: setattr(self, "fuentes_window", None))
+        ventana.present()
+
     def elegir_sesion(self):
         """Elige un bloque manejable o un modo especial de estudio."""
         dlg = Adw.AlertDialog(
@@ -341,24 +350,9 @@ class MainWindow(Adw.ApplicationWindow):
         if t["sanguijuelas"]:
             box.append(self.aviso_sanguijuelas(t["sanguijuelas"]))
 
-        plan = recomendaciones.recomendar(self.con, int(db.get_meta(self.con, 'tema_elegido', 0)))
-        propuesta = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, css_classes=['as-card'])
-        propuesta.append(Gtk.Label(label=plan['texto'], xalign=0, wrap=True, css_classes=['heading']))
-        propuesta.append(Gtk.Label(label=plan['razon'], xalign=0, wrap=True))
-        acciones = Gtk.Box(spacing=8)
-        if plan['repasos']:
-            repasar = Gtk.Button(label='Repasar ahora')
-            repasar.connect('clicked', lambda *_: self.get_application().show_popup(
-                deck_key=plan['deck']['key'], session_plan=sesiones.Plan(5, plan['repasos'], 'Repaso recomendado')))
-            acciones.append(repasar)
-        if plan['ejercicios']:
-            practicar = Gtk.Button(label='Hacer ejercicios')
-            practicar.connect('clicked', lambda *_: self.abrir_simulacro_examen(
-                deck_id=plan['deck']['id'], n=plan['ejercicios']))
-            acciones.append(practicar)
-        propuesta.append(acciones)
-        box.append(propuesta)
-        siguiente = plan['capitulo']
+        plan = self.plan_del_dia()
+        box.append(self.tarjeta_plan_del_dia(plan))
+        siguiente = plan["capitulo"]
         if siguiente:
             box.append(self.continue_reading_card(siguiente))
 
@@ -450,9 +444,48 @@ class MainWindow(Adw.ApplicationWindow):
         win = escritura.EscrituraWindow(self, self.con, deck_key=deck_key)
         win.present()
 
+    def plan_del_dia(self):
+        """Qué toca hoy, partiendo del tema que estabas mirando.
+
+        `tema_elegido` lo escriben las páginas de tema; si está vacío o guarda
+        algo que ya no es un mazo, `recomendar` cae en el tema del asistente de
+        bienvenida y, si tampoco, en el primero activo.
+        """
+        try:
+            tema = int(db.get_meta(self.con, "tema_elegido", 0) or 0)
+        except (TypeError, ValueError):
+            tema = 0
+        return recomendaciones.recomendar(self.con, tema)
+
     def next_unread(self):
-        return recomendaciones.recomendar(
-            self.con, int(db.get_meta(self.con, 'tema_elegido', 0)))['capitulo']
+        return self.plan_del_dia()["capitulo"]
+
+    def tarjeta_plan_del_dia(self, plan):
+        """La propuesta de hoy, con sus dos acciones si hay de qué.
+
+        Es lo primero que se lee en el panel: dice qué hacer y por qué, para no
+        empezar el día decidiendo entre cinco modos de estudio.
+        """
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
+                       css_classes=["as-card"])
+        caja.append(Gtk.Label(label=plan["texto"], xalign=0, wrap=True,
+                              css_classes=["heading"]))
+        caja.append(Gtk.Label(label=plan["razon"], xalign=0, wrap=True))
+
+        acciones = Gtk.Box(spacing=8)
+        if plan["repasos"] and plan["deck"]:
+            repasar = Gtk.Button(label="Repasar ahora")
+            repasar.connect("clicked", lambda *_: self.get_application().show_popup(
+                deck_key=plan["deck"]["key"],
+                session_plan=sesiones.Plan(5, plan["repasos"], "Repaso recomendado")))
+            acciones.append(repasar)
+        if plan["ejercicios"] and plan["deck"]:
+            practicar = Gtk.Button(label="Hacer ejercicios")
+            practicar.connect("clicked", lambda *_: self.abrir_simulacro_examen(
+                deck_id=plan["deck"]["id"], n=plan["ejercicios"]))
+            acciones.append(practicar)
+        caja.append(acciones)
+        return caja
 
     def continue_reading_card(self, cap):
         boton = Gtk.Button(css_classes=["card"])
@@ -682,8 +715,9 @@ class MainWindow(Adw.ApplicationWindow):
         return row
 
     def open_tema(self, deck_id):
-        db.set_meta(self.con, 'tema_elegido', deck_id)
         """La página del tema: aquí sí está todo desglosado por niveles."""
+        # Abrir un tema es decir por dónde vas: la propuesta del día lo usa
+        db.set_meta(self.con, "tema_elegido", deck_id)
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
         caja.set_margin_top(20)
         caja.set_margin_bottom(32)
@@ -923,8 +957,8 @@ class MainWindow(Adw.ApplicationWindow):
         return row
 
     def open_tema_tarjetas(self, deck):
-        db.set_meta(self.con, 'tema_elegido', deck['id'])
         """La página del tema: las tarjetas, desglosadas por niveles."""
+        db.set_meta(self.con, "tema_elegido", deck["id"])
         lista = ListaTarjetas(self, deck=deck)
         self.tema_lista = lista
 
@@ -1280,6 +1314,18 @@ class MainWindow(Adw.ApplicationWindow):
         """
         basico = Adw.PreferencesPage()
         avanzado = Adw.PreferencesPage()
+
+        # Traer contenido de fuera se configura una vez y se olvida: va en
+        # Avanzado, y el acceso de cada día es el botón «Fuentes» de Biblioteca.
+        fuentes_grupo = Adw.PreferencesGroup(title="Extensiones y fuentes")
+        fuentes_fila = Adw.ActionRow(
+            title="Ampliar mi biblioteca",
+            subtitle="Wikipedia, OpenStax, MIT, apuntes, OCR, subtítulos y plugins")
+        fuentes_boton = Gtk.Button(label="Abrir", valign=Gtk.Align.CENTER)
+        fuentes_boton.connect("clicked", lambda *_: self.abrir_fuentes())
+        fuentes_fila.add_suffix(fuentes_boton)
+        fuentes_fila.set_activatable_widget(fuentes_boton)
+        fuentes_grupo.add(fuentes_fila)
 
         g = Adw.PreferencesGroup(
             title="Atajo global",
@@ -1738,7 +1784,7 @@ class MainWindow(Adw.ApplicationWindow):
         # El orden es el de uso, no el de construcción: primero la meta del día.
         for grupo in (gmeta, g, gp, gvoz, gpr, gay, g3):
             basico.add(grupo)
-        for grupo in (gfsrs, gia, glib_, gnube, gsync, gres, g2):
+        for grupo in (gfsrs, gia, glib_, fuentes_grupo, gnube, gsync, gres, g2):
             avanzado.add(grupo)
 
         self.ajustes_stack = Adw.ViewStack()
@@ -1892,7 +1938,7 @@ class MainWindow(Adw.ApplicationWindow):
         dlg = Gtk.FileDialog(title="Importar tarjetas")
         filtro = Gtk.FileFilter()
         filtro.set_name("Anki, CSV o texto tabulado")
-        for patron in ("*.apkg", "*.csv", "*.tsv", "*.txt"):
+        for patron in ("*.apkg", "*.csv", "*.tsv", "*.txt", "*.json"):
             filtro.add_pattern(patron)
         filtros = Gio.ListStore.new(Gtk.FileFilter)
         filtros.append(filtro)
@@ -1972,10 +2018,16 @@ class MainWindow(Adw.ApplicationWindow):
         try:
             for t in lote:
                 tags = ", ".join(x for x in (t.get("tags", ""), "importado") if x)
-                _, nueva = db.add_card(
+                cid, nueva = db.add_card(
                     self.con, mazo["id"], mazo["key"], t.get("kind", "card"),
                     t["front"], t.get("back", ""), hint=t.get("hint", ""),
-                    tags=tags, level=1)
+                    tags=tags, level=min(t.get("level", 1), max(1, len(json.loads(mazo.get("levels") or "[]")))),
+                    choices=t.get("choices"), answer=t.get("answer", -1))
+                if "media" in t:
+                    from . import multimedia
+                    multimedia.guardar(self.con, cid, t["media"])
+                if t.get("source"):
+                    db.set_card_source(self.con, cid, t["source"])
                 estado["nuevas"] += nueva
             estado["pos"] += len(lote)
         except Exception as e:

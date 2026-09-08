@@ -1,0 +1,9 @@
+{
+  "id": "fuente-ejemplo",
+  "name": "Fuente de demostración local",
+  "version": "1.0.0",
+  "api_version": 1,
+  "type": "source",
+  "permissions": ["execute_python"],
+  "entrypoint": "source.py"
+}

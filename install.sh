@@ -89,6 +89,8 @@ ICON_DIR="$HOME/.local/share/icons/hicolor/scalable/apps"
 APP_ID="io.github.appstudy.AppStudy"
 
 echo "▸ Verificando dependencias…"
+command -v tesseract >/dev/null || \
+  echo "  (opcional) OCR de documentos: sudo apt install tesseract-ocr tesseract-ocr-spa tesseract-ocr-eng poppler-utils"
 command -v wmctrl >/dev/null || echo "  (aviso) falta wmctrl: la mascota no podrá quedarse encima. sudo apt install wmctrl x11-utils"
 python3 -c "
 import gi

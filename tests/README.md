@@ -1,5 +1,11 @@
 # Pruebas
 
+Las integraciones de fuentes y plugins se comprueban con
+`./pruebas.sh fuentes_extensiones`. Los widgets nuevos se prueban con
+`./pruebas.sh fuentes_ui` en una sesión gráfica (se omiten si no hay pantalla).
+La comprobación opcional de proveedores reales es
+`python3 -m tests.verificar_fuentes_online`; no forma parte de la suite sin red.
+
 ```bash
 ./pruebas.sh              # todas
 ./pruebas.sh scheduler    # solo las del planificador

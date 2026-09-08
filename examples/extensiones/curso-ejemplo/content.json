@@ -1,0 +1,21 @@
+{
+  "format": 1,
+  "documents": [
+    {
+      "origin": "curso-ejemplo:repaso",
+      "title": "Preparar un repaso",
+      "author": "Ejemplo de AppStudy",
+      "license": "CC0-1.0",
+      "path": "lecturas/repaso.md"
+    }
+  ],
+  "cards": [
+    {
+      "front": "¿Qué conviene comprobar antes de guardar una tarjeta?",
+      "back": "Que la pregunta sea clara, la respuesta corresponda y la fuente esté identificada.",
+      "kind": "card",
+      "tags": "ejemplo, estudio",
+      "level": 1
+    }
+  ]
+}
