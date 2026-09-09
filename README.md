@@ -700,6 +700,47 @@ el dato con la IA local.
 Se filtra por tema con el desplegable del globo, no repite dato hasta agotar la
 vuelta y no guarda dos veces el mismo.
 
+## Mi plan 2026–2028
+
+Desde **Panel → Mi plan 2026–2028** puedes seguir una ruta personal que combina
+razonamiento, programación, datos, IA, operaciones, inglés y comunicación.
+Incluye cinco secciones:
+
+- **Hoy:** agenda de 60 o 90 minutos entre semana, con lectura e inglés ya
+  incluidos; sábado de 120 minutos y domingo de 45 minutos. Las casillas se
+  guardan por fecha y son un registro manual de práctica. La fase se propone
+  por calendario, y puedes cambiarla. Hay acceso a lectura guiada de 20 minutos,
+  al mazo de inglés y a lecturas del área prioritaria.
+- **Ruta:** las seis fases de septiembre de 2026 a septiembre de 2028:
+  fundamentos, análisis, Heavy Equipment Analytics, ciencia de datos,
+  ingeniería de datos y Maintenance AI Assistant. Los hitos trimestrales y el
+  cierre final permiten registrar un archivo o enlace y lo que demuestra.
+  Las fechas no dan un hito por completado ni certifican una competencia.
+- **Cuaderno:** problemas con hipótesis, datos, intento propio, comparación con
+  IA y explicación; reflexiones de lectura con idea principal, tres recuerdos,
+  dudas y aplicación; resultados de proyectos con verificación, conclusión
+  breve y resumen en inglés. Puedes guardar y editar las entradas. El editor
+  también guarda al cambiar de entrada o cerrar, si el primer campo está completo.
+- **Semana:** autoevaluación de 0 a 5 en las seis áreas del plan, reflexión y
+  siguiente paso. Pulsa **Guardar revisión semanal** para conservarla; se
+  muestran las últimas trece revisiones. La semana empieza el lunes.
+- **20 → 10 → 5:** veinte minutos de intento propio, diez de consulta y
+  comparación, cinco de explicación sin mirar. Se puede pausar; cada etapa
+  espera que continúes. El reloj no consulta la IA ni bloquea otras aplicaciones.
+  Al completar las tres etapas puedes iniciar otra sesión. Al cerrar la ventana
+  se descarta el reloj, pero se conserva el cuaderno guardado.
+
+La lectura comienza en 20 minutos. Puedes subir a 30 y después a 40 desde el
+lector guiado y reducir otros bloques para mantener la carga total. La sesión
+20→10→5 también sustituye bloques de práctica; no se suma al horario diario.
+Los proyectos se construyen fuera de este plan: aquí guardas sus evidencias y
+razonamientos, aprovechando el contenido existente de AppStudy como apoyo.
+
+Los registros se guardan **localmente por cuenta**, en la misma base SQLite del
+progreso, y se incluyen en los respaldos completos. **No se sincronizan por
+carpeta ni Supabase**. El plan funciona sin IA ni conexión. Las evidencias son
+referencias de texto; no adjunta ni abre automáticamente los archivos indicados.
+
 ## Las lecturas
 
 ### Lectura guiada por tiempo

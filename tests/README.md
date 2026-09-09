@@ -21,6 +21,8 @@ también las corre (`pytest tests/`), porque reconoce las clases de `unittest`.
 | `test_bit.py` | Las etapas de evolución de Bit, su progreso, el desbloqueo seguro de accesorios y el conteo de repasos reales |
 | `test_scheduler.py` | Cómo se aplica el modelo a una tarjeta: el peldaño corto del fallo, el techo del año, la elección de la próxima tarjeta y el deshacer del día |
 | `test_sesiones.py` | Los límites por tiempo y cantidad, la ampliación, el deshacer y el resumen de una sesión guiada |
+| `test_potencial.py` | Fases y fechas, presupuesto diario, registros por día y semana, cuaderno editable, respaldo y reloj 20→10→5 |
+| `test_potencial_ui.py` | Widgets GTK del plan, preferencias, cuaderno, revisión semanal y limpieza del temporizador; requiere pantalla |
 | `test_importador.py` | CSV/TSV, exportaciones de texto y paquetes de Anki, incluidos límites y rutas maliciosas dentro del ZIP |
 | `test_hotkey.py` | El formato y la separación entre los atajos globales de repaso y captura rápida |
 | `test_recordatorios.py` | Los días permitidos, las franjas normales y nocturnas, los límites y el guardado atómico de recordatorios |

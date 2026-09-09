@@ -215,6 +215,11 @@ fuente →» funciona sin código nuevo.
 Si la IA local no está disponible, el capítulo se guarda igual y la bandeja
 ofrece generar las tarjetas más tarde.
 
+Una fuente `solo-enlace` no produce tarjetas automáticas: sin texto completo no
+hay de dónde sacarlas, y generarlas de memoria sería inventarlas. Entra en la
+bandeja como título, resumen y enlace, para que decidas si abrir la fuente y
+leerla por tu cuenta.
+
 ## Interfaz
 
 Una pantalla en la ventana principal, con contador cuando hay algo esperando.

@@ -337,6 +337,14 @@ class MainWindow(Adw.ApplicationWindow):
         hero.append(pista)
         box.append(hero)
 
+        desarrollo = Gtk.Button(label="Mi plan 2026–2028 · agenda, proyectos y cuaderno",
+                                css_classes=["pill"])
+        def abrir_desarrollo(*_):
+            from .potencial_window import PotencialWindow
+            PotencialWindow(self).present()
+        desarrollo.connect("clicked", abrir_desarrollo)
+        box.append(desarrollo)
+
         stats = Gtk.Box(spacing=12, homogeneous=True)
         lec = db.reading_totals(self.con)
         for valor, etiqueta in ((t["hoy"], "REPASOS HOY"), (t["racha"], "DÍAS DE RACHA"),
