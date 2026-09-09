@@ -24,6 +24,7 @@ CIERRE_VISIBLE = 0.06          # por debajo de esto no se dibuja nada encima
 GIRO_MANO = 0.26               # radianes ≈ 15°
 GIRO_PIE = 0.10
 MIEMBROS = ("mano_izq", "mano_der", "pie_izq", "pie_der")
+BOCA_ABRE = 0.55               # cuánto crece la boca al hablar, en su propia altura
 
 
 class Rig:
@@ -57,12 +58,16 @@ class Rig:
         """Si esta pose tiene manos y pies separados y se pueden girar."""
         return all(self.tiene(indice, m) for m in MIEMBROS)
 
+    def habla(self, indice: int) -> bool:
+        return self.tiene(indice, "boca")
+
     def dibujar(self, cr, indice: int, cierre: float = 0.0,
-                balanceo: float = 0.0) -> bool:
+                balanceo: float = 0.0, apertura: float = 0.0) -> bool:
         """Pinta la pose entera. Devuelve False si le faltan capas.
 
         `balanceo` va de -1 a 1 y mueve manos y pies en oposición, que es como
-        se balancea cualquier bicho al andar o al esperar.
+        se balancea cualquier bicho al andar o al esperar. `apertura` va de 0 a
+        1 y abre la boca.
         """
         base = self._superficie(f"base-{indice}")
         if base is None:
@@ -79,10 +84,39 @@ class Rig:
             if nombre.startswith("ojo"):
                 self._ojo(cr, capa, datos, cierre,
                           base.get_width(), base.get_height())
+            elif nombre == "boca":
+                self._boca(cr, capa, datos, apertura,
+                           base.get_width(), base.get_height())
             else:
                 self._miembro(cr, capa, datos, nombre, balanceo,
                               base.get_width(), base.get_height())
         return True
+
+    def _boca(self, cr, capa, datos, apertura, ancho, alto):
+        """La boca se estira desde su borde de arriba, que es por donde se abre.
+
+        Al cerrarse del todo no desaparece: se queda en su tamaño del dibujo,
+        que ya es una boca. Lo que se ve por debajo, si crece, es el hocico
+        reconstruido.
+        """
+        apertura = max(0.0, min(1.0, apertura))
+        if apertura <= 0.01:
+            cr.save()
+            cr.set_source_surface(capa, 0, 0)
+            cr.get_source().set_filter(cairo.FILTER_BEST)
+            cr.paint()
+            cr.restore()
+            return
+        x0, y0, x1, y1 = datos["caja"]
+        techo = y0 * alto
+        cr.save()
+        cr.translate(0, techo)
+        cr.scale(1.0, 1.0 + BOCA_ABRE * apertura)
+        cr.translate(0, -techo)
+        cr.set_source_surface(capa, 0, 0)
+        cr.get_source().set_filter(cairo.FILTER_BEST)
+        cr.paint()
+        cr.restore()
 
     def _miembro(self, cr, capa, datos, nombre, balanceo, ancho, alto):
         """Una mano o un pie, girando desde donde nace."""

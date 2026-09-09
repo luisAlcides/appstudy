@@ -143,11 +143,13 @@ PIE_ALTURA = 0.82
 SIN_MIEMBROS = (5,)            # dormida y hecha un ovillo: no hay nada que girar
 MIEMBROS_PAREJOS = 0.20        # dos manos van más o menos a la misma altura
 
-# La boca queda fuera, y conviene saber por qué antes de volver a intentarlo:
-# el rosa de la lengua es casi el mismo que el sombreado rosado del cuello, y
-# el negro de la cavidad es el mismo que el de la pupila. Con esta paleta, los
-# grupos que salen son pelaje, no boca. Hace falta otro anclaje —la cavidad
-# oscura rodeada de crema— y eso toca la clasificación del ojo, que sí funciona.
+# La boca no se puede buscar por color suelto: su rosa es casi el del sombreado
+# del cuello y el negro de la cavidad es el de la pupila. Se busca por posición
+# **respecto a los ojos**, que sí se encuentran: la mancha oscura que queda
+# debajo de ellos y entre ellos es la boca abierta.
+BOCA_MIN = 250
+BOCA_MARGEN = 0.04             # se admite algo por fuera del ancho de los ojos
+BOCA_CAIDA = 0.30              # y como mucho esto por debajo de los ojos
 
 
 def _proporcion(grupo) -> float:
@@ -174,8 +176,28 @@ def piezas(superficie, indice: int) -> dict:
             if otro["centro"][0] - uno["centro"][0] >= OJO_SEPARACION:
                 salida["ojo_izq"] = uno["pixeles"]
                 salida["ojo_der"] = otro["pixeles"]
+    if "ojo_izq" in salida:
+        boca = _boca(superficie, salida, clasificado)
+        if boca:
+            salida["boca"] = boca
     salida.update(_miembros(superficie, indice, clasificado))
     return salida
+
+
+def _boca(superficie, encontradas, clasificado):
+    """La cavidad oscura que queda bajo los ojos y entre ellos.
+
+    Depende de haber encontrado los ojos, y por eso va después: sin ese anclaje
+    no hay forma de distinguir la boca del sombreado del cuello.
+    """
+    izq = caja_de(superficie, encontradas["ojo_izq"])
+    der = caja_de(superficie, encontradas["ojo_der"])
+    x0, x1 = izq[0] - BOCA_MARGEN, der[2] + BOCA_MARGEN
+    bajo = max(izq[3], der[3])
+    candidatos = [g for g in grupos(superficie, {"ojo"}, BOCA_MIN, clasificado)
+                  if bajo < g["centro"][1] < bajo + BOCA_CAIDA
+                  and x0 <= g["centro"][0] <= x1]
+    return candidatos[0]["pixeles"] if candidatos else None
 
 
 def _miembros(superficie, indice, clasificado) -> dict:
@@ -324,6 +346,26 @@ def recortar(superficie, pixeles):
             destino[k + c] = origen[j + c]
     salida.mark_dirty()
     return salida
+
+
+def contar_oscuros(superficie, pixeles, umbral: int = 90) -> int:
+    """Cuántos de esos píxeles son oscuros. La cavidad de la boca lo es."""
+    superficie.flush()
+    datos = superficie.get_data()
+    ancho, paso = superficie.get_width(), superficie.get_stride()
+    total = 0
+    for i in pixeles:
+        y, x = divmod(i, ancho)
+        j = y * paso + x * 4
+        a = datos[j + 3]
+        if a < MIN_ALFA:
+            continue
+        r = min(255, datos[j + 2] * 255 // a)
+        g = min(255, datos[j + 1] * 255 // a)
+        b = min(255, datos[j] * 255 // a)
+        if (r * 299 + g * 587 + b * 114) // 1000 < umbral:
+            total += 1
+    return total
 
 
 def contar_color(superficie, pixeles, color: str) -> int:

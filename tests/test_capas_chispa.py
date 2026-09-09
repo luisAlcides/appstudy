@@ -170,9 +170,9 @@ class ReconstruirTest(BaseTemporal):
         self.assertTrue((capas.carpeta() / "0-ojo_izq.png").exists())
         self.assertTrue((capas.carpeta() / "0-ojo_der.png").exists())
         self.assertFalse((capas.carpeta() / "3-ojo_izq.png").exists())
-        # La pose de reposo saca las seis piezas: dos ojos, dos manos, dos pies
+        # La pose de reposo saca las siete piezas: ojos, boca, manos y pies
         self.assertEqual(sorted(m["poses"]["0"]),
-                         ["mano_der", "mano_izq", "ojo_der", "ojo_izq",
+                         ["boca", "mano_der", "mano_izq", "ojo_der", "ojo_izq",
                           "pie_der", "pie_izq"])
         # La de celebrar ya viene con los ojos cerrados y las manos en alto
         self.assertNotIn("ojo_izq", m["poses"]["3"])

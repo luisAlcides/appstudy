@@ -414,9 +414,16 @@ Vale el mismo principio que con los ojos: **una pose que no dé piezas limpias n
 se anima**, porque es preferible que no mueva las manos a que mueva medio
 cuerpo.
 
-La boca se quedó fuera con un motivo concreto: el rosa de la lengua es casi el
-del sombreado del cuello y el negro de la cavidad es el de la pupila, así que
-con esta paleta no se distingue.
+**La boca también se mueve** mientras Chispa habla. Encontrarla costó un rodeo:
+por color es imposible —el rosa de la lengua es casi el del sombreado del cuello
+y el negro de la cavidad es el de la pupila—, así que se busca **por su posición
+respecto a los ojos**, que sí se encuentran: la mancha oscura que queda debajo
+de ellos y entre ellos es la boca. Se estira desde su borde de arriba, que es
+por donde se abre una boca de verdad, y lo que asoma por debajo es el hocico
+reconstruido.
+
+En la pose del portátil la boca es una sonrisa cerrada, sin cavidad que abrir,
+así que ahí no se anima.
 
 ### Sonido
 

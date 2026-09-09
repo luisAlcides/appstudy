@@ -257,12 +257,21 @@ class Chispa(Creature):
         if rig is None:
             return False
         cierre = self._cierre_parpadeo() if rig.parpadea(indice) else 0.0
+        apertura = self._apertura_boca() if rig.habla(indice) else 0.0
         if rig.mueve_miembros(indice):
             balanceo = 0.0 if self.reduced_motion else math.sin(self.t * 1.9)
-            return rig.dibujar(cr, indice, cierre, balanceo * intensidad)
-        if cierre > 0:
-            return rig.dibujar(cr, indice, cierre)
+            return rig.dibujar(cr, indice, cierre, balanceo * intensidad, apertura)
+        if cierre > 0 or apertura > 0:
+            return rig.dibujar(cr, indice, cierre, 0.0, apertura)
         return False
+
+    def _apertura_boca(self) -> float:
+        """Cuánto abre la boca ahora. Solo mientras habla."""
+        if self.reduced_motion or self.t >= self.hablando_hasta:
+            return 0.0
+        # Dos frecuencias: una boca que sube y baja a compás parece un juguete
+        onda = math.sin(self.t * 13) * 0.6 + math.sin(self.t * 7.3) * 0.4
+        return max(0.0, onda)
         # Anclajes de la cara en las seis celdas del atlas de referencia.
         # Se expresan como fracciones para admitir un PNG de mayor resolución.
         caras = ((.625, .412), (.543, .422), (.559, .516),

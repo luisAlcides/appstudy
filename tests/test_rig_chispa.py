@@ -182,3 +182,84 @@ class MiembrosTest(BaseTemporal):
         """Más de esto y la mano se despega del cuerpo: se ve el truco."""
         self.assertLessEqual(rig_chispa.GIRO_MANO, 0.27)
         self.assertLess(rig_chispa.GIRO_PIE, rig_chispa.GIRO_MANO)
+
+
+class BocaTest(BaseTemporal):
+    @classmethod
+    def setUpClass(cls):
+        from appstudy.chispa import cargar_poses
+        if cargar_poses() is None:
+            raise unittest.SkipTest("Requiere el atlas de Chispa")
+
+    def setUp(self):
+        super().setUp()
+        capas.extraer()
+        self.rig = rig_chispa.cargar()
+
+    def pintar(self, apertura):
+        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, 512, 512)
+        self.assertTrue(self.rig.dibujar(cairo.Context(s), 0, 0.0, 0.0, apertura))
+        s.flush()
+        return s
+
+    def hueco_boca(self):
+        x0, y0, x1, y1 = self.rig.piezas(0)["boca"]["caja"]
+        # La zona por debajo de la boca: es donde crece al abrirse
+        return {y * 512 + x
+                for y in range(int(y1 * 512), int((y1 + 0.10) * 512))
+                for x in range(int(x0 * 512), int(x1 * 512))}
+
+    def test_las_poses_con_la_boca_abierta_pueden_hablar(self):
+        for indice in (0, 1, 4):
+            with self.subTest(pose=indice):
+                self.assertTrue(self.rig.habla(indice))
+
+    def test_la_sonrisa_cerrada_y_el_ovillo_no_hablan(self):
+        for indice in (2, 5):
+            with self.subTest(pose=indice):
+                self.assertFalse(self.rig.habla(indice))
+
+    def test_al_abrir_la_boca_baja_por_donde_antes_habia_hocico(self):
+        """La cavidad es oscura: se cuenta cuánta oscuridad gana por debajo."""
+        zona = self.hueco_boca()
+        cerrada = capas.contar_oscuros(self.pintar(0.0), zona)
+        abierta = capas.contar_oscuros(self.pintar(1.0), zona)
+        self.assertGreater(abierta, cerrada * 4, "la boca no ha crecido")
+
+    def test_a_medio_abrir_queda_entre_las_dos(self):
+        zona = self.hueco_boca()
+        cuenta = [capas.contar_oscuros(self.pintar(a), zona) for a in (0.0, 0.5, 1.0)]
+        self.assertLess(cuenta[0], cuenta[1])
+        self.assertLess(cuenta[1], cuenta[2])
+
+    def test_con_la_boca_cerrada_se_dibuja_como_el_atlas(self):
+        a = bytes(self.pintar(0.0).get_data())
+        b = bytes(self.pintar(0.0).get_data())
+        self.assertEqual(a, b)
+
+
+class BocaChispaTest(BaseTemporal):
+    def test_solo_abre_la_boca_mientras_habla(self):
+        from appstudy.chispa import Chispa
+        c = Chispa()
+        self.addCleanup(c.unparent)
+        c.t = 5.0
+        c.hablando_hasta = 0.0
+        self.assertEqual(c._apertura_boca(), 0.0)
+        c.hablando_hasta = 9.0
+        valores = []
+        for n in range(300):
+            c.t = 5.0 + n / 100
+            valores.append(c._apertura_boca())
+        self.assertGreater(max(valores), 0.5)
+        self.assertEqual(min(valores), 0.0, "la boca tiene que cerrarse entre sílabas")
+
+    def test_con_movimiento_reducido_la_boca_no_se_mueve(self):
+        from appstudy.chispa import Chispa
+        c = Chispa()
+        self.addCleanup(c.unparent)
+        c.reduced_motion = True
+        c.hablando_hasta = 99.0
+        for n in range(200):
+            c.t = n / 50
+            self.assertEqual(c._apertura_boca(), 0.0)
