@@ -74,10 +74,20 @@ class FiltrosTest(BaseTemporal):
                                 "Resistance", text=ingles)
         self.assertTrue(cosecha.filtrar(self.con, doc, plan)["ok"])
 
-    def test_una_fuente_solo_enlace_nunca_pasa_con_texto_completo(self):
+    def test_una_fuente_solo_enlace_entra_como_enlace_no_como_texto(self):
+        doc = self.doc(BUENO, provider="arxiv")
+        doc["summary"] = ("Un resumen suficientemente largo del artículo como para "
+                          "que merezca la pena guardarlo junto a su enlace y poder "
+                          "decidir si abrirlo más tarde con calma.")
+        r = cosecha.filtrar(self.con, doc, self.plan)
+        self.assertTrue(r["ok"])
+        self.assertTrue(r["enlace"])
+        self.assertIn("solo enlace", r["motivo"])
+
+    def test_una_fuente_solo_enlace_sin_resumen_no_entra(self):
         r = cosecha.filtrar(self.con, self.doc(BUENO, provider="arxiv"), self.plan)
         self.assertFalse(r["ok"])
-        self.assertIn("licencia", r["motivo"])
+        self.assertIn("resumen", r["motivo"])
 
     def test_un_texto_ya_importado_se_rechaza_por_duplicado(self):
         doc = self.doc(BUENO)

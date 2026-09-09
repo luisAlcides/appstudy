@@ -133,7 +133,7 @@ class AnimacionBitTest(unittest.TestCase):
         self.assertLess(alpha, 100)
 
     def test_gestos_nuevos_se_dibujan_y_vuelven_suavemente(self):
-        for nombre in ("guino", "reverencia", "curiosear", "victoria"):
+        for nombre in ("guino", "reverencia", "curiosear", "victoria", "enojado"):
             bit = BitSinVentana()
             bit.actuar(nombre)
             dur = bit.DURACION_GESTO[nombre]
@@ -156,6 +156,41 @@ class AnimacionBitTest(unittest.TestCase):
             bit.tick(.1)
         self.assertEqual(elegir.call_args.args[0], ("parpadeo", "mirar"))
         self.assertIsNotNone(bit.phase("reverencia"))
+
+    def test_reverencia_baja_la_cabeza_y_se_detiene_en_el_centro(self):
+        bit = BitSinVentana()
+        bit.actuar("reverencia")
+        bit.t = bit.DURACION_GESTO["reverencia"] / 2
+        con_gesto = bit._pose()
+        bit.anims.clear()
+        sin_gesto = bit._pose()
+        self.assertGreater(con_gesto[0] - sin_gesto[0], 10)
+        self.assertLess(con_gesto[2], sin_gesto[2] - .2)
+        self.assertEqual(bit.presencia_gesto(.3), 1)
+        self.assertEqual(bit.presencia_gesto(.7), 1)
+
+    def test_lupa_visible_tambien_con_movimiento_reducido(self):
+        bit = BitSinVentana()
+        bit.reduced_motion = True
+        def pintar():
+            superficie = cairo.ImageSurface(cairo.FORMAT_ARGB32, *pet.DISENO)
+            bit.draw(None, cairo.Context(superficie), *pet.DISENO)
+            return bytes(superficie.get_data())
+        antes = pintar()
+        bit.actuar("curiosear")
+        bit.t = 1
+        self.assertNotEqual(antes, pintar())
+        self.assertEqual(bit._pose(), (0, 1, 1, 0))
+
+    def test_enfado_no_tapa_celebracion_y_respeta_sueno(self):
+        bit = BitSinVentana()
+        bit.enojado = True
+        self.assertTrue(bit.enfadada())
+        bit.celebrar()
+        self.assertFalse(bit.enfadada())
+        bit.anims.clear()
+        bit.mood = "dormido"
+        self.assertFalse(bit.enfadada())
 
     def test_ensenar_y_hablar_solo_permite_idle_tranquilo(self):
         for atributo, valor in (("teaching", True), ("charlando", True), ("hablando_hasta", 10)):

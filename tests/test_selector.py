@@ -64,3 +64,64 @@ class SelectorTest(BaseTemporal):
     def test_un_mazo_sin_fuentes_declaradas_no_da_plan(self):
         self.mazo_de("cocina", "Cocina")
         self.assertIsNone(selector.plan(self.con))
+
+
+class RotacionTest(BaseTemporal):
+    def mazo_de(self, key, name):
+        did = db.upsert_deck(self.con, key, name, "📘", "#3584e4", 1,
+                             ["Básico", "Intermedio", "Avanzado"])
+        self.con.commit()
+        return did
+
+    def alimentado(self, deck_id, hace_dias):
+        import time
+        self.con.execute("INSERT INTO source_imports VALUES(?,?,?,?,?,?,?)",
+                         ("wikipedia_es", f"https://es.wikipedia.org/wiki/x{deck_id}",
+                          deck_id, None, "h", "{}", time.time() - hace_dias * 86400))
+        self.con.commit()
+
+    def test_no_alimenta_el_mismo_mazo_dos_dias_seguidos(self):
+        recien = self.mazo_de("electricidad", "Electricidad")
+        self.mazo_de("linux", "Linux")
+        self.alimentado(recien, hace_dias=0)
+        self.assertEqual(selector.plan(self.con)["deck"]["key"], "linux")
+
+    def test_si_es_el_unico_mazo_se_repite_sin_remedio(self):
+        solo = self.mazo_de("linux", "Linux")
+        self.alimentado(solo, hace_dias=0)
+        self.assertEqual(selector.plan(self.con)["deck"]["key"], "linux")
+
+    def test_pasada_la_espera_vuelve_a_tocarle(self):
+        recien = self.mazo_de("electricidad", "Electricidad")
+        otro = self.mazo_de("linux", "Linux")
+        for i in range(10):
+            db.add_card(self.con, otro, "linux", "card", f"P{i}", "R")
+        self.alimentado(recien, hace_dias=selector.DESCANSO_DIAS + 1)
+        self.assertEqual(selector.plan(self.con)["deck"]["key"], "electricidad")
+
+
+class TemaTest(BaseTemporal):
+    def test_el_termino_de_busqueda_es_el_tema_no_el_nombre_largo_del_mazo(self):
+        db.upsert_deck(self.con, "python", "Python y Análisis de Datos (freeCodeCamp)",
+                       "🐍", "#3584e4", 1, ["Básico", "Intermedio", "Avanzado"])
+        self.con.commit()
+        self.assertEqual(selector.plan(self.con)["terminos"], ["Python"])
+
+    def test_un_mazo_sin_tema_declarado_usa_su_nombre(self):
+        db.upsert_deck(self.con, "linux", "Linux", "🐧", "#3584e4", 1, ["Básico"])
+        self.con.commit()
+        self.assertEqual(selector.plan(self.con)["terminos"], ["Linux"])
+
+
+class IntentoTest(BaseTemporal):
+    def test_un_mazo_que_no_dio_nada_tambien_descansa(self):
+        import time
+        flojo = db.upsert_deck(self.con, "python", "Python", "🐍", "#3584e4", 1, ["Básico"])
+        otro = db.upsert_deck(self.con, "linux", "Linux", "🐧", "#3584e4", 2, ["Básico"])
+        for i in range(5):
+            db.add_card(self.con, otro, "linux", "card", f"P{i}", "R")
+        self.con.commit()
+        self.assertEqual(selector.plan(self.con)["deck"]["key"], "python")
+        # No se trajo nada, pero se intentó: mañana le toca a otro
+        selector.anotar_intento(self.con, flojo, time.time())
+        self.assertEqual(selector.plan(self.con)["deck"]["key"], "linux")

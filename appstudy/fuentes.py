@@ -164,6 +164,7 @@ def documento(provider, origin, title, text="", **extra):
 CADUCIDAD_INDICE = 30 * 86400
 MAX_INDICE = 20 * 1024 * 1024          # el sitemap de LibreTexts pasa de 3 MB
 MAX_POR_INDICE = 200
+RAIZ_INDICE = 6
 
 # Páginas de servicio: existen en todo wiki y en todo manual, y no son material
 # de estudio en ninguno
@@ -263,10 +264,21 @@ def indice(f, consulta="", refrescar=False):
             if not guardado:
                 raise
             pares = guardado["items"]
-    terminos = clave(consulta).split()
+    terminos = [t[:RAIZ_INDICE] for t in clave(consulta).split() if t]
+    if not terminos:
+        return [documento(f["id"], url, titulo, summary=f["nombre"])
+                for titulo, url in pares][:MAX_POR_INDICE]
+    # Con «todos los términos» no encontraría nada: los títulos de un índice son
+    # cortos y difícilmente contienen las tres palabras que se piden.
+    puntuados = []
+    for titulo, url in pares:
+        bajo = clave(titulo)
+        aciertos = sum(t in bajo for t in terminos)
+        if aciertos:
+            puntuados.append((aciertos, titulo, url))
+    puntuados.sort(key=lambda x: -x[0])
     return [documento(f["id"], url, titulo, summary=f["nombre"])
-            for titulo, url in pares
-            if all(t in clave(titulo) for t in terminos)][:MAX_POR_INDICE]
+            for _, titulo, url in puntuados][:MAX_POR_INDICE]
 
 
 def _mediawiki(f, consulta, corto=False):
@@ -445,6 +457,7 @@ def limpiar_titulo(titulo, provider):
     from . import catalogo
     f = catalogo._POR_ID.get(provider)
     sufijos = ["Wikipedia, la enciclopedia libre", "Wikipedia, the free encyclopedia",
+               "Wikipedia", "Wikcionario", "Wikiversity",
                "Wikilibros", "Wikiversidad", "Wiktionary, the free dictionary",
                "ArchWiki", "Gentoo Wiki"]
     if f:

@@ -62,6 +62,21 @@ HORAS_TRISTE = 72
 # Y cada cuánto, como mucho, te lo echa en cara
 HORAS_REPROCHE = 3
 
+
+def debe_enfadarse(horas, pendientes, dormida=False):
+    return not dormida and horas >= 24 and pendientes > 0
+
+
+def enfado_por_estudio(con, pendientes, dormida=False, ahora=None):
+    """Repasar y avanzar/terminar una lectura desactivan el enfado."""
+    ahora = time.time() if ahora is None else ahora
+    ultima = con.execute("""SELECT MAX(ts) FROM (
+        SELECT MAX(ts) AS ts FROM log
+        UNION ALL SELECT MAX(ts) FROM reading WHERE leido=1 OR avance>0
+    )""").fetchone()[0]
+    horas = max(0, (ahora - ultima) / 3600) if ultima else 48
+    return debe_enfadarse(horas, pendientes, dormida)
+
 # Bit está dibujado en un lienzo fijo de 152x184 y luego se escala al tamaño
 # real del widget: para hacerlo más grande o más pequeño basta con tocar ANCHO y
 # ALTO_PET, que las proporciones se mantienen solas.
@@ -272,13 +287,19 @@ class Creature(Gtk.DrawingArea):
     # Lo que hace cuando nadie lo molesta (repetido = más probable). A esta
     # base se le suman gestos propios de cada ánimo en `_gestos_idle`.
     IDLES = ("parpadeo", "parpadeo", "parpadeo", "parpadeo2", "mirar", "mirar",
-             "antena", "salto", "estirar", "ladear", "asentir")
+             "antena", "salto", "estirar", "ladear", "asentir", "curiosear", "guino")
     DURACION_GESTO = {
         "antena": 0.9, "salto": 0.68, "estirar": 1.3, "ladear": 1.4,
         "asentir": 0.95, "sorpresa": 0.9, "risa": 1.25, "baile": 1.9,
         "bostezo": 1.8, "suspiro": 1.35, "tiritar": 1.15,
+        "guino": 1.15, "reverencia": 2.4, "curiosear": 3.2, "victoria": 1.7,
+        "enojado": 2.2,
     }
-    EXPRESIONES = {"sorpresa", "risa", "baile", "bostezo", "suspiro", "tiritar"}
+    EXPRESIONES = {"sorpresa", "risa", "baile", "bostezo", "suspiro", "tiritar",
+                   "guino", "reverencia", "curiosear", "victoria", "enojado"}
+    GESTOS_MENU = (("guino", "😉 Guiño"), ("reverencia", "🙇 Reverencia"),
+                   ("curiosear", "🔎 Curiosidad"), ("victoria", "🙌 Victoria"),
+                   ("baile", "🎵 Baile"), ("enojado", "😠 Enojado"))
 
     def __init__(self, escala=1.0):
         super().__init__()
@@ -390,7 +411,7 @@ class Creature(Gtk.DrawingArea):
 
     def celebrar(self):
         self.play("salto", 0.68)
-        self.play("risa", 1.25)
+        self.play("victoria", self.DURACION_GESTO["victoria"])
         self.play("brillo", 1.5)
         self.emitir("corazon", 4)
         self.emitir("chispa", 9)
@@ -401,12 +422,24 @@ class Creature(Gtk.DrawingArea):
         self.emitir("gota", 2)
 
     def pensar(self):
-        self.play("ladear", 1.2)
+        self.play("curiosear", self.DURACION_GESTO["curiosear"])
         self.emitir("nota", 2)
+
+    def actuar(self, nombre):
+        """Gesto pedido por el usuario; no mueve ni redimensiona la ventana."""
+        if nombre not in dict(self.GESTOS_MENU):
+            return
+        if nombre == "victoria":
+            self.celebrar()
+        else:
+            self.play(nombre, self.DURACION_GESTO[nombre])
+        self.next_idle = self.t + self.DURACION_GESTO[nombre] + 2
 
     def _gestos_idle(self):
         """Gestos disponibles ahora: Bit se comporta según cómo se siente."""
         gestos = list(self.IDLES)
+        if getattr(self, "enojado", False):
+            gestos = ["parpadeo", "mirar", "enojado", "suspiro"]
         if self.mood == "feliz":
             gestos += ["risa", "risa", "baile", "baile"]
         elif self.mood == "aburrido":
@@ -417,13 +450,15 @@ class Creature(Gtk.DrawingArea):
             gestos += ["suspiro", "suspiro", "tiritar", "bostezo"]
         else:
             gestos += ["sorpresa", "asentir"]
-        return gestos
+        ultimo = getattr(self, "_ultimo_idle", None)
+        return [g for g in gestos if g != ultimo] or list(self.IDLES)
 
     def emitir(self, kind, n):
         if self.reduced_motion:
             return
         arriba = kind in ("corazon", "chispa", "nota")
-        for _ in range(n):
+        # Interacciones rápidas no deben acumular una nube de partículas.
+        for _ in range(min(n, max(0, 48 - len(self.particulas)))):
             self.particulas.append({
                 "kind": kind,
                 "x": random.uniform(-24, 24),
@@ -445,12 +480,17 @@ class Creature(Gtk.DrawingArea):
 
     def on_enter(self, _c, x, y):
         self.on_motion(_c, x, y)
+        if (self.mood == "dormido" or self.teaching or self.charlando
+                or self.t < self.hablando_hasta
+                or self.t < getattr(self, "_proximo_saludo_cursor", 0)):
+            return
+        self._proximo_saludo_cursor = self.t + 8
         self.play("antena", 0.7)
         # A veces Bit se sorprende al verte llegar; no lo repite si ya está
         # expresando otra cosa importante.
-        expresivos = {"risa", "baile", "bostezo", "suspiro", "tiritar"}
+        expresivos = self.EXPRESIONES
         if not expresivos.intersection(self.anims) and random.random() < 0.35:
-            self.play("sorpresa", self.DURACION_GESTO["sorpresa"])
+            self.play("guino", self.DURACION_GESTO["guino"])
 
     def on_leave(self, _c):
         self.hover = False
@@ -509,7 +549,12 @@ class Creature(Gtk.DrawingArea):
         if ahora < self.next_idle:
             return
         self.next_idle = ahora + random.uniform(2.2, 5.2)
-        gesto = random.choice(self._gestos_idle())
+        # Escuchar y leer tienen prioridad sobre los gestos espontáneos.
+        # Durante una reacción explícita tampoco se le cambia la expresión.
+        tranquilo = (self.teaching or self.charlando or ahora < self.hablando_hasta
+                     or bool(self.EXPRESIONES.intersection(self.anims)) or self.reduced_motion)
+        gesto = random.choice(("parpadeo", "mirar") if tranquilo else self._gestos_idle())
+        self._ultimo_idle = gesto
         if gesto == "parpadeo":
             self.play("parpadeo", 0.16)
         elif gesto == "parpadeo2":
@@ -667,6 +712,36 @@ class Creature(Gtk.DrawingArea):
             rot += temblor * 0.035
             dy += abs(temblor) * 1.2
 
+        # Envolventes con velocidad cero en ambos extremos: regresan a su
+        # postura sin tirones y permanecen dentro del lienzo de la mascota.
+        p = self.phase_motion("guino")
+        if p is not None:
+            k = math.sin(math.pi * p) ** 2
+            rot -= 0.09 * k
+            dy -= 1.5 * k
+        p = self.phase_motion("reverencia")
+        if p is not None:
+            k = self.presencia_gesto(p)
+            dy += 14 * k
+            sx += 0.10 * k
+            sy -= 0.28 * k
+            rot += 0.035 * k
+        p = self.phase_motion("curiosear")
+        if p is not None:
+            k = math.sin(math.pi * p) ** 2
+            rot += 0.035 * math.sin(math.tau * p) * k
+            dy -= 1.5 * k
+        p = self.phase_motion("enojado")
+        if p is not None:
+            k = math.sin(math.pi * p) ** 2
+            dy += 2 * abs(math.sin(p * math.pi * 6)) * k
+            rot += 0.025 * math.sin(p * math.pi * 6) * k
+        p = self.phase_motion("victoria")
+        if p is not None:
+            k = math.sin(math.pi * p) ** 2
+            dy -= 4 * k
+            sy += 0.04 * k
+
         # Se acerca con curiosidad al cursor, pero con inercia para no dar un salto.
         sx += 0.025 * self.hover_suave
         sy += 0.025 * self.hover_suave
@@ -734,6 +809,7 @@ class Creature(Gtk.DrawingArea):
         cr.restore()
         self._accesorio(cr, color)
         cr.restore()
+        self._utileria_gestos(cr)
         cr.restore()
 
         self._particulas(cr, cx, base + dy)
@@ -741,6 +817,102 @@ class Creature(Gtk.DrawingArea):
         cr.restore()
 
     # -- piezas ---------------------------------------------------------------
+
+    def presencia_gesto(self, p):
+        """Entrada y salida suaves con una pausa central para leer el gesto."""
+        return suave(min(1.0, p / .25)) * suave(min(1.0, (1 - p) / .25))
+
+    def enfadada(self):
+        if self.mood == "dormido":
+            return False
+        if self.phase("enojado") is not None:
+            return True
+        return (getattr(self, "enojado", False)
+                and not any(self.phase(n) is not None for n in self.EXPRESIONES))
+
+    def _utileria_gestos(self, cr):
+        """Manos y objetos delante del cuerpo, para que no queden ocultos."""
+        p = self.phase("curiosear")
+        if p is not None and self.mood != "dormido":
+            k = 1 if self.reduced_motion else self.presencia_gesto(p)
+            cr.save()
+            cr.translate(18 + 18 * (1 - k), -2 + 16 * (1 - k))
+            cr.push_group()
+            # Mango de madera y borde metálico de la lupa.
+            cr.set_line_cap(cairo.LINE_CAP_ROUND)
+            cr.move_to(13, 13)
+            cr.line_to(29, 31)
+            cr.set_source_rgb(.35, .22, .14)
+            cr.set_line_width(9)
+            cr.stroke()
+            cr.arc(0, 0, 20, 0, math.tau)
+            cr.set_source_rgba(.79, .93, .98, .95)
+            cr.fill_preserve()
+            cr.set_source_rgb(.19, .32, .39)
+            cr.set_line_width(4)
+            cr.stroke()
+            # Ojo ampliado: hace que la lupa tenga una función visual clara.
+            cr.save()
+            cr.scale(.85, 1.1)
+            cr.arc(0, 0, 12, 0, math.tau)
+            cr.set_source_rgb(1, .99, .96)
+            cr.fill()
+            cr.restore()
+            cr.arc(self.mirada[0] * 2, self.mirada[1] * 2, 7, 0, math.tau)
+            cr.set_source_rgb(.28, .18, .12)
+            cr.fill()
+            cr.arc(-2, -3, 2.5, 0, math.tau)
+            cr.set_source_rgb(1, 1, 1)
+            cr.fill()
+            cr.arc(0, 0, 15.5, math.pi * 1.05, math.pi * 1.40)
+            cr.set_source_rgba(1, 1, 1, .8)
+            cr.set_line_width(2.5)
+            cr.stroke()
+            cr.arc(24, 25, 6.5, 0, math.tau)
+            cr.set_source_rgba(*_hex(CREMA))
+            cr.fill_preserve()
+            cr.set_source_rgba(.34, .24, .18, .6)
+            cr.set_line_width(1.5)
+            cr.stroke()
+            cr.pop_group_to_source()
+            cr.paint_with_alpha(k)
+            cr.restore()
+
+        p = self.phase("reverencia")
+        if p is not None:
+            k = 1 if self.reduced_motion else self.presencia_gesto(p)
+            for lado in (-1, 1):
+                cr.save()
+                cr.translate(lado * (27 - 23 * k), 21)
+                cr.scale(.72, 1)
+                cr.arc(0, 0, 8, 0, math.tau)
+                cr.set_source_rgba(*_hex(CREMA_CLARO))
+                cr.fill_preserve()
+                cr.set_source_rgba(.34, .24, .18, .55)
+                cr.set_line_width(1.5)
+                cr.stroke()
+                cr.restore()
+
+        if self.enfadada():
+            # Brazos cruzados y marca de enfado: visible incluso sin movimiento.
+            for lado in (-1, 1):
+                cr.move_to(lado * 29, 15)
+                cr.line_to(-lado * 13, 24)
+                cr.set_line_cap(cairo.LINE_CAP_ROUND)
+                cr.set_source_rgba(.34, .24, .18, .75)
+                cr.set_line_width(12)
+                cr.stroke_preserve()
+                cr.set_source_rgba(*_hex(CREMA))
+                cr.set_line_width(9)
+                cr.stroke()
+            cr.set_source_rgb(.77, .19, .14)
+            cr.set_line_width(2.5)
+            for lado in (-1, 1):
+                for vertical in (-1, 1):
+                    cr.move_to(43 + lado * 2, -36 + vertical * 8)
+                    cr.line_to(43 + lado * 2, -36 + vertical * 2)
+                    cr.line_to(43 + lado * 8, -36 + vertical * 2)
+                    cr.stroke()
 
     RX, RY = 39, 35                       # mejillas amplias, silueta de mochi
 
@@ -1092,9 +1264,20 @@ class Creature(Gtk.DrawingArea):
         sorpresa = self.phase_motion("sorpresa")
         bostezo = self.phase_motion("bostezo")
         suspiro = self.phase_motion("suspiro")
+        victoria = self.phase_motion("victoria")
+        reverencia = self.phase_motion("reverencia")
+        curiosear = self.phase_motion("curiosear")
         for lado in (1, -1):
             ang = 0.62 + vaiven - 0.10 * self.hover_suave
             largo = 15 + 1.2 * self.hover_suave
+            if victoria is not None:
+                k = math.sin(math.pi * victoria) ** 2
+                ang -= 1.55 * k
+                largo += 18 * k
+            if reverencia is not None:
+                ang += 0.42 * math.sin(math.pi * reverencia) ** 2
+            if curiosear is not None and lado == 1:
+                ang += 0.15 * self.presencia_gesto(curiosear)
             if baile is not None:
                 envolvente = math.sin(math.pi * baile)
                 ang -= (0.75 + lado * math.sin(baile * math.pi * 6) * 0.55) * envolvente
@@ -1164,13 +1347,23 @@ class Creature(Gtk.DrawingArea):
             apertura *= max(0.08, 1 - 1.15 * pulso(risa))
         if bostezo is not None:
             apertura *= max(0.06, 1 - 1.05 * pulso(bostezo))
+        reverencia = self.phase("reverencia")
+        if reverencia is not None:
+            apertura *= max(.04, 1 - self.presencia_gesto(reverencia))
+        if self.enfadada():
+            apertura *= .68
         cerrado = apertura < 0.16
+        apertura_base = apertura
+        guino = self.phase("guino")
 
         mx, my = self.mirada[0] * 3.0, self.mirada[1] * 2.2
         pupila_sorpresa = pulso(sorpresa) if sorpresa is not None else 0.0
         for dx in (-13.5, 13.5):
+            apertura = apertura_base
+            if guino is not None and dx > 0 and not dormido:
+                apertura *= max(0.04, 1 - 1.2 * math.sin(math.pi * guino) ** 2)
             ex, ey = dx, -5
-            if cerrado:                 # ojo cerrado: un arco tranquilo
+            if apertura < 0.16:         # ojo cerrado: un arco tranquilo
                 curva = -5.8 if self.mood == "feliz" or risa is not None else 4.8
                 cr.move_to(ex - 7.5, ey)
                 cr.curve_to(ex - 2.4, ey + curva, ex + 2.4, ey + curva, ex + 7.5, ey)
@@ -1254,7 +1447,8 @@ class Creature(Gtk.DrawingArea):
 
     def _cachetes(self, cr, color):
         fuerte = (self.mood == "feliz" or self.phase("brillo") is not None or
-                  self.phase("risa") is not None or self.phase("baile") is not None)
+                  self.phase("risa") is not None or self.phase("baile") is not None
+                  or self.phase("guino") is not None or self.phase("victoria") is not None)
         for dx in (-23, 23):
             g = cairo.RadialGradient(dx, 8, 1, dx, 8, 8)
             intensidad = 0.40 if fuerte else 0.22
@@ -1310,6 +1504,9 @@ class Creature(Gtk.DrawingArea):
             inclinacion -= 0.12 * pulso(risa)
         if bostezo is not None:
             alto += 1.5 * pulso(bostezo)
+        if self.enfadada():
+            inclinacion = -.55
+            alto = -17
         marcada = self.mood in ("triste", "hambre", "aburrido", "feliz")
         cr.set_source_rgba(*TINTA, 0.72 if marcada else 0.50)
         grosor = 2.7 if marcada else 2.4
@@ -1333,6 +1530,11 @@ class Creature(Gtk.DrawingArea):
         cr.set_source_rgba(*TINTA, 0.9)
         cr.set_line_width(2.7)
         cr.set_line_cap(cairo.LINE_CAP_ROUND)
+        if self.enfadada() and self.t >= self.hablando_hasta:
+            cr.move_to(-7, my + 1)
+            cr.curve_to(-3, my - 4, 3, my - 4, 7, my + 1)
+            cr.stroke()
+            return
         if self.t < self.hablando_hasta:          # habla: la boca se abre y cierra
             a = 3.0 if self.reduced_motion else 2.4 + abs(math.sin(self.t * 11)) * 4.6
             cr.save()
@@ -1382,7 +1584,8 @@ class Creature(Gtk.DrawingArea):
             cr.restore()
             cr.fill()
             return
-        if self.mood == "feliz" or risa is not None or baile is not None:
+        if (self.mood == "feliz" or risa is not None or baile is not None
+                or self.phase("victoria") is not None or self.phase("guino") is not None):
             # Sonrisa abierta, con lengua. En una carcajada crece al centro del gesto.
             fuerza = (pulso(risa) if risa is not None else
                       pulso(baile) * 0.55 if baile is not None else 0.35)
@@ -1621,6 +1824,10 @@ class PetWindow(Gtk.ApplicationWindow):
         self.con = con
         self.xid = None
         self.pos = None
+        self._auto_pos = None       # ajuste del globo; nunca es la posición elegida
+        self._position_ready = False
+        self._position_touched = False
+        self._mapped_once = False
         self.card = None            # tarjeta que está enseñando ahora
         self.shown_at = 0.0
         self.last_nag = time.time()
@@ -1676,6 +1883,10 @@ class PetWindow(Gtk.ApplicationWindow):
 
         handle = Gtk.WindowHandle(css_classes=["as-pet-handle"])
         handle.set_child(self.creature)
+        posicion = Gtk.GestureClick(button=1)
+        posicion.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        posicion.connect("pressed", self.position_interaction)
+        handle.add_controller(posicion)
         # Pegada a la izquierda: así la criatura no se desplaza cuando el globo
         # ensancha la ventana.
         handle.set_halign(Gtk.Align.START)
@@ -1708,7 +1919,8 @@ class PetWindow(Gtk.ApplicationWindow):
 
         self.connect("map", self.on_map)
         GLib.timeout_add_seconds(CHECK_EVERY, self.on_check)
-        GLib.timeout_add_seconds(30, self.save_position)
+        GLib.timeout_add_seconds(3, self.save_position)
+        app.connect("shutdown", lambda *_: self.save_position())
         self.refresh_stats()
         # El oído tarda un segundo en cargar su modelo: se hace después de que la
         # ventana esté puesta para no retrasar la aparición de Bit.
@@ -1730,7 +1942,10 @@ class PetWindow(Gtk.ApplicationWindow):
                   file=sys.stderr)
             return
         self.keep_above()
-        GLib.timeout_add_seconds(2, self.restore_position)
+        if self._mapped_once:
+            return
+        self._mapped_once = True
+        GLib.timeout_add(150, self.restore_position)
         # Algunos gestores olvidan el estado al cambiar de espacio de trabajo o
         # al salir de pantalla completa, así que se vuelve a pedir a menudo.
         GLib.timeout_add_seconds(10, self.vigilar)
@@ -1783,32 +1998,62 @@ class PetWindow(Gtk.ApplicationWindow):
         return (coords["x"], coords["y"]) if len(coords) == 2 else None
 
     def move_to(self, x, y):
-        self.wmctrl("-e", f"0,{x},{y},-1,-1")
+        return self.wmctrl("-e", f"0,{x},{y},-1,-1")
+
+    def position_interaction(self, *_):
+        # Si ya empezó a arrastrar, la restauración de arranque no debe
+        # devolverla al sitio anterior cuando llegue su callback pendiente.
+        self._position_touched = True
 
     def restore_position(self):
+        self._position_ready = True
+        if self._position_touched:
+            self.save_position()
+            return False
         guardada = db.get_meta(self.con, "pet_pos")
         if guardada:
             try:
                 x, y = json.loads(guardada)
-                self.move_to(int(x), int(y))
-                self.pos = (int(x), int(y))
+                if self.move_to(int(x), int(y)):
+                    self.pos = (int(x), int(y))
                 return False
             except (ValueError, TypeError):
                 pass
         monitor = self.get_display().get_monitors().get_item(0)
         area = monitor.get_geometry() if monitor else None
-        x = (area.x + area.width - ANCHO - 40) if area else 900
-        y = (area.y + 60) if area else 80
-        self.move_to(x, y)
-        self.pos = (x, y)
+        escala = self.get_surface().get_scale_factor()
+        x = (area.x + area.width - self.get_width() - 40) * escala if area else 900
+        y = (area.y + 60) * escala if area else 80
+        if self.move_to(x, y):
+            self.pos = (x, y)
+            db.set_meta(self.con, "pet_pos", json.dumps(list(self.pos)))
         return False
 
     def save_position(self):
+        if not self._position_ready:
+            return True
         actual = self.read_position()
+        if self._auto_pos is not None and actual in (self._auto_pos, self.pos):
+            return True
         if actual and actual != self.pos:
             self.pos = actual
+            self._auto_pos = None
             db.set_meta(self.con, "pet_pos", json.dumps(list(actual)))
         return True
+
+    def finish_close_bubble(self):
+        """Deshacer solo el ajuste del globo, respetando un arrastre posterior."""
+        if self.bubble.get_reveal_child():
+            return False
+        self.clear_bubble()
+        if self._auto_pos is not None:
+            actual = self.read_position()
+            if actual == self._auto_pos and self.pos is not None:
+                if self.move_to(*self.pos):
+                    self._auto_pos = None
+            elif actual is not None:
+                self.save_position()
+        return False
 
     # ------------------------------------------------------------------ estado
 
@@ -1848,6 +2093,9 @@ class PetWindow(Gtk.ApplicationWindow):
             self.aplicar_escala_tarjeta()
             self.refrescar_globo_activo()
         self.creature.mood = mood
+        # Leer también cuenta: no reclamar repasos a quien acaba de leer.
+        self.creature.enojado = enfado_por_estudio(
+            self.con, t["pendientes"] + t["nuevas"], mood == "dormido")
         self.creature.energy = energia
         self.creature.abandono = 0.0 if mood == "dormido" else abandono
         self.creature.reduced_motion = (str(
@@ -1988,7 +2236,10 @@ class PetWindow(Gtk.ApplicationWindow):
             # Llevas días sin aparecer: antes que una tarjeta, te lo dice
             self.ultimo_reproche = time.time()
             self.sonar("aviso")
-            self.creature.desanimar()
+            if self.creature.enojado:
+                self.creature.actuar("enojado")
+            else:
+                self.creature.desanimar()
             self.say(reproche(t["horas"]), titulo=f"{NOMBRE} te echa de menos",
                      boton=("Va, enséñame algo", self.teach))
             return True
@@ -2072,31 +2323,44 @@ class PetWindow(Gtk.ApplicationWindow):
         self.creature.teaching = False
         self.creature.play("ladear", 0.9)
         self.last_nag = time.time()
-        GLib.timeout_add(260, lambda: (self.clear_bubble(), False)[1])
+        GLib.timeout_add(260, self.finish_close_bubble)
 
     def open_bubble(self):
+        self.save_position()
+        origen = self.read_position()
         self.sonar("globo")
         self.bubble.set_reveal_child(True)
         self.creature.teaching = True
         self.creature.hablar(1.3)
         self.last_nag = time.time()
         self.keep_above()
-        GLib.timeout_add(900, self.fit_on_screen)
+        GLib.timeout_add(900, self.fit_on_screen, origen)
 
-    def fit_on_screen(self):
+    def fit_on_screen(self, origen=None):
         """Si el globo se sale de la pantalla, acerca la ventana al borde."""
+        if not self.bubble.get_reveal_child() or not self._position_ready:
+            return False
         pos = self.read_position()
         if not pos:
+            return False
+        if origen is not None and pos != origen:
+            # Lo arrastró mientras se abría el globo: no contradecir ese gesto
+            # con el ajuste que quedó encolado antes de que lo moviera.
+            self.save_position()
             return False
         monitor = self.get_display().get_monitor_at_surface(self.get_surface())
         if monitor is None:
             return False
         area = monitor.get_geometry()
-        x = min(pos[0], area.x + area.width - self.get_width() - 8)
-        y = min(pos[1], area.y + area.height - self.get_height() - 8)
-        x, y = max(area.x + 8, x), max(area.y + 8, y)
+        # GDK da tamaños lógicos; xwininfo y wmctrl usan píxeles X11.
+        escala = self.get_surface().get_scale_factor()
+        x = min(pos[0], (area.x + area.width - self.get_width() - 8) * escala)
+        y = min(pos[1], (area.y + area.height - self.get_height() - 8) * escala)
+        x, y = max((area.x + 8) * escala, x), max((area.y + 8) * escala, y)
         if (x, y) != pos:
-            self.move_to(x, y)
+            self.save_position()
+            if self.move_to(x, y):
+                self._auto_pos = (x, y)
         return False
 
     def bubble_header(self, titulo, color=None, mazo=None, nivel=None):
@@ -3740,6 +4004,8 @@ class PetWindow(Gtk.ApplicationWindow):
     # ---------------------------------------------------------------- acciones
 
     def on_click(self, gesture, n_press, x, y):
+        if self.clic_del_menu(gesture):
+            return
         boton = gesture.get_current_button()
         if boton == 3:
             self.abrir_menu_en(self.creature, x, y)
@@ -3754,12 +4020,43 @@ class PetWindow(Gtk.ApplicationWindow):
                 self.teach()
 
     def on_bubble_click(self, gesture, n_press, x, y):
+        if self.clic_del_menu(gesture):
+            return
         boton = gesture.get_current_button()
         if boton == 3:
             self.abrir_menu_en(self.bubble_box, x, y)
             return
 
     # ------------------------------------------------ la tarjeta de acciones
+
+    def clic_del_menu(self, gesture):
+        # El popover cuelga de la criatura o del globo. Sus clics no deben
+        # activar también «enseñar»/«cerrar globo» en ese antecesor.
+        evento = gesture.get_current_event()
+        return evento is not None and evento.get_surface() != self.get_surface()
+
+    def boton_menu_gestos(self):
+        boton = Gtk.Button(label="Gestos de Bit →", css_classes=["flat", "as-menu-fila"])
+        # No usar _fila_accion: cierra el popover antes de ejecutar la acción.
+        boton.connect("clicked", lambda *_: self.mostrar_menu_gestos())
+        return boton
+
+    def mostrar_menu_gestos(self):
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6,
+                       css_classes=["as-menu-caja"])
+        volver = Gtk.Button(label="← Volver", css_classes=["flat"])
+        volver.connect("clicked", lambda *_: self.refrescar_menu())
+        caja.append(volver)
+        caja.append(Gtk.Label(label="Elige un gesto", xalign=0,
+                              css_classes=["as-bubble-title"]))
+        if self.creature.reduced_motion:
+            caja.append(Gtk.Label(label="Reducir movimiento está activo: solo verás las expresiones faciales. "
+                                        "Puedes cambiarlo en Ajustes → Apariencia y progreso.",
+                                  wrap=True, max_width_chars=32, xalign=0))
+        for nombre, etiqueta in Creature.GESTOS_MENU:
+            caja.append(self._fila_accion(etiqueta,
+                        lambda n=nombre: self.creature.actuar(n)))
+        self.menu.set_child(caja)
 
     def _boton_accion(self, etiqueta, cb, clases=("pill",), tooltip=None):
         b = Gtk.Button(label=etiqueta, css_classes=list(clases), hexpand=True)
@@ -3808,6 +4105,7 @@ class PetWindow(Gtk.ApplicationWindow):
         if t.get("nuevas_tope"):
             resumen += f"\n{t.get('nuevas_hoy', 0)} nuevas hoy · quedan {t.get('nuevas_restantes', 0)} de cupo"
         caja.append(Gtk.Label(label=resumen, xalign=0, css_classes=["as-menu-estado"]))
+        caja.append(self.boton_menu_gestos())
 
         # Lo que se usa a diario, en botones grandes y a dos columnas
         rejilla = Gtk.Grid(column_spacing=6, row_spacing=6, column_homogeneous=True,

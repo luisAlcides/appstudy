@@ -85,13 +85,45 @@ def _relevancia(doc: dict, plan: dict) -> float:
     return sum(p[:RAIZ] in campo for p in partes) / len(partes)
 
 
+MIN_RESUMEN = 20        # palabras mínimas para que un enlace valga la pena
+
+
+def _duplicado(con, doc, plan, no):
+    """Los dos avisos de «esto ya lo tienes», compartidos por las dos ramas."""
+    if con.execute("SELECT 1 FROM source_imports WHERE provider=? AND origin=? AND deck_id=?",
+                   (doc["provider"], doc["origin"], plan["deck"]["id"])).fetchone():
+        return no("ya lo tienes importado en este mazo")
+    if con.execute("SELECT 1 FROM inbox WHERE provider=? AND origin=? AND deck_id=?",
+                   (doc["provider"], doc["origin"], plan["deck"]["id"])).fetchone():
+        return no("ya está esperando en la bandeja")
+    return None
+
+
+def _filtrar_enlace(con, doc: dict, plan: dict, no):
+    """Fuentes cuya licencia no permite guardar el texto.
+
+    Entran con su título, su resumen y su enlace, que es lo que sí se puede
+    guardar. Un resumen de dos palabras no vale para nada, así que se exige que
+    diga algo.
+    """
+    resumen = (doc.get("summary") or "").strip()
+    if len(resumen.split()) < MIN_RESUMEN:
+        return no("solo-enlace y sin un resumen que merezca la pena")
+    repetido = _duplicado(con, doc, plan, no)
+    if repetido:
+        return repetido
+    return {"ok": True, "score": 0.5, "nivel": 1, "enlace": True,
+            "motivo": f"{plan['motivo']} · solo enlace: la licencia no permite "
+                      "guardar el texto"}
+
+
 def filtrar(con, doc: dict, plan: dict) -> dict:
     """Si el documento entra, con qué nota y por qué. Nunca lanza."""
     def no(motivo, score=0.0):
         return {"ok": False, "score": score, "nivel": 1, "motivo": motivo}
 
     if not catalogo.abierta(doc["provider"]):
-        return no("licencia: esta fuente solo permite el enlace, no el texto completo")
+        return _filtrar_enlace(con, doc, plan, no)
     texto = doc.get("text", "") or ""
     palabras = len(texto.split())
     if palabras < MIN_PALABRAS:
@@ -113,9 +145,9 @@ def filtrar(con, doc: dict, plan: dict) -> dict:
     if con.execute("SELECT 1 FROM source_imports WHERE fingerprint=? AND deck_id=?",
                    (fuentes.huella(doc), plan["deck"]["id"])).fetchone():
         return no("ya lo tienes importado en este mazo")
-    if con.execute("SELECT 1 FROM inbox WHERE provider=? AND origin=? AND deck_id=?",
-                   (doc["provider"], doc["origin"], plan["deck"]["id"])).fetchone():
-        return no("ya está esperando en la bandeja")
+    repetido = _duplicado(con, doc, plan, no)
+    if repetido:
+        return repetido
     score = round(0.5 * min(1.0, relevancia * 2) + 0.3 * prosa +
                   0.2 * min(1.0, palabras / 1500), 3)
     return {"ok": score >= UMBRAL, "score": score,
@@ -184,20 +216,28 @@ def cosechar(con, plan: dict | None = None, cuantas: int = POR_RACION) -> list:
             rechazos.append(f"{f['id']}: {e}")
             caidas.append(f"{f['id']}: {e}")
             continue                 # una fuente caída no tumba a las demás
+        solo_enlace = not catalogo.abierta(f["id"])
         for candidato in candidatos[:CANDIDATOS_POR_FUENTE]:
             if len(guardados) >= cuantas:
                 break
-            try:
-                doc = fuentes.previsualizar(candidato)
-            except fuentes.FuenteError as e:
-                rechazos.append(f"{candidato['origin']}: {e}")
-                continue
-            veredicto = filtrar(con, doc, plan)
+            if solo_enlace:
+                # Ni se pide la página: de aquí solo se puede guardar el enlace,
+                # así que descargarla entera sería gastar la red del usuario y
+                # la paciencia de la fuente para nada.
+                doc = {**candidato, "text": (candidato.get("summary") or "").strip()}
+            else:
+                try:
+                    doc = fuentes.previsualizar(candidato)
+                except fuentes.FuenteError as e:
+                    rechazos.append(f"{candidato['origin']}: {e}")
+                    continue
+            veredicto = filtrar(con, candidato if solo_enlace else doc, plan)
             if not veredicto["ok"]:
                 rechazos.append(f"{doc['title']} ({f['id']}): {veredicto['motivo']}")
                 continue
-            doc["cards"] = _tarjetas(con, doc)
+            doc["cards"] = [] if solo_enlace else _tarjetas(con, doc)
             guardados.append(bandeja.guardar(con, doc, plan, veredicto))
+    selector.anotar_intento(con, plan["deck"]["id"], plan["ts"])
     db.set_meta(con, "cosecha_rechazos",
                 json.dumps(rechazos[:MAX_RECHAZOS_GUARDADOS], ensure_ascii=False))
     # Que fallen todas suele ser quedarse sin red, y eso sí merece verse en

@@ -5,6 +5,12 @@ from tests.apoyo import BaseTemporal
 
 
 class EvolucionBitTest(unittest.TestCase):
+    def test_enfado_solo_tras_un_dia_con_trabajo_pendiente(self):
+        self.assertFalse(pet.debe_enfadarse(23.9, 5))
+        self.assertTrue(pet.debe_enfadarse(24, 5))
+        self.assertFalse(pet.debe_enfadarse(72, 0))
+        self.assertFalse(pet.debe_enfadarse(72, 5, dormida=True))
+
     def test_empieza_como_companero(self):
         estado = pet.evolucion(0)
         self.assertEqual(estado["nombre"], "Compañero")

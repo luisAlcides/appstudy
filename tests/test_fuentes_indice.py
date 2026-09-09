@@ -135,3 +135,24 @@ class SitemapIndiceTest(BaseTemporal):
         self.addCleanup(lambda: setattr(fuentes, "descargar", original))
         r = fuentes.indice(catalogo.por_id("ibiblio"))
         self.assertEqual([x["title"] for x in r], ["Chapter 2: OHM'S LAW"])
+
+
+class FiltroIndiceTest(BaseTemporal):
+    def preparar(self):
+        original = fuentes.descargar
+        fuentes.descargar = lambda u, d, limite=None: (SITEMAP, "application/xml")
+        self.addCleanup(lambda: setattr(fuentes, "descargar", original))
+
+    def test_basta_con_que_coincida_un_termino(self):
+        self.preparar()
+        r = fuentes.indice(catalogo.por_id("libretexts_workforce"), "brakes hidraulica")
+        self.assertEqual([x["title"] for x in r], ["Brakes"])
+
+    def test_lo_que_coincide_en_mas_terminos_va_primero(self):
+        self.preparar()
+        r = fuentes.indice(catalogo.por_id("libretexts_workforce"), "engines brakes")
+        self.assertEqual(len(r), 2)
+
+    def test_si_no_coincide_nada_no_se_devuelve_todo(self):
+        self.preparar()
+        self.assertEqual(fuentes.indice(catalogo.por_id("libretexts_workforce"), "cocina"), [])

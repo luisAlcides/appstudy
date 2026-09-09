@@ -146,3 +146,59 @@ class ArranqueTest(BaseTemporal):
         import inspect
         from appstudy import app
         self.assertIn("cosechar_en_silencio", inspect.getsource(app.AppStudy.do_startup))
+
+
+class SoloEnlaceTest(BaseTemporal):
+    """Lo que prometía el diseño: sin texto completo, pero con enlace y resumen."""
+
+    def setUp(self):
+        super().setUp()
+        db.upsert_deck(self.con, "linux", "Linux", "🐧", "#3584e4", 1,
+                       ["Básico", "Intermedio", "Avanzado"])
+        self.con.commit()
+        self.plan = selector.plan(self.con)
+        self.previsualizadas = []
+
+        def buscar(provider, consulta="", config=None):
+            return [fuentes.documento(
+                provider, f"https://wiki.archlinux.org/title/Systemd",
+                "systemd", summary="systemd es el gestor de servicios y de arranque "
+                "que usa la mayoría de distribuciones de Linux modernas, y "
+                "sustituye a los guiones de init tradicionales.")]
+
+        def previsualizar(item):
+            self.previsualizadas.append(item["origin"])
+            return {**item, "text": "texto completo que no debería pedirse"}
+
+        for nombre, valor in (("buscar", buscar), ("previsualizar", previsualizar)):
+            original = getattr(fuentes, nombre)
+            setattr(fuentes, nombre, valor)
+            self.addCleanup(lambda n=nombre, o=original: setattr(fuentes, n, o))
+
+    def plan_solo_enlace(self):
+        from appstudy import catalogo
+        return {**self.plan, "fuentes": [catalogo.por_id("archwiki")]}
+
+    def test_entra_en_la_bandeja_como_enlace(self):
+        from appstudy import bandeja
+        self.assertTrue(cosecha.cosechar(self.con, self.plan_solo_enlace()))
+        fila = bandeja.pendientes(self.con)[0]
+        self.assertIn("gestor de servicios", fila["text"])
+        self.assertIn("wiki.archlinux.org", fila["origin"])
+
+    def test_no_se_descarga_la_pagina_entera(self):
+        cosecha.cosechar(self.con, self.plan_solo_enlace())
+        self.assertEqual(self.previsualizadas, [],
+                         "de una fuente solo-enlace no hay que bajar el texto")
+
+    def test_no_lleva_tarjetas_automaticas(self):
+        from appstudy import bandeja
+        cosecha.cosechar(self.con, self.plan_solo_enlace())
+        self.assertEqual(bandeja.pendientes(self.con)[0]["cards"], "[]")
+
+    def test_un_resumen_demasiado_pobre_no_entra(self):
+        def buscar(provider, consulta="", config=None):
+            return [fuentes.documento(provider, "https://wiki.archlinux.org/title/X",
+                                      "X", summary="Corto.")]
+        fuentes.buscar = buscar
+        self.assertEqual(cosecha.cosechar(self.con, self.plan_solo_enlace()), [])

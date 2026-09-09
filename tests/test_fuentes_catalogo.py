@@ -116,6 +116,11 @@ class TituloTest(unittest.TestCase):
         self.assertEqual(
             fuentes.limpiar_titulo("systemd - ArchWiki", "archwiki"), "systemd")
 
+    def test_tambien_la_forma_corta_del_sufijo(self):
+        self.assertEqual(
+            fuentes.limpiar_titulo("History of English grammars - Wikipedia",
+                                   "wikipedia_en"), "History of English grammars")
+
     def test_un_titulo_limpio_no_se_toca(self):
         self.assertEqual(fuentes.limpiar_titulo("Ley de Ohm", "wikipedia_es"), "Ley de Ohm")
 
