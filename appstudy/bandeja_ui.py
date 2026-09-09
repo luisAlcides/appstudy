@@ -52,14 +52,21 @@ class FilaNovedad(Adw.PreferencesGroup):
                 title="Sin tarjetas propuestas",
                 subtitle="Enciende la IA local en Ajustes y sácalas desde el capítulo"))
 
-        botones = Gtk.Box(spacing=8, halign=Gtk.Align.END, margin_top=8)
-        descartar = Gtk.Button(label="Descartar")
+        # Los botones van en una fila no activable a propósito: una caja suelta
+        # dentro de un PreferencesGroup queda envuelta en una fila que se activa
+        # con Intro o con un clic en cualquier parte, y aceptar contenido no
+        # puede ser algo que pase de refilón.
+        self.acciones = Adw.ActionRow(activatable=False, selectable=False)
+        botones = Gtk.Box(spacing=8, halign=Gtk.Align.END, valign=Gtk.Align.CENTER)
+        descartar = Gtk.Button(label="Descartar", valign=Gtk.Align.CENTER)
         descartar.connect("clicked", lambda *_: self.descartar())
-        aceptar = Gtk.Button(label="Aceptar", css_classes=["suggested-action"])
+        aceptar = Gtk.Button(label="Aceptar", css_classes=["suggested-action"],
+                             valign=Gtk.Align.CENTER)
         aceptar.connect("clicked", lambda *_: self.aceptar())
         botones.append(descartar)
         botones.append(aceptar)
-        self.add(botones)
+        self.acciones.add_suffix(botones)
+        self.add(self.acciones)
 
     def aceptar(self):
         elegidas = [i for i, c in enumerate(self.casillas) if c.get_active()]

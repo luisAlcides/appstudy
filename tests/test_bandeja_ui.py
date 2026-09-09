@@ -135,3 +135,49 @@ class AjustesFuentesTest(BaseTemporal):
     def test_sin_errores_se_dice_que_todo_va_bien(self):
         w = self.ventana()
         self.assertNotIn("Error", w.auto_estado.get_text())
+
+
+class NadaSeAceptaSoloTest(BaseTemporal):
+    """Presentar la ventana no puede aceptar nada por su cuenta.
+
+    Se vio una vez en una prueba manual: la ventana estuvo veinte segundos
+    abierta en un escritorio real y una novedad apareció aceptada. Lo más
+    probable es que fuera un clic de verdad, pero la fila no debe poder
+    activarse sin pulsar su botón, y eso sí se puede comprobar.
+    """
+
+    def preparar(self):
+        db.upsert_deck(self.con, "electricidad", "Electricidad", "⚡", "#3584e4", 1,
+                       ["Básico"])
+        self.con.commit()
+        plan = selector.plan(self.con)
+        doc = fuentes.documento("wikipedia_es", "https://es.wikipedia.org/wiki/Ohm",
+                                "Ley de Ohm", text=TEXTO)
+        bandeja.guardar(self.con, doc, plan,
+                        {"ok": True, "score": 0.9, "nivel": 1, "motivo": "prueba"})
+
+    def test_ni_construir_ni_refrescar_acepta_nada(self):
+        from appstudy.bandeja_ui import PaginaBandeja
+        self.preparar()
+        p = PaginaBandeja(self.con, notificar=lambda _t: None)
+        self.addCleanup(p.unparent)
+        p.recargar()
+        p.recargar()
+        self.assertEqual(bandeja.cuantas(self.con), 1)
+
+    def test_las_filas_no_son_activables(self):
+        from appstudy.bandeja_ui import PaginaBandeja
+        self.preparar()
+        p = PaginaBandeja(self.con, notificar=lambda _t: None)
+        self.addCleanup(p.unparent)
+        for fila in p.filas:
+            self.assertFalse(fila.acciones.get_activatable(),
+                             "una fila activable puede dispararse con Intro o un clic suelto")
+
+    def test_activar_la_fila_de_acciones_no_acepta(self):
+        from appstudy.bandeja_ui import PaginaBandeja
+        self.preparar()
+        p = PaginaBandeja(self.con, notificar=lambda _t: None)
+        self.addCleanup(p.unparent)
+        p.filas[0].acciones.emit("activated")
+        self.assertEqual(bandeja.cuantas(self.con), 1)
