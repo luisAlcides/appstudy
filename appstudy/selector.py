@@ -42,7 +42,7 @@ def _mazo_mas_flojo(con):
 
 
 def _terminos(con, deck) -> tuple:
-    """Las etiquetas de lo que más fallas en ese mazo, y por qué se piden."""
+    """Qué pedir, por qué, y de dónde ha salido: `fallos` o `mazo`."""
     filas = con.execute("""
         SELECT c.tags, s.lapses FROM cards c JOIN state s ON s.card_id = c.id
          WHERE c.deck_id = ? AND s.lapses > 0 AND c.tags <> ''
@@ -54,8 +54,9 @@ def _terminos(con, deck) -> tuple:
                 cuenta[etiqueta] = cuenta.get(etiqueta, 0) + fila["lapses"]
     if cuenta:
         mejores = sorted(cuenta, key=lambda e: (-cuenta[e], e))[:MAX_TERMINOS]
-        return mejores, "porque fallas " + ", ".join(mejores)
-    return [deck["name"]], f"para ampliar {deck['name']}, que va corto de material"
+        return mejores, "porque fallas " + ", ".join(mejores), "fallos"
+    return ([deck["name"]], f"para ampliar {deck['name']}, que va corto de material",
+            "mazo")
 
 
 def _nivel_por_llenar(con, deck) -> tuple:
@@ -79,7 +80,9 @@ def plan(con, ahora: float | None = None) -> dict | None:
                    if extensiones.habilitada(con, f["id"])]
     if not disponibles:
         return None
-    terminos, motivo = _terminos(con, deck)
+    terminos, motivo, origen = _terminos(con, deck)
     return {"deck": deck, "nivel": nivel, "nivel_num": nivel_num,
             "terminos": terminos, "fuentes": disponibles, "motivo": motivo,
-            "ts": ahora or time.time()}
+            # De dónde salen los términos. Cuando es el nombre del mazo no se
+            # puede medir relevancia: «Inglés» no aparece en un texto en inglés.
+            "origen_terminos": origen, "ts": ahora or time.time()}
