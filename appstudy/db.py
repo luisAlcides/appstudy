@@ -130,6 +130,23 @@ CREATE TABLE IF NOT EXISTS source_imports (
     imported REAL NOT NULL,
     PRIMARY KEY(provider, origin, deck_id)
 );
+CREATE TABLE IF NOT EXISTS inbox (
+    id       INTEGER PRIMARY KEY,
+    provider TEXT NOT NULL,
+    origin   TEXT NOT NULL,
+    deck_id  INTEGER NOT NULL REFERENCES decks(id) ON DELETE CASCADE,
+    title    TEXT NOT NULL,
+    summary  TEXT NOT NULL DEFAULT '',
+    text     TEXT NOT NULL DEFAULT '',
+    author   TEXT NOT NULL DEFAULT '',
+    license  TEXT NOT NULL DEFAULT '',
+    score    REAL NOT NULL DEFAULT 0,
+    motivo   TEXT NOT NULL DEFAULT '',
+    cards    TEXT NOT NULL DEFAULT '[]',
+    estado   TEXT NOT NULL DEFAULT 'pendiente',   -- pendiente | aceptado | descartado
+    created  REAL NOT NULL,
+    UNIQUE(provider, origin, deck_id)
+);
 CREATE TABLE IF NOT EXISTS card_media (
     card_id INTEGER NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
     side TEXT NOT NULL,
