@@ -376,6 +376,37 @@ vuelve a comportarse como antes.
 fallo nuevo: es el número real, porque hasta ahora leer una tarjeta contaba como
 haberla repasado.
 
+### Chispa parpadea
+
+Chispa no está dibujada con curvas como Bit: es una ilustración renderizada, y
+sus ojos venían pintados dentro de la imagen. Eso tiene un límite claro —detrás
+del ojo no hay nada, así que un párpado solo puede taparlo, no cerrarlo—, y se
+notaba: cualquier intento de parpadeo quedaba en un ojo entornado.
+
+Ahora la ilustración se **descompone en capas**. La primera vez que aparece
+Chispa, en segundo plano y en unos **2 segundos**, la aplicación separa los ojos
+de cada pose y **reconstruye el pelaje que había debajo**, rellenando el hueco a
+partir del pelo que lo rodea. A partir de ahí el párpado baja sobre el ojo y lo
+que queda a la vista es pelaje de verdad.
+
+Las capas viven en `~/.local/share/appstudy/chispa/capas/` y ocupan **1,3 MB**.
+No están en el repositorio: salen del atlas, que ya está, y se rehacen solas si
+las borras o si cambia el dibujo.
+
+Las piezas no se sitúan a mano: se **buscan** clasificando cada píxel contra la
+paleta de Chispa y quedándose con los grupos que tienen forma de ojo —casi
+cuadrados, arriba y separados—. Las orejas, que también son claras, se descartan
+por ser anchas. Las poses de celebrar y de dormir ya vienen con los ojos
+cerrados dibujados, así que esas no parpadean.
+
+Con **movimiento reducido** activado no parpadea. Y si la extracción falla o aún
+no ha terminado, se dibuja como siempre: la mascota nunca se queda sin dibujar.
+
+De momento es solo el parpadeo. La boca se quedó fuera con un motivo concreto:
+el rosa de la lengua es casi el del sombreado del cuello y el negro de la
+cavidad es el de la pupila, así que con esta paleta no se distingue. Los brazos
+y las piernas siguen moviéndose con la deformación de malla de siempre.
+
 ### Sonido
 
 Bit hace ruiditos: un aviso de dos notas cuando viene a buscarte, un arpegio al
