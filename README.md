@@ -324,20 +324,26 @@ derecho («Cambiar a…»). El progreso es de la cuenta, no de la mascota: los
 repasos, la etapa y el accesorio se conservan al cambiar. La palabra clave de
 voz acepta siempre los dos nombres, «hola bit» y «hola chispa».
 
-**Chispa** es un zorro naranja con el pecho y el hocico crema, orejas de punta
-oscura, un rombo turquesa en la frente y una cola grande que se menea detrás: se
-acelera cuando tiene algo que enseñarte y se apaga cuando llevas días sin
-aparecer. Comparte motor con Bit, así que respira, parpadea, salta, te sigue con
-la mirada y hace los mismos gestos. Lo que lleva el color de su ánimo son el
-rombo, la punta de la cola y los cachetes; el pelaje naranja no cambia nunca.
-También está dibujada entera con Cairo, sin sprites.
+**Chispa** usa seis poses ilustradas basadas en su referencia: reposo, saludo,
+trabajo con portátil, celebración, curiosidad y descanso. Conserva el pelaje
+naranja, el pecho y el hocico crema, las patas oscuras, la cola de punta turquesa
+y el rombo de la frente. Las poses cambian con las acciones de estudio y el
+ánimo; comparte con Bit la respiración, los saltos, el balanceo y las partículas.
+La barra de energía refleja su ánimo sin cambiar los colores del personaje.
+Las manos y los pies se mueven de forma independiente: balanceo suave en
+reposo, saludo con la mano, brazos de celebración y toques al teclado. El
+movimiento disminuye cuando está desanimada y se detiene al dormir o activar
+«Reducir movimiento». Los ojos y la cola forman parte de cada pose.
+[Vista previa de las extremidades animadas](docs/chispa-movimiento.gif).
+El atlas se incluye en la aplicación y se carga una sola vez, sin conexión;
+si falta, se utiliza el dibujo vectorial anterior. Respeta el ajuste de reducir
+movimiento y conserva los accesorios desbloqueados.
 
 **Evolución y accesorios**: Bit pasa de Compañero a Curioso, Aplicado, Sabio y
 Maestro según tus repasos reales —no por dejar la aplicación abierta—. En 25,
 100 y 500 repasos desbloquea un pañuelo, unas gafas y una corona. Desde
 **Ajustes → Apariencia y progreso** eliges cuál lleva y ves el avance hacia la
-siguiente etapa. Todo se dibuja con unas pocas curvas Cairo, sin cargar sprites
-ni mantener otra animación.
+siguiente etapa. Los accesorios se dibujan con Cairo y se colocan sobre la mascota elegida.
 
 Cuando **enseña**, enseña de verdad: la pregunta y la respuesta salen juntas desde
 el primer momento, sin botón de por medio.

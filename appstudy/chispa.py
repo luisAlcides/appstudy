@@ -1,18 +1,20 @@
-"""Chispa: el zorro naranja de cola turquesa.
+"""Chispa: el zorro naranja de cola turquesa, con seis poses ilustradas.
 
-La segunda mascota. Comparte motor con Bit —respira, parpadea, salta, sigue al
-ratón—, así que aquí solo vive lo que la hace un zorro: la cola que se menea
-detrás, las orejas, el hocico, el rombo de la frente y la paleta.
+Comparte con Bit el reloj, las poses corporales, los gestos y las partículas.
+El atlas local conserva el aspecto de la referencia; el dibujo vectorial sirve
+como respaldo si falta el recurso.
 
-El pelaje naranja no cambia nunca. Lo que lleva el color del ánimo son el rombo,
-la punta de la cola y los cachetes, igual que el asterisco de Bit: así el estado
-se lee de un vistazo sin que la mascota cambie de especie cada pocas horas.
+En las ilustraciones el pelaje naranja y los detalles turquesa son constantes.
+El ánimo se expresa mediante la pose, las partículas y la barra de energía.
 """
 import math
+from functools import lru_cache
+from pathlib import Path
 
 import cairo
 
 from .criatura import Creature, _claro, _hex, _oscuro
+from . import animacion_chispa
 
 NARANJA_CLARO = "#FBA85E"
 NARANJA = "#F0873A"
@@ -43,8 +45,8 @@ CHAT = "#5B86D6"
 # El lienzo es más ancho que el de Bit: la cola es media mascota y necesita
 # sitio a la izquierda del cuerpo para leerse como una cola y no como un borrón.
 DISENO = (176, 190)
-ANCHO = 194
-ALTO_PET = 210
+ANCHO = 228
+ALTO_PET = 246
 
 # La cola se guarda pintada y luego solo se gira, como el estallido de Bit: es
 # la pieza cara del fotograma y lo único que cambia siempre es su vaivén. El
@@ -54,6 +56,67 @@ COLA_ANCHO, COLA_ALTO = 124, 100
 COLA_PIVOTE = (112, 84)          # dónde cae el nacimiento de la cola en ese lienzo
 
 CUERPO_LADO = 130
+
+
+ATLAS = Path(__file__).parent / "data" / "chispa-poses.png"
+
+
+@lru_cache(maxsize=1)
+def cargar_poses():
+    """Carga el atlas una vez; las seis celdas comparten escala y suelo.
+
+    Cairo conserva el alfa del PNG. Los rectángulos de cada pose impiden que
+    el filtrado tome píxeles de la celda vecina al escalar la mascota.
+    """
+    try:
+        atlas = cairo.ImageSurface.create_from_png(str(ATLAS))
+    except (OSError, cairo.Error):
+        return None
+    ancho, alto = atlas.get_width(), atlas.get_height()
+    if atlas.get_format() != cairo.FORMAT_ARGB32:
+        # El recurso usa magenta de recorte. Se compone como alfa una sola
+        # vez al cargar, nunca en el reloj de animación; admite también PNG
+        # con transparencia nativa para futuras versiones del atlas.
+        pixeles = memoryview(atlas.get_data()).cast("I")
+        esquina = pixeles[0]
+        r, g, b = (esquina >> 16) & 255, (esquina >> 8) & 255, esquina & 255
+        if min(r, b) - g < 180:
+            return None
+        transparente = cairo.ImageSurface(cairo.FORMAT_ARGB32, ancho, alto)
+        salida = memoryview(transparente.get_data()).cast("I")
+        for i, pixel in enumerate(pixeles):
+            r, g, b = (pixel >> 16) & 255, (pixel >> 8) & 255, pixel & 255
+            clave = min(255, round(max(0, min(r, b) - g - 20) * 255 / 160))
+            # Cairo espera canales premultiplicados; retirar el magenta
+            # también de los bordes evita un halo rosa sobre fondos oscuros.
+            a = 255 - clave
+            salida[i] = (a << 24 | min(a, max(0, r - clave)) << 16 |
+                         min(a, g) << 8 | min(a, max(0, b - clave)))
+        transparente.mark_dirty()
+        atlas = transparente
+    celdas = []
+    for fila in range(2):
+        for columna in range(3):
+            x, y = columna * ancho // 3, fila * alto // 2
+            w = (columna + 1) * ancho // 3 - x
+            h = (fila + 1) * alto // 2 - y
+            celda = cairo.ImageSurface(cairo.FORMAT_ARGB32, w, h)
+            ctx = cairo.Context(celda)
+            ctx.set_source_surface(atlas, -x, -y)
+            ctx.paint()
+            celdas.append(celda)
+    return tuple(celdas)
+
+
+@lru_cache(maxsize=6)
+def suelo_pose(superficie):
+    """Alinea las patas y la cola dormida sin estirar las poses sentadas."""
+    pixeles = memoryview(superficie.get_data()).cast("I")
+    ancho = superficie.get_stride() // 4
+    for fila in range(superficie.get_height() - 1, -1, -1):
+        if any((p >> 24) > 100 for p in pixeles[fila * ancho:(fila + 1) * ancho]):
+            return fila + 1
+    return superficie.get_height()
 
 
 class Chispa(Creature):
@@ -87,6 +150,65 @@ class Chispa(Creature):
 
     # De dónde nace la cola, en coordenadas del cuerpo.
     COLA_X, COLA_Y = 20, 20
+
+    def _indice_pose(self):
+        """Las acciones explícitas tienen prioridad sobre el ánimo de reposo."""
+        if self.mood == "dormido":
+            return 5
+        if any(self.phase(g) is not None for g in ("victoria", "risa", "baile", "salto")):
+            return 3
+        if self.phase("saludo") is not None:
+            return 1
+        if any(self.phase(g) is not None for g in ("curiosear", "ladear", "suspiro", "enojado")):
+            return 4
+        if self.teaching or self.charlando or self.t < self.hablando_hasta:
+            return 2
+        if self.mood in ("aburrido", "hambre", "triste") or self.enfadada():
+            return 4
+        return 0
+
+    def _personaje(self, cr, color, dormido):
+        poses = cargar_poses()
+        if poses is None:
+            Creature._personaje(self, cr, color, dormido)
+            return
+        indice = self._indice_pose()
+        superficie = poses[indice]
+        # Todas las celdas mantienen el mismo tamaño: sentarse o dormir no
+        # agranda a Chispa. El lienzo deja margen para los saltos y el balanceo.
+        k = min(158 / superficie.get_width(), 142 / superficie.get_height())
+        x = -self.CUERPO_DX - superficie.get_width() * k / 2
+        y = 40 - suelo_pose(superficie) * k
+        cr.save()
+        cr.translate(x, y)
+        cr.scale(k, k)
+        intensidad = 0.0 if self.reduced_motion else (1 - .65 * self.abandono)
+        gestos = animacion_chispa.movimientos(
+            indice, self.t, intensidad, self.phase("saludo"))
+        animacion_chispa.pintar(cr, superficie, gestos)
+        cr.restore()
+        # Anclajes de la cara en las seis celdas del atlas de referencia.
+        # Se expresan como fracciones para admitir un PNG de mayor resolución.
+        caras = ((.625, .412), (.543, .422), (.559, .516),
+                 (.557, .324), (.539, .385), (.594, .553))
+        fx, fy = caras[indice]
+        cr.save()
+        cr.translate(x + fx * superficie.get_width() * k,
+                     y + fy * superficie.get_height() * k + 9)
+        if indice == 5:
+            cr.rotate(.65)
+        elif indice == 4:
+            cr.rotate(-.35)
+        if self.accessory == "panuelo":
+            cr.translate(0, -14)
+        self._accesorio(cr, color)
+        cr.restore()
+
+    def _utileria_gestos(self, cr):
+        # Las poses ya incluyen manos y portátil; no superponer las manos
+        # del dibujo vectorial sobre la ilustración.
+        if cargar_poses() is None:
+            Creature._utileria_gestos(self, cr)
 
     # -- silueta --------------------------------------------------------------
 

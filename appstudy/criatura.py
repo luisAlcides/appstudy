@@ -657,6 +657,18 @@ class Creature(Gtk.DrawingArea):
         cr.translate(cx, base + dy)
         cr.rotate(rot)
         cr.scale(sx, sy)
+        self._personaje(cr, color, dormido)
+        self._utileria_gestos(cr)
+        cr.restore()
+
+        self._particulas(cr, cx, base + dy)
+        self._barra(cr, w / 2, h - 14, color)   # la barra, centrada en el lienzo
+        cr.restore()
+
+    # -- piezas ---------------------------------------------------------------
+
+    def _personaje(self, cr, color, dormido):
+        """Dibujo de la piel; el motor conserva pose, partículas y energía."""
         self._capa_fondo(cr, color)       # lo que va detrás de todo
         self._tras_fondo(cr, color)
         self._pies(cr)
@@ -674,14 +686,6 @@ class Creature(Gtk.DrawingArea):
         cr.restore()
         self._accesorio(cr, color)
         cr.restore()
-        self._utileria_gestos(cr)
-        cr.restore()
-
-        self._particulas(cr, cx, base + dy)
-        self._barra(cr, w / 2, h - 14, color)   # la barra, centrada en el lienzo
-        cr.restore()
-
-    # -- piezas ---------------------------------------------------------------
 
     def presencia_gesto(self, p):
         """Entrada y salida suaves con una pausa central para leer el gesto."""

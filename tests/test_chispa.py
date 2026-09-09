@@ -2,7 +2,7 @@
 import math
 import unittest
 from types import MethodType
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import cairo
 from gi.repository import Gdk, Gtk
@@ -81,7 +81,8 @@ class DibujoTest(unittest.TestCase):
                     self.pintar(zorro)
                     self.assertTrue(all(math.isfinite(v) for v in zorro._pose()))
 
-    def test_la_cola_se_guarda_y_se_rehace_al_cambiar_de_animo(self):
+    @patch("appstudy.chispa.cargar_poses", return_value=None)
+    def test_la_cola_se_guarda_y_se_rehace_al_cambiar_de_animo(self, _poses):
         zorro = BitSinVentana(chispa.Chispa)
         zorro.color_actual = pet._hex(chispa.Chispa.MOODS["normal"])[:3]
         self.pintar(zorro)
@@ -119,6 +120,48 @@ class DibujoTest(unittest.TestCase):
         columnas = [x for x in range(w) if (pixeles[fila * w + x] >> 24) > 80]
         centro = (columnas[0] + columnas[-1]) / 2
         self.assertAlmostEqual(centro, w / 2, delta=2)
+
+
+class IlustracionTest(unittest.TestCase):
+    def test_atlas_disponible_transparente_y_en_cache(self):
+        poses = chispa.cargar_poses()
+        self.assertIsNotNone(poses, "La aplicación debe incluir el atlas de Chispa")
+        self.assertEqual(len(poses), 6)
+        self.assertIs(poses, chispa.cargar_poses())
+        for pose in poses:
+            pixeles = memoryview(pose.get_data()).cast("I")
+            self.assertEqual(pixeles[0] >> 24, 0)
+            opacos = sum((p >> 24) > 200 for p in pixeles)
+            self.assertGreater(opacos, len(pixeles) * .1)
+            self.assertLess(opacos, len(pixeles) * .85)
+
+    def test_acciones_cambian_pose_y_descanso_tiene_prioridad(self):
+        zorro = BitSinVentana(chispa.Chispa)
+        self.assertEqual(zorro._indice_pose(), 0)
+        zorro.saludar()
+        self.assertEqual(zorro._indice_pose(), 1)
+        zorro.t = 10
+        zorro.teaching = True
+        self.assertEqual(zorro._indice_pose(), 2)
+        zorro.pensar()
+        self.assertEqual(zorro._indice_pose(), 4)
+        zorro.celebrar()
+        self.assertEqual(zorro._indice_pose(), 3)
+        zorro.mood = "dormido"
+        self.assertEqual(zorro._indice_pose(), 5)
+
+    def test_sin_movimiento_sigue_expresando_las_acciones(self):
+        zorro = BitSinVentana(chispa.Chispa)
+        zorro.reduced_motion = True
+        zorro.saludar()
+        self.assertEqual(zorro._indice_pose(), 1)
+        self.assertEqual(zorro._pose(), (0, 1, 1, 0))
+
+    def test_recurso_ausente_conserva_mascota_vectorial(self):
+        zorro = BitSinVentana(chispa.Chispa)
+        with patch("appstudy.chispa.cargar_poses", return_value=None):
+            superficie = DibujoTest().pintar(zorro)
+        self.assertTrue(any(superficie.get_data()))
 
 
 class RelevoTest(unittest.TestCase):

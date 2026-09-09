@@ -87,7 +87,9 @@ no parpadean.
 - `base-{pose}.png` — la celda sin las piezas extraídas, ya reconstruida.
 - `{pose}-{pieza}.png` — cada pieza recortada, con alfa.
 - `manifiesto.json` — versión del extractor, huella del atlas y, por pieza:
-  caja, centro, punto de giro y orden de dibujo.
+  caja, centro, punto de giro y orden de dibujo. En la fase 1 el punto de giro
+  se guarda pero no se usa: ni el ojo ni la boca giran. Lo necesitan los brazos
+  y las piernas de la fase 2, y guardarlo ya evita regenerar todo entonces.
 
 No van al repositorio: son derivados de un atlas que ya está, pesan megas, y
 regenerarlos cuesta segundos.
