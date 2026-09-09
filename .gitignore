@@ -30,3 +30,13 @@ venv/
 .idea/
 .vscode/
 *.swp
+
+# Imágenes fuera del repositorio: las capturas y los GIF de demostración se
+# quedan en local. Se exceptúan los recursos que la aplicación necesita para
+# funcionar —el icono y el atlas de Chispa—, que no son documentación.
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+!appstudy/data/chispa-poses.png
