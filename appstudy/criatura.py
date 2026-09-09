@@ -98,6 +98,9 @@ class Creature(Gtk.DrawingArea):
     ANCHO, ALTO_PET = 168, 203        # su tamaño real en pantalla al 100 %
     CUERPO_LADO = 120                 # lienzo del cuerpo guardado en caché
     RX, RY = 39, 35                   # medias del cuerpo
+    # Cuánto se corre el cuerpo dentro del lienzo. Chispa lo usa para dejarle
+    # sitio a la cola a su izquierda sin desplazar la barra de energía.
+    CUERPO_DX = 0
 
     MOODS = {}                        # ánimo -> color del acento
     COLOR_BASE = "#D97757"            # el acento en reposo
@@ -106,6 +109,9 @@ class Creature(Gtk.DrawingArea):
     COLOR_CORAZON = "#D97757"
     TINTA = (0.16, 0.14, 0.12)        # ojos, cejas y boca
     PELAJE_CLARO, PELAJE, PELAJE_SOMBRA = "#FAF8F2", "#F0EDE4", "#DED7C7"
+    # Patas, brazos y manoplas. En Bit son del mismo crema que el cuerpo; en un
+    # zorro son marrón oscuro, así que llevan su propia terna.
+    PATA_CLARO, PATA, PATA_SOMBRA = "#FAF8F2", "#F0EDE4", "#DED7C7"
 
     CARA_ESCALA, CARA_BAJA = 1.09, 3.0    # cuánto se agrandan y bajan los rasgos
     OJO_DX, OJO_Y, OJO_R = 13.5, -5, 9.2
@@ -625,7 +631,7 @@ class Creature(Gtk.DrawingArea):
         w, h = self.DISENO
         color = self.color_actual
         dormido = self.mood == "dormido"
-        cx = w / 2
+        cx = w / 2 + self.CUERPO_DX
         suelo = h - 34
         base = suelo - 40                 # centro del cuerpo en reposo
 
@@ -672,7 +678,7 @@ class Creature(Gtk.DrawingArea):
         cr.restore()
 
         self._particulas(cr, cx, base + dy)
-        self._barra(cr, cx, h - 14, color)
+        self._barra(cr, w / 2, h - 14, color)   # la barra, centrada en el lienzo
         cr.restore()
 
     # -- piezas ---------------------------------------------------------------
@@ -728,7 +734,7 @@ class Creature(Gtk.DrawingArea):
             cr.set_line_width(2.5)
             cr.stroke()
             cr.arc(24, 25, 6.5, 0, math.tau)
-            cr.set_source_rgba(*_hex(self.PELAJE))
+            cr.set_source_rgba(*_hex(self.PATA))
             cr.fill_preserve()
             cr.set_source_rgba(.34, .24, .18, .6)
             cr.set_line_width(1.5)
@@ -745,7 +751,7 @@ class Creature(Gtk.DrawingArea):
                 cr.translate(lado * (27 - 23 * k), 21)
                 cr.scale(.72, 1)
                 cr.arc(0, 0, 8, 0, math.tau)
-                cr.set_source_rgba(*_hex(self.PELAJE_CLARO))
+                cr.set_source_rgba(*_hex(self.PATA_CLARO))
                 cr.fill_preserve()
                 cr.set_source_rgba(.34, .24, .18, .55)
                 cr.set_line_width(1.5)
@@ -761,7 +767,7 @@ class Creature(Gtk.DrawingArea):
                 cr.set_source_rgba(.34, .24, .18, .75)
                 cr.set_line_width(12)
                 cr.stroke_preserve()
-                cr.set_source_rgba(*_hex(self.PELAJE))
+                cr.set_source_rgba(*_hex(self.PATA))
                 cr.set_line_width(9)
                 cr.stroke()
             cr.set_source_rgb(.77, .19, .14)
@@ -933,8 +939,8 @@ class Creature(Gtk.DrawingArea):
             # que es lo que los sacaba grises y apagados al lado del cuerpo.
             g = cairo.RadialGradient(lado * (self.PIE_DX - 3), self.RY - 6, 1,
                                      lado * self.PIE_DX, self.RY + 1, 15)
-            g.add_color_stop_rgba(0, *_hex(self.PELAJE))
-            g.add_color_stop_rgba(1, *_hex(self.PELAJE_SOMBRA))
+            g.add_color_stop_rgba(0, *_hex(self.PATA))
+            g.add_color_stop_rgba(1, *_hex(self.PATA_SOMBRA))
             cr.set_source(g)
             cr.fill_preserve()
             cr.save()
@@ -1004,7 +1010,7 @@ class Creature(Gtk.DrawingArea):
             cr.set_line_cap(cairo.LINE_CAP_ROUND)
             for grosor, rgba in ((13.5, (0.10, 0.07, 0.05, 0.06)),
                                  (11.9, (0.34, 0.24, 0.18, 0.40)),
-                                 (9.4, _hex(self.PELAJE))):
+                                 (9.4, _hex(self.PATA))):
                 cr.move_to(0, 0)
                 cr.line_to(largo, 0)
                 cr.set_source_rgba(*rgba)
@@ -1012,8 +1018,8 @@ class Creature(Gtk.DrawingArea):
                 cr.stroke()
             cr.arc(largo + 1.5, 0, 7.4, 0, math.tau)     # la manopla
             g = cairo.RadialGradient(largo - 0.8, -2.4, 0.5, largo + 1.5, 0.5, 8.2)
-            g.add_color_stop_rgba(0, *_hex(self.PELAJE_CLARO))
-            g.add_color_stop_rgba(1, *_hex(self.PELAJE_SOMBRA))
+            g.add_color_stop_rgba(0, *_hex(self.PATA_CLARO))
+            g.add_color_stop_rgba(1, *_hex(self.PATA_SOMBRA))
             cr.set_source(g)
             cr.fill_preserve()
             cr.save()
