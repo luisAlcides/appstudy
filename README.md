@@ -325,9 +325,35 @@ siguiente etapa. Todo se dibuja con unas pocas curvas Cairo, sin cargar sprites
 ni mantener otra animación.
 
 Cuando **enseña**, enseña de verdad: la pregunta y la respuesta salen juntas desde
-el primer momento, sin botón de por medio. Tú solo dices si la tenías —**No lo
-sabía** / **Lo sabía**— y cuenta como un repaso normal, con el mismo intervalo que
-el popup.
+el primer momento, sin botón de por medio.
+
+### Solo cuenta si lo comprueba
+
+Con la respuesta delante, decir «lo sabía» no es saberlo: es reconocerlo. Por eso
+Bit trae encendido el modo **«Solo cuenta si lo compruebo»** (Ajustes →
+*Bit, la mascota*), y con él:
+
+- Al enseñarte una tarjeta ya no hay botón de **Lo sabía**. Hay **Compruébamelo**,
+  que te pregunta **esa misma tarjeta** con uno de los formatos del reto, y solo
+  el resultado del reto se apunta. **No lo sabía** sí se apunta al momento:
+  reconocer que no la tenías no hay que comprobarlo.
+- El formato **relámpago** —el que enseñaba la respuesta y te preguntaba si la
+  tenías— desaparece de la rotación: era el mismo agujero dentro del modo reto.
+- Al escribir la respuesta ya no vale con escribir la mitad. Los acentos y las
+  erratas se siguen perdonando, porque eso no es no saberlo.
+- Una **lección**, que no tiene respuesta que preguntar, se muestra para leer y
+  no genera repaso.
+
+Solo queda una tarjeta que Bit no puede comprobar: aquella cuya respuesta es
+demasiado larga para escribirla, sin compañeras de las que sacar opciones y sin
+una palabra que valga la pena tapar. Esa te la enseña, lo dice, y no la apunta.
+
+Si prefieres el repaso de toda la vida, se apaga con ese mismo interruptor y todo
+vuelve a comportarse como antes.
+
+**Aviso:** al encenderlo, tu racha y tu objetivo diario van a bajar. No es un
+fallo nuevo: es el número real, porque hasta ahora leer una tarjeta contaba como
+haberla repasado.
 
 ### Sonido
 
