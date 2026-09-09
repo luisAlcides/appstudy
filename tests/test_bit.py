@@ -159,3 +159,176 @@ class AnimoTest(unittest.TestCase):
     def test_sin_energia_tiene_hambre(self):
         t = self.totales(hoy=2, pendientes=30)
         self.assertEqual(pet.animo(t, horas=1.0, energia=0.2), "hambre")
+
+
+class ModoEstrictoTest(BaseTemporal):
+    """Bit no puede dar por sabido lo que no ha comprobado."""
+
+    def tarjeta_con_respuesta(self):
+        return {"back": "Cambia los permisos", "kind": "card"}
+
+    def leccion(self):
+        return {"back": "", "kind": "lesson"}
+
+    def test_de_fabrica_viene_encendido(self):
+        self.assertTrue(pet.estricto(self.con))
+
+    def test_se_puede_apagar(self):
+        db.set_meta(self.con, "modo_estricto", "0")
+        self.assertFalse(pet.estricto(self.con))
+        db.set_meta(self.con, "modo_estricto", "1")
+        self.assertTrue(pet.estricto(self.con))
+
+    def test_apagado_ofrece_los_dos_botones_de_siempre(self):
+        acciones = [a for _, a, _ in pet.calificaciones(self.tarjeta_con_respuesta(), False)]
+        self.assertEqual(acciones, ["again", "good"])
+
+    def test_encendido_cambia_lo_sabia_por_comprobarlo(self):
+        acciones = [a for _, a, _ in pet.calificaciones(self.tarjeta_con_respuesta(), True)]
+        self.assertEqual(acciones, ["again", "comprobar"])
+        self.assertNotIn("good", acciones)
+
+    def test_una_leccion_no_ofrece_calificar_en_estricto(self):
+        self.assertEqual(pet.calificaciones(self.leccion(), True), [])
+
+    def test_una_leccion_si_se_califica_con_el_modo_apagado(self):
+        self.assertTrue(pet.calificaciones(self.leccion(), False))
+
+    def test_el_relampago_no_deja_autocalificarse_en_estricto(self):
+        self.assertEqual(pet.calificaciones_relampago(True), [])
+        self.assertTrue(pet.calificaciones_relampago(False))
+
+
+class GloboEstrictoUITest(BaseTemporal):
+    """Los botones reales del globo, pulsados de verdad."""
+
+    @classmethod
+    def setUpClass(cls):
+        from gi.repository import Gdk, Gtk
+        Gtk.init()
+        if Gdk.Display.get_default() is None:
+            raise unittest.SkipTest("Requiere pantalla GTK")
+
+    def bit(self, card):
+        from types import MethodType
+        from unittest.mock import Mock
+        from gi.repository import Gtk
+
+        class GloboBit:
+            def __init__(self, con, card):
+                self.con, self.card = con, card
+                self.bubble_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+                self.reto = None
+                self.reto_timer = None
+                self.ultimo_formato = None
+                self.shown_at = 0
+                self.creature = Mock()
+                for nombre in ("clear_bubble", "say", "open_bubble", "refresh_stats",
+                               "sonar", "voz_auto_si_toca", "arrancar_cuenta",
+                               "celebrar_logro", "celebrar_vuelta", "open_main"):
+                    setattr(self, nombre, Mock(return_value=False))
+                self.stats = {"horas": 0.0}
+                for nombre in ("bubble_header", "pie_leer", "boton_explicar",
+                               "boton_chat", "boton_conversar", "cuenta_atras",
+                               "enunciado"):
+                    setattr(self, nombre, Mock(return_value=Gtk.Label()))
+                self.char_width = Mock(return_value=30)
+
+            def __getattr__(self, nombre):
+                return MethodType(getattr(pet.PetWindow, nombre), self)
+
+        return GloboBit(self.con, card)
+
+    def carta(self, back="Cambia los permisos de un archivo", kind="card"):
+        did = self.mazo()
+        cid = self.tarjeta(did, "¿Qué hace chmod?", back)
+        if kind != "card":
+            self.con.execute("UPDATE cards SET kind=? WHERE id=?", (kind, cid))
+            self.con.commit()
+        # dict, no fila: es lo que devuelve scheduler.next_card en la aplicación
+        return dict(self.con.execute("""
+            SELECT c.*, d.key AS deck_key, d.name AS deck_name, d.icon AS deck_icon,
+                   d.color AS deck_color, d.levels AS deck_levels
+              FROM cards c JOIN decks d ON d.id=c.deck_id WHERE c.id=?""",
+            (cid,)).fetchone())
+
+    def pulsar(self, bit, etiqueta):
+        from gi.repository import Gtk
+        hijo = bit.bubble_box.get_first_child()
+        while hijo is not None:
+            if isinstance(hijo, Gtk.Box):
+                b = hijo.get_first_child()
+                while b is not None:
+                    if isinstance(b, Gtk.Button) and b.get_label() == etiqueta:
+                        b.emit("clicked")
+                        return True
+                    b = b.get_next_sibling()
+            elif isinstance(hijo, Gtk.Button) and hijo.get_label() == etiqueta:
+                hijo.emit("clicked")
+                return True
+            hijo = hijo.get_next_sibling()
+        return False
+
+    def repasos(self):
+        return self.con.execute("SELECT COUNT(*) c FROM log").fetchone()["c"]
+
+    def test_lo_sabia_no_existe_en_estricto(self):
+        bit = self.bit(self.carta())
+        bit.render_card()
+        self.assertFalse(self.pulsar(bit, "Lo sabía"))
+        self.assertTrue(self.pulsar(bit, "Compruébamelo"))
+
+    def test_comprobarlo_lanza_un_reto_y_no_apunta_nada_todavia(self):
+        bit = self.bit(self.carta())
+        bit.render_card()
+        self.pulsar(bit, "Compruébamelo")
+        self.assertIsNotNone(bit.reto)
+        self.assertNotEqual(bit.reto["formato"], "relampago")
+        self.assertEqual(self.repasos(), 0, "no se apunta hasta resolver el reto")
+
+    def test_el_reto_es_de_la_misma_tarjeta_que_estabas_leyendo(self):
+        carta = self.carta()
+        bit = self.bit(carta)
+        bit.render_card()
+        self.pulsar(bit, "Compruébamelo")
+        self.assertEqual(bit.card["id"], carta["id"])
+
+    def test_no_lo_sabia_si_se_apunta_al_momento(self):
+        bit = self.bit(self.carta())
+        bit.render_card()
+        self.pulsar(bit, "No lo sabía")
+        self.assertEqual(self.repasos(), 1)
+
+    def test_con_el_modo_apagado_lo_sabia_vuelve_y_apunta(self):
+        db.set_meta(self.con, "modo_estricto", "0")
+        bit = self.bit(self.carta())
+        bit.render_card()
+        self.assertTrue(self.pulsar(bit, "Lo sabía"))
+        self.assertEqual(self.repasos(), 1)
+
+    def test_una_leccion_no_ofrece_calificar_ni_apunta(self):
+        bit = self.bit(self.carta(back="", kind="lesson"))
+        bit.render_card()
+        self.assertFalse(self.pulsar(bit, "Lo sabía"))
+        self.assertFalse(self.pulsar(bit, "No lo sabía"))
+        self.assertEqual(self.repasos(), 0)
+
+    def test_el_relampago_no_deja_apuntarse_un_acierto(self):
+        bit = self.bit(self.carta())
+        bit.reto = {"formato": "relampago", "segundos": 20}
+        bit.revelar_relampago()
+        self.assertFalse(self.pulsar(bit, "La tenía"))
+        self.assertEqual(self.repasos(), 0)
+
+
+class InterruptorEstrictoTest(BaseTemporal):
+    def test_el_ajuste_enciende_y_apaga_el_modo(self):
+        from appstudy.main_window import MainWindow
+        ventana = MainWindow(None, self.con)
+        self.addCleanup(ventana.destroy)
+        self.assertTrue(ventana.estricto_switch.get_active(),
+                        "de fábrica el modo estricto viene encendido")
+        ventana.estricto_switch.set_active(False)
+        self.assertFalse(pet.estricto(self.con))
+        ventana.estricto_switch.set_active(True)
+        self.assertTrue(pet.estricto(self.con))

@@ -27,6 +27,7 @@ from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 from . import citas, cloze, db, estadisticas, ia, logros, reto  # noqa: E402
 from . import historial, recordatorios, scheduler, sonido, util, voz  # noqa: E402
 from .bit import Bit  # noqa: E402
+from .chispa import Chispa  # noqa: E402
 from .criatura import (ESCALA_MAX, ESCALA_MIN, ESCALA_PASO, FRAME_ACTIVO,  # noqa: E402,F401
                        FRAME_REPOSO, Creature, _claro, _hex, _oscuro, acercar,
                        muelle, out_back, out_cubic, pulso, suave)
@@ -34,7 +35,7 @@ from .criatura import (ESCALA_MAX, ESCALA_MIN, ESCALA_PASO, FRAME_ACTIVO,  # noq
 PET_APP_ID = "io.github.appstudy.AppStudy.Pet"
 
 # Las mascotas disponibles, en el orden en que se ofrecen en Ajustes.
-PIELES = (Bit,)
+PIELES = (Bit, Chispa)
 PIEL_POR_DEFECTO = "bit"
 
 # La paleta y las medidas de Bit siguen accesibles por comodidad: son las que
@@ -184,6 +185,43 @@ def reproche(horas: float) -> str:
                 "Empecemos por una fácil.")
     return (f"<b>{dias} días</b> sin estudiar. Yo aquí sigo, por si te apetece "
             "volver: una tarjeta y lo dejamos.")
+
+
+def estricto(con) -> bool:
+    """Si Bit solo da por estudiado lo que ha comprobado. Encendido de fábrica."""
+    return str(db.get_meta(con, "modo_estricto", "1")) not in ("0", "False")
+
+
+def calificaciones(card, modo_estricto: bool) -> list:
+    """Qué botones ofrece Bit al enseñar una tarjeta.
+
+    Con el modo estricto apagado, los dos de siempre. Encendido, «Lo sabía»
+    desaparece: teniendo la respuesta delante nadie puede decir de verdad si la
+    sabía, así que en su lugar se ofrece comprobarlo. Reconocer que no la sabías
+    sí se apunta, porque eso no necesita comprobación.
+
+    Una lección no tiene respuesta que preguntar: en estricto no ofrece nada, y
+    leerla no cuenta como repaso.
+    """
+    if not modo_estricto:
+        return [("No lo sabía", "again", "as-rate-again"),
+                ("Lo sabía", "good", "as-rate-good")]
+    if not util.plain(card["back"] or ""):
+        return []
+    return [("No lo sabía", "again", "as-rate-again"),
+            ("Compruébamelo", "comprobar", "as-rate-good")]
+
+
+def calificaciones_relampago(modo_estricto: bool) -> list:
+    """El relámpago enseña la respuesta y pregunta si la tenías.
+
+    Eso es autoevaluación, no comprobación, así que en estricto no se ofrece
+    calificar: solo se llega aquí con una tarjeta que no da para preguntar de
+    ninguna otra manera, y esa no se puede dar por estudiada.
+    """
+    if modo_estricto:
+        return []
+    return [("No la tenía", False, "as-rate-again"), ("La tenía", True, "as-rate-good")]
 
 
 class PetWindow(Gtk.ApplicationWindow):
@@ -1186,14 +1224,18 @@ class PetWindow(Gtk.ApplicationWindow):
                 label=util.to_markup(c["hint"]), use_markup=True, wrap=True, xalign=0,
                 max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
 
-        fila = Gtk.Box(spacing=6, homogeneous=True)
-        for rating, etiqueta, clase in (
-                (scheduler.AGAIN, "No lo sabía", "as-rate-again"),
-                (scheduler.GOOD, "Lo sabía", "as-rate-good")):
-            b = Gtk.Button(label=etiqueta, css_classes=["pill", clase])
-            b.connect("clicked", lambda _b, r=rating: self.rate(r))
-            fila.append(b)
-        self.bubble_box.append(fila)
+        botones = calificaciones(c, estricto(self.con))
+        if botones:
+            fila = Gtk.Box(spacing=6, homogeneous=True)
+            for etiqueta, accion, clase in botones:
+                b = Gtk.Button(label=etiqueta, css_classes=["pill", clase])
+                b.connect("clicked", lambda _b, a=accion: self.accion_calificar(a))
+                fila.append(b)
+            self.bubble_box.append(fila)
+        else:
+            self.bubble_box.append(Gtk.Label(
+                label="Esto es para leer: no cuenta como repaso.", wrap=True, xalign=0,
+                css_classes=["as-bubble-text", "dim-label"]))
 
         if ia.config(self.con)["activa"]:
             fila_ia = Gtk.Box(spacing=10, homogeneous=True)
@@ -1250,6 +1292,29 @@ class PetWindow(Gtk.ApplicationWindow):
         self.creature.emitir("corazon", 5)
         self.sonar("celebra")
         return True
+
+    def accion_calificar(self, accion):
+        """Traduce el botón pulsado en lo que toca hacer."""
+        if accion == "comprobar":
+            return self.comprobar()
+        return self.rate(scheduler.AGAIN if accion == "again" else scheduler.GOOD)
+
+    def comprobar(self):
+        """Te pregunta esta misma tarjeta, en vez de creerte que la sabías.
+
+        A diferencia de `quiz()`, que salta a otra tarjeta: aquí lo que se
+        comprueba es justo lo que acabas de leer.
+        """
+        if not self.card:
+            return
+        if not util.plain(self.card["back"] or ""):
+            self.render_card()
+            return
+        self.reto = reto.preparar(self.con, self.card, evitar=self.ultimo_formato,
+                                  estricto=estricto(self.con))
+        self.ultimo_formato = self.reto["formato"]
+        self.shown_at = time.time()
+        self.render_reto()
 
     def rate(self, rating):
         if not self.card:
@@ -1311,7 +1376,8 @@ class PetWindow(Gtk.ApplicationWindow):
             self.shown_at = time.time()
             self.render_card()
             return
-        self.reto = reto.preparar(self.con, self.card, evitar=self.ultimo_formato)
+        self.reto = reto.preparar(self.con, self.card, evitar=self.ultimo_formato,
+                                  estricto=estricto(self.con))
         self.ultimo_formato = self.reto["formato"]
         self.shown_at = time.time()
         self.render_reto()
@@ -1410,7 +1476,8 @@ class PetWindow(Gtk.ApplicationWindow):
             return
         # En el reto del hueco basta con acertar la palabra que falta
         objetivo = self.reto.get("palabra") or self.reto["respuesta"]
-        self.resolver(reto.acierta_escrito(texto, objetivo), elegida=texto)
+        self.resolver(reto.acierta_escrito(texto, objetivo, estricto(self.con)),
+                      elegida=texto)
 
     def reto_relampago(self):
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
@@ -1439,13 +1506,22 @@ class PetWindow(Gtk.ApplicationWindow):
         self.bubble_box.append(Gtk.Label(
             label=util.to_markup(c["back"]), use_markup=True, wrap=True, xalign=0,
             max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
-        fila = Gtk.Box(spacing=6, homogeneous=True)
-        for etiqueta, ok, clase in (("No la tenía", False, "as-rate-again"),
-                                    ("La tenía", True, "as-rate-good")):
-            b = Gtk.Button(label=etiqueta, css_classes=["pill", clase])
-            b.connect("clicked", lambda _b, v=ok: self.resolver(v, sin_respuesta=True))
-            fila.append(b)
-        self.bubble_box.append(fila)
+        botones = calificaciones_relampago(estricto(self.con))
+        if botones:
+            fila = Gtk.Box(spacing=6, homogeneous=True)
+            for etiqueta, ok, clase in botones:
+                b = Gtk.Button(label=etiqueta, css_classes=["pill", clase])
+                b.connect("clicked", lambda _b, v=ok: self.resolver(v, sin_respuesta=True))
+                fila.append(b)
+            self.bubble_box.append(fila)
+        else:
+            self.bubble_box.append(Gtk.Label(
+                label="Esta no se puede preguntar de ninguna forma, así que no la "
+                      "apunto: mírala y seguimos.", wrap=True, xalign=0,
+                css_classes=["as-bubble-text", "dim-label"]))
+            seguir = Gtk.Button(label="Otra tarjeta", css_classes=["pill"])
+            seguir.connect("clicked", lambda *_: self.quiz())
+            self.bubble_box.append(seguir)
         self.bubble_box.append(self.pie_leer())
 
     # --- la cuenta atrás

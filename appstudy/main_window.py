@@ -1411,6 +1411,14 @@ class MainWindow(Adw.ApplicationWindow):
         self.pet_auto.connect("notify::active", self.on_pet_autostart)
         gp.add(self.pet_auto)
 
+        self.estricto_switch = Adw.SwitchRow(
+            title="Solo cuenta si lo compruebo",
+            subtitle="Leer la respuesta no marca la tarjeta como sabida: hay que "
+                     "acertarla en un reto")
+        self.estricto_switch.set_active(pet.estricto(self.con))
+        self.estricto_switch.connect("notify::active", self.on_modo_estricto)
+        gp.add(self.estricto_switch)
+
         self.snd_switch = Adw.SwitchRow(
             title="Sonidos",
             subtitle="Avisos, aciertos y fallos · también desde su menú, en Silencio")
@@ -1849,6 +1857,9 @@ class MainWindow(Adw.ApplicationWindow):
     def launch_pet(self):
         self.get_application().launch_pet()
         self.notify_user(f"{self.nombre_mascota()} ya anda por el escritorio")
+
+    def on_modo_estricto(self, fila, _p):
+        db.set_meta(self.con, "modo_estricto", "1" if fila.get_active() else "0")
 
     def on_pet_autostart(self, fila, _p):
         self.notify_user(pet.set_autostart(fila.get_active(), self.nombre_mascota()))
