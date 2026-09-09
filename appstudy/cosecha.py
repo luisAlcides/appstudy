@@ -121,3 +121,115 @@ def filtrar(con, doc: dict, plan: dict) -> dict:
     return {"ok": score >= UMBRAL, "score": score,
             "nivel": nivel_de(texto, len(selector.niveles(plan["deck"]))),
             "motivo": plan["motivo"] if score >= UMBRAL else f"nota baja: {score}"}
+
+
+CADA = 86400
+POR_RACION = 1
+TARJETAS_POR_LECTURA = 6
+CANDIDATOS_POR_FUENTE = 5
+MAX_RECHAZOS_GUARDADOS = 40
+MIN_APOYO = 0.5           # cuánto de la respuesta debe estar en el texto de origen
+
+
+def _tarjetas(con, doc: dict) -> list:
+    """Tarjetas de la IA local, validadas contra el texto de origen.
+
+    Dos validaciones que `ia.generar_desde_texto` no hace: que la respuesta
+    aparezca de verdad en el texto —contra las invenciones del modelo— y que el
+    enunciado no repita una tarjeta que ya tienes.
+
+    Si el modelo no está, no pasa nada: el capítulo se guarda igual y la
+    bandeja ofrece generarlas más tarde.
+    """
+    from . import ia
+    try:
+        cfg = ia.config(con)
+        if not cfg.get("activa", True):
+            return []
+        propuestas = ia.generar_desde_texto(cfg, doc["text"][:6000], doc["title"],
+                                            TARJETAS_POR_LECTURA)
+    except Exception:          # IAError, red, modelo ausente: da igual cuál sea
+        return []
+    cuerpo = fuentes.clave(doc["text"])
+    ya = {fuentes.clave(r["front"]) for r in con.execute("SELECT front FROM cards")}
+    salida = []
+    for t in propuestas:
+        frente, dorso = t.get("front", "").strip(), t.get("back", "").strip()
+        if not frente:
+            continue
+        pistas = [p for p in fuentes.clave(dorso).split() if len(p) > 4]
+        if pistas and sum(p in cuerpo for p in pistas) / len(pistas) < MIN_APOYO:
+            continue           # el modelo se lo ha inventado: fuera
+        if fuentes.clave(frente) in ya:
+            continue
+        ya.add(fuentes.clave(frente))
+        salida.append({"front": frente, "back": dorso})
+    return salida
+
+
+def cosechar(con, plan: dict | None = None, cuantas: int = POR_RACION) -> list:
+    """Ejecuta el plan del día y deja en la bandeja lo que pase los filtros."""
+    from . import bandeja
+    plan = plan or selector.plan(con)
+    if not plan:
+        return []
+    consulta = " ".join(plan["terminos"])
+    guardados, rechazos, caidas = [], [], []
+    for f in plan["fuentes"]:
+        if len(guardados) >= cuantas:
+            break
+        try:
+            candidatos = fuentes.buscar(f["id"], consulta)
+        except fuentes.FuenteError as e:
+            rechazos.append(f"{f['id']}: {e}")
+            caidas.append(f"{f['id']}: {e}")
+            continue                 # una fuente caída no tumba a las demás
+        for candidato in candidatos[:CANDIDATOS_POR_FUENTE]:
+            if len(guardados) >= cuantas:
+                break
+            try:
+                doc = fuentes.previsualizar(candidato)
+            except fuentes.FuenteError as e:
+                rechazos.append(f"{candidato['origin']}: {e}")
+                continue
+            veredicto = filtrar(con, doc, plan)
+            if not veredicto["ok"]:
+                rechazos.append(f"{doc['title']} ({f['id']}): {veredicto['motivo']}")
+                continue
+            doc["cards"] = _tarjetas(con, doc)
+            guardados.append(bandeja.guardar(con, doc, plan, veredicto))
+    db.set_meta(con, "cosecha_rechazos",
+                json.dumps(rechazos[:MAX_RECHAZOS_GUARDADOS], ensure_ascii=False))
+    # Que fallen todas suele ser quedarse sin red, y eso sí merece verse en
+    # Ajustes. Que fallen algunas es normal y se queda en la lista de rechazos.
+    if caidas and len(caidas) == len(plan["fuentes"]):
+        raise fuentes.FuenteError(caidas[0].split(": ", 1)[-1])
+    return guardados
+
+
+def auto_si_toca(con, cada: float = CADA) -> bool:
+    """Una ración al día, al abrir. Calcado de `respaldo.auto_si_toca`.
+
+    Si falla no se dice nada por pantalla: no poder descargar no debe impedirte
+    estudiar, y un aviso en cada arranque sin internet sería insufrible. El
+    motivo queda en `meta` y se ve en Ajustes › Fuentes.
+
+    Un fallo tampoco marca el día como cosechado: si abres más tarde con red,
+    se vuelve a intentar.
+    """
+    if str(db.get_meta(con, "cosecha_auto", "1")) in ("0", "False"):
+        return False
+    try:
+        ultimo = float(db.get_meta(con, "cosecha_last", 0) or 0)
+    except (TypeError, ValueError):
+        ultimo = 0
+    if time.time() - ultimo < cada:
+        return False
+    try:
+        hubo = bool(cosechar(con))
+        db.set_meta(con, "cosecha_last", time.time())
+        db.set_meta(con, "cosecha_error", "")
+        return hubo
+    except Exception as e:
+        db.set_meta(con, "cosecha_error", str(e))
+        return False

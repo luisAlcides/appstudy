@@ -10,7 +10,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
-from . import bienvenida, db, hotkey, ia, nube, pet, respaldo, seed  # noqa: E402
+from . import bienvenida, cosecha, db, hotkey, ia, nube, pet, respaldo, seed  # noqa: E402
 from . import sincronizacion, util  # noqa: E402
 from .main_window import MainWindow  # noqa: E402
 from .popup import PopupWindow  # noqa: E402
@@ -81,6 +81,9 @@ class AppStudy(Adw.Application):
         # respaldar no debe impedirte estudiar.
         if str(db.get_meta(self.con, "respaldo_auto", "1")) not in ("0", "False"):
             respaldo.auto_si_toca(self.con)
+        # Y una ración de contenido nuevo, también una vez al día y también en
+        # silencio. Va en su hilo para no retrasar el arranque.
+        self.cosechar_en_silencio()
         self.load_css()
         Gtk.Window.set_default_icon_name(ICON_NAME)
 
@@ -363,6 +366,26 @@ class AppStudy(Adw.Application):
                 self.main_window.notify_user(f"No se pudo sincronizar automáticamente: {error}")
 
         util.hilo(trabajo, listo, fallo, largo=True)
+
+    def cosechar_en_silencio(self):
+        """Una ración de contenido nuevo al día, al abrir. Nunca estorba.
+
+        Si no hay red o la fuente falla, queda anotado en `meta` y se ve en
+        Ajustes › Fuentes: un aviso por cada arranque sin internet sería
+        insufrible, y no poder descargar no debe impedirte estudiar.
+        """
+        def trabajo():
+            otra = db.connect()          # una conexión de SQLite es de su hilo
+            try:
+                return cosecha.auto_si_toca(otra)
+            finally:
+                otra.close()
+
+        def listo(hubo):
+            if hubo and self.main_window:
+                self.main_window.refresh()
+
+        util.hilo(trabajo, listo, lambda _e: None, largo=True)
 
     def publicar_en_la_nube(self):
         """Sube lo estudiado antes de cerrar. Nunca impide salir."""
