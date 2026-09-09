@@ -249,3 +249,74 @@ class TestDistractores(BaseTemporal):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestEscribirEstricto(unittest.TestCase):
+    """En modo estricto, escribir la mitad de la respuesta ya no es saberla."""
+
+    def test_media_respuesta_deja_de_valer(self):
+        largo = "cambia los permisos de un archivo o carpeta"
+        self.assertTrue(reto.acierta_escrito("cambia los permisos de un archivo", largo))
+        self.assertFalse(reto.acierta_escrito("cambia los permisos de un archivo",
+                                              largo, estricto=True))
+
+    def test_la_respuesta_exacta_sigue_valiendo(self):
+        self.assertTrue(reto.acierta_escrito("chmod", "chmod", estricto=True))
+
+    def test_se_sigue_perdonando_el_acento_y_la_errata(self):
+        self.assertTrue(reto.acierta_escrito("PERMISOS DE EJECUCION",
+                                             "permisos de ejecución", estricto=True))
+        self.assertTrue(reto.acierta_escrito("permisos de ejecucon",
+                                             "permisos de ejecución", estricto=True))
+
+    def test_una_respuesta_distinta_tampoco_cuela(self):
+        self.assertFalse(reto.acierta_escrito("borrar un archivo",
+                                              "cambiar los permisos", estricto=True))
+
+
+class TestPrepararEstricto(BaseTemporal):
+    MATERIAL = TestPreparar.MATERIAL
+
+    def poblar(self, cuantas=10):
+        deck = self.mazo()
+        return deck, [self.tarjeta(deck, f, b) for f, b in self.MATERIAL[:cuantas]]
+
+    def carta(self, card_id):
+        return self.con.execute("SELECT * FROM cards WHERE id=?", (card_id,)).fetchone()
+
+    def test_el_relampago_no_sale_nunca_en_estricto(self):
+        _, ids = self.poblar()
+        for _ in range(60):
+            r = reto.preparar(self.con, self.carta(ids[0]), estricto=True)
+            self.assertNotEqual(r["formato"], "relampago")
+
+    def test_sin_estricto_el_relampago_sigue_existiendo(self):
+        _, ids = self.poblar()
+        formatos = {reto.preparar(self.con, self.carta(ids[0]))["formato"]
+                    for _ in range(200)}
+        self.assertIn("relampago", formatos)
+
+    def test_un_reto_de_verdad_se_marca_como_verificable(self):
+        _, ids = self.poblar()
+        self.assertTrue(reto.preparar(self.con, self.carta(ids[0]),
+                                      estricto=True)["verificable"])
+
+    def test_una_respuesta_larga_todavia_se_puede_preguntar_por_huecos(self):
+        """Que no quepa escribirla entera no significa que no se pueda comprobar."""
+        deck = self.mazo()
+        cid = self.tarjeta(deck, "¿Qué es el kernel?",
+                           "El kernel es la parte del sistema que habla con el "
+                           "hardware, reparte la memoria y decide qué proceso "
+                           "corre en cada momento sobre cada núcleo disponible.")
+        r = reto.preparar(self.con, self.carta(cid), estricto=True)
+        self.assertTrue(r["verificable"])
+
+    def test_una_tarjeta_que_no_da_para_preguntar_no_es_verificable(self):
+        deck = self.mazo()
+        # Larga para escribirla, sin compañeras para hacer opciones, y con solo
+        # palabras comunes, que no sirven para dejar un hueco
+        cid = self.tarjeta(deck, "¿Cuándo pasa?",
+                           "porque cuando entre sobre puede hasta segun")
+        r = reto.preparar(self.con, self.carta(cid), estricto=True)
+        self.assertFalse(r["verificable"])
+        self.assertEqual(r["formato"], "relampago")

@@ -60,17 +60,26 @@ def parecido(a: str, b: str) -> float:
     return difflib.SequenceMatcher(None, normalizar(a), normalizar(b)).ratio()
 
 
-def acierta_escrito(escrito: str, respuesta: str) -> bool:
-    """¿Cuenta como acierto lo que ha escrito? Se perdona el acento y la errata."""
+PARECIDO_MINIMO = 0.82
+PARECIDO_ESTRICTO = 0.9
+
+
+def acierta_escrito(escrito: str, respuesta: str, estricto: bool = False) -> bool:
+    """¿Cuenta como acierto lo que ha escrito? Se perdona el acento y la errata.
+
+    En modo estricto se cae la regla de «contenida en la otra»: escribir la
+    mitad larga de una respuesta no es saberla, es reconocerla. Lo que se sigue
+    perdonando son los acentos y las erratas, porque eso no es no saberlo.
+    """
     e, r = normalizar(escrito), normalizar(respuesta)
     if not e or not r:
         return False
     if e == r:
         return True
-    # Contenida en la otra, pero solo si aporta casi toda la respuesta
-    if len(e) >= 0.6 * len(r) and (e in r or r in e):
+    if not estricto and len(e) >= 0.6 * len(r) and (e in r or r in e):
         return True
-    return difflib.SequenceMatcher(None, e, r).ratio() >= 0.82
+    minimo = PARECIDO_ESTRICTO if estricto else PARECIDO_MINIMO
+    return difflib.SequenceMatcher(None, e, r).ratio() >= minimo
 
 
 # ------------------------------------------------------------------- destilar
@@ -200,11 +209,17 @@ def es_cloze(card) -> bool:
     return (tipo == "cloze" or cloze.tiene_huecos(frente)) and cloze.tiene_huecos(frente)
 
 
-def preparar(con, card, evitar=None) -> dict:
+def preparar(con, card, evitar=None, estricto: bool = False) -> dict:
     """Convierte una tarjeta en un reto concreto, con formato elegido al azar.
 
     `evitar` es el formato de la vez anterior: mientras haya alternativas no se
     repite, que es de donde sale la sensación de variedad.
+
+    En modo `estricto` se descarta el relámpago, que no comprueba nada: enseña
+    la respuesta y te pregunta si la tenías. Cuando es el único formato posible
+    —una respuesta demasiado larga para escribirla y sin compañeras de las que
+    sacar opciones— el reto sale marcado `verificable: False`, y quien lo pida
+    sabrá que eso no se puede dar por estudiado.
     """
     respuesta = util.plain(card["back"])
     posibles: dict = {}
@@ -248,7 +263,9 @@ def preparar(con, card, evitar=None) -> dict:
     # Pensar y comprobar siempre vale, aunque la tarjeta no dé para más
     posibles["relampago"] = {}
 
-    candidatos = [f for f in posibles if f != evitar] or list(posibles)
+    comprobables = [f for f in posibles if f != "relampago"]
+    disponibles = comprobables if (estricto and comprobables) else list(posibles)
+    candidatos = [f for f in disponibles if f != evitar] or disponibles
     formato = random.choices(candidatos, [PESOS[f] for f in candidatos])[0]
     icono, titulo = TITULOS[formato]
     if es_cloze(card):
@@ -261,4 +278,4 @@ def preparar(con, card, evitar=None) -> dict:
         pregunta, solucion = card["front"], card["back"] or ""
     return {"formato": formato, "segundos": SEGUNDOS[formato], "icono": icono,
             "titulo": titulo, "pregunta": pregunta, "respuesta": solucion,
-            **posibles[formato]}
+            "verificable": formato != "relampago", **posibles[formato]}
