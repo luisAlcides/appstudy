@@ -146,7 +146,13 @@ class TestEscuchaContinua(unittest.TestCase):
 
 
 class TestPalabraClave(unittest.TestCase):
-    """«Hola bit» tiene que despertar a Bit, y nada más debería."""
+    """«Hola bit» tiene que despertar a la mascota, y nada más debería."""
+
+    def test_los_dos_nombres_despiertan_este_puesto_el_que_este(self):
+        # Conmutar el nombre con el ajuste dejaría sin despertarla a quien se
+        # equivoca de mascota; valen los dos siempre.
+        for oido in ("hola chispa", "oye chispa", "hola chispas"):
+            self.assertTrue(voz_rec.es_palabra_clave(oido), oido)
 
     def test_reconoce_el_saludo_y_sus_confusiones(self):
         # Vosk oye «vit» o «bip» donde dices «bit»: se dan por buenas
@@ -166,6 +172,7 @@ class TestPalabraClave(unittest.TestCase):
         import json
         frases = json.loads(voz_rec.gramatica_clave())
         self.assertIn("hola bit", frases)
+        self.assertIn("hola chispa", frases)
         self.assertIn("[unk]", frases)
         # Sin sitios donde caer, el motor mete cualquier saludo en «hola bit»
         for senuelo in voz_rec.SENUELOS_CLAVE:

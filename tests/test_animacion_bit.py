@@ -22,6 +22,7 @@ class BitSinVentana:
         self.mood = "normal"
         self.energy = self.energy_mostrada = 1.0
         self.teaching = self.charlando = self.hover = self.reduced_motion = False
+        self.enojado = False
         self.hover_suave = self.abandono = 0.0
         self.accessory = "ninguno"
         self.genero = ""

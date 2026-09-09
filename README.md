@@ -8,7 +8,7 @@ Aplicación de escritorio con **tres formas de estudiar**:
 - **Modo repaso** — un popup que aparece con un atajo de teclado, te enseña algo o te pone
   un reto de lo que ya estudiaste, lo calificas en un segundo y desaparece. Para no olvidarlo.
 
-- **Bit, la mascota** — un bicho que vive en el escritorio por encima de todas las
+- **Bit o Chispa, la mascota** — un bicho que vive en el escritorio por encima de todas las
   ventanas. Te recuerda estudiar cuando llevas rato sin hacerlo, te enseña una
   tarjeta ahí mismo —pregunta y respuesta juntas— o te pone a prueba contrarreloj
   de seis maneras distintas, y de vez en cuando te suelta una frase de un libro.
@@ -316,6 +316,21 @@ tarjetas cerradas sin responder antes de esta función no se pueden reconstruir.
 **Tamaño**: del 50 % al 250 %, desde su menú (pasos del 15 %) o con el número exacto en
 Ajustes → Progreso. Se guarda, y la mascota lo recoge sola aunque lo cambies desde la
 ventana principal.
+
+**Elegir mascota**: en **Ajustes → Apariencia y progreso**, la fila *Mascota*
+cambia entre **Bit** y **Chispa**. El cambio es al momento —la mascota lo recoge
+sola en unos segundos, sin reiniciar nada— y también está en su menú de clic
+derecho («Cambiar a…»). El progreso es de la cuenta, no de la mascota: los
+repasos, la etapa y el accesorio se conservan al cambiar. La palabra clave de
+voz acepta siempre los dos nombres, «hola bit» y «hola chispa».
+
+**Chispa** es un zorro naranja con el pecho y el hocico crema, orejas de punta
+oscura, un rombo turquesa en la frente y una cola grande que se menea detrás: se
+acelera cuando tiene algo que enseñarte y se apaga cuando llevas días sin
+aparecer. Comparte motor con Bit, así que respira, parpadea, salta, te sigue con
+la mirada y hace los mismos gestos. Lo que lleva el color de su ánimo son el
+rombo, la punta de la cola y los cachetes; el pelaje naranja no cambia nunca.
+También está dibujada entera con Cairo, sin sprites.
 
 **Evolución y accesorios**: Bit pasa de Compañero a Curioso, Aplicado, Sabio y
 Maestro según tus repasos reales —no por dejar la aplicación abierta—. En 25,

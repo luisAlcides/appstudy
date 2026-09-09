@@ -161,6 +161,21 @@ def nombre(con) -> str:
     return piel(con).NOMBRE
 
 
+# Lo que la mascota sabe de ti y no depende de cómo esté dibujada. Al cambiar de
+# una a otra se traspasa entero: si no, el relevo se notaría como un reinicio.
+ESTADO_COMPARTIDO = ("mood", "energy", "energy_mostrada", "teaching", "charlando",
+                     "accessory", "genero", "abandono", "enojado", "reduced_motion")
+
+
+def traspasar_estado(vieja, nueva):
+    """Pasa a la mascota nueva lo que la vieja sabía; devuelve la nueva."""
+    for atributo in ESTADO_COMPARTIDO:
+        setattr(nueva, atributo, getattr(vieja, atributo))
+    # El color en curso es de la paleta de la vieja y aquí no significa nada.
+    nueva.color_actual = _hex(nueva.MOODS.get(nueva.mood, nueva.COLOR_BASE))[:3]
+    return nueva
+
+
 def sin_estudiar(horas: float) -> str:
     """«hace 3 h», «hace 2 días»: para el tooltip y para lo que te dice."""
     if horas < 1:
@@ -350,13 +365,7 @@ class PetWindow(Gtk.ApplicationWindow):
         if isinstance(self.creature, clase):
             return False
         vieja = self.creature
-        nueva = clase(vieja.escala)
-        for atributo in ("mood", "energy", "energy_mostrada", "teaching",
-                         "charlando", "accessory", "genero", "abandono",
-                         "enojado", "reduced_motion"):
-            setattr(nueva, atributo, getattr(vieja, atributo))
-        # El color se recalcula con la paleta nueva: el de la vieja no existe aquí.
-        nueva.color_actual = _hex(nueva.MOODS.get(nueva.mood, nueva.COLOR_BASE))[:3]
+        nueva = traspasar_estado(vieja, clase(vieja.escala))
 
         self.creature = nueva
         self.handle.set_child(nueva)
@@ -367,6 +376,10 @@ class PetWindow(Gtk.ApplicationWindow):
         self.menu.set_parent(nueva)
         self.set_title(f"AppStudy · {nueva.NOMBRE}")
         return True
+
+    def otras_mascotas(self):
+        """Las mascotas a las que se puede cambiar desde aquí."""
+        return [p for p in PIELES if not isinstance(self.creature, p)]
 
     def cambiar_mascota(self, clave: str):
         """Desde el menú de la mascota: elegir con quién se estudia."""
@@ -534,6 +547,7 @@ class PetWindow(Gtk.ApplicationWindow):
         mood = animo(t, horas, energia, self.dormida())
 
         self.stats = {**t, "energia": energia, "horas": horas, "abandono": abandono}
+        self.aplicar_mascota()      # cambiada desde Ajustes, sin reiniciar nada
         if abs(self.escala_guardada() - self.creature.escala) > 0.01:
             self.creature.set_escala(self.escala_guardada())   # cambiado desde Ajustes
         nueva_card_escala = self.card_escala_guardada()
@@ -2626,6 +2640,10 @@ class PetWindow(Gtk.ApplicationWindow):
             caja.append(self._fila_accion(etiqueta, cb, sufijo))
 
         caja.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
+        for piel_otra in self.otras_mascotas():
+            caja.append(self._fila_accion(
+                f"🔄 Cambiar a {piel_otra.NOMBRE}",
+                lambda clave=piel_otra.CLAVE: self.cambiar_mascota(clave)))
         caja.append(self._grupo_tamano(f"Tamaño de {self.nombre}",
                                        lambda: self.cambiar_tamano(-ESCALA_PASO),
                                        lambda: self.cambiar_tamano(ESCALA_PASO)))

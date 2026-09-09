@@ -1391,12 +1391,12 @@ class MainWindow(Adw.ApplicationWindow):
         captura_quitar.add_suffix(cq)
         g.add(captura_quitar)
 
-        gp = Adw.PreferencesGroup(
+        self.pet_group = gp = Adw.PreferencesGroup(
             title=f"{self.nombre_mascota()}, la mascota",
             description="Una criatura que vive encima de todo en el escritorio: te "
                         "recuerda estudiar y te enseña una tarjeta sin abrir nada.")
 
-        soltar = Adw.ActionRow(
+        self.pet_soltar = soltar = Adw.ActionRow(
             title=f"Soltar a {self.nombre_mascota()} ahora",
             subtitle="Clic para que te enseñe algo · clic derecho para su menú")
         sb = Gtk.Button(label="Soltar", valign=Gtk.Align.CENTER,
@@ -1571,6 +1571,12 @@ class MainWindow(Adw.ApplicationWindow):
         self.card_size.set_subtitle("En porcentaje (115% por defecto); también desde el clic derecho en la tarjeta")
         self.card_size.connect("notify::value", self.on_card_size)
         gpr.add(self.card_size)
+        self.pet_mascota = Adw.ComboRow(
+            title="Mascota",
+            subtitle="Con quién estudias. Cambia al momento, sin perder progreso",
+            model=Gtk.StringList.new([p.NOMBRE for p in pet.PIELES]))
+        self.pet_mascota.connect("notify::selected", self.on_pet_mascota)
+        gpr.add(self.pet_mascota)
         self.pet_size = Adw.SpinRow.new_with_range(50, 250, 10)
         self.pet_size.set_title(f"Tamaño de {self.nombre_mascota()}")
         self.pet_size.set_subtitle("En porcentaje; también desde su menú, con Más grande / Más pequeño")
@@ -1584,7 +1590,8 @@ class MainWindow(Adw.ApplicationWindow):
             model=Gtk.StringList.new(etiquetas_accesorios))
         self.pet_accessory.connect("notify::selected", self.on_pet_accessory)
         gpr.add(self.pet_accessory)
-        self.pet_evolution_row = Adw.ActionRow(title="Evolución de Bit")
+        self.pet_evolution_row = Adw.ActionRow(
+            title=f"Evolución de {self.nombre_mascota()}")
         self.pet_evolution_bar = Gtk.ProgressBar(
             valign=Gtk.Align.CENTER, width_request=120, show_text=False)
         self.pet_evolution_row.add_suffix(self.pet_evolution_bar)
@@ -1910,6 +1917,21 @@ class MainWindow(Adw.ApplicationWindow):
 
     def on_card_size(self, fila, _p):
         db.set_meta(self.con, "card_scale", round(fila.get_value() / 100, 2))
+
+    def on_pet_mascota(self, fila, _p):
+        piel = pet.PIELES[fila.get_selected()]
+        db.set_meta(self.con, "pet_mascota", piel.CLAVE)
+        self.retitular_mascota()
+        self.notify_user(f"Ahora estudias con {piel.NOMBRE}")
+
+    def retitular_mascota(self):
+        """Las filas que llevan el nombre de la mascota, al día tras el cambio."""
+        quien = self.nombre_mascota()
+        self.pet_group.set_title(f"{quien}, la mascota")
+        self.pet_soltar.set_title(f"Soltar a {quien} ahora")
+        self.pet_size.set_title(f"Tamaño de {quien}")
+        self.pet_accessory.set_title(f"Accesorio de {quien}")
+        self.pet_evolution_row.set_title(f"Evolución de {quien}")
 
     def nombre_mascota(self) -> str:
         """Bit o Chispa, según lo elegido en Ajustes."""
@@ -3491,6 +3513,11 @@ echo hola
         self.card_size.handler_block_by_func(self.on_card_size)
         self.card_size.set_value(float(db.get_meta(self.con, "card_scale", 1.15)) * 100)
         self.card_size.handler_unblock_by_func(self.on_card_size)
+
+        self.pet_mascota.handler_block_by_func(self.on_pet_mascota)
+        self.pet_mascota.set_selected(pet.PIELES.index(pet.piel(self.con)))
+        self.pet_mascota.handler_unblock_by_func(self.on_pet_mascota)
+        self.retitular_mascota()
 
         self.pet_size.handler_block_by_func(self.on_pet_size)
         self.pet_size.set_value(float(db.get_meta(self.con, "pet_scale", 1.0)) * 100)

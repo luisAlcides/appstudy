@@ -1,8 +1,11 @@
 """Chispa: que se dibuja entera, que se elige desde la base y que no es Bit."""
 import math
 import unittest
+from types import MethodType
+from unittest.mock import Mock
 
 import cairo
+from gi.repository import Gdk, Gtk
 
 from appstudy import bit, chispa, db, pet
 from tests.apoyo import BaseTemporal
@@ -116,3 +119,98 @@ class DibujoTest(unittest.TestCase):
         columnas = [x for x in range(w) if (pixeles[fila * w + x] >> 24) > 80]
         centro = (columnas[0] + columnas[-1]) / 2
         self.assertAlmostEqual(centro, w / 2, delta=2)
+
+
+class RelevoTest(unittest.TestCase):
+    """Cambiar de mascota no puede sentirse como reiniciarla."""
+
+    def test_la_nueva_hereda_lo_que_la_vieja_sabia(self):
+        vieja = BitSinVentana(bit.Bit)
+        vieja.mood, vieja.energy, vieja.accessory = "triste", 0.3, "gafas"
+        vieja.genero, vieja.abandono, vieja.enojado = "f", 0.8, True
+        nueva = pet.traspasar_estado(vieja, BitSinVentana(chispa.Chispa))
+        for atributo in pet.ESTADO_COMPARTIDO:
+            with self.subTest(atributo=atributo):
+                self.assertEqual(getattr(nueva, atributo), getattr(vieja, atributo))
+
+    def test_el_color_se_recalcula_con_la_paleta_nueva(self):
+        vieja = BitSinVentana(bit.Bit)
+        vieja.mood = "feliz"
+        vieja.color_actual = pet._hex(bit.Bit.MOODS["feliz"])[:3]
+        nueva = pet.traspasar_estado(vieja, BitSinVentana(chispa.Chispa))
+        self.assertEqual(nueva.color_actual,
+                         pet._hex(chispa.Chispa.MOODS["feliz"])[:3])
+        self.assertNotEqual(nueva.color_actual, vieja.color_actual)
+
+    def test_el_progreso_no_es_de_ninguna_de_las_dos(self):
+        # Accesorios y evolución se guardan aparte: cambiar no cuesta repasos.
+        self.assertNotIn("pet_mascota", pet.ESTADO_COMPARTIDO)
+        self.assertIn("accessory", pet.ESTADO_COMPARTIDO)
+
+
+class VentanaFalsa:
+    """Lo justo de PetWindow para probar el relevo: el asa, el menú y la base."""
+
+    def __init__(self, con):
+        self.con = con
+        self.creature = bit.Bit(1.0)
+        self.handle = Gtk.WindowHandle()
+        self.handle.set_child(self.creature)
+        self.menu = Gtk.Popover(has_arrow=False)
+        self.menu.set_parent(self.creature)
+        self.set_title = Mock()
+        self.refresh_stats = Mock()
+
+    def on_click(self, *_):
+        pass
+
+    def __getattr__(self, nombre):
+        return MethodType(getattr(pet.PetWindow, nombre), self)
+
+
+class RelevoEnCalienteTest(BaseTemporal):
+    """Elegir mascota en Ajustes tiene que llegar a la ventana sin reiniciarla."""
+
+    @classmethod
+    def setUpClass(cls):
+        Gtk.init()
+        if Gdk.Display.get_default() is None:
+            raise unittest.SkipTest("Requiere pantalla GTK")
+
+    def test_el_ajuste_cambia_la_criatura_de_la_ventana(self):
+        ventana = VentanaFalsa(self.con)
+        self.assertFalse(ventana.aplicar_mascota(), "sin cambio no toca nada")
+        db.set_meta(self.con, "pet_mascota", "chispa")
+        self.assertTrue(ventana.aplicar_mascota())
+        self.assertIsInstance(ventana.creature, chispa.Chispa)
+        # Y queda colgada donde estaba, con el menú apuntándole a ella
+        self.assertIs(ventana.handle.get_child(), ventana.creature)
+        self.assertIs(ventana.menu.get_parent(), ventana.creature)
+        self.assertFalse(ventana.aplicar_mascota(), "ya está puesta")
+
+    def test_el_relevo_conserva_tamaño_y_estado(self):
+        ventana = VentanaFalsa(self.con)
+        ventana.creature.set_escala(1.6)
+        ventana.creature.mood = "triste"
+        ventana.creature.accessory = "gafas"
+        db.set_meta(self.con, "pet_mascota", "chispa")
+        ventana.aplicar_mascota()
+        self.assertAlmostEqual(ventana.creature.escala, 1.6)
+        self.assertEqual(ventana.creature.mood, "triste")
+        self.assertEqual(ventana.creature.accessory, "gafas")
+        self.assertEqual(ventana.creature.get_content_width(),
+                         round(chispa.Chispa.ANCHO * 1.6))
+
+    def test_el_menu_ofrece_la_otra(self):
+        ventana = VentanaFalsa(self.con)
+        self.assertEqual([p.NOMBRE for p in ventana.otras_mascotas()], ["Chispa"])
+        db.set_meta(self.con, "pet_mascota", "chispa")
+        ventana.aplicar_mascota()
+        self.assertEqual([p.NOMBRE for p in ventana.otras_mascotas()], ["Bit"])
+
+    def test_cambiar_desde_el_menu_guarda_y_saluda(self):
+        ventana = VentanaFalsa(self.con)
+        ventana.cambiar_mascota("chispa")
+        self.assertEqual(db.get_meta(self.con, "pet_mascota"), "chispa")
+        self.assertIsInstance(ventana.creature, chispa.Chispa)
+        self.assertIsNotNone(ventana.creature.phase("saludo"))

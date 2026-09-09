@@ -532,7 +532,10 @@ PALABRA_CLAVE = "hola bit"
 # «hey» y «beat» se probaron y se quitaron: son tan comunes en audio
 # cualquiera que despertaban a Bit sola con una frase de fondo.
 INICIOS_CLAVE = ("hola", "ola", "oye")
-NOMBRES_CLAVE = ("bit", "vit", "bip", "bid")
+# Valen los dos nombres estés con la mascota que estés. Conmutarlos con el
+# ajuste obligaría a cambiar de costumbre al dictar y dejaría sin forma de
+# despertarla a quien se equivoque; aceptar ambos no cuesta estado y no falla.
+NOMBRES_CLAVE = ("bit", "vit", "bip", "bid", "chispa", "chispas", "chisma")
 # Frases señuelo: con una gramática cerrada el motor mete a la fuerza lo que oye
 # en la frase más parecida, así que «hola buenos días» acabaría siendo «hola bit».
 # Dándole sitios donde caer, cada cosa va a su sitio y no salta la palabra clave.
@@ -547,14 +550,14 @@ def gramatica_clave() -> str:
 
 
 def es_palabra_clave(texto: str) -> bool:
-    """Cierto si en lo oído aparece un saludo seguido del nombre de Bit."""
+    """Cierto si en lo oído aparece un saludo seguido del nombre de la mascota."""
     palabras = re.findall(r"[a-záéíóúñü]+", (texto or "").lower())
     return any(a in INICIOS_CLAVE and b in NOMBRES_CLAVE
                for a, b in zip(palabras, palabras[1:]))
 
 
 class EscuchaPalabraClave:
-    """Micrófono en reposo, esperando a que digas «hola bit».
+    """Micrófono en reposo, esperando a que digas «hola bit» u «hola chispa».
 
     No transcribe lo que se habla en la habitación: el reconocedor solo puede
     devolver las frases de `gramatica_clave()`, así que todo lo demás sale como
