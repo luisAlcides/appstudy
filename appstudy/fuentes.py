@@ -161,6 +161,82 @@ def documento(provider, origin, title, text="", **extra):
             "retrieved": time.time(), **extra}
 
 
+CADUCIDAD_INDICE = 30 * 86400
+MAX_INDICE = 20 * 1024 * 1024          # el sitemap de LibreTexts pasa de 3 MB
+MAX_POR_INDICE = 200
+
+# Páginas de servicio: existen en todo wiki y en todo manual, y no son material
+# de estudio en ninguno
+_RUIDO = ("Special:", "Talk:", "Template:", "Category:", "Help:", "Sandbox",
+          "/index", "/search", "/login", "/genindex", "/_sources/")
+
+
+def _indice_paginas(f, raw):
+    """Convierte un sitemap XML o una página índice en pares (título, URL)."""
+    if f["buscar"] == "sitemap":
+        import xml.etree.ElementTree as ET
+        try:
+            raiz = ET.fromstring(raw.decode("utf-8", errors="replace"))
+        except ET.ParseError as e:
+            raise FuenteError(f"{f['nombre']} devolvió un sitemap ilegible") from e
+        urls = [n.text.strip() for n in raiz.iter()
+                if n.tag.endswith("}loc") and n.text and n.text.strip()]
+        pares = [(urllib.parse.unquote(u.rstrip("/").rsplit("/", 1)[-1]).replace("_", " "), u)
+                 for u in urls]
+    else:
+        pagina = Pagina(raw.decode("utf-8", errors="replace"))
+        pares = [(" ".join(titulo.split()),
+                  urllib.parse.urljoin(f["base"], href).split("#")[0])
+                 for href, titulo in pagina.enlaces if titulo and titulo.strip()]
+    salida, vistos = [], set()
+    for titulo, url in pares:
+        if not titulo or url in vistos or any(r in url for r in _RUIDO):
+            continue
+        try:
+            validar_url(url, DOMINIOS[f["id"]])
+        except ValueError:
+            continue                       # otro dominio: fuera de la lista blanca
+        vistos.add(url)
+        salida.append([titulo, url])
+    return salida
+
+
+def indice(f, consulta="", refrescar=False):
+    """Las páginas de una fuente sin buscador, desde su índice y con caché.
+
+    El índice se guarda un mes. Si la descarga falla pero hay copia, se usa la
+    copia: quedarse sin sugerencias por estar sin red sería peor que servir un
+    índice de hace tres semanas.
+    """
+    carpeta = db.DATA_DIR / "fuentes" / "indices"
+    carpeta.mkdir(parents=True, exist_ok=True)
+    ruta = carpeta / (f["id"] + ".json")
+    guardado = None
+    if ruta.exists():
+        try:
+            guardado = json.loads(ruta.read_text(encoding="utf-8"))
+        except ValueError:
+            guardado = None
+    vigente = bool(guardado) and time.time() - guardado.get("ts", 0) < CADUCIDAD_INDICE
+    if vigente and not refrescar:
+        pares = guardado["items"]
+    else:
+        url = f["base"] + "/sitemap.xml" if f["buscar"] == "sitemap" else f["base"]
+        try:
+            raw, _ = descargar(url, DOMINIOS[f["id"]], MAX_INDICE)
+            pares = _indice_paginas(f, raw)
+            ruta.write_text(json.dumps({"ts": time.time(), "items": pares},
+                                       ensure_ascii=False), encoding="utf-8")
+        except (FuenteError, OSError, ValueError):
+            if not guardado:
+                raise
+            pares = guardado["items"]
+    terminos = clave(consulta).split()
+    return [documento(f["id"], url, titulo, summary=f["nombre"])
+            for titulo, url in pares
+            if all(t in clave(titulo) for t in terminos)][:MAX_POR_INDICE]
+
+
 def _mediawiki(f, consulta, corto=False):
     """Wikipedia, Wikilibros, Wikiversidad, Wiktionary, ArchWiki y Gentoo.
 
