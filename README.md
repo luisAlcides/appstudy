@@ -425,6 +425,19 @@ reconstruido.
 En la pose del portátil la boca es una sonrisa cerrada, sin cavidad que abrir,
 así que ahí no se anima.
 
+**Y ladea la cabeza.** El naranja de Chispa no es una sola mancha —el pecho
+crema la parte en dos—, así que la de arriba *es* la cabeza con sus orejas y se
+puede separar entera. La capa crece propagando desde ahí sin bajar del cuello,
+que es lo que evita llevarse media cola por delante.
+
+Los ojos y la boca son **hijos de la cabeza**: cuando se inclina, van con ella.
+Y la capa de la cabeza lleva pelaje donde estaban los ojos, porque si conservara
+los ojos pintados, al parpadear se verían los de debajo. El giro está topado en
+unos 9 grados: más y el cuello se despega.
+
+Generar todas las capas cuesta unos **7 segundos** la primera vez, en segundo
+plano. Si borras la carpeta, se rehacen solas.
+
 ### Sonido
 
 Bit hace ruiditos: un aviso de dos notas cuando viene a buscarte, un arpegio al

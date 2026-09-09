@@ -3,11 +3,28 @@
 La comprobación de que un ojo está cerrado no se hace mirando, se hace
 contando: cuántos píxeles del hueco del ojo siguen clasificándose como ojo.
 """
+import shutil
+import tempfile
+from pathlib import Path
+
 import cairo
 
 from appstudy import capas_chispa as capas
 from appstudy import rig_chispa
 from tests.apoyo import BaseTemporal
+
+_EXTRAIDO = None
+
+
+def capas_listas(destino):
+    """Extrae una sola vez para todo el archivo y copia; extraer cuesta segundos."""
+    global _EXTRAIDO
+    if _EXTRAIDO is None:
+        _EXTRAIDO = Path(tempfile.mkdtemp(prefix="capas-compartidas-"))
+        capas.extraer(_EXTRAIDO)
+    destino.mkdir(parents=True, exist_ok=True)
+    for archivo in _EXTRAIDO.iterdir():
+        shutil.copy2(archivo, destino / archivo.name)
 
 
 class RigVacioTest(BaseTemporal):
@@ -37,7 +54,7 @@ class RigTest(BaseTemporal):
 
     def setUp(self):
         super().setUp()
-        capas.extraer()
+        capas_listas(capas.carpeta())
         self.rig = rig_chispa.cargar()
         self.assertIsNotNone(self.rig, "las capas recién extraídas deben cargar")
 
@@ -140,7 +157,7 @@ class ChispaConCapasTest(BaseTemporal):
         from appstudy.chispa import cargar_poses
         if cargar_poses() is None:
             self.skipTest("Requiere el atlas de Chispa")
-        capas.extraer()
+        capas_listas(capas.carpeta())
         c = self.bicho()
         self.assertIsNotNone(c._rig())
         self.assertTrue(c._rig().parpadea(0))
@@ -155,7 +172,7 @@ class MiembrosTest(BaseTemporal):
 
     def setUp(self):
         super().setUp()
-        capas.extraer()
+        capas_listas(capas.carpeta())
         self.rig = rig_chispa.cargar()
 
     def pintar(self, indice, balanceo):
@@ -193,7 +210,7 @@ class BocaTest(BaseTemporal):
 
     def setUp(self):
         super().setUp()
-        capas.extraer()
+        capas_listas(capas.carpeta())
         self.rig = rig_chispa.cargar()
 
     def pintar(self, apertura):
@@ -263,3 +280,78 @@ class BocaChispaTest(BaseTemporal):
         for n in range(200):
             c.t = n / 50
             self.assertEqual(c._apertura_boca(), 0.0)
+
+
+class CabezaTest(BaseTemporal):
+    @classmethod
+    def setUpClass(cls):
+        from appstudy.chispa import cargar_poses
+        if cargar_poses() is None:
+            raise unittest.SkipTest("Requiere el atlas de Chispa")
+
+    def setUp(self):
+        super().setUp()
+        capas_listas(capas.carpeta())
+        self.rig = rig_chispa.cargar()
+
+    def pintar(self, inclinacion, cierre=0.0):
+        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, 512, 512)
+        self.assertTrue(self.rig.dibujar(cairo.Context(s), 0, cierre, 0.0,
+                                         0.0, inclinacion))
+        s.flush()
+        return s
+
+    def test_casi_todas_las_poses_pueden_ladear_la_cabeza(self):
+        for indice in range(5):
+            with self.subTest(pose=indice):
+                self.assertTrue(self.rig.inclina(indice))
+        self.assertFalse(self.rig.inclina(5), "el ovillo no tiene cuello")
+
+    def test_ladear_cambia_el_dibujo(self):
+        self.assertNotEqual(bytes(self.pintar(0.0).get_data()),
+                            bytes(self.pintar(1.0).get_data()))
+
+    def test_los_ojos_se_van_con_la_cabeza(self):
+        """Si los ojos no fueran hijos de la cabeza, se quedarían atrás."""
+        caja = self.rig.piezas(0)["ojo_izq"]["caja"]
+        zona = {y * 512 + x
+                for y in range(int(caja[1] * 512), int(caja[3] * 512))
+                for x in range(int(caja[0] * 512), int(caja[2] * 512))}
+        quieta = capas.contar_color(self.pintar(0.0), zona, "ojo")
+        ladeada = capas.contar_color(self.pintar(1.0), zona, "ojo")
+        # Al ladearse el ojo sale de su hueco original: si no se moviera,
+        # seguiría habiendo la misma cantidad de ojo justo ahí.
+        self.assertLess(ladeada, quieta * 0.85)
+
+    def test_se_puede_ladear_y_parpadear_a_la_vez(self):
+        s = self.pintar(0.8, cierre=1.0)
+        self.assertIsNotNone(s)
+
+    def test_el_giro_de_cabeza_esta_topado(self):
+        self.assertLessEqual(rig_chispa.GIRO_CABEZA, 0.18)
+
+
+class InclinacionChispaTest(BaseTemporal):
+    def bicho(self):
+        from appstudy.chispa import Chispa
+        c = Chispa()
+        self.addCleanup(c.unparent)
+        return c
+
+    def test_la_cabeza_se_mueve_despacio_y_poco(self):
+        c = self.bicho()
+        valores = [c.__class__._inclinacion_cabeza(c)
+                   for c.t in [n / 20 for n in range(1200)]]
+        self.assertLessEqual(max(valores), 1.0)
+        self.assertGreaterEqual(min(valores), -1.0)
+        self.assertGreater(max(valores), 0.2, "alguna vez tiene que ladearse")
+        # Despacio: entre dos fotogramas seguidos no puede pegar un salto
+        saltos = [abs(b - a) for a, b in zip(valores, valores[1:])]
+        self.assertLess(max(saltos), 0.05)
+
+    def test_con_movimiento_reducido_la_cabeza_no_se_mueve(self):
+        c = self.bicho()
+        c.reduced_motion = True
+        for n in range(300):
+            c.t = n / 30
+            self.assertEqual(c._inclinacion_cabeza(), 0.0)

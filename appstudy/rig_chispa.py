@@ -24,6 +24,8 @@ CIERRE_VISIBLE = 0.06          # por debajo de esto no se dibuja nada encima
 GIRO_MANO = 0.26               # radianes ≈ 15°
 GIRO_PIE = 0.10
 MIEMBROS = ("mano_izq", "mano_der", "pie_izq", "pie_der")
+CARA = ("ojo_izq", "ojo_der", "boca")
+GIRO_CABEZA = 0.16             # radianes ≈ 9°; más y el cuello se despega
 BOCA_ABRE = 0.55               # cuánto crece la boca al hablar, en su propia altura
 
 
@@ -61,13 +63,17 @@ class Rig:
     def habla(self, indice: int) -> bool:
         return self.tiene(indice, "boca")
 
+    def inclina(self, indice: int) -> bool:
+        return self.tiene(indice, "cabeza")
+
     def dibujar(self, cr, indice: int, cierre: float = 0.0,
-                balanceo: float = 0.0, apertura: float = 0.0) -> bool:
+                balanceo: float = 0.0, apertura: float = 0.0,
+                inclinacion: float = 0.0) -> bool:
         """Pinta la pose entera. Devuelve False si le faltan capas.
 
         `balanceo` va de -1 a 1 y mueve manos y pies en oposición, que es como
         se balancea cualquier bicho al andar o al esperar. `apertura` va de 0 a
-        1 y abre la boca.
+        1 y abre la boca. `inclinacion`, de -1 a 1, ladea la cabeza.
         """
         base = self._superficie(f"base-{indice}")
         if base is None:
@@ -77,19 +83,43 @@ class Rig:
         cr.get_source().set_filter(cairo.FILTER_BEST)
         cr.paint()
         cr.restore()
-        for nombre, datos in self.piezas(indice).items():
+        ancho, alto = base.get_width(), base.get_height()
+        piezas = self.piezas(indice)
+        # La cara va dentro de la cabeza: si se inclina, los ojos van con ella.
+        cr.save()
+        cabeza = piezas.get("cabeza")
+        if cabeza is not None and inclinacion:
+            px, py = cabeza["pivote"]
+            cr.translate(px * ancho, py * alto)
+            cr.rotate(max(-1.0, min(1.0, inclinacion)) * GIRO_CABEZA)
+            cr.translate(-px * ancho, -py * alto)
+        if cabeza is not None:
+            capa = self._superficie(f"{indice}-cabeza")
+            if capa is None:
+                cr.restore()
+                return False
+            cr.set_source_surface(capa, 0, 0)
+            cr.get_source().set_filter(cairo.FILTER_BEST)
+            cr.paint()
+        for nombre in CARA:
+            if nombre not in piezas:
+                continue
+            capa = self._superficie(f"{indice}-{nombre}")
+            if capa is None:
+                cr.restore()
+                return False
+            if nombre == "boca":
+                self._boca(cr, capa, piezas[nombre], apertura, ancho, alto)
+            else:
+                self._ojo(cr, capa, piezas[nombre], cierre, ancho, alto)
+        cr.restore()
+        for nombre in MIEMBROS:
+            if nombre not in piezas:
+                continue
             capa = self._superficie(f"{indice}-{nombre}")
             if capa is None:
                 return False
-            if nombre.startswith("ojo"):
-                self._ojo(cr, capa, datos, cierre,
-                          base.get_width(), base.get_height())
-            elif nombre == "boca":
-                self._boca(cr, capa, datos, apertura,
-                           base.get_width(), base.get_height())
-            else:
-                self._miembro(cr, capa, datos, nombre, balanceo,
-                              base.get_width(), base.get_height())
+            self._miembro(cr, capa, piezas[nombre], nombre, balanceo, ancho, alto)
         return True
 
     def _boca(self, cr, capa, datos, apertura, ancho, alto):

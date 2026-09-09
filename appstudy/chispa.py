@@ -258,12 +258,28 @@ class Chispa(Creature):
             return False
         cierre = self._cierre_parpadeo() if rig.parpadea(indice) else 0.0
         apertura = self._apertura_boca() if rig.habla(indice) else 0.0
+        inclinacion = self._inclinacion_cabeza() if rig.inclina(indice) else 0.0
         if rig.mueve_miembros(indice):
             balanceo = 0.0 if self.reduced_motion else math.sin(self.t * 1.9)
-            return rig.dibujar(cr, indice, cierre, balanceo * intensidad, apertura)
-        if cierre > 0 or apertura > 0:
-            return rig.dibujar(cr, indice, cierre, 0.0, apertura)
+            return rig.dibujar(cr, indice, cierre, balanceo * intensidad,
+                               apertura, inclinacion)
+        if cierre > 0 or apertura > 0 or inclinacion:
+            return rig.dibujar(cr, indice, cierre, 0.0, apertura, inclinacion)
         return False
+
+    def _inclinacion_cabeza(self) -> float:
+        """Cuánto ladea la cabeza, de -1 a 1.
+
+        Muy despacio y muy poco: una cabeza que se mueve al mismo compás que el
+        cuerpo parece un muelle. Cuando toca el gesto de ladear, se marca.
+        """
+        if self.reduced_motion:
+            return 0.0
+        lento = math.sin(self.t * 0.43) * 0.35 + math.sin(self.t * 0.19) * 0.15
+        gesto = self.phase_motion("ladear")
+        if gesto is not None:
+            lento += math.sin(math.pi * gesto) * 0.75
+        return max(-1.0, min(1.0, lento))
 
     def _apertura_boca(self) -> float:
         """Cuánto abre la boca ahora. Solo mientras habla."""

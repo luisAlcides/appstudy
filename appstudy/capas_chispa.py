@@ -143,6 +143,16 @@ PIE_ALTURA = 0.82
 SIN_MIEMBROS = (5,)            # dormida y hecha un ovillo: no hay nada que girar
 MIEMBROS_PAREJOS = 0.20        # dos manos van más o menos a la misma altura
 
+# --- cabeza ---------------------------------------------------------------
+#
+# El naranja de Chispa no es una sola mancha: el pecho crema separa la cabeza
+# del cuerpo, así que la de arriba *es* la cabeza con sus orejas. El cuello se
+# pone un poco por debajo de donde acaba, y la capa se hace propagando desde
+# ahí —no cortando por altura, que se llevaba media cola por delante—.
+CABEZA_MIN = 2000
+CUELLO_MARGEN = 0.05
+CABEZA_MINIMO_PIXELES = 8000   # menos que esto no es una cabeza
+
 # La boca no se puede buscar por color suelto: su rosa es casi el del sombreado
 # del cuello y el negro de la cavidad es el de la pupila. Se busca por posición
 # **respecto a los ojos**, que sí se encuentran: la mancha oscura que queda
@@ -176,12 +186,44 @@ def piezas(superficie, indice: int) -> dict:
             if otro["centro"][0] - uno["centro"][0] >= OJO_SEPARACION:
                 salida["ojo_izq"] = uno["pixeles"]
                 salida["ojo_der"] = otro["pixeles"]
+    cabeza = _cabeza(superficie, clasificado)
+    if cabeza:
+        salida["cabeza"] = cabeza
     if "ojo_izq" in salida:
         boca = _boca(superficie, salida, clasificado)
         if boca:
             salida["boca"] = boca
     salida.update(_miembros(superficie, indice, clasificado))
     return salida
+
+
+def _cabeza(superficie, clasificado):
+    """La cabeza entera, orejas incluidas, sin llevarse la cola por delante.
+
+    Se propaga desde la mancha naranja de arriba a cualquier píxel opaco que
+    toque, sin bajar del cuello. Así entran orejas, hocico y ojos, y se queda
+    fuera la cola, que no toca la cabeza.
+    """
+    colores, ancho, alto = clasificado
+    naranjas = [g for g in grupos(superficie, {"naranja"}, CABEZA_MIN, clasificado)]
+    if len(naranjas) < 2:
+        return None                # sin dos manchas no se sabe cuál es la cabeza
+    arriba = min(naranjas, key=lambda g: g["centro"][1])
+    limite = int(min(1.0, arriba["caja"][3] + CUELLO_MARGEN) * alto)
+    vistos = {i for i in arriba["pixeles"] if i // ancho < limite}
+    pila = list(vistos)
+    while pila:
+        i = pila.pop()
+        y, x = divmod(i, ancho)
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                xx, yy = x + dx, y + dy
+                if 0 <= xx < ancho and 0 <= yy < limite:
+                    j = yy * ancho + xx
+                    if j not in vistos and colores[j] is not None:
+                        vistos.add(j)
+                        pila.append(j)
+    return vistos if len(vistos) >= CABEZA_MINIMO_PIXELES else None
 
 
 def _boca(superficie, encontradas, clasificado):
@@ -278,35 +320,54 @@ def reconstruir(superficie, pixeles):
     hueco = bytearray(ancho * alto)
     for i in zona:
         hueco[i] = 1
+    # Se avanza por el frente, no repasando todo el hueco en cada vuelta: la
+    # cabeza son 55.000 píxeles y a la vieja manera tardaba minutos.
     pendientes = set(zona)
+    vecinos = ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1))
+
+    def frente(desde):
+        salida = set()
+        for i in desde:
+            y, x = divmod(i, ancho)
+            for dy, dx in vecinos:
+                xx, yy = x + dx, y + dy
+                if 0 <= xx < ancho and 0 <= yy < alto:
+                    j = yy * ancho + xx
+                    if j in pendientes:
+                        salida.add(j)
+        return salida
+
+    # El primer frente: los huecos que ya tocan pelaje bueno
+    ola = {i for i in pendientes
+           if any(0 <= (i % ancho) + dx < ancho and 0 <= (i // ancho) + dy < alto
+                  and not hueco[((i // ancho) + dy) * ancho + (i % ancho) + dx]
+                  for dy, dx in vecinos)}
     for _ in range(VUELTAS_RELLENO):
-        if not pendientes:
+        if not ola:
             break
-        hechos = []
-        for i in sorted(pendientes):
+        calculados = []
+        for i in ola:
             y, x = divmod(i, ancho)
             acumulado = [0, 0, 0, 0]
             n = 0
-            for dy in (-1, 0, 1):
-                for dx in (-1, 0, 1):
-                    if dx == dy == 0:
-                        continue
-                    xx, yy = x + dx, y + dy
-                    if 0 <= xx < ancho and 0 <= yy < alto and not hueco[yy * ancho + xx]:
-                        j = yy * paso + xx * 4
-                        for c in range(4):
-                            acumulado[c] += datos[j + c]
-                        n += 1
+            for dy, dx in vecinos:
+                xx, yy = x + dx, y + dy
+                if 0 <= xx < ancho and 0 <= yy < alto and not hueco[yy * ancho + xx]:
+                    j = yy * paso + xx * 4
+                    for c in range(4):
+                        acumulado[c] += datos[j + c]
+                    n += 1
             if n:
-                j = y * paso + x * 4
-                for c in range(4):
-                    datos[j + c] = acumulado[c] // n
-                hechos.append(i)
-        if not hechos:
+                calculados.append((y * paso + x * 4, [v // n for v in acumulado], i))
+        if not calculados:
             break
-        for i in hechos:
+        for destino_i, valores, i in calculados:
+            for c in range(4):
+                datos[destino_i + c] = valores[c]
             hueco[i] = 0
             pendientes.discard(i)
+        ola = frente([i for _, _, i in calculados])
+
     for _ in range(SUAVIZADOS):
         copia = bytes(datos)
         for i in zona:
@@ -402,19 +463,34 @@ def extraer(destino: Path | None = None) -> dict | None:
     manifiesto = {"version": VERSION, "atlas": huella_atlas(), "poses": {}}
     for indice, celda in enumerate(poses):
         encontradas = piezas(celda, indice)
-        todos = set().union(*encontradas.values()) if encontradas else set()
-        base = reconstruir(celda, todos) if todos else celda
+        # El orden importa. La capa de la cabeza tiene que llevar pelaje donde
+        # estaban los ojos y la boca, porque esos van encima y se mueven por su
+        # cuenta: si la cabeza conservara los ojos pintados, al parpadear se
+        # verían los de debajo.
+        cara = set().union(*(encontradas[k] for k in ("ojo_izq", "ojo_der", "boca")
+                             if k in encontradas)) if encontradas else set()
+        sin_cara = reconstruir(celda, cara) if cara else celda
+        cabeza = encontradas.get("cabeza") or set()
+        miembros = set().union(*(v for k, v in encontradas.items()
+                                 if k.startswith(("mano", "pie")))) \
+            if any(k.startswith(("mano", "pie")) for k in encontradas) else set()
+        fondo = cabeza | miembros
+        base = reconstruir(sin_cara, fondo) if fondo else sin_cara
         base.write_to_png(str(destino / f"base-{indice}.png"))
         detalle = {}
         for nombre, pixeles in encontradas.items():
-            recortar(celda, pixeles).write_to_png(
+            # La cabeza se recorta de la versión sin ojos ni boca; lo demás,
+            # del dibujo original.
+            origen = sin_cara if nombre == "cabeza" else celda
+            recortar(origen, pixeles).write_to_png(
                 str(destino / f"{indice}-{nombre}.png"))
             x0, y0, x1, y1 = caja_de(celda, pixeles)
             detalle[nombre] = {"caja": [x0, y0, x1, y1],
                                "centro": [(x0 + x1) / 2, (y0 + y1) / 2],
-                               # El punto de giro no se usa en esta fase: ni el
-                               # ojo ni la boca giran. Lo necesitarán los brazos.
-                               "pivote": [(x0 + x1) / 2, y0]}
+                               # Cada pieza gira desde donde nace: la mano y el
+                               # pie desde arriba, la cabeza desde el cuello.
+                               "pivote": [(x0 + x1) / 2,
+                                          y1 if nombre == "cabeza" else y0]}
         manifiesto["poses"][str(indice)] = detalle
     (destino / "manifiesto.json").write_text(
         json.dumps(manifiesto, ensure_ascii=False, indent=1), encoding="utf-8")
