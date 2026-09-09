@@ -16,6 +16,35 @@ Los catálogos de OpenStax y MIT son selecciones iniciales, no buscadores de tod
 
 Las lecturas guardadas conservan la atribución. Los PDF descargados incluyen un archivo `.source.json` con su procedencia. Verifica la licencia de la edición y las excepciones de cada material antes de redistribuirlo.
 
+## Fuentes del catálogo automático
+
+Las usa la autoalimentación diaria (ver **Contenido que llega solo** en el
+README) y también se pueden buscar a mano desde **Explorar fuentes**. Todas
+declaran el permiso `network` y se apagan una a una con su interruptor.
+
+| Identificador | Fuente | Cómo se recorre | Licencia |
+|---|---|---|---|
+| `wikipedia_es` · `wikipedia_en` · `wikipedia_simple` | Wikipedia | búsqueda | abierta |
+| `wikibooks_es` · `wikiversity_es` · `wiktionary_en` | Wikimedia | búsqueda | abierta |
+| `archwiki` · `gentoo` | Wikis de Linux | búsqueda | solo enlace |
+| `arxiv` | arXiv | búsqueda | solo enlace |
+| `mdn` | MDN Web Docs | búsqueda | solo enlace |
+| `gutenberg` | Project Gutenberg | búsqueda | abierta |
+| `libretexts_workforce` · `libretexts_esp` · `libretexts_eng` | LibreTexts | sitemap | abierta |
+| `man7` | Páginas de manual | índice | solo enlace |
+| `tldp` · `pydocs` · `pandas` · `sklearn` · `huggingface` | Documentación | índice | abierta |
+| `ibiblio` | *Lessons In Electric Circuits* | índice | abierta |
+| `voa` · `saylor` | Cursos abiertos | índice | abierta |
+| `openstax` · `mit` | Catálogos seleccionados | catálogo | abierta |
+
+De una fuente **abierta** se guarda el capítulo entero con su atribución. De una
+**solo enlace** se guarda título, resumen y dirección, no se descarga la página
+y no se generan tarjetas automáticas.
+
+Los índices y sitemaps se guardan un mes en `~/.local/share/appstudy/fuentes/indices/`.
+Si la descarga falla y hay copia, se usa la copia. El sitemap de LibreTexts pasa
+de tres megas, así que no se pide en cada arranque.
+
 ## Herramientas
 
 **OCR e indexación:** selecciona un PDF, EPUB, Markdown, texto o imagen. Para PDF elige el rango (máximo 50 páginas por operación). El texto de los PDF conserva el número de página; los demás formatos conservan el número de fragmento. Para documentos escaneados usa la opción OCR.

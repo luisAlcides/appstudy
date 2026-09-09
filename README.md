@@ -381,6 +381,36 @@ movimiento** detiene rebotes, balanceos, partículas y transiciones. Las miradas
 caras y cambios de color permanecen para que Bit conserve sus emociones sin
 movimiento innecesario.
 
+Bit conserva el lugar donde la dejas al arrastrarla. Si abre un globo cerca del
+borde, puede desplazarse temporalmente para que quepa y vuelve a su sitio al
+cerrarlo. Si la arrastras con el globo abierto, esa nueva posición manda. La
+posición se guarda también al salir, sin esperar al guardado periódico.
+
+Desde **clic derecho sobre Bit → Gestos de Bit** puedes pedirle un **guiño**,
+una **reverencia**, un gesto de **curiosidad**, una **victoria** con los brazos
+levantados o el **baile**. Al celebrar usa la nueva victoria; al pensar, el gesto
+de curiosidad. El guiño también puede aparecer al acercar el cursor, con ocho
+segundos entre reacciones para que no se repita al cruzar el borde.
+El botón abre una lista independiente: elige un gesto para ejecutarlo o pulsa
+**← Volver** para regresar. Si está activo **Reducir movimiento**, la lista lo
+indica; los clics del menú no activan también las acciones de la mascota.
+
+La **curiosidad** muestra una lupa con un ojo ampliado y el mango en la mano.
+La **reverencia** baja la cabeza, cierra los ojos, junta las manos y mantiene
+la postura un momento antes de incorporarse. **Enojado**, disponible también
+en ese menú, frunce las cejas, cruza los brazos y muestra una marca roja.
+El enfado aparece automáticamente después de **24 horas sin estudio registrado**
+si quedan tarjetas pendientes o nuevas. Se retira al registrar un repaso, avance
+de capítulo o lectura de libro con tiempo registrado; no aparece mientras Bit
+duerme ni si no queda contenido. Sin historial se considera que falta estudio.
+Las celebraciones y los gestos que pidas tienen prioridad sobre la cara de enfado.
+
+Los gestos espontáneos no interrumpen una reacción, la voz, el chat o una tarjeta
+abierta. Evita repetir el último gesto espontáneo y limita las partículas a 48.
+**Reducir movimiento** mantiene las expresiones faciales, sin deformaciones
+corporales ni partículas. Los gestos se dibujan dentro de la ventana de Bit y
+no cambian su posición en el escritorio.
+
 ### Cómo va la semana
 
 Bit lleva la cuenta y de vez en cuando te la cuenta: «esta semana estudiaste 6
@@ -823,6 +853,80 @@ caracteres. Por eso el lenguaje solo se da por bueno cuando hay señales claras
 —`SELECT` al principio de línea, `import`, un `$` de terminal, una orden conocida,
 un `[Unit]`—; en la duda no se colorea, que es mejor que colorear al azar. Si
 Pygments no está instalado, el código se enseña igual, solo que sin color.
+
+## Contenido que llega solo
+
+La aplicación no se queda con lo que trae de fábrica. **La primera vez que la
+abres cada día**, y solo la primera, sale a buscar una lectura nueva para el
+mazo que vaya más corto y la deja en **Novedades** esperando tu visto bueno.
+Nada entra a tus mazos sin que lo veas.
+
+Cada elemento de la bandeja te enseña, antes de que decidas: el título, de qué
+fuente sale, bajo qué licencia, **por qué se te propone** —«porque fallas
+transistores», «para ampliar Electricidad, que va corto de material»— y las
+tarjetas que la IA local ha sacado de ese texto, con una casilla cada una para
+que aceptes solo las que valgan. Al aceptar, el capítulo entra en su nivel y las
+tarjetas nacen con el enlace **«Volver a la fuente →»** apuntando a él.
+
+Los mazos se turnan: cada uno descansa tres días antes de repetir ración, así
+que en poco más de una semana pasa por los nueve. Y si un mazo no da fruto,
+tampoco bloquea a los demás.
+
+### De dónde sale
+
+| Mazo | Fuentes |
+|---|---|
+| 🗣️ Inglés | Simple English Wikipedia (A2·B1), Wikipedia en inglés (B2·C1), Wiktionary, VOA Learning English, Standard Ebooks y Project Gutenberg |
+| 🐧 Linux | ArchWiki, Gentoo Wiki, man7, TLDP, kernel.org |
+| 📊 Ciencia de Datos | pandas, scikit-learn, OpenStax, LibreTexts, arXiv |
+| 🤖 Inteligencia Artificial | arXiv, Hugging Face, Wikipedia |
+| 🧮 Matemáticas | OpenStax, LibreTexts, MIT OCW, Wikiversidad |
+| ⚡ Electricidad | *Lessons In Electric Circuits*, LibreTexts, OpenStax, MIT 6.002 |
+| 🐍 Python | docs.python.org en español, Wikilibros, pandas, MDN |
+| 🔧 Automotriz | LibreTexts Workforce, Wikilibros, Wikipedia |
+| 🚜 Maquinaria | LibreTexts Workforce, Wikilibros, Wikipedia |
+
+Veinticinco fuentes en total, todas abiertas y todas en una lista blanca de
+dominios: la descarga solo acepta HTTPS, comprueba cada redirección y corta por
+tamaño. Se apagan una a una en **Ajustes › Fuentes › Extensiones**.
+
+### Texto completo o solo el enlace
+
+No todas las licencias permiten lo mismo, y como la aplicación **sincroniza y
+publica mazos**, el texto que guardas puede salir de tu equipo. Por eso cada
+fuente está clasificada:
+
+- **Abiertas** — Wikimedia, OpenStax, LibreTexts, VOA, Gutenberg, Standard
+  Ebooks, Saylor, y la documentación de Hugging Face, pandas, scikit-learn y el
+  kernel. De estas se guarda el capítulo entero con su atribución al pie.
+- **Solo enlace** — arXiv, man7, MDN, ArchWiki y Gentoo. De estas se guarda el
+  título, el resumen y el enlace, y ni siquiera se descarga la página. Tampoco
+  generan tarjetas automáticas: sin el texto delante, sacarlas sería
+  inventárselas.
+
+### Qué filtra, y qué no promete
+
+Un texto entra solo si pasa siete comprobaciones: tener cuerpo (entre 400 y
+20.000 palabras), ser prosa y no una lista de enlaces, estar en el idioma del
+mazo, tener que ver con lo que se pidió, no ser una página de desambiguación, no
+estar ya importado, y permitirlo su licencia. Lo que se descarta y **por qué** se
+puede consultar en Ajustes › Fuentes.
+
+Tres cosas que no hace, dichas claramente:
+
+- **No traduce.** Lo que está en inglés se queda en inglés.
+- **No descarga PDF sola.** Eso sigue siendo manual desde la ventana de Fuentes:
+  cien megas no son una ración diaria.
+- **Maquinaria amarilla se alimenta poco.** La hidráulica de volquetes y las
+  orugas SALT casi no existen en fuentes abiertas —los manuales buenos son de
+  Caterpillar y Komatsu, con derechos reservados—, así que ese mazo recibirá
+  material general de hidráulica y poco más.
+
+Si no hay internet, o la IA local está apagada, la aplicación **no dice nada** y
+lo intenta al día siguiente: no poder descargar no debe impedirte estudiar. El
+último intento y el último error se ven en **Ajustes › Fuentes**, y ahí mismo
+está el interruptor para apagarlo del todo y el botón **«Buscar ahora»** si
+prefieres pedirlo tú.
 
 ## Contenido propio
 
