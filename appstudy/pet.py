@@ -2537,8 +2537,38 @@ class PetWindow(Gtk.ApplicationWindow):
         evento = gesture.get_current_event()
         return evento is not None and evento.get_surface() != self.get_surface()
 
+    def alto_util_menu(self) -> int:
+        """Lo alto que puede llegar a ser el menú sin salirse de la pantalla.
+
+        Se mide contra la pantalla más baja de las que haya: la mascota se
+        arrastra de un monitor a otro, y es preferible que el menú se desplace
+        de más a que se recorte en el pequeño.
+        """
+        monitores = self.menu.get_display().get_monitors()
+        altos = [monitores.get_item(i).get_geometry().height
+                 for i in range(monitores.get_n_items())]
+        return max(320, min(altos) - 80) if altos else 900
+
+    def poner_en_menu(self, caja):
+        """Cuelga el contenido del menú, desplazable si no cabe en la pantalla.
+
+        El menú ronda los 830 px y hay pantallas de 864: sin esto GTK recorta el
+        final y las últimas opciones se quedan fuera de alcance, sobre todo con
+        la mascota apoyada en la parte de abajo.
+        """
+        scroll = Gtk.ScrolledWindow(
+            propagate_natural_height=True, propagate_natural_width=True,
+            hscrollbar_policy=Gtk.PolicyType.NEVER,
+            max_content_height=self.alto_util_menu())
+        scroll.set_child(caja)
+        # GTK mete un viewport por medio, así que la caja se guarda a mano:
+        # es la que hay que recorrer para llegar a las opciones.
+        self.menu_caja = caja
+        self.menu.set_child(scroll)
+
     def boton_menu_gestos(self):
-        boton = Gtk.Button(label="Gestos de Bit →", css_classes=["flat", "as-menu-fila"])
+        boton = Gtk.Button(label=f"Gestos de {self.nombre} →",
+                           css_classes=["flat", "as-menu-fila"])
         # No usar _fila_accion: cierra el popover antes de ejecutar la acción.
         boton.connect("clicked", lambda *_: self.mostrar_menu_gestos())
         return boton
@@ -2558,7 +2588,7 @@ class PetWindow(Gtk.ApplicationWindow):
         for nombre, etiqueta in Creature.GESTOS_MENU:
             caja.append(self._fila_accion(etiqueta,
                         lambda n=nombre: self.creature.actuar(n)))
-        self.menu.set_child(caja)
+        self.poner_en_menu(caja)
 
     def _boton_accion(self, etiqueta, cb, clases=("pill",), tooltip=None):
         b = Gtk.Button(label=etiqueta, css_classes=list(clases), hexpand=True)
@@ -2665,7 +2695,7 @@ class PetWindow(Gtk.ApplicationWindow):
         salir.add_css_class("as-menu-salir")
         caja.append(salir)
 
-        self.menu.set_child(caja)
+        self.poner_en_menu(caja)
 
     def abrir_menu_en(self, widget, x, y):
         rect = Gdk.Rectangle()

@@ -165,7 +165,9 @@ class VentanaFalsa:
         pass
 
     def __getattr__(self, nombre):
-        return MethodType(getattr(pet.PetWindow, nombre), self)
+        valor = getattr(pet.PetWindow, nombre)
+        return valor.fget(self) if isinstance(valor, property) else \
+            MethodType(valor, self)
 
 
 class RelevoEnCalienteTest(BaseTemporal):
