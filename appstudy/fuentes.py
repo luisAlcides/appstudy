@@ -161,8 +161,110 @@ def documento(provider, origin, title, text="", **extra):
             "retrieved": time.time(), **extra}
 
 
+def _mediawiki(f, consulta, corto=False):
+    """Wikipedia, Wikilibros, Wikiversidad, Wiktionary, ArchWiki y Gentoo.
+
+    ArchWiki y Gentoo montan la API en la raíz y los artículos en /title/; los
+    proyectos de Wikimedia usan /w y /wiki. Por lo demás es la misma API, así
+    que siete fuentes salen de un conector.
+    """
+    prefijo, articulo = ("", "/title/") if corto else ("/w", "/wiki/")
+    url = (f["base"] + prefijo + "/rest.php/v1/search/page?" +
+           urllib.parse.urlencode({"q": consulta, "limit": 15}))
+    raw, _ = descargar(url, DOMINIOS[f["id"]])
+    try:
+        paginas = json.loads(raw)["pages"]
+    except (KeyError, TypeError, ValueError) as e:
+        raise FuenteError(f"{f['nombre']} devolvió una respuesta no reconocible") from e
+    return [documento(f["id"], f["base"] + articulo + urllib.parse.quote(p["key"]),
+                      p["title"], summary=Pagina(p.get("excerpt", "")).texto)
+            for p in paginas if p.get("key")]
+
+
+def _arxiv(f, consulta):
+    """Resúmenes, nunca el PDF: la licencia de arXiv cambia con cada artículo."""
+    import xml.etree.ElementTree as ET
+    url = f["base"] + "/api/query?" + urllib.parse.urlencode(
+        {"search_query": "all:" + consulta, "max_results": 10})
+    raw, _ = descargar(url, DOMINIOS[f["id"]])
+    try:
+        raiz = ET.fromstring(raw.decode("utf-8", errors="replace"))
+    except ET.ParseError as e:
+        raise FuenteError("arXiv devolvió una respuesta no reconocible") from e
+    ns = {"a": "http://www.w3.org/2005/Atom"}
+    salida = []
+    for e in raiz.findall("a:entry", ns):
+        ident = (e.findtext("a:id", "", ns) or "").strip()
+        titulo = " ".join((e.findtext("a:title", "", ns) or "").split())
+        resumen = " ".join((e.findtext("a:summary", "", ns) or "").split())
+        autores = [a.findtext("a:name", "", ns) or "" for a in e.findall("a:author", ns)]
+        if ident and titulo:
+            salida.append(documento(f["id"], ident, titulo, summary=resumen,
+                                    author=", ".join(filter(None, autores)),
+                                    license="Licencia propia de cada artículo · véase arXiv"))
+    return salida
+
+
+def _mdn(f, consulta):
+    url = f["base"] + "/api/v1/search?" + urllib.parse.urlencode(
+        {"q": consulta, "locale": "es"})
+    raw, _ = descargar(url, DOMINIOS[f["id"]])
+    try:
+        docs = json.loads(raw)["documents"]
+    except (KeyError, TypeError, ValueError) as e:
+        raise FuenteError("MDN devolvió una respuesta no reconocible") from e
+    return [documento(f["id"], f["base"] + d["mdn_url"], d.get("title", d["mdn_url"]),
+                      summary=d.get("summary", ""),
+                      author="Colaboradores de MDN", license="CC BY-SA 2.5 · MDN")
+            for d in docs if d.get("mdn_url")]
+
+
+def _gutendex(f, consulta):
+    """Solo los libros con texto plano: un EPUB no se lee en un capítulo."""
+    url = f["base"] + "/books/?" + urllib.parse.urlencode({"search": consulta})
+    raw, _ = descargar(url, DOMINIOS[f["id"]])
+    try:
+        libros = json.loads(raw)["results"]
+    except (KeyError, TypeError, ValueError) as e:
+        raise FuenteError("Project Gutenberg devolvió una respuesta no reconocible") from e
+    salida = []
+    for libro in libros:
+        texto = next((v for k, v in (libro.get("formats") or {}).items()
+                      if k.startswith("text/plain")), "")
+        if texto and libro.get("title"):
+            salida.append(documento(
+                f["id"], texto, libro["title"],
+                author=", ".join(a.get("name", "") for a in libro.get("authors", [])),
+                license="Dominio público · Project Gutenberg",
+                summary="Libro completo en texto plano"))
+    return salida
+
+
 def buscar(provider, consulta="", config=None):
     config = config or {}
+    from . import catalogo
+    f = catalogo._POR_ID.get(provider)
+    # Las de tipo «catalogo» —OpenStax y MIT— ya tenían su rama más abajo, con
+    # su lista escrita a mano. No se toca: la ventana de Fuentes depende de ella.
+    if f is not None and f["buscar"] != "catalogo":
+        if not consulta.strip():
+            return []
+        if consulta.startswith("https://"):
+            validar_url(consulta, DOMINIOS[provider])
+            return [documento(provider, consulta,
+                              urllib.parse.unquote(consulta.rsplit("/", 1)[-1]) or f["nombre"])]
+        modo = f["buscar"]
+        if modo == "mediawiki":
+            return _mediawiki(f, consulta)
+        if modo == "mediawiki_corto":
+            return _mediawiki(f, consulta, corto=True)
+        if modo == "arxiv":
+            return _arxiv(f, consulta)
+        if modo == "mdn":
+            return _mdn(f, consulta)
+        if modo == "gutendex":
+            return _gutendex(f, consulta)
+        return indice(f, consulta)
     if provider == "wikipedia":
         idioma = config.get("idioma", "es")
         if idioma not in ("es", "en"):
