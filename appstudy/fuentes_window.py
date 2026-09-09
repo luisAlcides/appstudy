@@ -98,8 +98,59 @@ class FuentesWindow(Adw.Window):
         box.append(b)
         return b
 
+    def autoalimentacion(self, box):
+        """Los mandos de la cosecha diaria: encenderla, y ver qué pasó.
+
+        El último error y los descartes se enseñan aquí porque la cosecha nunca
+        interrumpe: si no se pudieran consultar, «no me trae nada» no habría
+        forma de averiguarlo.
+        """
+        from . import bandeja, cosecha
+
+        grupo = Adw.PreferencesGroup(
+            title="Contenido que llega solo",
+            description="Al abrir la aplicación, una vez al día, se busca una "
+                        "lectura nueva para el mazo que va más corto. Nada entra "
+                        "a tus mazos sin que lo apruebes en Novedades.")
+        fila = Adw.ActionRow(title="Buscar contenido nuevo cada día")
+        self.auto_switch = Gtk.Switch(
+            active=str(db.get_meta(self.con, "cosecha_auto", "1")) not in ("0", "False"),
+            valign=Gtk.Align.CENTER)
+        self.auto_switch.connect(
+            "notify::active",
+            lambda sw, _p: db.set_meta(self.con, "cosecha_auto",
+                                       "1" if sw.get_active() else "0"))
+        fila.add_suffix(self.auto_switch)
+        grupo.add(fila)
+
+        ultimo = db.get_meta(self.con, "cosecha_last", "")
+        error = db.get_meta(self.con, "cosecha_error", "") or ""
+        cuando = (time.strftime("%d/%m/%Y %H:%M", time.localtime(float(ultimo)))
+                  if ultimo else "todavía no se ha buscado")
+        estado = f"Último intento: {cuando}"
+        if error:
+            estado += f"\nError: {error}"
+        estado += f"\nEsperando tu visto bueno: {bandeja.cuantas(self.con)}"
+        self.auto_estado = Gtk.Label(label=estado, xalign=0, wrap=True,
+                                     css_classes=["dim-label"])
+        grupo.add(self.auto_estado)
+
+        try:
+            rechazos = json.loads(db.get_meta(self.con, "cosecha_rechazos", "[]") or "[]")
+        except ValueError:
+            rechazos = []
+        self.auto_rechazos = Gtk.Label(
+            label="\n".join(rechazos) or "Nada descartado todavía",
+            xalign=0, wrap=True, selectable=True, css_classes=["dim-label"],
+            margin_start=12, margin_end=12, margin_top=8, margin_bottom=8)
+        descartes = Adw.ExpanderRow(title="Qué se descartó, y por qué")
+        descartes.add_row(self.auto_rechazos)
+        grupo.add(descartes)
+        box.append(grupo)
+
     def explorar(self):
         box = self.columna()
+        self.autoalimentacion(box)
         self.selector = Gtk.DropDown.new_from_strings(["Cargando fuentes…"])
         self.selector.connect("notify::selected", lambda *_: self.cambiar_fuente())
         box.append(self.selector)

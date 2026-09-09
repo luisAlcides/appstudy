@@ -186,6 +186,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.biblioteca = Biblioteca(self, self.con)
         self.stack.add_titled_with_icon(self.biblioteca, "biblioteca", "Biblioteca",
                                         "library-symbolic")
+        from .bandeja_ui import PaginaBandeja
+        self.bandeja = PaginaBandeja(self.con, notificar=self.notify_user)
+        self.stack.add_titled_with_icon(self.bandeja, "novedades", "Novedades",
+                                        "folder-download-symbolic")
         self.stack.add_titled_with_icon(self.build_settings(), "ajustes", "Ajustes",
                                         "preferences-system-symbolic")
         # Refrescar las cuatro secciones cuesta más de un segundo (el explorador
@@ -3657,13 +3661,30 @@ echo hola
     # ----------------------------------------------------------------- general
 
     SECCIONES = ("panel", "leer", "tarjetas", "estadisticas",
-                 "biblioteca", "ajustes")
+                 "biblioteca", "novedades", "ajustes")
 
     def refrescar_seccion(self, nombre):
         {"panel": self.refresh_panel, "leer": self.refresh_reader,
          "tarjetas": self.refresh_browser, "estadisticas": self.refresh_stats,
          "biblioteca": self.biblioteca.refrescar,
+         "novedades": self.refresh_novedades,
          "ajustes": self.refresh_settings}[nombre]()
+
+    def refresh_novedades(self):
+        self.bandeja.recargar()
+        self.actualizar_insignia_novedades()
+
+    def actualizar_insignia_novedades(self):
+        """La insignia se pone al día mire uno donde mire.
+
+        Refrescar cada sección cuesta, pero contar filas no: si algo llegó
+        mientras estabas en Progreso, la pestaña tiene que decirlo igual.
+        """
+        from . import bandeja
+        pagina = self.stack.get_page(self.bandeja)
+        cuantas = bandeja.cuantas(self.con)
+        pagina.set_badge_number(cuantas)
+        pagina.set_needs_attention(bool(cuantas))
 
     def on_switch(self):
         """Al cambiar de pestaña, se pone al día solo si quedó pendiente."""
@@ -3688,6 +3709,7 @@ echo hola
     def refresh(self):
         """Los datos han cambiado: se rehace lo que se ve y se apunta el resto."""
         self.actualizar_estado_sync()
+        self.actualizar_insignia_novedades()
         visible = self.stack.get_visible_child_name() or "panel"
         self.sucias = set(self.SECCIONES) - {visible}
         self.refrescar_seccion(visible)
