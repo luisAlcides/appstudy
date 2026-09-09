@@ -240,16 +240,29 @@ class Chispa(Creature):
         intensidad = 0.0 if self.reduced_motion else (1 - .65 * self.abandono)
         gestos = animacion_chispa.movimientos(
             indice, self.t, intensidad, self.phase("saludo"))
-        rig = self._rig()
-        pintado = False
-        if rig is not None and rig.parpadea(indice):
-            # Con capas, el ojo se cierra de verdad: debajo hay pelaje.
-            cierre = self._cierre_parpadeo()
-            if cierre > 0:
-                pintado = rig.dibujar(cr, indice, cierre)
+        pintado = self._pintar_con_capas(cr, indice, intensidad)
         if not pintado:
             animacion_chispa.pintar(cr, superficie, gestos)
         cr.restore()
+
+    def _pintar_con_capas(self, cr, indice, intensidad) -> bool:
+        """Dibuja por capas cuando aportan algo. Devuelve si lo ha hecho.
+
+        Con las manos separadas se usa siempre: girarlas desde donde nacen se
+        ve mucho más que la deformación de la malla. Sin ellas solo se recurre
+        a las capas durante el parpadeo, y el resto del tiempo sigue la malla,
+        que es la que mueve las extremidades en esas poses.
+        """
+        rig = self._rig()
+        if rig is None:
+            return False
+        cierre = self._cierre_parpadeo() if rig.parpadea(indice) else 0.0
+        if rig.mueve_miembros(indice):
+            balanceo = 0.0 if self.reduced_motion else math.sin(self.t * 1.9)
+            return rig.dibujar(cr, indice, cierre, balanceo * intensidad)
+        if cierre > 0:
+            return rig.dibujar(cr, indice, cierre)
+        return False
         # Anclajes de la cara en las seis celdas del atlas de referencia.
         # Se expresan como fracciones para admitir un PNG de mayor resolución.
         caras = ((.625, .412), (.543, .422), (.559, .516),

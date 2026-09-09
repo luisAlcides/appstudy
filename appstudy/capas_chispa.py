@@ -130,6 +130,19 @@ OJO_PROPORCION = (0.60, 1.60)  # un ojo es casi cuadrado; una oreja, ancha
 OJO_SEPARACION = 0.08          # dos ojos no se solapan en horizontal
 SIN_OJOS = (3, 5)              # ya vienen dibujadas con los ojos cerrados
 
+# --- extremidades ---------------------------------------------------------
+#
+# Chispa no tiene brazos: tiene manos pegadas a un cuerpo redondo. Por eso el
+# giro va topado —a partir de unos 15 grados la mano se despega y se ve el
+# truco— y por eso una pieza que no se distinga limpiamente no se anima.
+MIEMBRO_MIN, MIEMBRO_MAX = 600, 4000   # más de esto es varias piezas fundidas
+OREJA_PROPORCION = 0.70        # las puntas de oreja son altas y estrechas
+OREJA_ARRIBA = 0.30
+MANO_ALTURA = (0.42, 0.82)     # por debajo de los ojos y por encima de los pies
+PIE_ALTURA = 0.82
+SIN_MIEMBROS = (5,)            # dormida y hecha un ovillo: no hay nada que girar
+MIEMBROS_PAREJOS = 0.20        # dos manos van más o menos a la misma altura
+
 # La boca queda fuera, y conviene saber por qué antes de volver a intentarlo:
 # el rosa de la lengua es casi el mismo que el sombreado rosado del cuello, y
 # el negro de la cavidad es el mismo que el de la pupila. Con esta paleta, los
@@ -161,6 +174,40 @@ def piezas(superficie, indice: int) -> dict:
             if otro["centro"][0] - uno["centro"][0] >= OJO_SEPARACION:
                 salida["ojo_izq"] = uno["pixeles"]
                 salida["ojo_der"] = otro["pixeles"]
+    salida.update(_miembros(superficie, indice, clasificado))
+    return salida
+
+
+def _miembros(superficie, indice, clasificado) -> dict:
+    """Manos y pies, cuando se distinguen sin lugar a dudas.
+
+    Las puntas de las orejas también son pardas: se descartan por altas y
+    estrechas. Las poses sentadas funden brazos y piernas en una sola mancha, y
+    esas se dejan como están: es preferible que una pose no mueva las manos a
+    que mueva medio cuerpo.
+    """
+    if indice in SIN_MIEMBROS:
+        return {}
+    manos, pies = [], []
+    for g in grupos(superficie, {"pardo"}, MIEMBRO_MIN, clasificado):
+        if g["n"] > MIEMBRO_MAX:
+            continue                       # varias piezas pegadas
+        cy = g["centro"][1]
+        if _proporcion(g) <= OREJA_PROPORCION and g["caja"][1] <= OREJA_ARRIBA:
+            continue                       # punta de oreja
+        if cy >= PIE_ALTURA:
+            pies.append(g)
+        elif MANO_ALTURA[0] <= cy < MANO_ALTURA[1]:
+            manos.append(g)
+    salida = {}
+    for nombre, encontrados in (("mano", manos), ("pie", pies)):
+        if len(encontrados) != 2:
+            continue                       # o dos, o ninguno
+        uno, otro = sorted(encontrados, key=lambda g: g["centro"][0])
+        if abs(uno["centro"][1] - otro["centro"][1]) > MIEMBROS_PAREJOS:
+            continue
+        salida[f"{nombre}_izq"] = uno["pixeles"]
+        salida[f"{nombre}_der"] = otro["pixeles"]
     return salida
 
 

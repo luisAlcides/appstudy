@@ -144,3 +144,41 @@ class ChispaConCapasTest(BaseTemporal):
         c = self.bicho()
         self.assertIsNotNone(c._rig())
         self.assertTrue(c._rig().parpadea(0))
+
+
+class MiembrosTest(BaseTemporal):
+    @classmethod
+    def setUpClass(cls):
+        from appstudy.chispa import cargar_poses
+        if cargar_poses() is None:
+            raise unittest.SkipTest("Requiere el atlas de Chispa")
+
+    def setUp(self):
+        super().setUp()
+        capas.extraer()
+        self.rig = rig_chispa.cargar()
+
+    def pintar(self, indice, balanceo):
+        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, 512, 512)
+        self.assertTrue(self.rig.dibujar(cairo.Context(s), indice, 0.0, balanceo))
+        s.flush()
+        return bytes(s.get_data())
+
+    def test_la_pose_de_reposo_mueve_manos_y_pies(self):
+        self.assertTrue(self.rig.mueve_miembros(0))
+
+    def test_las_poses_donde_se_funden_las_extremidades_no(self):
+        for indice in (2, 4, 5):
+            with self.subTest(pose=indice):
+                self.assertFalse(self.rig.mueve_miembros(indice))
+
+    def test_balancearse_cambia_el_dibujo(self):
+        self.assertNotEqual(self.pintar(0, -1.0), self.pintar(0, 1.0))
+
+    def test_sin_balanceo_sale_igual_que_el_atlas_recompuesto(self):
+        self.assertEqual(self.pintar(0, 0.0), self.pintar(0, 0.0))
+
+    def test_el_giro_nunca_pasa_del_tope(self):
+        """Más de esto y la mano se despega del cuerpo: se ve el truco."""
+        self.assertLessEqual(rig_chispa.GIRO_MANO, 0.27)
+        self.assertLess(rig_chispa.GIRO_PIE, rig_chispa.GIRO_MANO)

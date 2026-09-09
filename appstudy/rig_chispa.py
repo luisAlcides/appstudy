@@ -19,6 +19,12 @@ PESTANA = (0.11, 0.075, 0.06)
 PESTANA_GROSOR = 0.16          # fracción de la altura del ojo
 CIERRE_VISIBLE = 0.06          # por debajo de esto no se dibuja nada encima
 
+# Chispa no tiene brazos: la mano nace pegada al cuerpo. Pasados unos 15 grados
+# se despega y se ve el truco, así que el giro va topado ahí.
+GIRO_MANO = 0.26               # radianes ≈ 15°
+GIRO_PIE = 0.10
+MIEMBROS = ("mano_izq", "mano_der", "pie_izq", "pie_der")
+
 
 class Rig:
     """Las capas de una pose y cómo se componen."""
@@ -47,8 +53,17 @@ class Rig:
         """Hay poses que ya vienen dibujadas con los ojos cerrados."""
         return self.tiene(indice, "ojo_izq") and self.tiene(indice, "ojo_der")
 
-    def dibujar(self, cr, indice: int, cierre: float = 0.0) -> bool:
-        """Pinta la pose entera. Devuelve False si le faltan capas."""
+    def mueve_miembros(self, indice: int) -> bool:
+        """Si esta pose tiene manos y pies separados y se pueden girar."""
+        return all(self.tiene(indice, m) for m in MIEMBROS)
+
+    def dibujar(self, cr, indice: int, cierre: float = 0.0,
+                balanceo: float = 0.0) -> bool:
+        """Pinta la pose entera. Devuelve False si le faltan capas.
+
+        `balanceo` va de -1 a 1 y mueve manos y pies en oposición, que es como
+        se balancea cualquier bicho al andar o al esperar.
+        """
         base = self._superficie(f"base-{indice}")
         if base is None:
             return False
@@ -61,8 +76,29 @@ class Rig:
             capa = self._superficie(f"{indice}-{nombre}")
             if capa is None:
                 return False
-            self._ojo(cr, capa, datos, cierre, base.get_width(), base.get_height())
+            if nombre.startswith("ojo"):
+                self._ojo(cr, capa, datos, cierre,
+                          base.get_width(), base.get_height())
+            else:
+                self._miembro(cr, capa, datos, nombre, balanceo,
+                              base.get_width(), base.get_height())
         return True
+
+    def _miembro(self, cr, capa, datos, nombre, balanceo, ancho, alto):
+        """Una mano o un pie, girando desde donde nace."""
+        lado = -1 if nombre.endswith("izq") else 1
+        tope = GIRO_MANO if nombre.startswith("mano") else GIRO_PIE
+        angulo = max(-1.0, min(1.0, balanceo)) * tope * lado
+        px, py = datos["pivote"]
+        cr.save()
+        if angulo:
+            cr.translate(px * ancho, py * alto)
+            cr.rotate(angulo)
+            cr.translate(-px * ancho, -py * alto)
+        cr.set_source_surface(capa, 0, 0)
+        cr.get_source().set_filter(cairo.FILTER_BEST)
+        cr.paint()
+        cr.restore()
 
     def _ojo(self, cr, capa, datos, cierre, ancho, alto):
         """El ojo, recortado contra el párpado que baja.

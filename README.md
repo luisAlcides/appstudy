@@ -402,10 +402,21 @@ cerrados dibujados, así que esas no parpadean.
 Con **movimiento reducido** activado no parpadea. Y si la extracción falla o aún
 no ha terminado, se dibuja como siempre: la mascota nunca se queda sin dibujar.
 
-De momento es solo el parpadeo. La boca se quedó fuera con un motivo concreto:
-el rosa de la lengua es casi el del sombreado del cuello y el negro de la
-cavidad es el de la pupila, así que con esta paleta no se distingue. Los brazos
-y las piernas siguen moviéndose con la deformación de malla de siempre.
+En la pose de reposo, además, **las manos y los pies son capas propias** y giran
+desde donde nacen. El giro está topado en unos 15 grados a propósito: Chispa no
+tiene brazos, tiene manos pegadas a un cuerpo redondo, y pasado ese punto la
+mano se despega y se ve el truco.
+
+En las poses sentadas —con el portátil, o con la pata en la barbilla— brazos y
+piernas se funden en una sola mancha oscura y no se pueden separar sin
+equivocarse, así que ahí se sigue usando la deformación de malla de siempre.
+Vale el mismo principio que con los ojos: **una pose que no dé piezas limpias no
+se anima**, porque es preferible que no mueva las manos a que mueva medio
+cuerpo.
+
+La boca se quedó fuera con un motivo concreto: el rosa de la lengua es casi el
+del sombreado del cuello y el negro de la cavidad es el de la pupila, así que
+con esta paleta no se distingue.
 
 ### Sonido
 

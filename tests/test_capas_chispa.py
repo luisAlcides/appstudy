@@ -170,5 +170,12 @@ class ReconstruirTest(BaseTemporal):
         self.assertTrue((capas.carpeta() / "0-ojo_izq.png").exists())
         self.assertTrue((capas.carpeta() / "0-ojo_der.png").exists())
         self.assertFalse((capas.carpeta() / "3-ojo_izq.png").exists())
-        self.assertEqual(sorted(m["poses"]["0"]), ["ojo_der", "ojo_izq"])
-        self.assertEqual(m["poses"]["3"], {})
+        # La pose de reposo saca las seis piezas: dos ojos, dos manos, dos pies
+        self.assertEqual(sorted(m["poses"]["0"]),
+                         ["mano_der", "mano_izq", "ojo_der", "ojo_izq",
+                          "pie_der", "pie_izq"])
+        # La de celebrar ya viene con los ojos cerrados y las manos en alto
+        self.assertNotIn("ojo_izq", m["poses"]["3"])
+        self.assertNotIn("mano_izq", m["poses"]["3"])
+        # La dormida es un ovillo: no hay nada que separar
+        self.assertEqual(m["poses"]["5"], {})
