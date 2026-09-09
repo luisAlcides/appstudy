@@ -132,6 +132,73 @@ class AnimacionBitTest(unittest.TestCase):
         alpha = memoryview(superficie.get_data()).cast("I")[8 * 100 + 14] >> 24
         self.assertLess(alpha, 100)
 
+    def test_gestos_nuevos_se_dibujan_y_vuelven_suavemente(self):
+        for nombre in ("guino", "reverencia", "curiosear", "victoria"):
+            bit = BitSinVentana()
+            bit.actuar(nombre)
+            dur = bit.DURACION_GESTO[nombre]
+            for fraccion in (0, .25, .5, .75, .99999, 1):
+                bit.t = dur * fraccion
+                with self.subTest(gesto=nombre, fraccion=fraccion):
+                    imagen = cairo.ImageSurface(cairo.FORMAT_ARGB32, *pet.DISENO)
+                    bit.draw(None, cairo.Context(imagen), *pet.DISENO)
+                    self.assertTrue(all(math.isfinite(v) for v in bit._pose()))
+                    self.assertGreater(min(bit._pose()[1:3]), 0)
+            final = bit._pose()
+            bit.anims.clear()
+            self.assertEqual(final, bit._pose())
+
+    def test_reaccion_pedida_no_se_interrumpe_por_idle(self):
+        bit = BitSinVentana()
+        bit.actuar("reverencia")
+        bit.next_idle = 0
+        with patch("appstudy.pet.random.choice", side_effect=lambda opciones: opciones[0]) as elegir:
+            bit.tick(.1)
+        self.assertEqual(elegir.call_args.args[0], ("parpadeo", "mirar"))
+        self.assertIsNotNone(bit.phase("reverencia"))
+
+    def test_ensenar_y_hablar_solo_permite_idle_tranquilo(self):
+        for atributo, valor in (("teaching", True), ("charlando", True), ("hablando_hasta", 10)):
+            bit = BitSinVentana()
+            setattr(bit, atributo, valor)
+            bit.next_idle = 0
+            with patch("appstudy.pet.random.choice", side_effect=lambda opciones: opciones[0]) as elegir:
+                bit.tick(.1)
+            self.assertEqual(elegir.call_args.args[0], ("parpadeo", "mirar"))
+
+    def test_limita_particulas_y_respeta_movimiento_reducido(self):
+        bit = BitSinVentana()
+        for _ in range(50):
+            bit.actuar("victoria")
+        self.assertLessEqual(len(bit.particulas), 48)
+        bit.reduced_motion = True
+        for nombre, _ in bit.GESTOS_MENU:
+            bit.actuar(nombre)
+            bit.tick(.1)
+            self.assertEqual(bit._pose(), (0, 1, 1, 0))
+            self.assertEqual(bit.particulas, [])
+
+    def test_no_repite_ultimo_gesto_espontaneo(self):
+        bit = BitSinVentana()
+        bit._ultimo_idle = "curiosear"
+        self.assertNotIn("curiosear", bit._gestos_idle())
+
+    def test_cursor_tiene_enfriamiento_y_no_despierta(self):
+        bit = BitSinVentana()
+        bit.get_width = lambda: 152
+        bit.get_height = lambda: 184
+        with patch("appstudy.pet.random.random", return_value=0):
+            bit.on_enter(None, 70, 80)
+            primer_guino = bit.anims["guino"]
+            bit.t = 1
+            bit.on_enter(None, 70, 80)
+            self.assertEqual(bit.anims["guino"], primer_guino)
+            bit.t = 10
+            bit.mood = "dormido"
+            bit.anims.clear()
+            bit.on_enter(None, 70, 80)
+            self.assertEqual(bit.anims, {})
+
 
 if __name__ == "__main__":
     unittest.main()

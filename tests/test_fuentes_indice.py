@@ -96,3 +96,42 @@ class IndiceTest(BaseTemporal):
         self.addCleanup(lambda: setattr(fuentes, "descargar", original))
         with self.assertRaises(fuentes.FuenteError):
             fuentes.indice(catalogo.por_id("libretexts_eng"))
+
+
+INDICE_DE_SITEMAPS = b"""<?xml version="1.0"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<sitemap><loc>https://espanol.libretexts.org/sitemap0.xml</loc></sitemap>
+</sitemapindex>"""
+
+HOJA = b"""<?xml version="1.0"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://espanol.libretexts.org/Matematicas/Derivadas</loc></url>
+</urlset>"""
+
+CON_NAVEGACION = b"""<html><body><main>
+<a href="/a.html">Skip to main content</a>
+<a href="/e.html">Skip to main Navigation</a>
+<a href="/b.html">Sign Up</a>
+<a href="/c.html">Chapter 2: OHM'S LAW</a>
+<a href="/d.html">ok</a>
+</main></body></html>"""
+
+
+class SitemapIndiceTest(BaseTemporal):
+    def test_un_indice_de_sitemaps_se_sigue_un_nivel(self):
+        original = fuentes.descargar
+        respuestas = [INDICE_DE_SITEMAPS, HOJA]
+
+        def falso(url, dominios, limite=None):
+            return respuestas.pop(0), "application/xml"
+        fuentes.descargar = falso
+        self.addCleanup(lambda: setattr(fuentes, "descargar", original))
+        r = fuentes.indice(catalogo.por_id("libretexts_esp"))
+        self.assertEqual([x["title"] for x in r], ["Derivadas"])
+
+    def test_los_enlaces_de_navegacion_no_entran(self):
+        original = fuentes.descargar
+        fuentes.descargar = lambda u, d, limite=None: (CON_NAVEGACION, "text/html")
+        self.addCleanup(lambda: setattr(fuentes, "descargar", original))
+        r = fuentes.indice(catalogo.por_id("ibiblio"))
+        self.assertEqual([x["title"] for x in r], ["Chapter 2: OHM'S LAW"])

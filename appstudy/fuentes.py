@@ -171,16 +171,45 @@ _RUIDO = ("Special:", "Talk:", "Template:", "Category:", "Help:", "Sandbox",
           "/index", "/search", "/login", "/genindex", "/_sources/")
 
 
+MAX_SUBSITEMAPS = 3
+
+# Enlaces que toda web tiene y ninguno es material de estudio
+_NAVEGACION = {"skip to main content", "sign up", "log in", "languages", "search",
+               "home", "next", "previous", "index", "contents", "sitemap all",
+               "menu", "subscribe", "follow us", "contact", "about", "privacy",
+               "terms", "help", "donate", "edit", "view source", "history",
+               "modulos", "modules", "iniciar sesion", "buscar", "inicio"}
+
+
+def _sitemap_urls(f, raw, profundidad=0):
+    """Las URL de un sitemap. Si es un índice de sitemaps, baja un nivel.
+
+    LibreTexts en español publica un índice que apunta a otros tres sitemaps;
+    sin esto, el catálogo de esa fuente serían tres archivos XML.
+    """
+    import xml.etree.ElementTree as ET
+    try:
+        raiz = ET.fromstring(raw.decode("utf-8", errors="replace"))
+    except ET.ParseError as e:
+        raise FuenteError(f"{f['nombre']} devolvió un sitemap ilegible") from e
+    locs = [n.text.strip() for n in raiz.iter()
+            if n.tag.endswith("}loc") and n.text and n.text.strip()]
+    if not raiz.tag.endswith("}sitemapindex") or profundidad:
+        return locs
+    urls = []
+    for hijo in locs[:MAX_SUBSITEMAPS]:
+        try:
+            crudo, _ = descargar(hijo, DOMINIOS[f["id"]], MAX_INDICE)
+        except FuenteError:
+            continue                # que falte un trozo del índice no lo invalida
+        urls += _sitemap_urls(f, crudo, profundidad + 1)
+    return urls
+
+
 def _indice_paginas(f, raw):
     """Convierte un sitemap XML o una página índice en pares (título, URL)."""
     if f["buscar"] == "sitemap":
-        import xml.etree.ElementTree as ET
-        try:
-            raiz = ET.fromstring(raw.decode("utf-8", errors="replace"))
-        except ET.ParseError as e:
-            raise FuenteError(f"{f['nombre']} devolvió un sitemap ilegible") from e
-        urls = [n.text.strip() for n in raiz.iter()
-                if n.tag.endswith("}loc") and n.text and n.text.strip()]
+        urls = _sitemap_urls(f, raw)
         pares = [(urllib.parse.unquote(u.rstrip("/").rsplit("/", 1)[-1]).replace("_", " "), u)
                  for u in urls]
     else:
@@ -190,7 +219,10 @@ def _indice_paginas(f, raw):
                  for href, titulo in pagina.enlaces if titulo and titulo.strip()]
     salida, vistos = [], set()
     for titulo, url in pares:
-        if not titulo or url in vistos or any(r in url for r in _RUIDO):
+        limpio = clave(titulo)
+        if (not titulo or len(titulo) < 3 or url in vistos
+                or limpio in _NAVEGACION or limpio.startswith("skip to")
+                or any(r in url for r in _RUIDO)):
             continue
         try:
             validar_url(url, DOMINIOS[f["id"]])
@@ -253,7 +285,7 @@ def _mediawiki(f, consulta, corto=False):
     except (KeyError, TypeError, ValueError) as e:
         raise FuenteError(f"{f['nombre']} devolvió una respuesta no reconocible") from e
     return [documento(f["id"], f["base"] + articulo + urllib.parse.quote(p["key"]),
-                      p["title"], summary=Pagina(p.get("excerpt", "")).texto)
+                      p["title"], summary=Pagina(p.get("excerpt") or "").texto)
             for p in paginas if p.get("key")]
 
 
@@ -353,7 +385,7 @@ def buscar(provider, consulta="", config=None):
         try:
             pages = json.loads(raw)["pages"]
             return [documento(provider, base + "/wiki/" + urllib.parse.quote(p["key"]),
-                              p["title"], summary=Pagina(p.get("excerpt", "")).texto)
+                              p["title"], summary=Pagina(p.get("excerpt") or "").texto)
                     for p in pages]
         except (KeyError, TypeError, ValueError) as e:
             raise FuenteError("Wikipedia devolvió una respuesta no reconocible") from e
@@ -368,6 +400,62 @@ def buscar(provider, consulta="", config=None):
     if provider == "markdown":
         return explorar_carpeta(config.get("carpeta", ""), consulta)
     raise FuenteError("Fuente no reconocida")
+
+
+# Autor y licencia por omisión de cada fuente. Los tres primeros son los
+# proveedores de siempre; el resto sale del catálogo, para no repetir la lista.
+ATRIBUCIONES = {
+    "wikipedia": ("Colaboradores de Wikipedia",
+                  "CC BY-SA 4.0 · véase el historial y la licencia del artículo"),
+    "mit": ("MIT OpenCourseWare",
+            "Consultar licencia MIT OCW y excepciones de cada material"),
+    "openstax": ("OpenStax · autores indicados en el libro",
+                 "Consultar licencia de esta edición en la fuente"),
+}
+_ATRIBUCION_WIKIMEDIA = ("Colaboradores del proyecto", "CC BY-SA 4.0 · véase la página de origen")
+
+
+def atribucion(provider):
+    """Quién firma y bajo qué licencia. Nunca falla: sin datos, se dice así."""
+    from . import catalogo
+    if provider in ATRIBUCIONES:
+        autor, licencia = ATRIBUCIONES[provider]
+        return {"author": autor, "license": licencia}
+    f = catalogo._POR_ID.get(provider)
+    if not f:
+        return {"author": "No indicado", "license": "Consultar la fuente"}
+    # La licencia manda sobre el tipo de conector: ArchWiki y Gentoo son
+    # MediaWiki, pero no están bajo CC BY-SA como los proyectos de Wikimedia.
+    if f["licencia"] != "abierta":
+        return {"author": f["nombre"],
+                "license": f"Solo enlace · consultar las condiciones de {f['nombre']}"}
+    if f["buscar"].startswith("mediawiki"):
+        autor, licencia = _ATRIBUCION_WIKIMEDIA
+        return {"author": autor, "license": f"{licencia} · {f['nombre']}"}
+    return {"author": f["nombre"],
+            "license": "Licencia abierta · consultar las condiciones en la fuente"}
+
+
+def limpiar_titulo(titulo, provider):
+    """Quita el nombre del sitio que casi todos meten en el <title>.
+
+    «Matemáticas - Wikipedia, la enciclopedia libre» es el título de la página,
+    no el del capítulo que vas a leer.
+    """
+    from . import catalogo
+    f = catalogo._POR_ID.get(provider)
+    sufijos = ["Wikipedia, la enciclopedia libre", "Wikipedia, the free encyclopedia",
+               "Wikilibros", "Wikiversidad", "Wiktionary, the free dictionary",
+               "ArchWiki", "Gentoo Wiki"]
+    if f:
+        sufijos.append(f["nombre"])
+    limpio = titulo.strip()
+    for sufijo in sufijos:
+        for separador in (" - ", " — ", " · ", " | "):
+            corte = separador + sufijo
+            if limpio.endswith(corte):
+                limpio = limpio[:-len(corte)].strip()
+    return limpio or titulo.strip()
 
 
 def previsualizar(item):
@@ -399,20 +487,19 @@ def previsualizar(item):
             continue
         seen.add(target)
         links.append(documento(provider, target, title))
-    licencias = {"wikipedia": "CC BY-SA 4.0 · véase el historial y la licencia del artículo",
-                 "mit": "Consultar licencia MIT OCW y excepciones de cada material",
-                 "openstax": "Consultar licencia de esta edición en la fuente"}
-    autores = {"wikipedia": "Colaboradores de Wikipedia", "mit": "MIT OpenCourseWare",
-               "openstax": "OpenStax · autores indicados en el libro"}
+    licencia = atribucion(provider)["license"]
+    autor = ", ".join(page.autores) or atribucion(provider)["author"]
+    # La licencia declarada en la propia página manda sobre la del catálogo:
+    # una edición concreta puede tener condiciones que el registro no sabe.
     if page.licencias:
-        licencias[provider] = page.licencias[0]
+        licencia = page.licencias[0]
     for link in links:
-        link["author"] = ", ".join(page.autores) or autores[provider]
-        link["license"] = licencias[provider] + " · comprobar excepciones del material"
+        link["author"] = autor
+        link["license"] = licencia + " · comprobar excepciones del material"
     if not page.texto.strip():
         raise FuenteError("Esta página no ofrece texto descargable. Usa un PDF o una página de capítulo.")
-    return {**item, "title": "".join(page.titulo).strip() or item["title"],
-            "text": page.texto, "author": ", ".join(page.autores) or autores[provider], "license": licencias[provider],
+    return {**item, "title": limpiar_titulo("".join(page.titulo), provider) or item["title"],
+            "text": page.texto, "author": autor, "license": licencia,
             "links": links[:150], "retrieved": time.time()}
 
 

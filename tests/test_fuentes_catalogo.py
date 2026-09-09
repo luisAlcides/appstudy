@@ -85,3 +85,39 @@ class BuscadoresTest(unittest.TestCase):
         self.grabar(json.dumps({"pages": [{"key": "Ohm", "title": "Ohm", "excerpt": ""}]}).encode())
         r = fuentes.buscar("wikipedia", "ohm", {"idioma": "es"})
         self.assertEqual(r[0]["origin"], "https://es.wikipedia.org/wiki/Ohm")
+
+
+class AtribucionTest(unittest.TestCase):
+    def test_toda_fuente_del_catalogo_tiene_autor_y_licencia(self):
+        from appstudy import catalogo
+        for f in catalogo.FUENTES:
+            with self.subTest(f["id"]):
+                a = fuentes.atribucion(f["id"])
+                self.assertTrue(a["author"].strip())
+                self.assertTrue(a["license"].strip())
+
+    def test_los_proveedores_de_siempre_conservan_su_texto(self):
+        self.assertIn("Colaboradores de Wikipedia", fuentes.atribucion("wikipedia")["author"])
+        self.assertIn("MIT OpenCourseWare", fuentes.atribucion("mit")["author"])
+
+    def test_una_fuente_desconocida_no_revienta(self):
+        a = fuentes.atribucion("inventada")
+        self.assertEqual(a["author"], "No indicado")
+
+    def test_una_fuente_solo_enlace_lo_dice_en_su_licencia(self):
+        self.assertIn("enlace", fuentes.atribucion("archwiki")["license"].lower())
+
+
+class TituloTest(unittest.TestCase):
+    def test_se_quita_el_nombre_del_sitio(self):
+        self.assertEqual(
+            fuentes.limpiar_titulo("Matemáticas - Wikipedia, la enciclopedia libre",
+                                   "wikipedia_es"), "Matemáticas")
+        self.assertEqual(
+            fuentes.limpiar_titulo("systemd - ArchWiki", "archwiki"), "systemd")
+
+    def test_un_titulo_limpio_no_se_toca(self):
+        self.assertEqual(fuentes.limpiar_titulo("Ley de Ohm", "wikipedia_es"), "Ley de Ohm")
+
+    def test_un_titulo_que_es_solo_el_sitio_no_se_queda_vacio(self):
+        self.assertTrue(fuentes.limpiar_titulo("ArchWiki", "archwiki"))
