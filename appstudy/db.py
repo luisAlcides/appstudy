@@ -141,6 +141,7 @@ CREATE TABLE IF NOT EXISTS inbox (
     author   TEXT NOT NULL DEFAULT '',
     license  TEXT NOT NULL DEFAULT '',
     score    REAL NOT NULL DEFAULT 0,
+    nivel    INTEGER NOT NULL DEFAULT 1,     -- el que dedujo el filtro por dificultad
     motivo   TEXT NOT NULL DEFAULT '',
     cards    TEXT NOT NULL DEFAULT '[]',
     estado   TEXT NOT NULL DEFAULT 'pendiente',   -- pendiente | aceptado | descartado
