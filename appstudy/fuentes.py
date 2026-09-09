@@ -42,6 +42,20 @@ DOMINIOS = {"wikipedia": {"es.wikipedia.org", "en.wikipedia.org"},
             "mit": {"ocw.mit.edu", "live.ocw.mit.edu"}}
 
 
+def _registrar_catalogo():
+    """Cada fuente del catálogo es también un proveedor con su lista blanca.
+
+    Se hace aquí y no en `catalogo.py` para no invertir la dependencia: el
+    catálogo son datos y no tiene por qué saber nada de descargas.
+    """
+    from . import catalogo
+    for f in catalogo.FUENTES:
+        DOMINIOS.setdefault(f["id"], set()).update(f["hosts"])
+
+
+_registrar_catalogo()
+
+
 class FuenteError(ValueError):
     pass
 
