@@ -15,6 +15,12 @@ No se ejecuta al dibujar: produce archivos.
 """
 from __future__ import annotations
 
+import hashlib
+import json
+from pathlib import Path
+
+import cairo
+
 # Los mismos colores que declara `chispa.py`, más los del ojo y la lengua, que
 # allí no hacían falta porque venían pintados en la ilustración.
 PALETA = {
@@ -22,7 +28,10 @@ PALETA = {
     "crema":    ((0xFB, 0xF3, 0xE6), (0xEE, 0xDC, 0xC4)),
     "pardo":    ((0x5C, 0x40, 0x30), (0x48, 0x32, 0x24), (0x33, 0x22, 0x18)),
     "turquesa": ((0x3F, 0xD0, 0xC9),),
-    # Blanco de la esclerótica, marrón del iris y casi negro de la pupila
+    # Blanco de la esclerótica, marrón del iris y casi negro de la pupila.
+    # No es una clase limpia: el naranja muy oscuro del pelaje se parece al
+    # iris, y los brillos del pelo al blanco. Sirve para encontrar manchas
+    # grandes y conexas —que es para lo que se usa—, no para contar píxeles.
     "ojo":      ((0xFF, 0xFF, 0xFF), (0x8B, 0x5A, 0x2B), (0x20, 0x14, 0x0C)),
     "lengua":   ((0xE2, 0x7D, 0x6D),),
 }
@@ -119,11 +128,13 @@ OJO_MIN = 600
 OJO_ALTURA = (0.28, 0.62)      # ni las orejas (arriba) ni el pecho (abajo)
 OJO_PROPORCION = (0.60, 1.60)  # un ojo es casi cuadrado; una oreja, ancha
 OJO_SEPARACION = 0.08          # dos ojos no se solapan en horizontal
-BOCA_MIN = 500
-BOCA_ALTURA = (0.35, 0.70)
-BOCA_ANCHO_MAX = 0.45          # más ancho que esto es el portátil, no la boca
 SIN_OJOS = (3, 5)              # ya vienen dibujadas con los ojos cerrados
-SIN_BOCA = (5,)                # dormida no habla
+
+# La boca queda fuera, y conviene saber por qué antes de volver a intentarlo:
+# el rosa de la lengua es casi el mismo que el sombreado rosado del cuello, y
+# el negro de la cavidad es el mismo que el de la pupila. Con esta paleta, los
+# grupos que salen son pelaje, no boca. Hace falta otro anclaje —la cavidad
+# oscura rodeada de crema— y eso toca la clasificación del ojo, que sí funciona.
 
 
 def _proporcion(grupo) -> float:
@@ -135,7 +146,7 @@ def _proporcion(grupo) -> float:
 def piezas(superficie, indice: int) -> dict:
     """Las piezas de la cara de esa celda, como conjuntos de píxeles.
 
-    Devuelve las claves que encuentre entre `ojo_izq`, `ojo_der` y `boca`. Una
+    Devuelve `ojo_izq` y `ojo_der` cuando los encuentra. Una
     pose que no dé dos ojos no parpadea: es preferible que no parpadee a que
     parpadee una oreja.
     """
@@ -150,12 +161,6 @@ def piezas(superficie, indice: int) -> dict:
             if otro["centro"][0] - uno["centro"][0] >= OJO_SEPARACION:
                 salida["ojo_izq"] = uno["pixeles"]
                 salida["ojo_der"] = otro["pixeles"]
-    if indice not in SIN_BOCA:
-        bocas = [g for g in grupos(superficie, {"lengua"}, BOCA_MIN, clasificado)
-                 if BOCA_ALTURA[0] < g["centro"][1] < BOCA_ALTURA[1]
-                 and g["caja"][2] - g["caja"][0] <= BOCA_ANCHO_MAX]
-        if bocas:
-            salida["boca"] = bocas[0]["pixeles"]
     return salida
 
 
@@ -166,3 +171,162 @@ def caja_de(superficie, pixeles) -> tuple:
     ys = [i // ancho for i in pixeles]
     return (min(xs) / ancho, min(ys) / alto,
             (max(xs) + 1) / ancho, (max(ys) + 1) / alto)
+
+
+VERSION = "1"
+VUELTAS_RELLENO = 400
+SUAVIZADOS = 2
+
+
+def _dilatar(pixeles, ancho, alto, veces=2):
+    """Ensancha la máscara: el borde de una pieza arrastra medio píxel de ella."""
+    actual = set(pixeles)
+    for _ in range(veces):
+        nuevo = set(actual)
+        for i in actual:
+            y, x = divmod(i, ancho)
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    xx, yy = x + dx, y + dy
+                    if 0 <= xx < ancho and 0 <= yy < alto:
+                        nuevo.add(yy * ancho + xx)
+        actual = nuevo
+    return actual
+
+
+def reconstruir(superficie, pixeles):
+    """La celda sin esa pieza, con el hueco relleno por difusión desde el borde.
+
+    Cada píxel del hueco toma la media de los vecinos ya válidos, y el frente
+    avanza hacia dentro. Es lo que hace que detrás del ojo aparezca pelaje y no
+    un parche: el relleno sale del pelaje que lo rodea.
+    """
+    ancho, alto = superficie.get_width(), superficie.get_height()
+    paso = superficie.get_stride()
+    superficie.flush()
+    datos = bytearray(superficie.get_data())
+    zona = _dilatar(pixeles, ancho, alto)
+    hueco = bytearray(ancho * alto)
+    for i in zona:
+        hueco[i] = 1
+    pendientes = set(zona)
+    for _ in range(VUELTAS_RELLENO):
+        if not pendientes:
+            break
+        hechos = []
+        for i in sorted(pendientes):
+            y, x = divmod(i, ancho)
+            acumulado = [0, 0, 0, 0]
+            n = 0
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    if dx == dy == 0:
+                        continue
+                    xx, yy = x + dx, y + dy
+                    if 0 <= xx < ancho and 0 <= yy < alto and not hueco[yy * ancho + xx]:
+                        j = yy * paso + xx * 4
+                        for c in range(4):
+                            acumulado[c] += datos[j + c]
+                        n += 1
+            if n:
+                j = y * paso + x * 4
+                for c in range(4):
+                    datos[j + c] = acumulado[c] // n
+                hechos.append(i)
+        if not hechos:
+            break
+        for i in hechos:
+            hueco[i] = 0
+            pendientes.discard(i)
+    for _ in range(SUAVIZADOS):
+        copia = bytes(datos)
+        for i in zona:
+            y, x = divmod(i, ancho)
+            acumulado = [0, 0, 0, 0]
+            n = 0
+            for dy in (-1, 0, 1):
+                for dx in (-1, 0, 1):
+                    xx, yy = x + dx, y + dy
+                    if 0 <= xx < ancho and 0 <= yy < alto:
+                        j = yy * paso + xx * 4
+                        for c in range(4):
+                            acumulado[c] += copia[j + c]
+                        n += 1
+            j = y * paso + x * 4
+            for c in range(4):
+                datos[j + c] = acumulado[c] // n
+    salida = cairo.ImageSurface.create_for_data(datos, cairo.FORMAT_ARGB32,
+                                                ancho, alto, paso)
+    salida.mark_dirty()
+    return salida
+
+
+def recortar(superficie, pixeles):
+    """Solo esa pieza, con el resto transparente."""
+    ancho, alto = superficie.get_width(), superficie.get_height()
+    paso = superficie.get_stride()
+    superficie.flush()
+    origen = superficie.get_data()
+    salida = cairo.ImageSurface(cairo.FORMAT_ARGB32, ancho, alto)
+    destino = salida.get_data()
+    for i in pixeles:
+        y, x = divmod(i, ancho)
+        j = y * paso + x * 4
+        k = y * salida.get_stride() + x * 4
+        for c in range(4):
+            destino[k + c] = origen[j + c]
+    salida.mark_dirty()
+    return salida
+
+
+def contar_color(superficie, pixeles, color: str) -> int:
+    """Cuántos de esos píxeles se clasifican como ese color. Medible, no a ojo."""
+    clasificado, ancho, _ = mapa(superficie)
+    return sum(1 for i in pixeles if clasificado[i] == color)
+
+
+def carpeta() -> Path:
+    from . import db
+    return db.DATA_DIR / "chispa" / "capas"
+
+
+def huella_atlas() -> str:
+    """Si el atlas cambia, las capas dejan de valer y hay que rehacerlas."""
+    from .chispa import ATLAS
+    try:
+        return hashlib.sha256(ATLAS.read_bytes()).hexdigest()[:16]
+    except OSError:
+        return ""
+
+
+def extraer(destino: Path | None = None) -> dict | None:
+    """Genera todas las capas y su manifiesto. Devuelve el manifiesto, o None.
+
+    Lento a propósito: se hace una vez, en segundo plano, no al dibujar.
+    """
+    from .chispa import cargar_poses
+    poses = cargar_poses()
+    if poses is None:
+        return None
+    destino = destino or carpeta()
+    destino.mkdir(parents=True, exist_ok=True)
+    manifiesto = {"version": VERSION, "atlas": huella_atlas(), "poses": {}}
+    for indice, celda in enumerate(poses):
+        encontradas = piezas(celda, indice)
+        todos = set().union(*encontradas.values()) if encontradas else set()
+        base = reconstruir(celda, todos) if todos else celda
+        base.write_to_png(str(destino / f"base-{indice}.png"))
+        detalle = {}
+        for nombre, pixeles in encontradas.items():
+            recortar(celda, pixeles).write_to_png(
+                str(destino / f"{indice}-{nombre}.png"))
+            x0, y0, x1, y1 = caja_de(celda, pixeles)
+            detalle[nombre] = {"caja": [x0, y0, x1, y1],
+                               "centro": [(x0 + x1) / 2, (y0 + y1) / 2],
+                               # El punto de giro no se usa en esta fase: ni el
+                               # ojo ni la boca giran. Lo necesitarán los brazos.
+                               "pivote": [(x0 + x1) / 2, y0]}
+        manifiesto["poses"][str(indice)] = detalle
+    (destino / "manifiesto.json").write_text(
+        json.dumps(manifiesto, ensure_ascii=False, indent=1), encoding="utf-8")
+    return manifiesto

@@ -9,6 +9,7 @@ import unittest
 import cairo
 
 from appstudy import capas_chispa as capas
+from tests.apoyo import BaseTemporal
 
 
 class ClasificarTest(unittest.TestCase):
@@ -117,15 +118,57 @@ class PiezasTest(unittest.TestCase):
                 with self.subTest(pose=indice, pieza=clave):
                     self.assertLessEqual((x1 - x0) / (y1 - y0), 1.6)
 
-    def test_la_boca_aparece_donde_se_habla(self):
-        for indice in (0, 1, 2, 4):
-            with self.subTest(pose=indice):
-                self.assertIn("boca", self.encontradas[indice])
 
-    def test_la_boca_queda_por_debajo_de_los_ojos(self):
-        for indice in (0, 1, 2, 4):
-            p = self.encontradas[indice]
-            ojo = capas.caja_de(self.poses[indice], p["ojo_izq"])
-            boca = capas.caja_de(self.poses[indice], p["boca"])
-            with self.subTest(pose=indice):
-                self.assertGreater((boca[1] + boca[3]) / 2, (ojo[1] + ojo[3]) / 2)
+class ReconstruirTest(BaseTemporal):
+    def setUp(self):
+        super().setUp()
+        from appstudy.chispa import cargar_poses
+        self.poses = cargar_poses()
+        if self.poses is None:
+            self.skipTest("Requiere el atlas de Chispa")
+
+    def test_detras_del_ojo_no_queda_ojo_visible(self):
+        """No basta contar píxeles sueltos: lo que importa es que no quede mancha.
+
+        Algunos píxeles del pelaje se clasifican como «ojo» sin serlo —el
+        naranja oscuro se parece al iris y los brillos al blanco del ojo—, así
+        que se exige que no quede ningún grupo lo bastante grande para verse.
+        """
+        p = capas.piezas(self.poses[0], 0)
+        todos = p["ojo_izq"] | p["ojo_der"]
+        base = capas.reconstruir(self.poses[0], todos)
+        antes = capas.contar_color(self.poses[0], todos, "ojo")
+        despues = capas.contar_color(base, todos, "ojo")
+        self.assertLess(despues, antes * 0.10, "el ojo sigue ahí")
+        grandes = [g for g in capas.grupos(base, {"ojo"}, capas.OJO_MIN)
+                   if g["pixeles"] & todos]
+        self.assertEqual(grandes, [], "queda una mancha de ojo a la vista")
+
+    def test_la_reconstruccion_deja_pelaje_no_un_agujero(self):
+        p = capas.piezas(self.poses[0], 0)
+        base = capas.reconstruir(self.poses[0], p["ojo_izq"])
+        base.flush()
+        datos = base.get_data()
+        ancho, paso = base.get_width(), base.get_stride()
+        opacos = 0
+        for i in p["ojo_izq"]:
+            y, x = divmod(i, ancho)
+            if datos[y * paso + x * 4 + 3] > 200:
+                opacos += 1
+        self.assertEqual(opacos, len(p["ojo_izq"]), "quedaron huecos transparentes")
+
+    def test_la_capa_recortada_conserva_el_ojo(self):
+        p = capas.piezas(self.poses[0], 0)
+        capa = capas.recortar(self.poses[0], p["ojo_izq"])
+        self.assertGreater(capas.contar_color(capa, p["ojo_izq"], "ojo"), 100)
+
+    def test_extraer_deja_manifiesto_y_archivos(self):
+        m = capas.extraer()
+        self.assertEqual(m["version"], capas.VERSION)
+        self.assertTrue(m["atlas"])
+        self.assertTrue((capas.carpeta() / "base-0.png").exists())
+        self.assertTrue((capas.carpeta() / "0-ojo_izq.png").exists())
+        self.assertTrue((capas.carpeta() / "0-ojo_der.png").exists())
+        self.assertFalse((capas.carpeta() / "3-ojo_izq.png").exists())
+        self.assertEqual(sorted(m["poses"]["0"]), ["ojo_der", "ojo_izq"])
+        self.assertEqual(m["poses"]["3"], {})
