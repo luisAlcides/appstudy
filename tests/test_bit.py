@@ -1,7 +1,33 @@
 import unittest
 
-from appstudy import ia, pet, scheduler
+from appstudy import db, ia, pet, scheduler
 from tests.apoyo import BaseTemporal
+
+
+class EnfadoEstudioTest(BaseTemporal):
+    def test_repasar_quita_enfado(self):
+        ahora = 200000
+        self.assertTrue(pet.enfado_por_estudio(self.con, 5, ahora=ahora))
+        cid = self.tarjeta(self.mazo(), "Una pregunta")
+        self.con.execute("INSERT INTO log(card_id,rating,ts,ms) VALUES(?,?,?,?)",
+                         (cid, 2, ahora - 60, 1000))
+        self.assertFalse(pet.enfado_por_estudio(self.con, 5, ahora=ahora))
+        self.assertTrue(pet.enfado_por_estudio(self.con, 5, ahora=ahora + 86400))
+
+    def test_lectura_con_avance_cuenta_y_solo_abrir_no(self):
+        ahora = 200000
+        did = self.mazo()
+        cid, _ = db.upsert_chapter(self.con, did, "linux", {"title": "Lectura"})
+        self.con.execute("UPDATE reading SET leido=0,avance=0,ts=? WHERE chapter_id=?",
+                         (ahora - 60, cid))
+        self.assertTrue(pet.enfado_por_estudio(self.con, 5, ahora=ahora))
+        self.con.execute("UPDATE reading SET avance=.5 WHERE chapter_id=?", (cid,))
+        self.assertFalse(pet.enfado_por_estudio(self.con, 5, ahora=ahora))
+
+    def test_libro_con_tiempo_registrado_cuenta(self):
+        self.con.execute("INSERT INTO books(ruta,titulo,minutos,abierto) VALUES('prueba.pdf','Libro',20,199940)")
+        self.assertFalse(pet.enfado_por_estudio(self.con, 5, ahora=200000))
+        self.assertTrue(pet.enfado_por_estudio(self.con, 5, ahora=300000))
 
 
 class EvolucionBitTest(unittest.TestCase):

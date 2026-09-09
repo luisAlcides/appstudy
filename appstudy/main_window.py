@@ -1392,12 +1392,12 @@ class MainWindow(Adw.ApplicationWindow):
         g.add(captura_quitar)
 
         gp = Adw.PreferencesGroup(
-            title=f"{pet.NOMBRE}, la mascota",
+            title=f"{self.nombre_mascota()}, la mascota",
             description="Una criatura que vive encima de todo en el escritorio: te "
                         "recuerda estudiar y te enseña una tarjeta sin abrir nada.")
 
         soltar = Adw.ActionRow(
-            title=f"Soltar a {pet.NOMBRE} ahora",
+            title=f"Soltar a {self.nombre_mascota()} ahora",
             subtitle="Clic para que te enseñe algo · clic derecho para su menú")
         sb = Gtk.Button(label="Soltar", valign=Gtk.Align.CENTER,
                         css_classes=["suggested-action"])
@@ -1564,7 +1564,7 @@ class MainWindow(Adw.ApplicationWindow):
         self.card_size.connect("notify::value", self.on_card_size)
         gpr.add(self.card_size)
         self.pet_size = Adw.SpinRow.new_with_range(50, 250, 10)
-        self.pet_size.set_title(f"Tamaño de {pet.NOMBRE}")
+        self.pet_size.set_title(f"Tamaño de {self.nombre_mascota()}")
         self.pet_size.set_subtitle("En porcentaje; también desde su menú, con Más grande / Más pequeño")
         self.pet_size.connect("notify::value", self.on_pet_size)
         gpr.add(self.pet_size)
@@ -1572,7 +1572,7 @@ class MainWindow(Adw.ApplicationWindow):
             a["nombre"] if not a["min"] else f"{a['nombre']} · {a['min']} repasos"
             for a in pet.ACCESORIOS]
         self.pet_accessory = Adw.ComboRow(
-            title=f"Accesorio de {pet.NOMBRE}",
+            title=f"Accesorio de {self.nombre_mascota()}",
             model=Gtk.StringList.new(etiquetas_accesorios))
         self.pet_accessory.connect("notify::selected", self.on_pet_accessory)
         gpr.add(self.pet_accessory)
@@ -1848,10 +1848,10 @@ class MainWindow(Adw.ApplicationWindow):
 
     def launch_pet(self):
         self.get_application().launch_pet()
-        self.notify_user(f"{pet.NOMBRE} ya anda por el escritorio")
+        self.notify_user(f"{self.nombre_mascota()} ya anda por el escritorio")
 
     def on_pet_autostart(self, fila, _p):
-        self.notify_user(pet.set_autostart(fila.get_active()))
+        self.notify_user(pet.set_autostart(fila.get_active(), self.nombre_mascota()))
 
     def on_pet_every(self, fila, _p):
         db.set_meta(self.con, "pet_every", int(fila.get_value()))
@@ -1895,10 +1895,14 @@ class MainWindow(Adw.ApplicationWindow):
     def probar_voz(self):
         cfg = voz.config(self.con)
         cfg["activo"] = True
-        voz.hablar(f"¡Hola! Soy {pet.NOMBRE}, tu compañero de estudio.", cfg)
+        voz.hablar(f"¡Hola! Soy {self.nombre_mascota()}, tu compañero de estudio.", cfg)
 
     def on_card_size(self, fila, _p):
         db.set_meta(self.con, "card_scale", round(fila.get_value() / 100, 2))
+
+    def nombre_mascota(self) -> str:
+        """Bit o Chispa, según lo elegido en Ajustes."""
+        return pet.nombre(self.con)
 
     def on_pet_size(self, fila, _p):
         # La mascota lo lee cada pocos segundos y se redimensiona sola
@@ -1920,8 +1924,9 @@ class MainWindow(Adw.ApplicationWindow):
                 f"{accesorio['min']} repasos")
             return
         db.set_meta(self.con, "pet_accessory", accesorio["key"])
-        self.notify_user("Bit va sin accesorio" if accesorio["key"] == "ninguno"
-                         else f"Bit lleva {accesorio['nombre'].lower()}")
+        quien = self.nombre_mascota()
+        self.notify_user(f"{quien} va sin accesorio" if accesorio["key"] == "ninguno"
+                         else f"{quien} lleva {accesorio['nombre'].lower()}")
 
     def on_reduced_motion(self, fila, _p):
         db.set_meta(self.con, "reduced_motion", int(fila.get_active()))

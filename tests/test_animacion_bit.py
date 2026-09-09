@@ -10,9 +10,14 @@ from appstudy import pet
 
 
 class BitSinVentana:
-    """Ejecuta los métodos reales de dibujo con estado en memoria, sin GTK UI."""
+    """Ejecuta los métodos reales de dibujo con estado en memoria, sin GTK UI.
 
-    def __init__(self):
+    Sirve para cualquier piel: se le pasa la clase y toma de ella tanto los
+    métodos como sus constantes, así que Chispa reusa estas mismas pruebas.
+    """
+
+    def __init__(self, piel=None):
+        self.piel = piel or pet.Bit
         self.t = 0.0
         self.mood = "normal"
         self.energy = self.energy_mostrada = 1.0
@@ -25,16 +30,16 @@ class BitSinVentana:
         self.mirada = [0.0, 0.0]
         self.objetivo = [0.0, 0.0]
         self.puntero = None
-        self.hablando_hasta = self.angulo_estrella = 0.0
+        self.hablando_hasta = self.giro_fondo = 0.0
         self.inercia = self.inercia_vel = self._pose_y = 0.0
-        self.color_actual = pet._hex(pet.MOODS["normal"])[:3]
+        self.color_actual = pet._hex(self.piel.MOODS["normal"])[:3]
         self.next_idle = 1000
         self._frame_time = None
-        self._cache_estrella = None
+        self._cache_fondo = None
         self._cache_cuerpo = None
 
     def __getattr__(self, nombre):
-        valor = getattr(pet.Creature, nombre)
+        valor = getattr(self.piel, nombre)
         return types.MethodType(valor, self) if callable(valor) else valor
 
     def queue_draw(self):

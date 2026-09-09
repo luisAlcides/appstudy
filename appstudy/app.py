@@ -41,7 +41,7 @@ class AppStudy(Adw.Application):
         self.add_main_option("capture", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
                              "Abrir la captura rápida de una tarjeta", None)
         self.add_main_option("pet", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
-                             f"Soltar a {pet.NOMBRE}, la mascota de escritorio", None)
+                             "Soltar la mascota de escritorio", None)
         self.add_main_option("status", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
                              "Imprimir el estado en JSON (lo usa la extensión de GNOME)",
                              None)
