@@ -831,6 +831,13 @@ class MainWindow(Adw.ApplicationWindow):
 
         pagina = Adw.NavigationPage(title=util.plain(cap["title"])[:60])
         cabecera = Adw.HeaderBar()
+        guiada = Gtk.Button(label="Lectura guiada",
+                            tooltip_text="Elige cuántos minutos leer y sigue una guía por secciones")
+        def abrir_guiada(*_):
+            from .lectura_guiada_window import LecturaGuiadaWindow
+            LecturaGuiadaWindow(self, dict(cap)).present()
+        guiada.connect("clicked", abrir_guiada)
+        cabecera.pack_start(guiada)
         ciegas = Gtk.Button(icon_name="dialog-question-symbolic",
                             tooltip_text="Test a ciegas: comprueba si ya dominas este tema antes de leer")
         ciegas.connect("clicked", lambda *_: self.test_ciegas_capitulo(cap, hermanos))

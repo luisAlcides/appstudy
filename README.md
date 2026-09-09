@@ -702,6 +702,20 @@ vuelta y no guarda dos veces el mismo.
 
 ## Las lecturas
 
+### Lectura guiada por tiempo
+
+Abre un capítulo y pulsa **Lectura guiada** en la cabecera. Elige entre **1 y
+180 minutos** y pulsa **Comenzar**. La sesión muestra el texto por secciones,
+un reloj y una guía que recomienda qué sección leer según el tiempo disponible
+y la cantidad de texto. El último **15 %** se reserva para recordar la idea
+principal, un ejemplo y una posible aplicación.
+
+Usa **Anterior / Siguiente** para recorrer el contenido a tu ritmo y
+**Pausar / Reanudar** para detener el reloj. Las recomendaciones cambian con el
+tiempo, pero el texto solo cambia cuando tú avanzas. Al terminar puedes seguir
+consultando las secciones. Esta sesión no marca el capítulo como leído y no
+requiere IA ni conexión. Al cerrar termina la sesión; no se guarda el reloj.
+
 150 capítulos, **1.410 minutos** de material, ordenados por nivel dentro de cada mazo:
 
 | Mazo | Capítulos |
