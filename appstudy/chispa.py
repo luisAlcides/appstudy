@@ -167,6 +167,61 @@ class Chispa(Creature):
             return 4
         return 0
 
+    # --- capas ---------------------------------------------------------------
+
+    PARPADEO_CADA = 4.2         # segundos entre parpadeos, de media
+    PARPADEO_DURA = 0.13        # lo que tarda en bajar y subir el párpado
+
+    def _rig(self):
+        """El muñeco por capas, si está. `None` significa dibujar como siempre.
+
+        Se pide una sola vez. Si no está, se lanza la extracción en segundo
+        plano y esta sesión sigue con el dibujo plano: generar las capas tarda
+        segundos y nadie va a esperar mirando una mascota en blanco.
+        """
+        if not hasattr(self, "_rig_cargado"):
+            from . import rig_chispa
+            self._rig_cargado = rig_chispa.cargar()
+            if self._rig_cargado is None:
+                self._generar_capas()
+        return self._rig_cargado
+
+    def _generar_capas(self):
+        """Una sola vez por sesión, y callada: si falla, se dibuja como hoy."""
+        if getattr(Chispa, "_generando", False):
+            return
+        Chispa._generando = True
+
+        def trabajo():
+            from . import capas_chispa
+            return capas_chispa.extraer()
+
+        def listo(_manifiesto):
+            from . import rig_chispa
+            self._rig_cargado = rig_chispa.cargar()
+
+        try:
+            from . import util
+            util.hilo(trabajo, listo, lambda _e: None, largo=True)
+        except Exception:
+            pass                 # sin GTK (pruebas, herramientas): ya está
+
+    def _cierre_parpadeo(self) -> float:
+        """Cuánto tiene bajado el párpado ahora mismo, de 0 a 1.
+
+        Los parpadeos son periódicos pero no cuadriculados: la fase depende de
+        la ranura, así que no caen siempre en el mismo punto del balanceo.
+        """
+        if self.reduced_motion:
+            return 0.0
+        ranura, resto = divmod(self.t, self.PARPADEO_CADA)
+        arranque = (hash(int(ranura)) % 1000) / 1000 * (self.PARPADEO_CADA
+                                                       - self.PARPADEO_DURA)
+        avance = (resto - arranque) / self.PARPADEO_DURA
+        if 0 <= avance <= 1:
+            return math.sin(math.pi * avance)
+        return 0.0
+
     def _personaje(self, cr, color, dormido):
         poses = cargar_poses()
         if poses is None:
@@ -185,7 +240,15 @@ class Chispa(Creature):
         intensidad = 0.0 if self.reduced_motion else (1 - .65 * self.abandono)
         gestos = animacion_chispa.movimientos(
             indice, self.t, intensidad, self.phase("saludo"))
-        animacion_chispa.pintar(cr, superficie, gestos)
+        rig = self._rig()
+        pintado = False
+        if rig is not None and rig.parpadea(indice):
+            # Con capas, el ojo se cierra de verdad: debajo hay pelaje.
+            cierre = self._cierre_parpadeo()
+            if cierre > 0:
+                pintado = rig.dibujar(cr, indice, cierre)
+        if not pintado:
+            animacion_chispa.pintar(cr, superficie, gestos)
         cr.restore()
         # Anclajes de la cara en las seis celdas del atlas de referencia.
         # Se expresan como fracciones para admitir un PNG de mayor resolución.

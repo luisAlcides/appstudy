@@ -100,3 +100,47 @@ class RigTest(BaseTemporal):
 
 
 import unittest  # noqa: E402  (lo usa setUpClass para saltar)
+
+
+class ChispaConCapasTest(BaseTemporal):
+    """El enganche: con capas parpadea, y sin ellas se dibuja como siempre."""
+
+    def bicho(self):
+        from appstudy.chispa import Chispa
+        c = Chispa()
+        self.addCleanup(c.unparent)
+        return c
+
+    def test_sin_capas_no_hay_rig_y_se_dibuja_igual(self):
+        c = self.bicho()
+        self.assertIsNone(c._rig())
+        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, 228, 246)
+        c.draw(None, cairo.Context(s), 228, 246)      # no debe lanzar
+
+    def test_el_parpadeo_vale_cero_casi_siempre_y_uno_a_veces(self):
+        c = self.bicho()
+        valores = []
+        for n in range(4000):
+            c.t = n / 100
+            valores.append(c._cierre_parpadeo())
+        self.assertEqual(min(valores), 0.0)
+        self.assertGreater(max(valores), 0.9, "alguna vez tiene que cerrarse")
+        abiertos = sum(1 for v in valores if v == 0.0)
+        self.assertGreater(abiertos / len(valores), 0.9,
+                           "parpadear no puede ser el estado normal")
+
+    def test_con_movimiento_reducido_no_parpadea(self):
+        c = self.bicho()
+        c.reduced_motion = True
+        for n in range(500):
+            c.t = n / 50
+            self.assertEqual(c._cierre_parpadeo(), 0.0)
+
+    def test_con_capas_se_dibuja_por_capas(self):
+        from appstudy.chispa import cargar_poses
+        if cargar_poses() is None:
+            self.skipTest("Requiere el atlas de Chispa")
+        capas.extraer()
+        c = self.bicho()
+        self.assertIsNotNone(c._rig())
+        self.assertTrue(c._rig().parpadea(0))
