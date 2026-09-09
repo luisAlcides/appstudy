@@ -73,3 +73,59 @@ class GruposTest(unittest.TestCase):
 
 
 PALETA_TODA = tuple(capas.PALETA)
+
+
+class PiezasTest(unittest.TestCase):
+    """Sobre el atlas de verdad: es donde importa que las reglas acierten."""
+
+    @classmethod
+    def setUpClass(cls):
+        from appstudy.chispa import cargar_poses
+        cls.poses = cargar_poses()
+        if cls.poses is None:
+            raise unittest.SkipTest("Requiere el atlas de Chispa")
+        cls.encontradas = [capas.piezas(s, i) for i, s in enumerate(cls.poses)]
+
+    def test_las_poses_con_los_ojos_abiertos_dan_dos_ojos(self):
+        for indice in (0, 1, 2, 4):
+            with self.subTest(pose=indice):
+                p = self.encontradas[indice]
+                self.assertIn("ojo_izq", p)
+                self.assertIn("ojo_der", p)
+
+    def test_las_poses_con_los_ojos_ya_cerrados_no_dan_capa_de_ojo(self):
+        for indice in (3, 5):
+            with self.subTest(pose=indice):
+                self.assertNotIn("ojo_izq", self.encontradas[indice])
+
+    def test_los_ojos_estan_arriba_y_separados(self):
+        for indice in (0, 1, 2, 4):
+            p = self.encontradas[indice]
+            izq = capas.caja_de(self.poses[indice], p["ojo_izq"])
+            der = capas.caja_de(self.poses[indice], p["ojo_der"])
+            with self.subTest(pose=indice):
+                self.assertLess((izq[1] + izq[3]) / 2, 0.62)
+                self.assertLess(izq[2], der[2], "izquierdo debe quedar a la izquierda")
+                self.assertGreater(der[0] - izq[0], 0.08)
+
+    def test_ninguna_pieza_es_una_oreja(self):
+        """Las orejas son anchas; los ojos, casi cuadrados."""
+        for indice in (0, 1, 2, 4):
+            for clave in ("ojo_izq", "ojo_der"):
+                x0, y0, x1, y1 = capas.caja_de(self.poses[indice],
+                                               self.encontradas[indice][clave])
+                with self.subTest(pose=indice, pieza=clave):
+                    self.assertLessEqual((x1 - x0) / (y1 - y0), 1.6)
+
+    def test_la_boca_aparece_donde_se_habla(self):
+        for indice in (0, 1, 2, 4):
+            with self.subTest(pose=indice):
+                self.assertIn("boca", self.encontradas[indice])
+
+    def test_la_boca_queda_por_debajo_de_los_ojos(self):
+        for indice in (0, 1, 2, 4):
+            p = self.encontradas[indice]
+            ojo = capas.caja_de(self.poses[indice], p["ojo_izq"])
+            boca = capas.caja_de(self.poses[indice], p["boca"])
+            with self.subTest(pose=indice):
+                self.assertGreater((boca[1] + boca[3]) / 2, (ojo[1] + ojo[3]) / 2)

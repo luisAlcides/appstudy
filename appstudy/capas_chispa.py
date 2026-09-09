@@ -111,3 +111,58 @@ def grupos(superficie, colores, minimo: int = 200, colores_mapa=None) -> list:
             })
     salida.sort(key=lambda g: -g["n"])
     return salida
+
+
+# Reglas para reconocer las piezas de la cara. Salen de medir los grupos reales
+# del atlas, no de suponer dónde están.
+OJO_MIN = 600
+OJO_ALTURA = (0.28, 0.62)      # ni las orejas (arriba) ni el pecho (abajo)
+OJO_PROPORCION = (0.60, 1.60)  # un ojo es casi cuadrado; una oreja, ancha
+OJO_SEPARACION = 0.08          # dos ojos no se solapan en horizontal
+BOCA_MIN = 500
+BOCA_ALTURA = (0.35, 0.70)
+BOCA_ANCHO_MAX = 0.45          # más ancho que esto es el portátil, no la boca
+SIN_OJOS = (3, 5)              # ya vienen dibujadas con los ojos cerrados
+SIN_BOCA = (5,)                # dormida no habla
+
+
+def _proporcion(grupo) -> float:
+    x0, y0, x1, y1 = grupo["caja"]
+    alto = max(1e-6, y1 - y0)
+    return (x1 - x0) / alto
+
+
+def piezas(superficie, indice: int) -> dict:
+    """Las piezas de la cara de esa celda, como conjuntos de píxeles.
+
+    Devuelve las claves que encuentre entre `ojo_izq`, `ojo_der` y `boca`. Una
+    pose que no dé dos ojos no parpadea: es preferible que no parpadee a que
+    parpadee una oreja.
+    """
+    clasificado = mapa(superficie)
+    salida = {}
+    if indice not in SIN_OJOS:
+        candidatos = [g for g in grupos(superficie, {"ojo"}, OJO_MIN, clasificado)
+                      if OJO_ALTURA[0] < g["centro"][1] < OJO_ALTURA[1]
+                      and OJO_PROPORCION[0] <= _proporcion(g) <= OJO_PROPORCION[1]]
+        if len(candidatos) >= 2:
+            uno, otro = sorted(candidatos[:2], key=lambda g: g["centro"][0])
+            if otro["centro"][0] - uno["centro"][0] >= OJO_SEPARACION:
+                salida["ojo_izq"] = uno["pixeles"]
+                salida["ojo_der"] = otro["pixeles"]
+    if indice not in SIN_BOCA:
+        bocas = [g for g in grupos(superficie, {"lengua"}, BOCA_MIN, clasificado)
+                 if BOCA_ALTURA[0] < g["centro"][1] < BOCA_ALTURA[1]
+                 and g["caja"][2] - g["caja"][0] <= BOCA_ANCHO_MAX]
+        if bocas:
+            salida["boca"] = bocas[0]["pixeles"]
+    return salida
+
+
+def caja_de(superficie, pixeles) -> tuple:
+    """La caja que ocupa un conjunto de píxeles, en fracciones de la celda."""
+    ancho, alto = superficie.get_width(), superficie.get_height()
+    xs = [i % ancho for i in pixeles]
+    ys = [i // ancho for i in pixeles]
+    return (min(xs) / ancho, min(ys) / alto,
+            (max(xs) + 1) / ancho, (max(ys) + 1) / alto)
