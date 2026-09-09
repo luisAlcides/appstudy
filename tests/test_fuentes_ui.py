@@ -34,10 +34,25 @@ class FuentesUITest(BaseTemporal):
         self.addCleanup(self.parent.destroy)
         self.addCleanup(self.window.destroy)
 
-    def test_construye_tres_secciones_y_nueve_extensiones(self):
+    def test_construye_tres_secciones_y_lista_todas_las_fuentes(self):
+        from appstudy import catalogo
         self.assertEqual(self.window.stack.get_pages().get_n_items(), 3)
-        self.assertEqual(len(self.window.proveedores), 4)
+        ids = {m["id"] for m in self.window.proveedores}
+        # Las cuatro de siempre y, además, todas las del catálogo: cualquiera
+        # de ellas se puede buscar también a mano desde esta ventana.
+        self.assertLessEqual({"wikipedia", "openstax", "mit", "markdown"}, ids)
+        self.assertLessEqual({f["id"] for f in catalogo.FUENTES}, ids)
         self.assertIsNotNone(self.window.lista_ext.get_first_child())
+
+    def test_cada_fuente_del_catalogo_se_explica_sin_llamarse_plugin(self):
+        from appstudy import catalogo
+        ids = {f["id"] for f in catalogo.FUENTES}
+        for item in (m for m in self.window.proveedores if m["id"] in ids):
+            with self.subTest(item["id"]):
+                texto = self.window._detalle_catalogo(item)
+                self.assertNotIn("plugin", texto.lower())
+                self.assertIn("licencia" if "abierta" in texto.lower() else "enlace",
+                              texto.lower())
 
     def test_preview_y_configuracion_no_fallan(self):
         doc = fuentes.documento("markdown", "/a.md", "Tema", "Contenido")

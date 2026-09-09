@@ -128,7 +128,25 @@ class FuentesWindow(Adw.Window):
                       "openstax": "Catálogo seleccionado de libros. También puedes pegar una URL de OpenStax y explorar sus capítulos.",
                       "mit": "Catálogo seleccionado de cursos. Abre un curso para elegir apuntes, ejercicios o PDF.",
                       "markdown": "Carpeta configurada en Extensiones. La detección se actualiza cada minuto mientras esta ventana está abierta."}
-            self.detalle.set_text(textos.get(item["id"], "Fuente proporcionada por un plugin instalado"))
+            self.detalle.set_text(textos.get(item["id"]) or self._detalle_catalogo(item))
+
+    def _detalle_catalogo(self, item):
+        """Qué es esta fuente y qué se puede traer de ella.
+
+        La licencia va delante porque decide lo que se puede guardar: de una
+        fuente `solo-enlace` se queda el enlace, no el texto.
+        """
+        from . import catalogo
+        f = catalogo._POR_ID.get(item["id"])
+        if not f:
+            return "Fuente proporcionada por un plugin instalado"
+        como = {"buscador": "Búsqueda por palabras.",
+                "indice": "Se recorre su índice, que se guarda un mes.",
+                "catalogo": "Catálogo seleccionado."}[f["tipo"]]
+        licencia = ("Licencia abierta: se guarda el texto completo con su atribución."
+                    if f["licencia"] == "abierta" else
+                    "Solo enlace: la licencia no permite guardar el texto entero.")
+        return f"{como} {licencia}"
 
     def buscar(self):
         item = self.fuente_actual()

@@ -33,6 +33,21 @@ INCLUIDAS = [
 ]
 
 
+def _fuentes_del_catalogo():
+    """Cada fuente del catálogo es una extensión que se puede apagar sola.
+
+    Se generan desde `catalogo.FUENTES` en vez de repetirlas aquí: una lista
+    escrita dos veces es una lista que acaba diciendo dos cosas distintas.
+    """
+    from . import catalogo
+    ya = {i for i, _, _, _ in INCLUIDAS}
+    return [(f["id"], f["nombre"], "source", ["network"])
+            for f in catalogo.FUENTES if f["id"] not in ya]
+
+
+INCLUIDAS += _fuentes_del_catalogo()
+
+
 def config(con, ident):
     try:
         valor = json.loads(db.get_meta(con, "extension:" + ident, "{}"))
