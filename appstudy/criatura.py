@@ -150,19 +150,31 @@ class Creature(Gtk.DrawingArea):
     # Lo que hace cuando nadie lo molesta (repetido = más probable). A esta
     # base se le suman gestos propios de cada ánimo en `_gestos_idle`.
     IDLES = ("parpadeo", "parpadeo", "parpadeo", "parpadeo2", "mirar", "mirar",
-             "antena", "salto", "estirar", "ladear", "asentir", "curiosear", "guino")
+             "antena", "salto", "estirar", "ladear", "asentir", "curiosear", "guino",
+             "voltereta", "tararear", "chispeo", "zen", "dormitar", "inspeccionar",
+             "baile", "reverencia", "victoria", "rascarse")
     DURACION_GESTO = {
         "antena": 0.9, "salto": 0.68, "estirar": 1.3, "ladear": 1.4,
         "asentir": 0.95, "sorpresa": 0.9, "risa": 1.25, "baile": 1.9,
         "bostezo": 1.8, "suspiro": 1.35, "tiritar": 1.15,
         "guino": 1.15, "reverencia": 2.4, "curiosear": 3.2, "victoria": 1.7,
-        "enojado": 2.2,
+        "enojado": 2.2, "caricia": 2.2, "rascarse": 1.9,
+        "voltereta": 1.2, "tararear": 2.4, "chispeo": 1.4, "zen": 2.2,
+        "dormitar": 2.5, "inspeccionar": 2.6,
     }
     EXPRESIONES = {"sorpresa", "risa", "baile", "bostezo", "suspiro", "tiritar",
-                   "guino", "reverencia", "curiosear", "victoria", "enojado"}
-    GESTOS_MENU = (("guino", "😉 Guiño"), ("reverencia", "🙇 Reverencia"),
-                   ("curiosear", "🔎 Curiosidad"), ("victoria", "🙌 Victoria"),
-                   ("baile", "🎵 Baile"), ("enojado", "😠 Enojado"))
+                   "guino", "reverencia", "curiosear", "victoria", "enojado",
+                   "caricia", "rascarse", "estirar",
+                   "voltereta", "tararear", "chispeo", "zen", "dormitar", "inspeccionar"}
+    GESTOS_MENU = (("caricia", "🥰 Acariciar"), ("risa", "😂 Risa"),
+                   ("bostezo", "🥱 Bostezar"), ("rascarse", "🐾 Rascarse"),
+                   ("estirar", "🧘 Estirarse"), ("guino", "😉 Guiño"),
+                   ("reverencia", "🙇 Reverencia"), ("curiosear", "🔎 Curiosidad"),
+                   ("victoria", "🙌 Victoria"), ("baile", "🎵 Baile"),
+                   ("voltereta", "🌀 Voltereta"), ("tararear", "🎶 Tararear"),
+                   ("chispeo", "✨ Idea genial"), ("zen", "🍵 Respiro Zen"),
+                   ("dormitar", "😴 Cabezadita"), ("inspeccionar", "👀 Inspeccionar"),
+                   ("enojado", "😠 Enojado"))
 
     def __init__(self, escala=1.0):
         super().__init__()
@@ -295,6 +307,36 @@ class Creature(Gtk.DrawingArea):
             return
         if nombre == "victoria":
             self.celebrar()
+        elif nombre == "caricia":
+            self.play("caricia", self.DURACION_GESTO["caricia"])
+            self.emitir("corazon", 3)
+            self.emitir("chispa", 4)
+        elif nombre == "risa":
+            self.play("risa", self.DURACION_GESTO["risa"])
+            self.emitir("chispa", 5)
+        elif nombre == "bostezo":
+            self.play("bostezo", self.DURACION_GESTO["bostezo"])
+        elif nombre == "rascarse":
+            self.play("rascarse", self.DURACION_GESTO["rascarse"])
+            self.emitir("nota", 1)
+        elif nombre == "estirar":
+            self.play("estirar", self.DURACION_GESTO["estirar"])
+        elif nombre == "voltereta":
+            self.play("voltereta", self.DURACION_GESTO["voltereta"])
+            self.emitir("chispa", 5)
+        elif nombre == "tararear":
+            self.play("tararear", self.DURACION_GESTO["tararear"])
+            self.emitir("nota", 4)
+        elif nombre == "chispeo":
+            self.play("chispeo", self.DURACION_GESTO["chispeo"])
+            self.emitir("chispa", 6)
+        elif nombre == "zen":
+            self.play("zen", self.DURACION_GESTO["zen"])
+            self.emitir("corazon", 2)
+        elif nombre == "dormitar":
+            self.play("dormitar", self.DURACION_GESTO["dormitar"])
+        elif nombre == "inspeccionar":
+            self.play("inspeccionar", self.DURACION_GESTO["inspeccionar"])
         else:
             self.play(nombre, self.DURACION_GESTO[nombre])
         self.next_idle = self.t + self.DURACION_GESTO[nombre] + 2
@@ -305,15 +347,15 @@ class Creature(Gtk.DrawingArea):
         if getattr(self, "enojado", False):
             gestos = ["parpadeo", "mirar", "enojado", "suspiro"]
         if self.mood == "feliz":
-            gestos += ["risa", "risa", "baile", "baile"]
+            gestos += ["risa", "risa", "baile", "baile", "caricia", "voltereta", "chispeo", "tararear"]
         elif self.mood == "aburrido":
-            gestos += ["bostezo", "bostezo", "suspiro"]
+            gestos += ["bostezo", "bostezo", "suspiro", "estirar", "dormitar"]
         elif self.mood == "hambre":
             gestos += ["suspiro", "suspiro", "tiritar"]
         elif self.mood == "triste":
-            gestos += ["suspiro", "suspiro", "tiritar", "bostezo"]
+            gestos += ["suspiro", "suspiro", "tiritar", "bostezo", "dormitar"]
         else:
-            gestos += ["sorpresa", "asentir"]
+            gestos += ["sorpresa", "asentir", "estirar", "rascarse", "zen", "tararear", "inspeccionar", "chispeo"]
         ultimo = getattr(self, "_ultimo_idle", None)
         return [g for g in gestos if g != ultimo] or list(self.IDLES)
 
@@ -431,6 +473,18 @@ class Creature(Gtk.DrawingArea):
             # Con poca energía no salta: bosteza o suspira según su estado.
             cansado = "bostezo" if self.mood == "aburrido" else "suspiro"
             self.play(cansado, self.DURACION_GESTO[cansado])
+        elif gesto == "voltereta":
+            self.play("voltereta", self.DURACION_GESTO["voltereta"])
+            self.emitir("chispa", 4)
+        elif gesto == "tararear":
+            self.play("tararear", self.DURACION_GESTO["tararear"])
+            self.emitir("nota", 3)
+        elif gesto == "chispeo":
+            self.play("chispeo", self.DURACION_GESTO["chispeo"])
+            self.emitir("chispa", 5)
+        elif gesto == "zen":
+            self.play("zen", self.DURACION_GESTO["zen"])
+            self.emitir("corazon", 2)
         else:
             self.play(gesto, self.DURACION_GESTO[gesto])
 
@@ -605,6 +659,43 @@ class Creature(Gtk.DrawingArea):
             k = math.sin(math.pi * p) ** 2
             dy -= 4 * k
             sy += 0.04 * k
+        p = self.phase_motion("voltereta")
+        if p is not None:
+            k = math.sin(math.pi * p) ** 2
+            dy -= 16 * math.sin(math.pi * p) * k
+            rot += math.sin(math.tau * p) * 0.40 * k
+            sx -= 0.08 * k
+            sy += 0.12 * k
+        p = self.phase_motion("tararear")
+        if p is not None:
+            k = math.sin(math.pi * p) ** 2
+            dy -= abs(math.sin(p * math.pi * 4)) * 3.5 * k
+            rot += math.sin(p * math.pi * 4) * 0.10 * k
+            sx += math.sin(p * math.pi * 4) * 0.03 * k
+        p = self.phase_motion("chispeo")
+        if p is not None:
+            k = math.sin(math.pi * p) ** 2
+            dy -= 7.5 * math.sin(math.pi * p) * k
+            sy += 0.10 * k
+            sx -= 0.06 * k
+        p = self.phase_motion("zen")
+        if p is not None:
+            k = math.sin(math.pi * p) ** 2
+            sy += 0.08 * math.sin(math.pi * p) * k
+            sx -= 0.04 * math.sin(math.pi * p) * k
+            dy += 2.0 * math.sin(math.pi * p) * k
+        p = self.phase_motion("dormitar")
+        if p is not None:
+            k = math.sin(math.pi * p) ** 2
+            dy += 4.5 * math.sin(math.pi * p) * k
+            rot += 0.07 * math.sin(p * math.pi * 3) * k
+        p = self.phase_motion("inspeccionar")
+        if p is not None:
+            k = math.sin(math.pi * p) ** 2
+            dy -= 2.5 * k
+            sx += 0.06 * k
+            sy += 0.05 * k
+            rot += 0.05 * math.sin(math.tau * p) * k
 
         # Se acerca con curiosidad al cursor, pero con inercia para no dar un salto.
         sx += 0.025 * self.hover_suave
@@ -975,9 +1066,36 @@ class Creature(Gtk.DrawingArea):
         victoria = self.phase_motion("victoria")
         reverencia = self.phase_motion("reverencia")
         curiosear = self.phase_motion("curiosear")
+        voltereta = self.phase_motion("voltereta")
+        tararear = self.phase_motion("tararear")
+        chispeo = self.phase_motion("chispeo")
+        zen = self.phase_motion("zen")
+        dormitar = self.phase_motion("dormitar")
+        inspeccionar = self.phase_motion("inspeccionar")
         for lado in (1, -1):
             ang = 0.62 + vaiven - 0.10 * self.hover_suave
             largo = 15 + 1.2 * self.hover_suave
+            if voltereta is not None:
+                k = math.sin(math.pi * voltereta) ** 2
+                ang -= 0.55 * k
+                largo -= 3 * k
+            if tararear is not None:
+                k = math.sin(math.pi * tararear) ** 2
+                ang += lado * math.sin(tararear * math.pi * 4) * 0.35 * k
+            if chispeo is not None:
+                k = math.sin(math.pi * chispeo) ** 2
+                ang -= 1.10 * k
+                largo += 5 * k
+            if zen is not None:
+                k = math.sin(math.pi * zen) ** 2
+                ang += 0.38 * k
+            if dormitar is not None:
+                k = math.sin(math.pi * dormitar) ** 2
+                ang += 0.28 * k
+            if inspeccionar is not None:
+                k = math.sin(math.pi * inspeccionar) ** 2
+                ang -= 0.25 * k
+                largo += 2.5 * k
             if victoria is not None:
                 k = math.sin(math.pi * victoria) ** 2
                 ang -= 1.55 * k
@@ -1050,6 +1168,21 @@ class Creature(Gtk.DrawingArea):
         sorpresa = self.phase("sorpresa")
         risa = self.phase("risa")
         bostezo = self.phase("bostezo")
+        chispeo = self.phase("chispeo")
+        zen = self.phase("zen")
+        dormitar = self.phase("dormitar")
+        inspeccionar = self.phase("inspeccionar")
+        tararear = self.phase("tararear")
+        if chispeo is not None:
+            apertura = max(apertura, 1.0 + 0.28 * math.sin(math.pi * chispeo) ** 2)
+        if inspeccionar is not None:
+            apertura = max(apertura, 1.0 + 0.18 * math.sin(math.pi * inspeccionar) ** 2)
+        if zen is not None:
+            apertura *= max(0.04, 1 - 1.15 * math.sin(math.pi * zen) ** 2)
+        if dormitar is not None:
+            apertura *= max(0.03, 1 - 1.2 * math.sin(math.pi * dormitar) ** 2)
+        if tararear is not None:
+            apertura *= max(0.25, 1 - 0.65 * math.sin(math.pi * tararear) ** 2)
         if sorpresa is not None:
             apertura = max(apertura, 1.0 + 0.25 * pulso(sorpresa))
         if risa is not None:
@@ -1158,7 +1291,9 @@ class Creature(Gtk.DrawingArea):
     def _cachetes(self, cr, color):
         fuerte = (self.mood == "feliz" or self.phase("brillo") is not None or
                   self.phase("risa") is not None or self.phase("baile") is not None
-                  or self.phase("guino") is not None or self.phase("victoria") is not None)
+                  or self.phase("guino") is not None or self.phase("victoria") is not None
+                  or self.phase("tararear") is not None or self.phase("zen") is not None
+                  or self.phase("chispeo") is not None)
         for dx in (-self.CACHETE_DX, self.CACHETE_DX):
             g = cairo.RadialGradient(dx, self.CACHETE_Y, 1, dx, self.CACHETE_Y, 8)
             intensidad = 0.40 if fuerte else 0.22
@@ -1261,6 +1396,25 @@ class Creature(Gtk.DrawingArea):
         risa = self.phase("risa")
         baile = self.phase("baile")
 
+        tararear = self.phase("tararear")
+        chispeo = self.phase("chispeo")
+        zen = self.phase("zen")
+
+        if tararear is not None:
+            cr.save()
+            cr.translate(0, my + 1)
+            cr.scale(0.70, 0.85)
+            cr.arc(0, 0, 4.2, 0, math.tau)
+            cr.restore()
+            cr.fill()
+            return
+        if zen is not None:
+            cr.save()
+            cr.translate(0, my - 2)
+            cr.arc(0, 0, 6.2, 0.20 * math.pi, 0.80 * math.pi)
+            cr.restore()
+            cr.stroke()
+            return
         if sorpresa is not None:
             k = pulso(sorpresa)
             cr.save()
@@ -1295,7 +1449,8 @@ class Creature(Gtk.DrawingArea):
             cr.fill()
             return
         if (self.mood == "feliz" or risa is not None or baile is not None
-                or self.phase("victoria") is not None or self.phase("guino") is not None):
+                or self.phase("victoria") is not None or self.phase("guino") is not None
+                or chispeo is not None or self.phase("voltereta") is not None):
             # Sonrisa abierta, con lengua. En una carcajada crece al centro del gesto.
             fuerza = (pulso(risa) if risa is not None else
                       pulso(baile) * 0.55 if baile is not None else 0.35)
@@ -1412,51 +1567,106 @@ class Creature(Gtk.DrawingArea):
             cr.restore()
 
     def _barra(self, cr, cx, y, color):
-        """La energía: baja con las horas sin repasar y con lo que se acumula."""
-        ancho, alto = 78, 7
+        """La energía/progreso: baja con las horas sin repasar y con lo acumulado."""
+        hover = getattr(self, "hover_suave", 0.0)
+        ancho = 78 + 16 * hover
+        alto = 7.0 + 3.0 * hover
         x = cx - ancho / 2
+        y = y - 1.5 * hover
         r = alto / 2
 
-        # Fondo de la barra
+        # 1. Pista de cristal oscura (cápsula ahumada)
+        cr.save()
         cr.new_sub_path()
         cr.arc(x + ancho - r, y + r, r, -math.pi / 2, math.pi / 2)
         cr.arc(x + r, y + r, r, math.pi / 2, 1.5 * math.pi)
         cr.close_path()
-        cr.set_source_rgba(0.16, 0.14, 0.12, 0.22)
-        cr.fill()
+        track_grad = cairo.LinearGradient(x, y, x, y + alto)
+        track_grad.add_color_stop_rgba(0.0, 0.12, 0.10, 0.09, 0.26)
+        track_grad.add_color_stop_rgba(1.0, 0.18, 0.15, 0.13, 0.20)
+        cr.set_source(track_grad)
+        cr.fill_preserve()
+        cr.clip()
 
-        # Barra llena con esquinas redondeadas
+        # Bisel interior de profundidad
+        cr.set_line_width(0.8)
+        cr.set_source_rgba(0.0, 0.0, 0.0, 0.14)
+        cr.stroke()
+        cr.restore()
+
+        # 3. Relleno con degradado joya
         energia = max(0.0, min(1.0, self.energy_mostrada))
         w_llena = max(alto, ancho * energia)
         cr.save()
-        cr.rectangle(x, y, ancho * energia, alto)
-        cr.clip()                        # cero energía debe dejar la pista vacía
+        cr.rectangle(x, y - 2, ancho * energia, alto + 4)
+        cr.clip()
+
         cr.new_sub_path()
         cr.arc(x + w_llena - r, y + r, r, -math.pi / 2, math.pi / 2)
         cr.arc(x + r, y + r, r, math.pi / 2, 1.5 * math.pi)
         cr.close_path()
-        cr.set_source_rgba(*_hex(color, 0.95))
+
+        bar_grad = cairo.LinearGradient(x, y, x, y + alto)
+        bar_grad.add_color_stop_rgba(0.0, *_claro(color, 0.42))
+        bar_grad.add_color_stop_rgba(0.45, *_hex(color, 0.98))
+        bar_grad.add_color_stop_rgba(1.0, *_oscuro(color, 0.72))
+        cr.set_source(bar_grad)
         cr.fill_preserve()
         cr.clip()
 
+        # Onda de brillo líquido deslizante
         if energia > 0.05 and not self.reduced_motion:
-            q = (self.t * 0.35) % 1.6
-            if q < 1.0:
+            q = (self.t * 0.45) % 2.0
+            if q < 1.2:
                 bx = x + q * w_llena
-                g = cairo.LinearGradient(bx - 9, 0, bx + 9, 0)
-                g.add_color_stop_rgba(0, 1, 1, 1, 0)
-                g.add_color_stop_rgba(0.5, 1, 1, 1, 0.35)
-                g.add_color_stop_rgba(1, 1, 1, 1, 0)
+                shimmer = cairo.LinearGradient(bx - 14, 0, bx + 14, 0)
+                shimmer.add_color_stop_rgba(0.0, 1, 1, 1, 0.0)
+                shimmer.add_color_stop_rgba(0.5, 1, 1, 1, 0.40)
+                shimmer.add_color_stop_rgba(1.0, 1, 1, 1, 0.0)
                 cr.rectangle(x, y, w_llena, alto)
-                cr.set_source(g)
+                cr.set_source(shimmer)
                 cr.fill()
+
+        # Brillo sutil en el borde superior del líquido
+        cr.move_to(x + r, y + 1.2)
+        cr.line_to(x + w_llena - r, y + 1.2)
+        cr.set_source_rgba(1, 1, 1, 0.45)
+        cr.set_line_width(1.0)
+        cr.stroke()
         cr.restore()
 
-        # Borde de cristal: mantiene legible el medidor sobre fotos y fondos claros.
+        # 4. Cabezal / destello brillante en la punta del progreso
+        if 0.06 < energia < 0.99:
+            tip_x = x + ancho * energia
+            cr.save()
+            radial = cairo.RadialGradient(tip_x, y + r, 0.8, tip_x, y + r, r + 2.5)
+            radial.add_color_stop_rgba(0.0, 1, 1, 1, 0.90)
+            radial.add_color_stop_rgba(0.4, *_claro(color, 0.55))
+            radial.add_color_stop_rgba(1.0, *_hex(color, 0.0))
+            cr.set_source(radial)
+            cr.arc(tip_x, y + r, r + 2.5, 0, math.tau)
+            cr.fill()
+            cr.restore()
+
+        # 5. Muescas sutiles de precisión (25%, 50%, 75%)
+        cr.save()
+        cr.set_line_width(1.0)
+        cr.set_source_rgba(1, 1, 1, 0.16)
+        for frac in (0.25, 0.50, 0.75):
+            nx = x + ancho * frac
+            cr.move_to(nx, y + 1.5)
+            cr.line_to(nx, y + alto - 1.5)
+            cr.stroke()
+        cr.restore()
+
+        # 6. Borde exterior de cristal con degradado cenital
         cr.new_sub_path()
         cr.arc(x + ancho - r, y + r, r, -math.pi / 2, math.pi / 2)
         cr.arc(x + r, y + r, r, math.pi / 2, 1.5 * math.pi)
         cr.close_path()
-        cr.set_source_rgba(1, 1, 1, 0.20)
+        rim_grad = cairo.LinearGradient(x, y, x, y + alto)
+        rim_grad.add_color_stop_rgba(0.0, 1, 1, 1, 0.38)
+        rim_grad.add_color_stop_rgba(1.0, 1, 1, 1, 0.12)
+        cr.set_source(rim_grad)
         cr.set_line_width(1.0)
         cr.stroke()

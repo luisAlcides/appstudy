@@ -1,0 +1,206 @@
+{
+ "key": "web",
+ "name": "Desarrollo Web & APIs",
+ "icon": "🌐",
+ "color": "#1c71d8",
+ "pos": 11,
+ "levels": [
+  "Fundamentos Web & DOM",
+  "JavaScript Moderno & Asíncrono",
+  "Protocolos HTTP, REST & APIs",
+  "Rendimiento & Arquitectura Frontend"
+ ],
+ "cards": [
+  {
+   "kind": "card",
+   "front": "¿Qué es el DOM (Document Object Model) y cómo interactúa el navegador con él?",
+   "back": "Es una representación en árbol de objetos en memoria de la estructura HTML del documento.\nPermite que JavaScript modifique dinámicamente nodos, estilos, atributos y contenido en respuesta a eventos del usuario.",
+   "hint": "Representación en árbol de objetos del HTML en memoria",
+   "tags": "fundamentos,dom",
+   "level": 1,
+   "reverse": true
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué diferencia clave existe entre localStorage, sessionStorage y las Cookies?",
+   "choices": [
+    "localStorage no expira; sessionStorage dura mientras esté abierta la pestaña; Cookies viajan automáticamente en cada petición HTTP al servidor",
+    "Cookies permiten almacenar 50 MB; localStorage solo 4 KB",
+    "sessionStorage se comparte entre todas las ventanas del sistema operativo",
+    "localStorage solo almacena números enteros"
+   ],
+   "answer": 0,
+   "back": "Las cookies viajan en la cabecera Cookie de cada petición HTTP (útil para auth). localStorage (~5-10 MB) persiste indefinidamente en el cliente sin viajar por red.",
+   "tags": "almacenamiento,web",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo funciona el Event Loop de JavaScript en una frase clara?",
+   "back": "JavaScript es de un solo hilo (single-threaded); el <b>Event Loop</b> monitoriza continuamente el Call Stack y, cuando está vacío, toma tareas pendientes de la cola de Microtareas (Promises) y luego de Macrotareas (setTimeout, I/O) para ejecutarlas.",
+   "hint": "Coordina la ejecución continua entre Call Stack, Microtareas y Macrotareas",
+   "tags": "javascript,asincronia",
+   "level": 2,
+   "reverse": true
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es un «Closure» (clausura) en JavaScript?",
+   "back": "Es la combinación de una función y el ámbito léxico donde fue declarada.\nPermite que una función interna acceda y recuerde las variables de su función contenedora incluso después de que la función exterior haya terminado de ejecutarse.",
+   "hint": "Una función que recuerda el ámbito (variables) donde fue creada",
+   "tags": "javascript,closures",
+   "level": 2
+  },
+  {
+   "kind": "quiz",
+   "front": "¿En qué orden de prioridad se ejecutan las Microtareas y las Macrotareas?",
+   "choices": [
+    "Todas las Microtareas (Promise callbacks, queueMicrotask) se ejecutan antes de la siguiente Macrotarea (setTimeout, setInterval)",
+    "Las Macrotareas siempre tienen prioridad sobre cualquier Promesa",
+    "Se ejecutan en orden estricto de llegada sin distinción de tipo",
+    "Solo se ejecutan tras reiniciar la página web"
+   ],
+   "answer": 0,
+   "back": "Al vaciarse el Call Stack, el motor procesa TODAS las microtareas pendientes antes de renderizar o tomar la siguiente macrotarea del bucle.",
+   "tags": "javascript,eventloop",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué significa que un método HTTP sea «Idempotente»?",
+   "back": "Significa que realizar la misma petición una o múltiples veces produce el mismo estado en el servidor.\n• <b>Idempotentes</b>: GET, PUT, DELETE, HEAD, OPTIONS.\n• <b>NO idempotente</b>: POST (ejecutarlo 3 veces crea 3 recursos o cobros distintos).",
+   "hint": "Repetir la petición varias veces produce el mismo efecto que una sola",
+   "tags": "http,apis",
+   "level": 3,
+   "reverse": true
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es CORS (Cross-Origin Resource Sharing) y por qué existe?",
+   "back": "Mecanismo de seguridad de los navegadores basado en cabeceras HTTP que impide que un script de un origen (ej. <code>app.com</code>) lea datos de otro origen distinto (ej. <code>api.com</code>) salvo que el servidor receptor lo autorice explícitamente vía <code>Access-Control-Allow-Origin</code>.",
+   "hint": "Protección del navegador contra peticiones no autorizadas entre distintos orígenes",
+   "tags": "http,seguridad,cors",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué gran ventaja introdujo HTTP/2 frente a HTTP/1.1?",
+   "choices": [
+    "Multiplexación sobre una única conexión TCP y compresión de cabeceras HPACK",
+    "Eliminación de la necesidad de direcciones IP",
+    "Sustitución de HTML por formatos binarios propietarios",
+    "Impedir que los usuarios abran la consola de desarrollador"
+   ],
+   "answer": 0,
+   "back": "HTTP/2 resolvió el problema del «Head-of-Line Blocking» a nivel de aplicación al permitir múltiples peticiones y respuestas simultáneas en paralelo dentro de un solo canal TCP.",
+   "tags": "http,protocolos",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué son las «Core Web Vitals» de Google?",
+   "back": "Las tres métricas fundamentales de calidad de experiencia de usuario en la web:\n1. <b>LCP (Largest Contentful Paint)</b>: velocidad de carga del contenido principal (< 2.5s).\n2. <b>INP (Interaction to Next Paint)</b>: capacidad de respuesta e interactividad (< 200ms).\n3. <b>CLS (Cumulative Layout Shift)</b>: estabilidad visual sin saltos molestos de diseño (< 0.1).",
+   "hint": "LCP (Carga), INP (Interactividad) y CLS (Estabilidad visual)",
+   "tags": "rendimiento,webvitals",
+   "level": 4
+  },
+  {
+   "kind": "lesson",
+   "front": "Diferencias clave: REST vs GraphQL",
+   "back": "• <b>REST</b>: arquitectura basada en recursos y verbos HTTP (GET, POST, PUT, DELETE). Predecible y excelente para caching HTTP nativo, pero susceptible a <i>over-fetching</i> (traer más datos de los necesarios) o <i>under-fetching</i> (hacer múltiples llamadas encadenadas).\n• <b>GraphQL</b>: lenguaje de consulta con un único endpoint POST. El cliente pide exactamente los campos requeridos en un solo payload, ideal para aplicaciones móviles con redes lentas.",
+   "tags": "arquitectura,apis",
+   "level": 4
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es HTTP/3 y por qué sustituye TCP por QUIC sobre UDP?",
+   "back": "HTTP/3 reemplaza el transporte TCP por <b>QUIC</b> (basado en UDP).\n• <b>Ventajas</b>: elimina el bloqueo de cabeza de línea (Head-of-Line Blocking) a nivel de transporte (la pérdida de un paquete no detiene los demás flujos) y permite handshakes ultrarrápidos 0-RTT con cifrado TLS 1.3 integrado.",
+   "hint": "QUIC sobre UDP elimina el bloqueo de paquetes y acelera conexiones móviles",
+   "tags": "http,protocolos,quic",
+   "level": 3,
+   "reverse": true
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo se comparan WebSockets, Server-Sent Events (SSE) y Long Polling?",
+   "back": "• <b>WebSockets</b>: conexión TCP full-duplex bidireccional continua (videojuegos, chats en vivo).\n• <b>SSE (Server-Sent Events)</b>: flujo unidireccional del servidor al cliente sobre HTTP estándar; reconexión automática y ligero (notificaciones, cotizaciones, streaming de texto de IA).\n• <b>Long Polling</b>: peticiones HTTP repetidas que esperan respuesta; mayor overhead y consumo de recursos.",
+   "hint": "WebSockets = bidireccional; SSE = servidor a cliente unidireccional sobre HTTP",
+   "tags": "redes,tiempo_real,apis",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué diferencia existe entre «async» y «defer» al cargar scripts en HTML?",
+   "choices": [
+    "defer descarga en segundo plano y ejecuta respetando el orden del DOM al terminar el HTML; async ejecuta inmediatamente al descargarse interrumpiendo el parser",
+    "async solo funciona con archivos CSS",
+    "defer duplica el tiempo de carga para garantizar compatibilidad",
+    "Ambos atributos son completamente idénticos"
+   ],
+   "answer": 0,
+   "back": "Usa «defer» para scripts que dependen del DOM o de otros scripts; usa «async» para scripts independientes de analítica o telemetría que no tocan el árbol DOM.",
+   "tags": "html,rendimiento,dom",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es el «Critical Rendering Path» (Ruta Crítica de Renderizado)?",
+   "back": "La secuencia de pasos que sigue el navegador para convertir código en píxeles en pantalla:\n1. <b>DOM + CSSOM</b>: construcción de los árboles de elementos y estilos.\n2. <b>Render Tree</b>: combinación de elementos visibles con sus estilos calculados.\n3. <b>Layout (Reflow)</b>: cálculo de geometría y coordenadas exactas de cada nodo.\n4. <b>Paint</b>: rellenado de píxeles (colores, sombras, texto, imágenes).\n5. <b>Composite</b>: fusión de capas en la GPU para mostrarlas en pantalla.",
+   "hint": "DOM → CSSOM → Render Tree → Layout → Paint → Composite",
+   "tags": "navegador,rendimiento,render",
+   "level": 4,
+   "reverse": true
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué diferencia hay entre Promise.all y Promise.allSettled en JavaScript?",
+   "choices": [
+    "Promise.all falla de inmediato si una sola promesa es rechazada; Promise.allSettled espera a que todas concluyan (cumplidas o rechazadas)",
+    "Promise.allSettled solo acepta dos promesas como máximo",
+    "Promise.all ejecuta las promesas en serie secuencialmente",
+    "Promise.allSettled reinicia el navegador en caso de error"
+   ],
+   "answer": 0,
+   "back": "Promise.all implementa semántica de «todo o nada» (short-circuit on failure). Promise.allSettled devuelve un array con el estado ({status, value/reason}) de cada una.",
+   "tags": "javascript,promesas,asincronia",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es la «Hidratación» (Hydration) en frameworks web como Next.js, Nuxt o Astro?",
+   "back": "Proceso en el que el navegador recibe HTML estático ya pre-renderizado en el servidor y le asocia los listeners de eventos de JavaScript y el estado reactivo del framework para volverlo interactivo.\n• <b>Reto</b>: puede provocar un desfase temporal donde el usuario ve la página pero los botones no responden hasta que termina la descarga y ejecución del bundle JS.",
+   "hint": "Conectar interactividad y manejadores de eventos JavaScript al HTML pre-renderizado del servidor",
+   "tags": "frontend,ssr,arquitectura",
+   "level": 4
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué diferencia hay entre SSR, SSG e ISR?",
+   "back": "• <b>SSR (Server-Side Rendering)</b>: el HTML se genera en el servidor en cada petición (óptimo para datos dinámicos por usuario).\n• <b>SSG (Static Site Generation)</b>: el HTML se compila una sola vez en build time (máxima velocidad y cacheable en CDN).\n• <b>ISR (Incremental Static Regeneration)</b>: genera páginas estáticas pero las revalida y regenera en segundo plano tras un intervalo configurado sin reconstruir todo el sitio.",
+   "hint": "SSR = por petición; SSG = en build time; ISR = estático con revalidación periódica",
+   "tags": "frontend,arquitectura,cdn",
+   "level": 4
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué cabecera de caché HTTP garantiza que un asset inmutable nunca requiera revalidación?",
+   "choices": [
+    "Cache-Control: public, max-age=31536000, immutable",
+    "Cache-Control: no-cache, no-store",
+    "Expires: 0",
+    "Pragma: no-cache"
+   ],
+   "answer": 0,
+   "back": "Al incluir un hash en el nombre del archivo (ej. «app.a8f9c1.js»), «immutable» indica al navegador que el contenido jamás cambiará durante ese año, ahorrando peticiones condicionales 304.",
+   "tags": "http,cache,rendimiento",
+   "level": 3
+  },
+  {
+   "kind": "lesson",
+   "front": "Buenas Prácticas en Códigos de Estado HTTP (REST APIs)",
+   "back": "• <b>200 OK</b>: operación exitosa con datos en el cuerpo.\n• <b>201 Created</b>: recurso creado exitosamente (habitual en POST con cabecera Location).\n• <b>204 No Content</b>: éxito sin cuerpo de respuesta (habitual en DELETE exitoso).\n• <b>400 Bad Request</b>: sintaxis o payload JSON mal formado.\n• <b>401 Unauthorized</b>: falta autenticación o token inválido (equivale a «No autenticado»).\n• <b>403 Forbidden</b>: autenticado correctamente pero sin permisos suficientes («No autorizado»).\n• <b>404 Not Found</b>: recurso inexistente.\n• <b>409 Conflict</b>: conflicto de estado (ej. email duplicado).\n• <b>422 Unprocessable Entity</b>: validación de campos fallida en payload válido.",
+   "tags": "http,apis,rest",
+   "level": 3
+  }
+ ]
+}

@@ -37,35 +37,92 @@ class LibroError(RuntimeError):
     """No se pudo leer el libro; el mensaje está pensado para enseñarlo."""
 
 
+DIR_LIBROS_BASE = Path(__file__).resolve().parent / "content" / "libros"
+
+
 # ------------------------------------------------------------------ estante
 
 def listar(raiz: Path, filtro: str = "", limite: int = 4000) -> list:
-    """Todos los libros bajo `raiz`, con su carpeta como «tema»."""
+    """Todos los libros bajo `raiz`, con su carpeta como «tema», más los libros base incluidos."""
     raiz = Path(raiz)
-    if not raiz.is_dir():
-        return []
     palabras = [p for p in filtro.lower().split() if p]
     salida = []
-    for base, _dirs, archivos in os.walk(raiz):
-        for nombre in archivos:
-            if not nombre.lower().endswith(EXTENSIONES):
-                continue
-            ruta = Path(base) / nombre
-            tema = str(ruta.parent.relative_to(raiz)) if ruta.parent != raiz else "—"
-            if palabras:
-                heno = f"{nombre} {tema}".lower()
-                if not all(p in heno for p in palabras):
+    rutas_vistas = set()
+
+    def escanear_directorio(dir_path: Path, tema_default: str = ""):
+        if not dir_path.is_dir():
+            return
+        for base, _dirs, archivos in os.walk(dir_path):
+            for nombre in archivos:
+                if not nombre.lower().endswith(EXTENSIONES):
                     continue
-            try:
-                tam = ruta.stat().st_size
-            except OSError:
-                continue
-            salida.append({"ruta": str(ruta), "nombre": titulo_limpio(nombre),
-                           "archivo": nombre, "tema": tema, "tam": tam,
-                           "ext": ruta.suffix.lower().lstrip(".")})
-            if len(salida) >= limite:
-                return sorted(salida, key=lambda x: (x["tema"].lower(), x["nombre"].lower()))
+                ruta = Path(base) / nombre
+                str_ruta = str(ruta)
+                if str_ruta in rutas_vistas:
+                    continue
+                rutas_vistas.add(str_ruta)
+                if tema_default:
+                    tema = tema_default
+                else:
+                    tema = str(ruta.parent.relative_to(dir_path)) if ruta.parent != dir_path else "—"
+                if palabras:
+                    heno = f"{nombre} {tema}".lower()
+                    if not all(p in heno for p in palabras):
+                        continue
+                try:
+                    tam = ruta.stat().st_size
+                except OSError:
+                    continue
+                salida.append({"ruta": str_ruta, "nombre": titulo_limpio(nombre),
+                               "archivo": nombre, "tema": tema, "tam": tam,
+                               "ext": ruta.suffix.lower().lstrip(".")})
+                if len(salida) >= limite:
+                    return
+
+    if raiz.is_dir():
+        escanear_directorio(raiz)
+    if DIR_LIBROS_BASE.is_dir() and len(salida) < limite:
+        escanear_directorio(DIR_LIBROS_BASE, tema_default="📖 Libros Incluidos")
+
     return sorted(salida, key=lambda x: (x["tema"].lower(), x["nombre"].lower()))
+
+
+def capitulos_texto(ruta: str) -> list:
+    """Divide un archivo Markdown o de texto en capítulos navegables."""
+    p = Path(ruta)
+    if not p.exists():
+        raise LibroError(f"No encuentro el archivo:\n{ruta}")
+    contenido = texto(ruta)
+    lineas = contenido.splitlines()
+    capitulos = []
+    actual_titulo = "Inicio"
+    actual_lineas = []
+    patron = re.compile(r"^(?:#{1,3}\s+|Cap[íi]tulo\s+[IVXLCDM\d]+|Libro\s+[IVXLCDM\d]+|Secci[óo]n\s+[IVXLCDM\d]+)(.*)$", re.I)
+
+    for linea in lineas:
+        m = patron.match(linea.strip())
+        if m and (actual_lineas or capitulos):
+            t_cap = "\n".join(actual_lineas).strip()
+            if t_cap:
+                capitulos.append({
+                    "titulo": actual_titulo,
+                    "texto": t_cap,
+                    "indice": len(capitulos) + 1
+                })
+                actual_lineas = []
+            tit = linea.strip().lstrip("#").strip()
+            actual_titulo = tit if tit else f"Capítulo {len(capitulos) + 1}"
+        actual_lineas.append(linea)
+
+    if actual_lineas:
+        t_cap = "\n".join(actual_lineas).strip()
+        if t_cap:
+            capitulos.append({
+                "titulo": actual_titulo,
+                "texto": t_cap,
+                "indice": len(capitulos) + 1
+            })
+    return capitulos or [{"titulo": p.stem, "texto": contenido, "indice": 1}]
 
 
 _RUIDO = re.compile(

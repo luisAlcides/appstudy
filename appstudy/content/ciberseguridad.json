@@ -1,0 +1,257 @@
+{
+ "key": "ciberseguridad",
+ "name": "Ciberseguridad y Redes",
+ "icon": "🛡️",
+ "color": "#e01b24",
+ "pos": 10,
+ "levels": [
+  "Fundamentos de Seguridad",
+  "Redes y Protocolos",
+  "Vulnerabilidades Web y OWASP",
+  "Criptografía y Defensa"
+ ],
+ "cards": [
+  {
+   "kind": "card",
+   "front": "¿Qué es la «Tríada CIA» en seguridad de la información?",
+   "back": "Los tres pilares esenciales de la seguridad:\n• <b>Confidencialidad</b>: solo personas autorizadas acceden a los datos.\n• <b>Integridad</b>: la información permanece exacta y sin alteraciones no autorizadas.\n• <b>Disponibilidad</b>: los sistemas y datos son accesibles cuando se necesitan.",
+   "hint": "C = Confidentiality, I = Integrity, A = Availability",
+   "tags": "fundamentos,principios",
+   "level": 1,
+   "reverse": true
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué diferencia a la autenticación de la autorización?",
+   "back": "• <b>Autenticación (AuthN)</b>: valida <i>quién eres</i> (usuario, contraseña, token MFA, biometría).\n• <b>Autorización (AuthZ)</b>: determina <i>qué puedes hacer</i> o a qué recursos tienes permiso (roles, políticas RBAC, permisos).",
+   "hint": "AuthN responde a «¿Quién eres?»; AuthZ responde a «¿Qué permisos tienes?»",
+   "tags": "fundamentos,iam",
+   "level": 1,
+   "reverse": true
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Cuál es el principio de «Mínimo Privilegio» (PoLP)?",
+   "choices": [
+    "Otorgar a usuarios y procesos únicamente los permisos indispensables para su función",
+    "Usar contraseñas cortas para no sobrecargar el sistema",
+    "Permitir acceso total a los administradores en cualquier equipo",
+    "Desactivar el firewall en redes locales confiables"
+   ],
+   "answer": 0,
+   "back": "Principio cardinal: reducir al mínimo la superficie de ataque limitando los permisos de cada usuario o proceso al conjunto mínimo necesario durante el menor tiempo posible.",
+   "tags": "fundamentos,defensa",
+   "level": 1
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué capas componen el modelo TCP/IP frente al modelo OSI?",
+   "back": "TCP/IP consta de 4 capas fundamentales:\n1. <b>Aplicación</b> (engloba Aplicación, Presentación y Sesión de OSI: HTTP, DNS, SSH)\n2. <b>Transporte</b> (TCP, UDP)\n3. <b>Internet</b> (Red en OSI: IP, ICMP, enrutamiento)\n4. <b>Acceso a la Red</b> (Enlace y Física en OSI: Ethernet, Wi-Fi, direcciones MAC)",
+   "hint": "TCP/IP: Aplicación, Transporte, Internet, Acceso a red",
+   "tags": "redes,protocolos",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿En qué se diferencian TCP y UDP?",
+   "back": "• <b>TCP (Transmission Control Protocol)</b>: orientado a conexión, garantiza entrega fiable y ordenada mediante handshake (SYN, SYN-ACK, ACK), control de congestión y retransmisiones.\n• <b>UDP (User Datagram Protocol)</b>: sin conexión ni confirmaciones; prioriza velocidad y baja latencia (streaming, DNS, VoIP, videojuegos).",
+   "hint": "TCP = Fiable y ordenado; UDP = Rápido y sin confirmación",
+   "tags": "redes,transporte",
+   "level": 2,
+   "reverse": true
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Cómo se desarrolla el saludo de tres vías (3-Way Handshake) de TCP?",
+   "choices": [
+    "1. Cliente envía SYN → 2. Servidor responde SYN-ACK → 3. Cliente envía ACK",
+    "1. Cliente envía ACK → 2. Servidor envía SYN → 3. Cliente envía FIN",
+    "1. Servidor transmite PING → 2. Cliente responde PONG",
+    "1. Cliente envía DATA → 2. Servidor responde con RESET"
+   ],
+   "answer": 0,
+   "back": "El 3-way handshake sincroniza números de secuencia iniciales (ISN) entre ambos extremos antes de transferir datos de aplicación.",
+   "tags": "redes,protocolos",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es y cómo opera el protocolo DNS (Domain Name System)?",
+   "back": "Es el directorio jerárquico de Internet: traduce nombres legibles para humanos (como <code>appstudy.org</code>) a direcciones IP numéricas (como <code>198.51.100.24</code>).\nOpera típicamente sobre el puerto <b>53 UDP</b> para consultas rápidas y TCP para transferencias de zona grandes.",
+   "hint": "Traduce nombres de dominio en direcciones IP",
+   "tags": "redes,dns",
+   "level": 2
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es la Inyección SQL (SQLi) y cuál es su remediación definitiva?",
+   "back": "Vulnerabilidad donde un atacante inyecta comandos SQL en entradas de usuario no saneadas para manipular la base de datos.\n• <b>Remediación definitiva</b>: empleo de <b>consultas preparadas con parámetros tipados</b> (Prepared Statements). Jamás concatenar texto en consultas SQL.",
+   "hint": "Nunca concatenar texto; usar siempre Prepared Statements",
+   "tags": "owasp,seguridad_web",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es Cross-Site Scripting (XSS) y cuáles son sus variantes?",
+   "back": "Inyección de código malicioso (generalmente JavaScript) en navegadores de otros usuarios.\n• <b>Almacenado (Stored)</b>: el script se persiste en la base de datos y se ejecuta en cada visitante.\n• <b>Reflejado (Reflected)</b>: viaja en la URL o formulario y se refleja inmediatamente.\n• <b>Basado en DOM</b>: la vulnerabilidad ocurre íntegramente en el cliente al manipular el DOM de forma insegura.\n<b>Defensa</b>: escapar salida según contexto y configurar Content-Security-Policy (CSP).",
+   "hint": "Stored, Reflected y DOM-based",
+   "tags": "owasp,seguridad_web",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Para qué sirve el encabezado HTTP «Content-Security-Policy» (CSP)?",
+   "choices": [
+    "Define qué orígenes legítimos tienen permiso para cargar scripts, estilos e imágenes",
+    "Acelera la descarga de archivos pesados en el navegador",
+    "Oculta la dirección IP del servidor ante análisis de red",
+    "Sustituye la necesidad de certificados SSL/TLS en el servidor"
+   ],
+   "answer": 0,
+   "back": "CSP es una defensa en profundidad que mitiga XSS e inyecciones al restringir la ejecución de scripts no autorizados.",
+   "tags": "seguridad_web,cabeceras",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué diferencia hay entre cifrado simétrico y asimétrico?",
+   "back": "• <b>Simétrico (AES, ChaCha20)</b>: usa la <i>misma clave secreta</i> para cifrar y descifrar. Altamente veloz, óptimo para grandes volúmenes de datos.\n• <b>Asimétrico (RSA, ECC, Ed25519)</b>: usa un <i>par de claves</i> (clave pública para cifrar/verificar y privada para descifrar/firmar). Resuelve el intercambio seguro de claves sin canal previo seguro.",
+   "hint": "Simétrico = 1 clave secreta; Asimétrico = par pública y privada",
+   "tags": "criptografia,fundamentos",
+   "level": 4,
+   "reverse": true
+  },
+  {
+   "kind": "card",
+   "front": "¿Por qué NUNCA se debe usar cifrado reversible para guardar contraseñas?",
+   "back": "Las contraseñas no se cifran: se deben <b>hashear con un algoritmo criptográfico lento con sal (salt)</b> resistente a ataques masivos por GPU.\nEstándares recomendados: <b>Argon2id</b>, <b>bcrypt</b> o <b>PBKDF2</b>.",
+   "hint": "Usa hashes lentos con salt (Argon2id, bcrypt), nunca cifrado reversible",
+   "tags": "criptografia,contraseñas",
+   "level": 4
+  },
+  {
+   "kind": "lesson",
+   "front": "Principios del Modelo de Seguridad «Zero Trust»",
+   "back": "Regla de oro: <i>«Nunca confíes, siempre verifica»</i>.\n1. <b>Verificación explícita</b>: autenticar y autorizar en cada solicitud según identidad, dispositivo y contexto.\n2. <b>Mínimo privilegio</b>: acceso segmentado y temporal (Just-In-Time).\n3. <b>Asumir la brecha (Assume Breach)</b>: diseñar los sistemas asumiendo que el atacante ya está dentro; cifrar todo el tráfico interno y segmentar micro-perímetros.",
+   "tags": "arquitectura,zerotrust",
+   "level": 4
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es Cross-Site Request Forgery (CSRF) y cómo se previene?",
+   "back": "Ataque que fuerza al navegador de una víctima autenticada a ejecutar acciones no deseadas en una aplicación web de confianza enviando cookies de sesión automáticamente.\n• <b>Defensas clave</b>: Tokens anti-CSRF criptográficos en formularios y uso estricto del atributo <code>SameSite=Lax</code> o <code>SameSite=Strict</code> en las cookies.",
+   "hint": "Engaña al navegador para enviar peticiones no deseadas con las cookies de la víctima",
+   "tags": "owasp,seguridad_web,csrf",
+   "level": 3
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué diferencia a los valores de la directiva de cookie «SameSite»?",
+   "choices": [
+    "Strict no envía la cookie en navegación cruzada externa; Lax la envía solo en navegaciones GET de alto nivel; None requiere Secure",
+    "Strict desactiva el cifrado SSL en la conexión",
+    "Lax permite que cualquier sitio externo lea los datos del usuario sin restricciones",
+    "None solo funciona en navegadores en modo incógnito"
+   ],
+   "answer": 0,
+   "back": "SameSite=Lax es el valor por defecto moderno: equilibra seguridad y usabilidad evitando que peticiones POST o imágenes de sitios de terceros envíen la cookie.",
+   "tags": "cookies,seguridad_web",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es Server-Side Request Forgery (SSRF)?",
+   "back": "Vulnerabilidad donde un atacante induce a un servidor web a realizar peticiones HTTP hacia recursos internos arbitrarios (como la API de metadatos de AWS/GCP en <code>http://169.254.169.254</code> o servicios locales en <code>localhost</code> protegidos por firewall).",
+   "hint": "Fuerza al servidor a hacer peticiones a servicios internos privados",
+   "tags": "owasp,ssrf,cloud",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es IDOR (Insecure Direct Object Reference)?",
+   "back": "Fallo de control de acceso donde una aplicación expone una referencia a un objeto interno (como <code>/api/factura/1042</code>) sin validar si el usuario autenticado tiene autorización para acceder a dicho ID específico.",
+   "hint": "Manipular un identificador numérico o UUID en la URL para ver datos ajenos",
+   "tags": "owasp,idor,authz",
+   "level": 3,
+   "reverse": true
+  },
+  {
+   "kind": "card",
+   "front": "¿Cuál es la estructura interna de un JSON Web Token (JWT)?",
+   "back": "Consta de tres secciones codificadas en Base64Url separadas por puntos:\n1. <b>Header</b>: algoritmo de firma (ej. <code>HS256</code> o <code>RS256</code>) y tipo.\n2. <b>Payload</b>: declaraciones y datos (claims: <code>sub</code>, <code>exp</code>, <code>roles</code>).\n3. <b>Signature</b>: hash HMAC o firma asimétrica que garantiza la integridad.",
+   "hint": "Header . Payload . Signature",
+   "tags": "jwt,auth,criptografia",
+   "level": 2,
+   "reverse": true
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué grave vulnerabilidad de implementación suele afectar a tokens JWT mal configurados?",
+   "choices": [
+    "Aceptar «alg»: «none», lo que permite falsificar firmas eliminando la validación criptográfica",
+    "No permitir caracteres en mayúsculas en el payload",
+    "Obligar al usuario a cambiar su contraseña cada 5 minutos",
+    "Bloquear el acceso si el token supera los 100 bytes"
+   ],
+   "answer": 0,
+   "back": "Si la biblioteca del backend acepta el algoritmo «none» sin validación estricta, un atacante puede generar un token con privilegios de administrador con firma vacía.",
+   "tags": "jwt,seguridad_web",
+   "level": 3
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es «Perfect Forward Secrecy» (PFS) en TLS?",
+   "back": "Propiedad criptográfica que garantiza que si la clave privada del servidor es comprometida en el futuro, las sesiones pasadas no pueden ser descifradas.\nSe logra generando <b>claves de sesión efímeras e independientes</b> para cada conexión mediante intercambio Diffie-Hellman (ECDHE).",
+   "hint": "El compromiso futuro de una clave privada no compromete las comunicaciones pasadas",
+   "tags": "tls,criptografia,redes",
+   "level": 4,
+   "reverse": true
+  },
+  {
+   "kind": "card",
+   "front": "¿Cómo funciona OAuth 2.0 y qué rol cumple PKCE?",
+   "back": "• <b>OAuth 2.0</b>: protocolo de autorización delegado que permite a aplicaciones de terceros acceder a recursos de un usuario sin conocer su contraseña.\n• <b>PKCE (Proof Key for Code Exchange)</b>: extensión obligatoria que evita la interceptación del código de autorización mediante un secreto temporal (code_verifier y code_challenge).",
+   "hint": "Autorización delegada segura sin compartir credenciales del usuario",
+   "tags": "oauth,seguridad,iam",
+   "level": 4
+  },
+  {
+   "kind": "quiz",
+   "front": "¿Qué establece el Principio de Kerckhoffs en seguridad criptográfica?",
+   "choices": [
+    "Un sistema criptográfico debe ser seguro aunque todo lo relativo al algoritmo sea público, excepto la clave secreta",
+    "Los algoritmos secretos y propietarios son más seguros que los estándares de código abierto",
+    "La longitud de la clave debe duplicarse cada 6 meses obligatoriamente",
+    "Solo los gobiernos pueden diseñar algoritmos criptográficos"
+   ],
+   "answer": 0,
+   "back": "«La seguridad por oscuridad no funciona»: los algoritmos probados públicamente (como AES o RSA) son robustos precisamente porque miles de criptoanalistas han intentado romperlos sin éxito.",
+   "tags": "criptografia,principios",
+   "level": 4
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué diferencia hay entre IDS (Intrusion Detection) e IPS (Intrusion Prevention)?",
+   "back": "• <b>IDS (Detección)</b>: monitoriza pasivamente el tráfico de red y alerta ante firmas de ataque o anomalías (ej. Snort en modo escucha).\n• <b>IPS (Prevención)</b>: se coloca en línea (in-line) en la ruta del tráfico; detecta y bloquea activamente los paquetes maliciosos en tiempo real.",
+   "hint": "IDS avisa; IPS bloquea en tiempo real",
+   "tags": "redes,defensa,ips",
+   "level": 3,
+   "reverse": true
+  },
+  {
+   "kind": "card",
+   "front": "¿Qué es la autenticación FIDO2 / WebAuthn y por qué es inmune al phishing?",
+   "back": "Estándar de autenticación sin contraseñas basado en <b>criptografía de clave asimétrica</b> vinculada al dominio (origin-bound) mediante llaves físicas (YubiKey) o biometría de plataforma (Touch ID/Windows Hello).\nEs inmune al phishing porque el navegador solo entrega la credencial si el dominio coincide con exactitud matemática.",
+   "hint": "Autenticación de clave pública atada criptográficamente al dominio del navegador",
+   "tags": "autenticacion,webauthn,defensa",
+   "level": 4
+  },
+  {
+   "kind": "lesson",
+   "front": "Medidas fundamentales de Hardening en Servidores Linux",
+   "back": "1. <b>Acceso SSH seguro</b>: deshabilitar autenticación por contraseña (<code>PasswordAuthentication no</code>) y login directo de root; usar llaves Ed25519.\n2. <b>Cortafuegos mínimo</b>: bloquear todo el tráfico entrante por defecto y habilitar solo puertos necesarios (UFW o nftables).\n3. <b>Protección contra fuerza bruta</b>: herramientas como <code>fail2ban</code> que bloquean IPs tras intentos fallidos repetidos.\n4. <b>Control de accesos obligatorio</b>: mantener activo AppArmor o SELinux para confinar procesos ante posibles vulnerabilidades de día cero.",
+   "tags": "linux,hardening,defensa",
+   "level": 3
+  }
+ ]
+}

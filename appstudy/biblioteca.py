@@ -331,11 +331,18 @@ class Biblioteca(Adw.Bin):
                 return
             self.nav.push(lector.pagina)
             return
-        self.ventana.notify_user("El lector abre PDF y EPUB; de los otros formatos "
-                                 "puedo sacar tarjetas, pero no pasarte las hojas")
+        if libro["ext"] in ("txt", "md"):
+            try:
+                lector = LectorTexto(self, libro)
+            except libros.LibroError as e:
+                self.ventana.notify_user(str(e))
+                return
+            self.nav.push(lector.pagina)
+            return
+        self.ventana.notify_user("El lector abre PDF, EPUB, TXT y Markdown")
 
     def abrir_en_pagina(self, libro, pagina):
-        """Abre un PDF en su página o un EPUB en su capítulo numerado."""
+        """Abre un PDF en su página o un EPUB/texto en su capítulo numerado."""
         if libro["ext"] == "pdf":
             lector = Lector(self, libro)
             self.nav.push(lector.pagina)
@@ -344,6 +351,15 @@ class Biblioteca(Adw.Bin):
         if libro["ext"] == "epub" and HAY_WEBKIT:
             try:
                 lector = LectorEpub(self, libro)
+            except libros.LibroError as e:
+                self.ventana.notify_user(str(e))
+                return
+            self.nav.push(lector.pagina)
+            GLib.idle_add(lector.ir, pagina)
+            return
+        if libro["ext"] in ("txt", "md"):
+            try:
+                lector = LectorTexto(self, libro)
             except libros.LibroError as e:
                 self.ventana.notify_user(str(e))
                 return
@@ -651,6 +667,374 @@ class LectorEpub:
         return False
 
     def cerrar(self):
+        if self.guardar_en:
+            GLib.source_remove(self.guardar_en)
+            self.guardar_en = None
+        minutos = (time.time() - self.desde) / 60.0
+        db.book_progreso(self.con, self.libro["ruta"], self.n, minutos)
+        self.bib.refrescar()
+
+
+CSS_TEXTO = """
+html { -webkit-text-size-adjust: none; }
+body {
+  max-width: 44em; margin: 0 auto; padding: 2.5em 2em 5em 2em;
+  font-family: 'Cantarell', 'Inter', -apple-system, sans-serif;
+  line-height: 1.75; font-size: %(tam)dpx; color: #2e3436;
+}
+h1, h2, h3 { font-family: 'Cinzel', 'Serif', Georgia, serif; color: #1a1a1a; margin-top: 1.6em; }
+h1 { font-size: 1.85em; border-bottom: 2px solid #e0e0e0; padding-bottom: 0.3em; }
+h2 { font-size: 1.45em; color: #2e3436; }
+blockquote {
+  border-left: 4px solid #3584e4; margin: 1.4em 0; padding: 0.6em 1.2em;
+  background: rgba(53, 132, 228, 0.08); font-style: italic; border-radius: 0 8px 8px 0;
+}
+p { margin-bottom: 1.1em; text-align: justify; }
+pre { background: #f6f8fa; padding: 1em; border-radius: 8px; overflow-x: auto; }
+code { font-family: 'Source Code Pro', monospace; font-size: 0.9em; background: rgba(0,0,0,0.05); padding: 2px 5px; border-radius: 4px; }
+hr { border: none; height: 1px; background: #e0e0e0; margin: 2.2em 0; }
+"""
+
+CSS_TEXTO_NOCHE = """
+html, body { background: #181818 !important; color: #e2e2e2 !important; }
+h1, h2, h3 { color: #ffffff !important; }
+h1 { border-bottom-color: #333333 !important; }
+blockquote { background: rgba(53, 132, 228, 0.15) !important; color: #cbd5e1 !important; }
+pre { background: #222222 !important; color: #f0f0f0 !important; }
+code { background: rgba(255, 255, 255, 0.1) !important; color: #f5f5f5 !important; }
+hr { background: #333333 !important; }
+"""
+
+
+def _md_a_html(md: str) -> str:
+    import html
+    import re
+    lineas = md.splitlines()
+    html_lineas = []
+    en_lista = False
+    en_codigo = False
+
+    for linea in lineas:
+        l = linea.rstrip()
+        if l.startswith("```"):
+            if en_codigo:
+                html_lineas.append("</code></pre>")
+                en_codigo = False
+            else:
+                html_lineas.append("<pre><code>")
+                en_codigo = True
+            continue
+        if en_codigo:
+            html_lineas.append(html.escape(l))
+            continue
+
+        if l.startswith("- ") or l.startswith("* "):
+            if not en_lista:
+                html_lineas.append("<ul>")
+                en_lista = True
+            item = html.escape(l[2:])
+            item = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", item)
+            item = re.sub(r"\*(.+?)\*", r"<i>\1</i>", item)
+            item = re.sub(r"`(.+?)`", r"<code>\1</code>", item)
+            html_lineas.append(f"<li>{item}</li>")
+            continue
+        elif en_lista and not l.strip():
+            html_lineas.append("</ul>")
+            en_lista = False
+
+        if l.startswith("# "):
+            html_lineas.append(f"<h1>{html.escape(l[2:])}</h1>")
+        elif l.startswith("## "):
+            html_lineas.append(f"<h2>{html.escape(l[3:])}</h2>")
+        elif l.startswith("### "):
+            html_lineas.append(f"<h3>{html.escape(l[4:])}</h3>")
+        elif l.startswith("> "):
+            cuerpo = html.escape(l[2:])
+            cuerpo = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", cuerpo)
+            cuerpo = re.sub(r"\*(.+?)\*", r"<i>\1</i>", cuerpo)
+            html_lineas.append(f"<blockquote>{cuerpo}</blockquote>")
+        elif l == "---":
+            html_lineas.append("<hr>")
+        elif l.strip():
+            p = html.escape(l)
+            p = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", p)
+            p = re.sub(r"\*(.+?)\*", r"<i>\1</i>", p)
+            p = re.sub(r"`(.+?)`", r"<code>\1</code>", p)
+            html_lineas.append(f"<p>{p}</p>")
+        else:
+            html_lineas.append("")
+
+    if en_lista:
+        html_lineas.append("</ul>")
+    if en_codigo:
+        html_lineas.append("</code></pre>")
+    return "\n".join(html_lineas)
+
+
+class LectorTexto:
+    """Lector de libros en Markdown y Texto con audiolibro y navegación de capítulos."""
+
+    TAMANOS = (14, 16, 18, 20, 23, 26)
+
+    def __init__(self, biblioteca, libro):
+        self.bib = biblioteca
+        self.con = biblioteca.con
+        self.libro = libro
+        self.desde = time.time()
+        self.guardar_en = None
+
+        self.capitulos = libros.capitulos_texto(libro["ruta"])
+        self.total = len(self.capitulos)
+
+        guardado = db.book_abrir(self.con, libro["ruta"], libro["nombre"],
+                                 libro["tema"], self.total)
+        self.n = min(max(1, guardado["pagina"]), self.total)
+        self.marcas = db.book_marcas(self.con, libro["ruta"])
+
+        try:
+            self.tam = int(db.book_zoom(self.con, libro["ruta"]) or 0) or 18
+        except (TypeError, ValueError):
+            self.tam = 18
+        self.noche = False
+
+        if HAY_WEBKIT:
+            self.vista = WebKit.WebView(vexpand=True, hexpand=True)
+            ajustes = self.vista.get_settings()
+            ajustes.set_enable_javascript(False)
+            ajustes.set_enable_developer_extras(False)
+            contenido_widget = self.vista
+        else:
+            self.text_view = Gtk.TextView(vexpand=True, hexpand=True, editable=False,
+                                          cursor_visible=False, wrap_mode=Gtk.WrapMode.WORD_CHAR)
+            scroll = Gtk.ScrolledWindow(vexpand=True)
+            scroll.set_child(self.text_view)
+            contenido_widget = scroll
+
+        self.contenido_widget = contenido_widget
+
+        cuerpo = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        cuerpo.append(contenido_widget)
+        cuerpo.append(self.barra())
+
+        self.pagina = Adw.NavigationPage(title=util.plain(libro["nombre"])[:60])
+        tv = Adw.ToolbarView()
+        tv.add_top_bar(self.cabecera())
+        tv.set_content(cuerpo)
+        self.pagina.set_child(tv)
+        self.pagina.connect("hidden", lambda *_: self.cerrar())
+
+        teclas = Gtk.EventControllerKey()
+        teclas.connect("key-pressed", self.on_key)
+        self.pagina.add_controller(teclas)
+
+        self.ir(self.n)
+
+    def cabecera(self):
+        cab = Adw.HeaderBar()
+        self.titulo = Adw.WindowTitle(title=util.plain(self.libro["nombre"])[:48], subtitle="")
+        cab.set_title_widget(self.titulo)
+
+        indice = Gtk.MenuButton(icon_name="view-list-symbolic")
+        util.tooltip_perezoso(indice, "Índice del libro")
+        indice.set_popover(self.popover_indice())
+        cab.pack_start(indice)
+
+        self.btn_voz = Gtk.Button(icon_name="audio-volume-high-symbolic")
+        util.tooltip_perezoso(self.btn_voz, "Leer capítulo en voz alta (Audiolibro)")
+        self.btn_voz.connect("clicked", lambda *_: self.toggle_voz())
+        cab.pack_start(self.btn_voz)
+
+        self.btn_marca = Gtk.ToggleButton(icon_name="bookmark-new-symbolic")
+        self.btn_marca.connect("toggled", self.on_marcar)
+        util.tooltip_perezoso(self.btn_marca, "Marcador en este capítulo (M)")
+        cab.pack_end(self.btn_marca)
+
+        noche = Gtk.ToggleButton(icon_name="weather-clear-night-symbolic")
+        noche.connect("toggled", lambda b: self.poner_noche(b.get_active()))
+        util.tooltip_perezoso(noche, "Modo noche (N)")
+        cab.pack_end(noche)
+
+        tarjetas = Gtk.Button(label="✦ Tarjetas")
+        util.tooltip_perezoso(tarjetas, "Generar tarjetas de este capítulo")
+        tarjetas.connect("clicked", lambda *_: self.hacer_tarjetas())
+        cab.pack_end(tarjetas)
+        return cab
+
+    def popover_indice(self):
+        pop = Gtk.Popover()
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_size_request(340, min(460, 44 * min(self.total, 10) + 20))
+        lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, css_classes=["boxed-list"])
+        for i, cap in enumerate(self.capitulos, start=1):
+            fila = Adw.ActionRow(title=util.as_label(cap["titulo"])[:80])
+            fila.set_activatable(True)
+            fila.connect("activated", lambda _f, k=i: (pop.popdown(), self.ir(k)))
+            lista.append(fila)
+        scroll.set_child(lista)
+        pop.set_child(scroll)
+        return pop
+
+    def barra(self):
+        caja = Gtk.Box(spacing=8, css_classes=["toolbar"])
+        for lado, v in (("top", 6), ("bottom", 8), ("start", 12), ("end", 12)):
+            getattr(caja, f"set_margin_{lado}")(v)
+
+        anterior = Gtk.Button(icon_name="go-previous-symbolic")
+        anterior.connect("clicked", lambda *_: self.ir(self.n - 1))
+        util.tooltip_perezoso(anterior, "Capítulo anterior (←)")
+        caja.append(anterior)
+
+        self.etiqueta = Gtk.Label(label="", css_classes=["as-dim"], hexpand=True,
+                                  ellipsize=Pango.EllipsizeMode.END, xalign=0)
+        caja.append(self.etiqueta)
+
+        siguiente = Gtk.Button(icon_name="go-next-symbolic")
+        siguiente.connect("clicked", lambda *_: self.ir(self.n + 1))
+        util.tooltip_perezoso(siguiente, "Capítulo siguiente (→)")
+        caja.append(siguiente)
+
+        self.avance = Gtk.ProgressBar(valign=Gtk.Align.CENTER, show_text=True,
+                                      css_classes=["as-progress"])
+        self.avance.set_size_request(140, -1)
+        caja.append(self.avance)
+
+        menos = Gtk.Button(icon_name="zoom-out-symbolic")
+        menos.connect("clicked", lambda *_: self.letra(-1))
+        util.tooltip_perezoso(menos, "Letra más pequeña (−)")
+        caja.append(menos)
+        mas = Gtk.Button(icon_name="zoom-in-symbolic")
+        mas.connect("clicked", lambda *_: self.letra(1))
+        util.tooltip_perezoso(mas, "Letra más grande (+)")
+        caja.append(mas)
+        return caja
+
+    def estilo(self) -> str:
+        css = CSS_TEXTO % {"tam": self.tam}
+        return css + (CSS_TEXTO_NOCHE if self.noche else "")
+
+    def ir(self, n):
+        n = max(1, min(int(n), self.total))
+        self.n = n
+        cap = self.capitulos[n - 1]
+        cuerpo_html = _md_a_html(cap["texto"])
+        documento = f"<!DOCTYPE html><html><head><meta charset='utf-8'><style>{self.estilo()}</style></head><body>{cuerpo_html}</body></html>"
+
+        if HAY_WEBKIT:
+            self.vista.load_html(documento, "file:///")
+        else:
+            buf = self.text_view.get_buffer()
+            buf.set_text(cap["texto"])
+
+        self.titulo.set_subtitle(f"{n} de {self.total} · {cap['titulo'][:40]}")
+        self.etiqueta.set_text(cap["titulo"])
+        self.avance.set_fraction(n / self.total)
+        self.avance.set_text(f"{n / self.total * 100:.0f} %")
+        self.btn_marca.handler_block_by_func(self.on_marcar)
+        self.btn_marca.set_active(n in self.marcas)
+        self.btn_marca.handler_unblock_by_func(self.on_marcar)
+        self.apuntar_luego(n)
+
+    def poner_noche(self, si):
+        self.noche = bool(si)
+        self.ir(self.n)
+
+    def letra(self, paso):
+        opciones = list(self.TAMANOS)
+        actual = min(opciones, key=lambda t: abs(t - self.tam))
+        i = opciones.index(actual) + (1 if paso > 0 else -1)
+        self.tam = opciones[max(0, min(len(opciones) - 1, i))]
+        db.book_zoom(self.con, self.libro["ruta"], str(self.tam))
+        self.ir(self.n)
+
+    def toggle_voz(self):
+        """Lee el capítulo actual en voz alta con síntesis de voz (Audiolibro)."""
+        from . import voz
+        if voz.esta_hablando():
+            voz.detener()
+            self.btn_voz.set_icon_name("audio-volume-high-symbolic")
+            self.btn_voz.set_tooltip_text("Leer capítulo en voz alta (Audiolibro)")
+            return
+        cap = self.capitulos[self.n - 1]
+        import re
+        texto_limpio = re.sub(r"[#*`>_-]", " ", cap["texto"])
+        texto_limpio = re.sub(r"\s+", " ", texto_limpio).strip()
+        cfg = voz.config(self.con)
+        if not cfg.get("activo", True):
+            self.bib.ventana.notify_user("Activa la voz en Ajustes para escuchar la lectura")
+            return
+        self.bib.ventana.notify_user(f"🎧 Narrando: {cap['titulo'][:40]}…")
+        dur = voz.hablar(texto_limpio[:5000], cfg, on_done=self._on_voz_fin)
+        if dur > 0:
+            self.btn_voz.set_icon_name("media-playback-stop-symbolic")
+            self.btn_voz.set_tooltip_text("Detener narración")
+
+    def _on_voz_fin(self):
+        GLib.idle_add(lambda: self.btn_voz.set_icon_name("audio-volume-high-symbolic") if hasattr(self, "btn_voz") else None)
+
+    def apuntar_luego(self, n):
+        if self.guardar_en:
+            GLib.source_remove(self.guardar_en)
+        def guardar():
+            self.guardar_en = None
+            db.book_progreso(self.con, self.libro["ruta"], n)
+            return False
+        self.guardar_en = GLib.timeout_add(500, guardar)
+
+    def on_marcar(self, _boton):
+        self.marcas = db.book_marcar(self.con, self.libro["ruta"], self.n)
+        self.bib.ventana.notify_user(
+            f"Capítulo {self.n} marcado" if self.n in self.marcas
+            else "Marcador quitado")
+
+    def hacer_tarjetas(self):
+        cap = self.capitulos[self.n - 1]
+        if not ia.config(self.con)["activa"]:
+            self.bib.ventana.notify_user("Activa la IA en Ajustes para sacar tarjetas")
+            return
+        texto = libros.limpiar_texto(cap["texto"], 9000)
+        if len(texto) < 250:
+            self.bib.ventana.notify_user("Este capítulo tiene muy poco texto.")
+            return
+        cfg = ia.config(self.con)
+        libro, titulo = self.libro, cap["titulo"]
+        self.bib.ventana.notify_user(f"Leyendo «{titulo[:40]}»…")
+        util.hilo(
+            lambda: ia.generar_desde_texto(cfg, texto, f"{libro['nombre']} · {titulo}", 5),
+            lambda tarjetas: (self.bib.ventana.revisar_generadas(
+                tarjetas, libros.mazo_para(self.con, libro),
+                {"kind": "book", "ruta": libro["ruta"], "page_start": self.n, "page_end": self.n, "title": libro["nombre"]})
+                if tarjetas else self.bib.ventana.notify_user("No encontré conceptos clave")),
+            lambda e: self.bib.ventana.notify_user(f"Error al generar tarjetas: {e}"))
+
+    def on_key(self, _controlador, keyval, _keycode, _estado):
+        tecla = Gdk.keyval_name(keyval)
+        if tecla in ("Left", "Page_Up", "BackSpace"):
+            self.ir(self.n - 1)
+            return True
+        if tecla in ("Right", "Page_Down"):
+            self.ir(self.n + 1)
+            return True
+        if tecla in ("Home", "End"):
+            self.ir(1 if tecla == "Home" else self.total)
+            return True
+        if tecla in ("plus", "equal", "KP_Add"):
+            self.letra(1)
+            return True
+        if tecla in ("minus", "KP_Subtract"):
+            self.letra(-1)
+            return True
+        if tecla in ("m", "M"):
+            self.btn_marca.set_active(not self.btn_marca.get_active())
+            return True
+        if tecla in ("n", "N"):
+            self.poner_noche(not self.noche)
+            return True
+        return False
+
+    def cerrar(self):
+        from . import voz
+        if voz.esta_hablando():
+            voz.detener()
         if self.guardar_en:
             GLib.source_remove(self.guardar_en)
             self.guardar_en = None

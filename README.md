@@ -333,7 +333,12 @@ La barra de energía refleja su ánimo sin cambiar los colores del personaje.
 Las manos y los pies se mueven de forma independiente: balanceo suave en
 reposo, saludo con la mano, brazos de celebración y toques al teclado. El
 movimiento disminuye cuando está desanimada y se detiene al dormir o activar
-«Reducir movimiento». Los ojos y la cola forman parte de cada pose.
+«Reducir movimiento». Al hablar, mueve la boca con un ritmo de sílabas
+visuales y alterna el énfasis de los brazos; la animación empieza y termina
+con el estado de voz, sin análisis de fonemas. Los ojos siguen el cursor,
+parpadean y hacen guiños mediante párpados que conservan las mejillas. La cola
+forma parte de cada pose.
+[Vista previa del habla y la mirada](docs/chispa-conversacion.gif).
 [Vista previa de las extremidades animadas](docs/chispa-movimiento.gif).
 El atlas se incluye en la aplicación y se carga una sola vez, sin conexión;
 si falta, se utiliza el dibujo vectorial anterior. Respeta el ajuste de reducir
@@ -376,67 +381,21 @@ vuelve a comportarse como antes.
 fallo nuevo: es el número real, porque hasta ahora leer una tarjeta contaba como
 haberla repasado.
 
-### Chispa parpadea
+### Animación de Chispa
 
-Chispa no está dibujada con curvas como Bit: es una ilustración renderizada, y
-sus ojos venían pintados dentro de la imagen. Eso tiene un límite claro —detrás
-del ojo no hay nada, así que un párpado solo puede taparlo, no cerrarlo—, y se
-notaba: cualquier intento de parpadeo quedaba en un ojo entornado.
+El dibujo conserva el atlas original. Manos y pies se animan mediante una
+malla continua, y los párpados acompañan los parpadeos y guiños. La mirada
+se desplaza suavemente hacia el cursor.
 
-Ahora la ilustración se **descompone en capas**. La primera vez que aparece
-Chispa, en segundo plano y en unos **2 segundos**, la aplicación separa los ojos
-de cada pose y **reconstruye el pelaje que había debajo**, rellenando el hueco a
-partir del pelo que lo rodea. A partir de ahí el párpado baja sobre el ojo y lo
-que queda a la vista es pelaje de verdad.
+Al hablar, la boca abre y cierra con una malla refinada en esa zona, visible
+a tamaño de pantalla, y los brazos alternan
+gestos suaves. La nariz, los ojos y la transparencia permanecen intactos.
+El ritmo visual empieza y termina con el estado de voz; no analiza fonemas.
+Se respeta el ajuste de **Reducir movimiento**.
 
-Las capas viven en `~/.local/share/appstudy/chispa/capas/` y ocupan **1,3 MB**.
-No están en el repositorio: salen del atlas, que ya está, y se rehacen solas si
-las borras o si cambia el dibujo.
-
-Las piezas no se sitúan a mano: se **buscan** clasificando cada píxel contra la
-paleta de Chispa y quedándose con los grupos que tienen forma de ojo —casi
-cuadrados, arriba y separados—. Las orejas, que también son claras, se descartan
-por ser anchas. Las poses de celebrar y de dormir ya vienen con los ojos
-cerrados dibujados, así que esas no parpadean.
-
-Con **movimiento reducido** activado no parpadea. Y si la extracción falla o aún
-no ha terminado, se dibuja como siempre: la mascota nunca se queda sin dibujar.
-
-En la pose de reposo, además, **las manos y los pies son capas propias** y giran
-desde donde nacen. El giro está topado en unos 15 grados a propósito: Chispa no
-tiene brazos, tiene manos pegadas a un cuerpo redondo, y pasado ese punto la
-mano se despega y se ve el truco.
-
-En las poses sentadas —con el portátil, o con la pata en la barbilla— brazos y
-piernas se funden en una sola mancha oscura y no se pueden separar sin
-equivocarse, así que ahí se sigue usando la deformación de malla de siempre.
-Vale el mismo principio que con los ojos: **una pose que no dé piezas limpias no
-se anima**, porque es preferible que no mueva las manos a que mueva medio
-cuerpo.
-
-**La boca también se mueve** mientras Chispa habla. Encontrarla costó un rodeo:
-por color es imposible —el rosa de la lengua es casi el del sombreado del cuello
-y el negro de la cavidad es el de la pupila—, así que se busca **por su posición
-respecto a los ojos**, que sí se encuentran: la mancha oscura que queda debajo
-de ellos y entre ellos es la boca. Se estira desde su borde de arriba, que es
-por donde se abre una boca de verdad, y lo que asoma por debajo es el hocico
-reconstruido.
-
-En la pose del portátil la boca es una sonrisa cerrada, sin cavidad que abrir,
-así que ahí no se anima.
-
-**Y ladea la cabeza.** El naranja de Chispa no es una sola mancha —el pecho
-crema la parte en dos—, así que la de arriba *es* la cabeza con sus orejas y se
-puede separar entera. La capa crece propagando desde ahí sin bajar del cuello,
-que es lo que evita llevarse media cola por delante.
-
-Los ojos y la boca son **hijos de la cabeza**: cuando se inclina, van con ella.
-Y la capa de la cabeza lleva pelaje donde estaban los ojos, porque si conservara
-los ojos pintados, al parpadear se verían los de debajo. El giro está topado en
-unos 9 grados: más y el cuello se despega.
-
-Generar todas las capas cuesta unos **7 segundos** la primera vez, en segundo
-plano. Si borras la carpeta, se rehacen solas.
+El dibujo ya no utiliza la separación automática en capas: producía bordes
+rotos en ojos y boca y estiraba demasiado la sonrisa. Las capas antiguas que
+puedan quedar guardadas no intervienen en la animación.
 
 ### Sonido
 

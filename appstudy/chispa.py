@@ -151,6 +151,22 @@ class Chispa(Creature):
     # De dónde nace la cola, en coordenadas del cuerpo.
     COLA_X, COLA_Y = 20, 20
 
+    def hablar(self, segundos=1.2):
+        self.habla_desde = self.t
+        Creature.hablar(self, segundos)
+
+    def _intensidad_voz(self):
+        if self.reduced_motion or self.mood == "dormido":
+            return 0.0
+        restante = self.hablando_hasta - self.t
+        if restante <= 0:
+            return 0.0
+        inicio = getattr(self, "habla_desde", self.t - .18)
+        entrada = max(0.0, min(1.0, (self.t - inicio) / .18))
+        salida = min(1.0, restante / .18)
+        k = min(entrada, salida)
+        return k * k * (3 - 2*k)
+
     def _indice_pose(self):
         """Las acciones explícitas tienen prioridad sobre el ánimo de reposo."""
         if self.mood == "dormido":
@@ -159,9 +175,13 @@ class Chispa(Creature):
             return 3
         if self.phase("saludo") is not None:
             return 1
-        if any(self.phase(g) is not None for g in ("curiosear", "ladear", "suspiro", "enojado")):
+        if any(self.phase(g) is not None for g in ("curiosear", "ladear", "suspiro", "enojado", "rascarse")):
             return 4
-        if self.teaching or self.charlando or self.t < self.hablando_hasta:
+        if self.phase("estirar") is not None or self.phase("bostezo") is not None:
+            return 0
+        if self.t < self.hablando_hasta or self.charlando:
+            return 0
+        if self.teaching:
             return 2
         if self.mood in ("aburrido", "hambre", "triste") or self.enfadada():
             return 4
@@ -238,12 +258,57 @@ class Chispa(Creature):
         cr.translate(x, y)
         cr.scale(k, k)
         intensidad = 0.0 if self.reduced_motion else (1 - .65 * self.abandono)
+        voz = self._intensidad_voz()
+        enojo_val = 1.0 if self.enfadada() else (self.phase("enojado") or 0.0)
         gestos = animacion_chispa.movimientos(
-            indice, self.t, intensidad, self.phase("saludo"))
-        pintado = self._pintar_con_capas(cr, indice, intensidad)
-        if not pintado:
-            animacion_chispa.pintar(cr, superficie, gestos)
+            indice, self.t, intensidad, self.phase("saludo"), voz,
+            risa=self.phase("risa"),
+            bostezo=self.phase("bostezo"),
+            estirar=self.phase("estirar"),
+            rascarse=self.phase("rascarse"),
+            enojado=enojo_val)
+        # Las capas segmentadas automáticamente tienen agujeros en ojos y
+        # boca. Mantener el atlas intacto evita que hablar revele esos bordes.
+        parpadeo = self.phase("parpadeo")
+        if parpadeo is not None and self.anims["parpadeo"][1] > .3:
+            parpadeo = (parpadeo * 2) % 1
+        caricia_val = 1.0 if self.phase("caricia") is not None else (self.hover_suave if self.hover else None)
+        rasgos = animacion_chispa.expresiones(
+            indice, self.t, self.mirada, parpadeo, self.phase("guino"),
+            voz, self.reduced_motion,
+            bostezo=self.phase("bostezo"),
+            risa=self.phase("risa"),
+            caricia=caricia_val,
+            enojado=enojo_val)
+        animacion_chispa.pintar(cr, superficie, gestos, rasgos)
+        animacion_chispa.parpados(
+            cr, indice, superficie.get_width(), superficie.get_height(),
+            parpadeo, self.phase("guino"), self.reduced_motion,
+            bostezo=self.phase("bostezo"),
+            risa=self.phase("risa"),
+            estirar=self.phase("estirar"),
+            caricia=caricia_val,
+            rascarse=self.phase("rascarse"),
+            enojado=enojo_val)
         cr.restore()
+
+        # Anclajes de la cara en las seis celdas del atlas de referencia.
+        # Se expresan como fracciones para admitir un PNG de mayor resolución.
+        caras = ((.625, .412), (.543, .422), (.559, .516),
+                 (.557, .324), (.539, .385), (.594, .553))
+        fx, fy = caras[indice]
+        cr.save()
+        cr.translate(x + fx * superficie.get_width() * k,
+                     y + fy * superficie.get_height() * k + 9)
+        if indice == 5:
+            cr.rotate(.65)
+        elif indice == 4:
+            cr.rotate(-.35)
+        if self.accessory == "panuelo":
+            cr.translate(0, -14)
+        self._accesorio(cr, color)
+        cr.restore()
+
 
     def _pintar_con_capas(self, cr, indice, intensidad) -> bool:
         """Dibuja por capas cuando aportan algo. Devuelve si lo ha hecho.
@@ -257,14 +322,22 @@ class Chispa(Creature):
         if rig is None:
             return False
         cierre = self._cierre_parpadeo() if rig.parpadea(indice) else 0.0
+        p = self.phase("parpadeo")
+        if p is not None and not self.reduced_motion:
+            vueltas = 2 if self.anims["parpadeo"][1] > .3 else 1
+            cierre = max(cierre, math.sin(math.pi * p * vueltas) ** 2)
+        g = self.phase("guino")
+        guino = math.sin(math.pi*g)**2 if g is not None and not self.reduced_motion else 0
         apertura = self._apertura_boca() if rig.habla(indice) else 0.0
         inclinacion = self._inclinacion_cabeza() if rig.inclina(indice) else 0.0
-        if rig.mueve_miembros(indice):
-            balanceo = 0.0 if self.reduced_motion else math.sin(self.t * 1.9)
-            return rig.dibujar(cr, indice, cierre, balanceo * intensidad,
-                               apertura, inclinacion)
-        if cierre > 0 or apertura > 0 or inclinacion:
-            return rig.dibujar(cr, indice, cierre, 0.0, apertura, inclinacion)
+        balanceo = 0.0 if self.reduced_motion else math.sin(self.t * 1.9) * intensidad
+        voz = self._intensidad_voz()
+        manos = tuple(max(-1, min(1, balanceo + voz * math.sin(self.t*4.6+n*2.1)*.7))
+                      for n in range(2))
+        mirada = (0,0) if self.reduced_motion else tuple(self.mirada)
+        if rig.mueve_miembros(indice) or cierre or apertura or inclinacion or guino or any(mirada):
+            return rig.dibujar(cr, indice, cierre, balanceo, apertura, inclinacion,
+                               mirada=mirada, guino=guino, manos=manos)
         return False
 
     def _inclinacion_cabeza(self) -> float:
@@ -287,29 +360,29 @@ class Chispa(Creature):
             return 0.0
         # Dos frecuencias: una boca que sube y baja a compás parece un juguete
         onda = math.sin(self.t * 13) * 0.6 + math.sin(self.t * 7.3) * 0.4
-        return max(0.0, onda)
-        # Anclajes de la cara en las seis celdas del atlas de referencia.
-        # Se expresan como fracciones para admitir un PNG de mayor resolución.
-        caras = ((.625, .412), (.543, .422), (.559, .516),
-                 (.557, .324), (.539, .385), (.594, .553))
-        fx, fy = caras[indice]
-        cr.save()
-        cr.translate(x + fx * superficie.get_width() * k,
-                     y + fy * superficie.get_height() * k + 9)
-        if indice == 5:
-            cr.rotate(.65)
-        elif indice == 4:
-            cr.rotate(-.35)
-        if self.accessory == "panuelo":
-            cr.translate(0, -14)
-        self._accesorio(cr, color)
-        cr.restore()
-
+        return max(0.0, onda) * self._intensidad_voz()
     def _utileria_gestos(self, cr):
         # Las poses ya incluyen manos y portátil; no superponer las manos
         # del dibujo vectorial sobre la ilustración.
         if cargar_poses() is None:
             Creature._utileria_gestos(self, cr)
+        elif self.enfadada() and not self.reduced_motion:
+            # Marca de enfado (venita roja cómic 💢) pulsando sobre la cabeza
+            pulso = 0.88 + 0.12 * math.sin(self.t * 7.5)
+            cr.save()
+            cr.translate(34, -58)
+            cr.scale(pulso, pulso)
+            cr.set_source_rgba(0.92, 0.16, 0.16, 0.95)
+            cr.set_line_width(2.2)
+            cr.set_line_cap(cairo.LINE_CAP_ROUND)
+            for a in (0, math.pi / 2, math.pi, 3 * math.pi / 2):
+                cr.save()
+                cr.rotate(a)
+                cr.move_to(-7, -2.5)
+                cr.curve_to(-4.5, -4.5, -2.5, -4.5, -2.5, -7)
+                cr.stroke()
+                cr.restore()
+            cr.restore()
 
     # -- silueta --------------------------------------------------------------
 
@@ -354,7 +427,8 @@ class Chispa(Creature):
         tiron = self.phase_motion("antena")
         agita = (0.0 if tiron is None or self.reduced_motion else
                  math.sin(tiron * math.pi * 5) * 0.22 * (1 - tiron))
-        alerta = 0.10 * self.hover_suave - 0.20 * self.abandono
+        mimo = 1.0 if self.phase("caricia") is not None else (self.hover_suave if self.hover else 0.0)
+        alerta = 0.10 * self.hover_suave - 0.20 * self.abandono - 0.08 * mimo
         for lado in (-1, 1):
             cr.save()
             cr.translate(lado * 13, -24)
@@ -510,12 +584,16 @@ class Chispa(Creature):
         cuando tiene algo que enseñarte y se apaga cuando llevas días sin venir,
         que es cuando un zorro deja de menear la cola.
         """
-        vel = 5.2 if self.teaching else 1.5
+        mimo = 1.0 if self.phase("caricia") is not None else (self.hover_suave if self.hover else 0.0)
+        vel = 7.0 if mimo > 0.1 else (5.2 if self.teaching else 1.5)
         amplitud = (0.0 if self.reduced_motion else
-                    (0.17 if self.teaching else 0.09) * (1 - 0.7 * self.abandono))
+                    (0.22 if mimo > 0.1 else (0.17 if self.teaching else 0.09)) * (1 - 0.7 * self.abandono))
         vaiven = math.sin(self.t * vel) * amplitud + self.inercia * 0.5
         if self.mood == "dormido":
             vaiven = 0.0 if self.reduced_motion else math.sin(self.t * 0.8) * 0.02
+        elif self.enfadada() and not self.reduced_motion:
+            # Latigazos bruscos de cola de indignación
+            vaiven = (math.sin(self.t * 3.8) ** 3) * 0.26
 
         superficie = self._cola_grabada(color)
         cr.save()

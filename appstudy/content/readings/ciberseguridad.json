@@ -1,0 +1,141 @@
+{
+ "deck": "ciberseguridad",
+ "chapters": [
+  {
+   "level": 1,
+   "minutes": 8,
+   "tags": "fundamentos,cia,amenazas",
+   "title": "Fundamentos de Ciberseguridad y la Tríada CIA",
+   "subtitle": "Confidencialidad, Integridad y Disponibilidad como base del diseño de sistemas seguros.",
+   "body": [
+    {
+     "p": "La ciberseguridad contemporánea no consiste en instalar antivirus o crear contraseñas largas; es una disciplina de <b>gestión de riesgos y arquitectura defensiva</b>. Toda estrategia se fundamenta en la Tríada CIA, formalizada en estándares internacionales como ISO/IEC 27001 y el marco NIST CSF."
+    },
+    {
+     "key": "La seguridad perfecta no existe: el objetivo es elevar el coste del ataque por encima del valor del activo para el adversario."
+    },
+    {
+     "h": "Los tres pilares de la Tríada CIA"
+    },
+    {
+     "list": [
+      "<b>Confidencialidad</b>: garantiza que solo entidades autorizadas tengan visibilidad de los datos (cifrado en reposo y en tránsito, control de accesos RBAC).",
+      "<b>Integridad</b>: protege la exactitud y completitud de la información contra modificaciones no autorizadas o accidentales (firmas digitales, funciones hash criptográficas SHA-256).",
+      "<b>Disponibilidad</b>: asegura que los sistemas, redes y aplicaciones respondan a los usuarios legítimos de forma continua (redundancia, balanceadores, protección anti-DDoS, backups probados)."
+     ]
+    },
+    {
+     "h": "Fuentes y marcos de referencia"
+    },
+    {
+     "note": "<b>Fuentes consultadas:</b> NIST Special Publication 800-53 (Security and Privacy Controls for Information Systems) y estándar ISO/IEC 27001:2022."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "redes,tcpip,protocolos",
+   "title": "Anatomía de las Redes: Del Modelo OSI a TCP/IP",
+   "subtitle": "Cómo viajan los datos entre capas, puertos esenciales y apretones de manos.",
+   "body": [
+    {
+     "p": "Internet se comunica mediante una jerarquía de capas. Mientras que el modelo teórico OSI de 7 niveles es ideal para conceptualizar, el modelo práctico <b>TCP/IP de 4 capas</b> es la implementación real de la red mundial."
+    },
+    {
+     "h": "El saludo de tres vías (3-Way Handshake) de TCP"
+    },
+    {
+     "steps": [
+      "<b>1. SYN (Synchronize)</b>: El cliente envía un paquete con el flag SYN activo y un número de secuencia aleatorio inicial (ISN_c).",
+      "<b>2. SYN-ACK (Synchronize-Acknowledge)</b>: El servidor recibe la solicitud y responde con SYN activo, su propio número de secuencia (ISN_s) y un ACK igual a ISN_c + 1.",
+      "<b>3. ACK (Acknowledge)</b>: El cliente confirma recibiendo el SYN del servidor enviando un paquete ACK con número ISN_s + 1. La conexión queda establecida."
+     ]
+    },
+    {
+     "note": "<b>Fuente técnica:</b> RFC 9293 (Transmission Control Protocol Standard, IETF, 2022)."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 12,
+   "tags": "owasp,vulnerabilidades,seguridad_web",
+   "title": "Vulnerabilidades Web Críticas y OWASP Top 10",
+   "subtitle": "Análisis profundo de SQL Injection, XSS, CSRF, SSRF y mecanismos defensivos en profundidad.",
+   "body": [
+    {
+     "p": "El <b>OWASP Top 10</b> recopila los riesgos de seguridad más críticos que amenazan a las aplicaciones web modernas. Diseñar software seguro requiere comprender cómo opera el atacante en cada fase del vector de explotación."
+    },
+    {
+     "h": "Inyección SQL (SQLi) y Consultas Parametrizadas"
+    },
+    {
+     "p": "Ocurre cuando entradas externas no saneadas son concatenadas directamente en el intérprete de la base de datos, alterando la lógica de la consulta original:"
+    },
+    {
+     "warn": "Vulnerable: <code>query = f'SELECT * FROM users WHERE user = \"{username}\"'</code>. Si el atacante envía <code>' OR '1'='1</code>, obtendrá acceso total sin credenciales."
+    },
+    {
+     "code": "# Solución definitiva: Prepared Statements con parámetros tipados\ncursor.execute('SELECT * FROM users WHERE user = %s AND pass_hash = %s', (username, hashed))"
+    },
+    {
+     "h": "Cross-Site Scripting (XSS) y Defensas en Capas"
+    },
+    {
+     "p": "Permite inyectar código JavaScript malicioso en navegadores ajenos. Sus variantes principales son:"
+    },
+    {
+     "list": [
+      "<b>Almacenado (Stored)</b>: el script se persiste en la base de datos (comentarios, perfil) y se ejecuta en cada visitante.",
+      "<b>Reflejado (Reflected)</b>: el script viaja en la URL o parámetro de búsqueda y el servidor lo devuelve tal cual.",
+      "<b>Basado en DOM</b>: la vulnerabilidad ocurre íntegramente en el cliente mediante APIs inseguras como <code>innerHTML</code>."
+     ]
+    },
+    {
+     "key": "La defensa requiere escapar la salida según el contexto (HTML, atributo, JS) y aplicar una cabecera estricta Content-Security-Policy (CSP)."
+    },
+    {
+     "note": "<b>Fuente de referencia:</b> OWASP Top 10 Web Application Security Risks (Open Web Application Security Project, 2021-2025)."
+    }
+   ]
+  },
+  {
+   "level": 4,
+   "minutes": 14,
+   "tags": "criptografia,tls,zerotrust",
+   "title": "Criptografía Moderna, TLS 1.3 y la Arquitectura Zero Trust",
+   "subtitle": "Algoritmos simétricos y asimétricos, Perfect Forward Secrecy y el paradigma de nunca confiar.",
+   "body": [
+    {
+     "p": "La criptografía moderna es la columna vertebral de la confianza digital. Combina algoritmos simétricos de alta velocidad para el transporte masivo de datos con criptografía asimétrica para la autenticación y el intercambio seguro de claves."
+    },
+    {
+     "h": "Cifrado Simétrico vs Asimétrico"
+    },
+    {
+     "list": [
+      "<b>Simétrico (AES-GCM, ChaCha20-Poly1305)</b>: emplea la misma clave para cifrar y descifrar. Proporciona confidencialidad y autenticación de datos asociados (AEAD) con un rendimiento de gigabits por segundo.",
+      "<b>Asimétrico (RSA, ECDSA, Ed25519)</b>: emplea un par de claves matemáticamente enlazadas. Permite firmar digitalmente documentos y establecer canales seguros sobre redes públicas no confiables."
+     ]
+    },
+    {
+     "h": "El paradigma Zero Trust: «Nunca confíes, siempre verifica»"
+    },
+    {
+     "p": "El modelo perimetral tradicional («red interna segura vs Internet hostil») es obsoleto en la era cloud. <b>Zero Trust</b> asume que la red interna ya está comprometida (<i>Assume Breach</i>) y exige tres pilares:"
+    },
+    {
+     "steps": [
+      "<b>1. Verificación explícita continua</b>: autenticar y autorizar cada llamada según identidad, salud del dispositivo y telemetría de comportamiento.",
+      "<b>2. Mínimo privilegio</b>: limitar el acceso al recurso exacto durante el tiempo mínimo indispensable (Just-In-Time access).",
+      "<b>3. Microsegmentación</b>: aislar cargas de trabajo y cifrar el 100% de las comunicaciones este-oeste (entre microservicios) con mTLS."
+     ]
+    },
+    {
+     "note": "<b>Estándares de referencia:</b> NIST SP 800-207 (Zero Trust Architecture) y RFC 8446 (The Transport Layer Security (TLS) Protocol Version 1.3)."
+    }
+   ]
+  }
+ ]
+}

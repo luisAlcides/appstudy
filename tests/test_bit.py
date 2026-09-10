@@ -36,6 +36,8 @@ class EvolucionBitTest(unittest.TestCase):
         self.assertTrue(pet.debe_enfadarse(24, 5))
         self.assertFalse(pet.debe_enfadarse(72, 0))
         self.assertFalse(pet.debe_enfadarse(72, 5, dormida=True))
+        self.assertTrue(pet.debe_enfadarse(4.5, 5, hoy=0))
+        self.assertFalse(pet.debe_enfadarse(4.5, 5, hoy=10))
 
     def test_empieza_como_companero(self):
         estado = pet.evolucion(0)
@@ -221,6 +223,9 @@ class GloboEstrictoUITest(BaseTemporal):
                 self.reto = None
                 self.reto_timer = None
                 self.ultimo_formato = None
+                # El formato de enseñanza se sortea; aquí se fija, que lo que se
+                # prueba son los botones de calificar, no el dado.
+                self.formato_actual = "tarjeta"
                 self.shown_at = 0
                 self.creature = Mock()
                 for nombre in ("clear_bubble", "say", "open_bubble", "refresh_stats",
@@ -235,7 +240,10 @@ class GloboEstrictoUITest(BaseTemporal):
                 self.char_width = Mock(return_value=30)
 
             def __getattr__(self, nombre):
-                return MethodType(getattr(pet.PetWindow, nombre), self)
+                valor = getattr(pet.PetWindow, nombre)
+                # Las propiedades (`nombre`) llegan aquí sin resolver
+                return valor.fget(self) if isinstance(valor, property) else \
+                    MethodType(valor, self)
 
         return GloboBit(self.con, card)
 
@@ -332,3 +340,104 @@ class InterruptorEstrictoTest(BaseTemporal):
         self.assertFalse(pet.estricto(self.con))
         ventana.estricto_switch.set_active(True)
         self.assertTrue(pet.estricto(self.con))
+
+
+class RetroalimentacionYCreacionTest(GloboEstrictoUITest):
+    def test_sesion_quiz_y_retroalimentacion(self):
+        did = self.mazo(name="Redes", key="redes")
+        cid1 = self.tarjeta(did, "¿Qué es TCP?", "Protocolo de control de transmisión")
+        cid2 = self.tarjeta(did, "¿Qué es UDP?", "Protocolo de datagramas de usuario")
+        carta1 = dict(self.con.execute(
+            "SELECT c.*, d.key AS deck_key, d.name AS deck_name, d.icon AS deck_icon, d.color AS deck_color, d.levels AS deck_levels FROM cards c JOIN decks d ON d.id=c.deck_id WHERE c.id=?", (cid1,)).fetchone())
+        carta2 = dict(self.con.execute(
+            "SELECT c.*, d.key AS deck_key, d.name AS deck_name, d.icon AS deck_icon, d.color AS deck_color, d.levels AS deck_levels FROM cards c JOIN decks d ON d.id=c.deck_id WHERE c.id=?", (cid2,)).fetchone())
+
+        bit = self.bit(carta1)
+        bit.reto = {"formato": "opciones", "pregunta": "¿Qué es TCP?", "segundos": 10, "correcta": 0, "respuesta": "Protocolo TCP"}
+
+        # Resolver primero con acierto
+        bit.resolver(True, elegida="Protocolo TCP")
+        self.assertIsNotNone(bit.sesion_quiz)
+        self.assertEqual(bit.sesion_quiz["total"], 1)
+        self.assertEqual(bit.sesion_quiz["aciertos"], 1)
+        self.assertEqual(bit.sesion_quiz["fallos"], 0)
+
+        # Resolver segundo con fallo
+        bit.card = carta2
+        bit.reto = {"formato": "opciones", "pregunta": "¿Qué es UDP?", "segundos": 10, "correcta": 1, "respuesta": "Protocolo UDP"}
+        bit.resolver(False, elegida="Respuesta errónea")
+        self.assertEqual(bit.sesion_quiz["total"], 2)
+        self.assertEqual(bit.sesion_quiz["aciertos"], 1)
+        self.assertEqual(bit.sesion_quiz["fallos"], 1)
+        self.assertEqual(len(bit.sesion_quiz["historial"]), 2)
+
+        # Mostrar retroalimentación
+        bit.mostrar_retroalimentacion_quiz()
+        self.assertGreater(len(bit.bubble_box.observe_children()), 0)
+
+    def test_render_acta_retroalimentacion_examen(self):
+        did = self.mazo(name="Ciberseguridad", key="ciberseguridad")
+        cid = self.tarjeta(did, "¿Qué es XSS?", "Cross-Site Scripting")
+
+        bit = self.bit(None)
+
+        acta = {
+            "nota": 45,
+            "aprobadas": 1,
+            "total": 2,
+            "juicio": "A medias",
+            "flojas": [{
+                "card_id": cid,
+                "front": "¿Qué es XSS?",
+                "pregunta": "¿Qué es Cross-Site Scripting?",
+                "respuesta": "Un ataque web",
+                "falto": "Inyección de scripts maliciosos en el navegador de la víctima",
+                "nota": 40,
+                "veredicto": "Faltó precisión"
+            }]
+        }
+        bit.render_acta(acta)
+        self.assertGreater(len(bit.bubble_box.observe_children()), 0)
+
+    def test_creacion_tema_y_preguntas_en_db(self):
+        # Crear tema
+        pos = (self.con.execute("SELECT MAX(pos) AS p FROM decks").fetchone()["p"] or 0) + 1
+        did = db.upsert_deck(self.con, "biologia", "Biología", "🔬", "#26a269", pos, ["Básico", "Avanzado"])
+        self.con.commit()
+        deck = self.con.execute("SELECT * FROM decks WHERE id=?", (did,)).fetchone()
+        self.assertEqual(deck["name"], "Biología")
+        self.assertEqual(deck["icon"], "🔬")
+
+        # Crear tarjeta flashcard
+        cid1, es_nueva1 = db.add_card(self.con, did, "biologia", "card", "¿Qué es la mitocondria?",
+                                      back="La central energética de la célula")
+        self.con.commit()
+        self.assertEqual(es_nueva1, 1)
+
+        # Crear pregunta tipo quiz
+        choices = ["Mitocondria", "Ribosoma", "Núcleo", "Vacuola"]
+        cid2, es_nueva2 = db.add_card(self.con, did, "biologia", "quiz", "¿Dónde se sintetizan las proteínas?",
+                                      back="En los ribosomas", choices=choices, answer=1)
+        self.con.commit()
+        self.assertEqual(es_nueva2, 1)
+
+        c2 = self.con.execute("SELECT * FROM cards WHERE id=?", (cid2,)).fetchone()
+        self.assertEqual(c2["kind"], "quiz")
+        self.assertEqual(c2["answer"], 1)
+
+    def test_repaso_tarjetas_especificas_flujo(self):
+        did = self.mazo(name="Test", key="test")
+        cid1 = self.tarjeta(did, "P1", "R1")
+        cid2 = self.tarjeta(did, "P2", "R2")
+
+        bit = self.bit(None)
+
+        bit.repasar_tarjetas_especificas([cid1, cid2])
+        self.assertEqual(bit.card["id"], cid1)
+        self.assertEqual(bit.cola_repaso_especifico, [cid2])
+        bit.siguiente_repaso_especifico()
+        self.assertEqual(bit.card["id"], cid2)
+        self.assertEqual(bit.cola_repaso_especifico, [])
+        bit.siguiente_repaso_especifico()
+        bit.say.assert_called()
+

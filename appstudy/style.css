@@ -446,55 +446,227 @@ window.as-pet .as-pet-revealer {
 
 window.as-pet box.as-bubble {
   background-color: @window_bg_color;
-  background-image: linear-gradient(@card_bg_color, @card_bg_color);
+  background-image: linear-gradient(180deg, mix(@card_bg_color, #ffffff, 0.05) 0%, @card_bg_color 100%);
   color: @card_fg_color;
   border: 1px solid alpha(currentColor, 0.12);
-  border-radius: 22px;
-  padding: 18px 20px;
+  border-radius: 24px;
+  padding: 16px 18px;
   margin: 0 4px 6px 4px;
-  box-shadow: 0 8px 24px alpha(black, 0.38);
+  box-shadow: 0 16px 42px alpha(black, 0.42), 0 4px 12px alpha(black, 0.22), inset 0 1px 0 alpha(white, 0.16);
+}
+
+.as-chip-mazo {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 3px alpha(black, 0.15);
+  border: 1px solid alpha(currentColor, 0.14);
+}
+
+.as-bubble-linea {
+  min-height: 3px;
+  border-radius: 9999px;
+  margin: 2px 0 6px 0;
+  opacity: 0.92;
+  box-shadow: 0 1px 4px alpha(black, 0.15);
+}
+
+.as-header-tools button {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 3px;
+  border-radius: 9999px;
+  opacity: 0.75;
+  transition: all 160ms ease;
+}
+
+.as-header-tools button:hover {
+  opacity: 1;
+  background: alpha(currentColor, 0.12);
+}
+
+.as-header-tools button.as-btn-cerrar:hover {
+  background: alpha(#e01b24, 0.20);
+  color: #e01b24;
 }
 
 .as-bubble-title {
   font-size: 0.82rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
-  opacity: 0.85;
+  opacity: 0.88;
 }
 
 .as-bubble-front {
   font-size: 1.08rem;
   font-weight: 700;
-  line-height: 1.38;
+  line-height: 1.40;
 }
 
 .as-bubble-text {
   font-size: 0.96rem;
   line-height: 1.50;
-  opacity: 0.92;
+  opacity: 0.94;
 }
 
-.as-bubble-sep { margin: 3px 0; opacity: 0.35; }
+.as-bubble-sep { margin: 4px 0; opacity: 0.30; }
 
 /* El pie de una frase de libro: autor y obra */
 .as-bubble-cita {
   font-size: 0.82rem;
-  opacity: 0.65;
+  opacity: 0.70;
   margin-top: -2px;
 }
 
 .as-bubble button.pill {
-  padding: 4px 10px;
+  padding: 5px 12px;
   font-size: 0.88rem;
   font-weight: 700;
 }
 
 .as-bubble-link {
   font-size: 0.82rem;
-  opacity: 0.7;
-  padding: 0;
+  opacity: 0.72;
+  padding: 4px 8px;
+  border-radius: 8px;
   min-height: 0;
+  transition: all 140ms ease;
+}
+
+.as-bubble-link:hover {
+  opacity: 1;
+  background: alpha(currentColor, 0.08);
+}
+
+/* ------------------------------- los formatos de enseñanza del globo
+
+   La tarjeta que sale al pulsar la mascota se puede contar de cuatro maneras
+   (tarjeta, esquema, diálogo, capas) y se sortea una al pulsar la mascota. Cada
+   trozo va en su propio panel con un
+   color que dice qué es: naranja la pregunta, verde la respuesta, ámbar la
+   pista. Así se distinguen de un vistazo, sin leerlos. */
+
+/* Los paneles de contenido: mismo molde, distinto color al canto */
+.as-card-front-box,
+.as-card-back-box,
+.as-card-hint-box,
+.as-box-esquema,
+.as-dialogo-globo {
+  border-radius: 14px;
+  padding: 10px 12px;
+  border: 1px solid alpha(currentColor, 0.07);
+}
+
+.as-card-front-box {
+  background: alpha(#D97757, 0.10);
+  border-color: alpha(#D97757, 0.26);
+  border-left: 3.5px solid #D97757;
+}
+
+.as-card-back-box {
+  background: alpha(#2ec27e, 0.10);
+  border-color: alpha(#2ec27e, 0.24);
+  border-left: 3.5px solid #2ec27e;
+}
+
+.as-card-hint-box {
+  background: alpha(#e5a50a, 0.10);
+  border-color: alpha(#e5a50a, 0.28);
+  border-left: 3.5px solid #e5a50a;
+}
+
+/* Los pasos del esquema y las capas: más sobrios, son una lista */
+.as-box-esquema {
+  background: alpha(currentColor, 0.05);
+  border-left: 3.5px solid alpha(currentColor, 0.22);
+}
+
+/* El globo de Bit cuando te lo cuenta hablando: esquina mordida abajo a la
+   izquierda, como si saliera de su boca. */
+.as-dialogo-globo {
+  background: alpha(#5B86D6, 0.12);
+  border-color: alpha(#5B86D6, 0.30);
+  border-bottom-left-radius: 4px;
+}
+
+/* Los rótulos de cada panel: pequeños, en mayúsculas, del color del panel */
+.as-card-subhead,
+.as-card-subhead-resp {
+  font-size: 0.70rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  opacity: 0.80;
+}
+
+.as-card-subhead-resp { color: #2ec27e; }
+.as-card-front-box .as-card-subhead { color: #D97757; }
+.as-card-hint-box  .as-card-subhead { color: #e5a50a; }
+
+/* El número del paso del esquema: un círculo que ancla la fila */
+.as-paso-num {
+  font-size: 0.76rem;
+  font-weight: 800;
+  min-width: 20px;
+  min-height: 20px;
+  padding: 1px 0;
+  margin-top: 1px;
+  border-radius: 9999px;
+  background: alpha(#D97757, 0.20);
+  color: #D97757;
+}
+
+/* Tu turno en el diálogo: pegado a la derecha, como tu lado de la charla */
+.as-dialogo-mio {
+  font-size: 0.84rem;
+  font-style: italic;
+  opacity: 0.58;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  background: alpha(currentColor, 0.06);
+}
+
+/* La pista cuando solo acompaña: una nota al pie, no un panel más */
+.as-nota-pie {
+  padding: 4px 10px 4px 8px;
+  border-left: 2px solid alpha(#e5a50a, 0.55);
+}
+
+/* El número del paso, o el nombre de la capa */
+.as-paso-badge {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  opacity: 0.82;
+}
+
+/* Desplegar una capa: una fila ancha que se nota pulsable pero no grita */
+.as-bubble button.as-capa-btn {
+  font-size: 0.84rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: alpha(currentColor, 0.06);
+  border: 1px dashed alpha(currentColor, 0.26);
+  box-shadow: none;
+  opacity: 0.82;
+  transition: all 140ms ease;
+}
+
+/* La capa abierta: sin el borde de puntos, que ya no invita a nada */
+.as-bubble button.as-capa-btn.as-capa-abierta {
+  border-style: solid;
+  border-color: alpha(currentColor, 0.10);
+  background: transparent;
+  opacity: 0.72;
+}
+
+.as-bubble button.as-capa-btn:hover {
+  opacity: 1;
+  background: alpha(currentColor, 0.12);
+  border-style: solid;
 }
 
 /* --------------------------------------------------------- retos de Bit */

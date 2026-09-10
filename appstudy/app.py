@@ -51,6 +51,8 @@ class AppStudy(Adw.Application):
                              "Abrir la lista de tarjetas que se te atragantan", None)
         self.add_main_option("ayuda", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
                              "Abrir la guía de uso", None)
+        self.add_main_option("biblioteca", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+                             "Abrir la biblioteca de libros", None)
         self.add_main_option("reload", ord("r"), GLib.OptionFlags.NONE,
                              GLib.OptionArg.NONE,
                              "Reimportar el contenido incluido y refrescar la ventana",
@@ -155,6 +157,12 @@ class AppStudy(Adw.Application):
             from . import voz
             cfg = voz.config(self.con)
             voz.hablar(opts["say"], cfg)
+            return 0
+        if opts.get("biblioteca"):
+            self.show_main_window()
+            if self.main_window:
+                self.main_window.stack.set_visible_child_name("biblioteca")
+                self.main_window.biblioteca.refrescar()
             return 0
         if opts.get("fcc_certs") or opts.get("fcc-certs"):
             from . import freecodecamp

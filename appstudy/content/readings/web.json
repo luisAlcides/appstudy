@@ -1,0 +1,102 @@
+{
+ "deck": "web",
+ "chapters": [
+  {
+   "level": 1,
+   "minutes": 9,
+   "tags": "dom,html,arquitectura_web",
+   "title": "Arquitectura del Navegador y el Árbol DOM",
+   "subtitle": "Cómo los motores de renderizado transforman HTML y CSS en árboles en memoria interactivos.",
+   "body": [
+    {
+     "p": "El navegador web es una de las aplicaciones de software más complejas jamás construidas. Su núcleo combina un motor de renderizado (Blink, Gecko, WebKit) con un motor de ejecución JavaScript (V8, SpiderMonkey, JavaScriptCore)."
+    },
+    {
+     "h": "El Árbol DOM y la Manipulación Eficiente"
+    },
+    {
+     "p": "El DOM es una interfaz de programación orientada a objetos que representa el documento como un árbol de nodos. Cada modificación en el DOM puede desencadenar fases costosas de <b>Layout (Reflow)</b> y <b>Repaint</b>."
+    },
+    {
+     "key": "Para maximizar el rendimiento, agrupa las mutaciones en memoria utilizando <code>DocumentFragment</code> o aprovecha el pipeline de <code>requestAnimationFrame</code> antes de actualizar la vista visible."
+    },
+    {
+     "note": "<b>Fuente técnica:</b> W3C DOM Level 4 Core Specification y MDN Web Docs."
+    }
+   ]
+  },
+  {
+   "level": 2,
+   "minutes": 11,
+   "tags": "javascript,eventloop,asincronia",
+   "title": "JavaScript Asíncrono y el Funcionamiento del Event Loop",
+   "subtitle": "Call Stack, Microtareas, Macrotareas y el modelo de concurrencia no bloqueante.",
+   "body": [
+    {
+     "p": "A diferencia de entornos multihilo como Java o C++, JavaScript en el navegador ejecuta el código de usuario en un <b>hilo principal único</b>. Para evitar congelar la interfaz ante operaciones lentas de red o disco, recurre a un modelo asíncrono no bloqueante impulsado por el <b>Event Loop</b>."
+    },
+    {
+     "h": "El ciclo de vida del Event Loop"
+    },
+    {
+     "steps": [
+      "<b>1. Call Stack</b>: Se ejecutan las funciones síncronas una a una hasta que la pila queda vacía.",
+      "<b>2. Microtask Queue</b>: Se vacían de forma prioritaria TODAS las promesas resueltas (<code>Promise.then()</code>, <code>queueMicrotask()</code>).",
+      "<b>3. Render Pipeline</b>: Si coincide con el refresco de pantalla (~60Hz o 16.6ms), se ejecutan callbacks de <code>requestAnimationFrame</code>, layout y pintado.",
+      "<b>4. Task Queue (Macrotareas)</b>: Se extrae una sola macrotarea de temporizadores (<code>setTimeout</code>), I/O o eventos de usuario, y el ciclo recomienza."
+     ]
+    },
+    {
+     "note": "<b>Especificación:</b> WHATWG HTML Living Standard (Event loops and Task Queues)."
+    }
+   ]
+  },
+  {
+   "level": 3,
+   "minutes": 12,
+   "tags": "http,protocolos,quic",
+   "title": "Evolución de Protocolos Web: De HTTP/1.1 a HTTP/3",
+   "subtitle": "Multiplexación, compresión de cabeceras HPACK y la revolución de QUIC sobre UDP.",
+   "body": [
+    {
+     "p": "La web moderna no puede depender de los límites de diseño de los años 90. Comprender la evolución del protocolo de transporte permite diseñar APIs con latencia mínima:"
+    },
+    {
+     "list": [
+      "<b>HTTP/1.1</b>: Un mensaje a la vez por conexión TCP. Sufría de bloqueo de cabeza de línea (Head-of-Line Blocking) a nivel de petición, obligando a abrir hasta 6 conexiones paralelas por dominio.",
+      "<b>HTTP/2</b>: Introduce canales binarios multiplexados sobre una sola conexión TCP y compresión de cabeceras HPACK. Sin embargo, si un paquete TCP se pierde en la red, toda la conexión se detiene temporalmente.",
+      "<b>HTTP/3</b>: Reemplaza TCP por <b>QUIC</b>, un protocolo de transporte basado en UDP con cifrado TLS 1.3 integrado a nivel de kernel. La pérdida de un paquete en un flujo no afecta a los demás flujos en absoluto."
+     ]
+    },
+    {
+     "note": "<b>Normas IETF:</b> RFC 7540 (HTTP/2) y RFC 9114 (HTTP/3 Protocol)."
+    }
+   ]
+  },
+  {
+   "level": 4,
+   "minutes": 13,
+   "tags": "rendimiento,webvitals,ssr",
+   "title": "Rendimiento Frontend, Core Web Vitals y Estrategias de Renderizado",
+   "subtitle": "LCP, INP, CLS y la elección arquitectónica entre SSR, SSG, ISR y Streaming.",
+   "body": [
+    {
+     "p": "El rendimiento web impacta directamente en la conversión, retención y posicionamiento SEO. Google formalizó esta experiencia en tres métricas cuantitativas clave:"
+    },
+    {
+     "h": "Las tres Core Web Vitals esenciales"
+    },
+    {
+     "list": [
+      "<b>LCP (Largest Contentful Paint)</b>: Mide la velocidad de carga visual. El bloque de contenido principal (héroe, imagen o texto) debe estar completamente pintado en menos de <b>2.5 segundos</b>.",
+      "<b>INP (Interaction to Next Paint)</b>: Mide la responsividad ante clics, toques o teclado. El navegador debe responder visualmente en menos de <b>200 milisegundos</b>.",
+      "<b>CLS (Cumulative Layout Shift)</b>: Mide la estabilidad visual evitando desplazamientos molestos mientras cargan fuentes o anuncios. La puntuación debe ser inferior a <b>0.1</b>."
+     ]
+    },
+    {
+     "note": "<b>Fuente oficial:</b> Web Vitals Metrics (web.dev / Google Chrome Performance Team, 2024)."
+    }
+   ]
+  }
+ ]
+}

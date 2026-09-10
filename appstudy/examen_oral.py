@@ -171,7 +171,7 @@ class ExamenOral:
         else:
             juicio = "Toca volver sobre esto antes de examinarte de verdad."
         return {"nota": media, "aprobadas": aprobadas, "total": len(self.resultados),
-                "juicio": juicio, "flojas": self.flojas()}
+                "juicio": juicio, "flojas": self.flojas(), "resultados": list(self.resultados)}
 
     def guardar(self):
         """Deja el acta en la base, para verla luego en las estadísticas."""

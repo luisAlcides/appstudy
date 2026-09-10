@@ -19,22 +19,23 @@ from . import cloze, util
 
 # Cuánto tiempo da cada formato, en segundos
 SEGUNDOS = {"opciones": 22, "invertido": 22, "vf": 16, "hueco": 30,
-            "escribir": 40, "relampago": 12}
+            "escribir": 40, "relampago": 12, "caza_error": 26, "emparejar": 26}
 
 # Icono y título con el que se presenta cada formato en el globo
 TITULOS = {
-    "opciones":  ("🎯", "Elige la buena"),
-    "invertido": ("🔄", "¿De qué hablo?"),
-    "vf":        ("⚖️", "¿Verdadero o falso?"),
-    "hueco":     ("🧩", "Rellena el hueco"),
-    "escribir":  ("✍️", "Escríbelo tú"),
-    "relampago": ("⚡", "Contrarreloj"),
+    "opciones":   ("🎯", "Elige la buena"),
+    "invertido":  ("🔄", "¿De qué hablo?"),
+    "vf":         ("⚖️", "¿Verdadero o falso?"),
+    "hueco":      ("🧩", "Rellena el hueco"),
+    "escribir":   ("✍️", "Escríbelo tú"),
+    "relampago":  ("⚡", "Contrarreloj"),
+    "caza_error": ("🕵️", "Caza el error"),
+    "emparejar":  ("🔗", "Empareja conceptos"),
 }
 
-# Cada cuánto sale cada formato. El de opciones pesa más porque es el más
-# cómodo de responder de un vistazo; el de contrarreloj es el comodín.
-PESOS = {"opciones": 5, "invertido": 3, "vf": 3, "hueco": 3,
-         "escribir": 2, "relampago": 2}
+# Cada cuánto sale cada formato.
+PESOS = {"opciones": 4, "invertido": 2, "vf": 2, "hueco": 2,
+         "escribir": 1, "relampago": 1, "caza_error": 3, "emparejar": 2}
 
 MAX_OPCION = 92        # una opción más larga que esto no cabe en el globo
 MAX_ESCRIBIR = 34      # a partir de aquí, escribir la respuesta entera es un castigo
@@ -260,6 +261,48 @@ def preparar(con, card, evitar=None, estricto: bool = False) -> dict:
             posibles["hueco"] = {"frase": con_hueco[0], "palabra": con_hueco[1]}
         if respuesta and len(respuesta) <= MAX_ESCRIBIR and card["kind"] != "quiz":
             posibles["escribir"] = {}
+
+    # Cazador de errores: 2 afirmaciones verdaderas y 1 trampa/error que hay que detectar
+    if respuesta:
+        malas_ce = distractores(con, card, 2)
+        if malas_ce and len(malas_ce) >= 1:
+            verdadera_1 = esencia(card["back"])
+            card_dict = dict(card) if hasattr(card, "keys") else card
+            hint_val = card_dict.get("hint") or ""
+            deck_val = card_dict.get("deck_name") or "este tema"
+            verdadera_2 = (f"Concepto clave de {deck_val}"
+                           if not hint_val else esencia(hint_val))
+            if verdadera_1 != verdadera_2 and normalizar(verdadera_1) != normalizar(malas_ce[0]):
+                error_falso = malas_ce[0]
+                opciones_ce = [verdadera_1, verdadera_2, error_falso]
+                random.shuffle(opciones_ce)
+                posibles["caza_error"] = {
+                    "opciones": opciones_ce,
+                    "correcta": opciones_ce.index(error_falso),
+                    "error": error_falso,
+                }
+
+    # Emparejar: relaciona dos conceptos y sus definiciones
+    filas_otra = con.execute(
+        """SELECT front, back FROM cards
+           WHERE deck_id=? AND id<>? AND TRIM(back)<>''
+           ORDER BY RANDOM() LIMIT 1""", (card["deck_id"], card["id"])).fetchone()
+    if respuesta and filas_otra and util.plain(filas_otra["back"]):
+        c1_nom, c1_def = esencia(card["front"], 32), esencia(card["back"], 40)
+        c2_nom, c2_def = esencia(filas_otra["front"], 32), esencia(filas_otra["back"], 40)
+        if (c1_nom != c2_nom and c1_def != c2_def and
+            normalizar(c1_nom) != normalizar(c2_nom) and
+            normalizar(c1_def) != normalizar(c2_def)):
+            buena = f"• {c1_nom} ➔ {c1_def}\n• {c2_nom} ➔ {c2_def}"
+            cruzada = f"• {c1_nom} ➔ {c2_def}\n• {c2_nom} ➔ {c1_def}"
+            ops_emp = [buena, cruzada]
+            random.shuffle(ops_emp)
+            posibles["emparejar"] = {
+                "opciones": ops_emp,
+                "correcta": ops_emp.index(buena),
+                "pregunta": f"¿Cómo se relacionan «{c1_nom}» y «{c2_nom}»?",
+            }
+
     # Pensar y comprobar siempre vale, aunque la tarjeta no dé para más
     posibles["relampago"] = {}
 

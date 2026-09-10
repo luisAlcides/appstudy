@@ -36,6 +36,17 @@ PERFIL_DIR = Path.home() / ".local" / "share" / "appstudy" / "player_profile"
 PLATZI_HOME = "https://platzi.com/home"
 UDEMY_HOME = "https://www.udemy.com/home/my-courses/learning/"
 FCC_HOME = "https://www.freecodecamp.org/learn/"
+KHAN_HOME = "https://es.khanacademy.org/"
+MDN_HOME = "https://developer.mozilla.org/es/"
+
+AUDIOVISUAL_CHANNELS = [
+    ("🧮 3Blue1Brown (Matemáticas & IA)", "https://www.youtube.com/@3blue1brown_es/videos"),
+    ("💻 CS50 Harvard (Computación)", "https://cs50.harvard.edu/x/"),
+    ("🤖 DotCSV (Inteligencia Artificial)", "https://www.youtube.com/@DotCSV/videos"),
+    ("⚡ freeCodeCamp Español (Cursos Completos)", "https://www.youtube.com/@freecodecampespanol/videos"),
+    ("🌌 Kurzgesagt Español (Ciencia & Cosmos)", "https://www.youtube.com/@Kurzgesagt_es/videos"),
+    ("📚 Humanidades & Historia (Khan Academy)", "https://es.khanacademy.org/humanities"),
+]
 
 _instancia_reproductor: CursosPlayerWindow | None = None
 _sesion_webkit: WebKit.NetworkSession | None = None
@@ -142,9 +153,22 @@ class CursosPlayerWindow(Adw.Window):
         self.btn_udemy.add_css_class("flat")
         self.btn_udemy.connect("clicked", lambda _: self.cargar_url(UDEMY_HOME))
 
+        self.btn_khan = Gtk.Button(label="🌐 Khan", tooltip_text="Ir a Khan Academy")
+        self.btn_khan.add_css_class("flat")
+        self.btn_khan.connect("clicked", lambda _: self.cargar_url(KHAN_HOME))
+
+        self.btn_mdn = Gtk.Button(label="📚 MDN", tooltip_text="Ir a MDN Web Docs")
+        self.btn_mdn.add_css_class("flat")
+        self.btn_mdn.connect("clicked", lambda _: self.cargar_url(MDN_HOME))
+
+        self.btn_audiovisual = self.crear_menu_audiovisual()
+
+        self.box_plataformas.append(self.btn_audiovisual)
         self.box_plataformas.append(self.btn_fcc)
         self.box_plataformas.append(self.btn_platzi)
         self.box_plataformas.append(self.btn_udemy)
+        self.box_plataformas.append(self.btn_khan)
+        self.box_plataformas.append(self.btn_mdn)
         self.header.pack_start(self.box_plataformas)
 
         self.btn_hecha = Gtk.Button(
@@ -294,6 +318,32 @@ class CursosPlayerWindow(Adw.Window):
             self.pausar_video(recordar_estado=True)
         else:
             self.reanudar_video(solo_si_reproduciendo=True)
+
+    def crear_menu_audiovisual(self):
+        """Crea el selector desplegable de canales y series audiovisuales educativas."""
+        btn = Gtk.MenuButton(label="🎬 Audiovisual")
+        btn.add_css_class("flat")
+        btn.set_tooltip_text("Canales y series educativas audiovisuales de alta calidad")
+        pop = Gtk.Popover()
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        caja.set_margin_top(8)
+        caja.set_margin_bottom(8)
+        caja.set_margin_start(10)
+        caja.set_margin_end(10)
+
+        titulo = Gtk.Label(label="<b>Contenido Audiovisual</b>", use_markup=True, xalign=0)
+        titulo.set_margin_bottom(4)
+        caja.append(titulo)
+
+        for etiqueta, url in AUDIOVISUAL_CHANNELS:
+            b = Gtk.Button(label=etiqueta, css_classes=["flat"])
+            b.set_xalign(0.0)
+            b.connect("clicked", lambda _, u=url: (pop.popdown(), self.cargar_url(u)))
+            caja.append(b)
+
+        pop.set_child(caja)
+        btn.set_popover(pop)
+        return btn
 
     def _al_cerrar(self, *args):
         global _instancia_reproductor
@@ -885,8 +935,14 @@ def abrir_reproductor(con, parent_window=None, url: str | None = None,
         p = plataforma.lower().strip()
         if p in ("freecodecamp", "fcc"):
             win.cargar_url(FCC_HOME)
+        elif p == "udemy":
+            win.cargar_url(UDEMY_HOME)
+        elif p == "khan":
+            win.cargar_url(KHAN_HOME)
+        elif p == "mdn":
+            win.cargar_url(MDN_HOME)
         else:
-            win.cargar_url(UDEMY_HOME if p == "udemy" else PLATZI_HOME)
+            win.cargar_url(PLATZI_HOME)
     elif not win.web_view.get_uri():
         win.cargar_url(PLATZI_HOME)
 

@@ -8,6 +8,7 @@ que sabe qué tienes pendiente y puede enseñarte una tarjeta sin abrir nada.
 """
 import json
 import math
+from collections import Counter
 import os
 import random
 import re
@@ -58,11 +59,15 @@ HORAS_TRISTE = 72
 HORAS_REPROCHE = 3
 
 
-def debe_enfadarse(horas, pendientes, dormida=False):
-    return not dormida and horas >= 24 and pendientes > 0
+def debe_enfadarse(horas, pendientes, dormida=False, hoy=None):
+    if dormida or pendientes <= 0:
+        return False
+    if hoy is not None and hoy == 0 and horas >= 4.0:
+        return True
+    return horas >= 24.0
 
 
-def enfado_por_estudio(con, pendientes, dormida=False, ahora=None):
+def enfado_por_estudio(con, pendientes, dormida=False, ahora=None, hoy=None):
     """Repasar y avanzar/terminar una lectura desactivan el enfado."""
     ahora = time.time() if ahora is None else ahora
     ultima = con.execute("""SELECT MAX(ts) FROM (
@@ -71,7 +76,7 @@ def enfado_por_estudio(con, pendientes, dormida=False, ahora=None):
         UNION ALL SELECT MAX(abierto) FROM books WHERE minutos>0
     )""").fetchone()[0]
     horas = max(0, (ahora - ultima) / 3600) if ultima else 48
-    return debe_enfadarse(horas, pendientes, dormida)
+    return debe_enfadarse(horas, pendientes, dormida, hoy=hoy)
 
 
 # Evoluciona por trabajo real, no por tiempo abierto. Los accesorios son Cairo
@@ -237,6 +242,41 @@ def calificaciones_relampago(modo_estricto: bool) -> list:
     if modo_estricto:
         return []
     return [("No la tenía", False, "as-rate-again"), ("La tenía", True, "as-rate-good")]
+
+
+# Las cuatro maneras de contar una tarjeta. El orden no importa: se sortean.
+FORMATOS_ENSENANZA = ("tarjeta", "esquema", "dialogo", "capas")
+
+
+def trozos_de_respuesta(texto: str, maximo: int = 4) -> list[str]:
+    """Parte una respuesta en pasos para el esquema, sin perder nada.
+
+    Se corta por frases, y si no hay más que una, por comas o puntos y coma. Lo
+    que sobra del máximo se pega al último paso en vez de tirarse: una lista de
+    seis ideas cortada en tres deja la tarjeta contando la respuesta a medias.
+    """
+    texto = (texto or "").strip()
+    if not texto:
+        return []
+    partes = [p.strip() for p in re.split(r"(?<=[.!?])\s+|\n+", texto) if p.strip()]
+    if len(partes) < 2:
+        partes = [p.strip() for p in re.split(r"[;,]\s+", texto) if p.strip()]
+    if not partes:
+        return [texto]
+    if len(partes) > maximo:
+        partes = partes[:maximo - 1] + [" ".join(partes[maximo - 1:])]
+    return partes
+
+
+def formato_ensenanza(anterior: str | None = None) -> str:
+    """Sortea cómo se va a contar la siguiente tarjeta.
+
+    La sorpresa es parte del método: con un formato fijo la vista se acostumbra
+    y deja de mirar de verdad. Se descarta el de la tarjeta anterior porque dos
+    iguales seguidos se leen como que no ha cambiado nada.
+    """
+    opciones = [f for f in FORMATOS_ENSENANZA if f != anterior]
+    return random.choice(opciones or list(FORMATOS_ENSENANZA))
 
 
 class PetWindow(Gtk.ApplicationWindow):
@@ -558,7 +598,8 @@ class PetWindow(Gtk.ApplicationWindow):
         self.creature.mood = mood
         # Leer también cuenta: no reclamar repasos a quien acaba de leer.
         self.creature.enojado = enfado_por_estudio(
-            self.con, t["pendientes"] + t["nuevas"], mood == "dormido")
+            self.con, t["pendientes"] + t["nuevas"], mood == "dormido",
+            hoy=t.get("hoy", 0))
         self.creature.energy = energia
         self.creature.abandono = 0.0 if mood == "dormido" else abandono
         self.creature.reduced_motion = (str(
@@ -609,35 +650,217 @@ class PetWindow(Gtk.ApplicationWindow):
     def aplicar_escala_tarjeta(self):
         scale = getattr(self, "card_scale", 1.15)
         min_w = int(280 * scale)
-        pad_h = int(14 * scale)
-        pad_v = int(12 * scale)
+        pad_h = int(16 * scale)
+        pad_v = int(14 * scale)
         font_front = f"{1.06 * scale:.2f}rem"
         font_text = f"{0.96 * scale:.2f}rem"
         font_title = f"{0.80 * scale:.2f}rem"
-        font_cita = f"{0.85 * scale:.2f}rem"
+        font_cita = f"{0.84 * scale:.2f}rem"
         font_btn = f"{0.90 * scale:.2f}rem"
-        btn_pad_v = int(5 * scale)
-        btn_pad_h = int(12 * scale)
+        btn_pad_v = int(6 * scale)
+        btn_pad_h = int(14 * scale)
         css_data = f"""
-        /* Sin max-width: GTK4 no tiene esa propiedad (avisaba en cada tarjeta).
-           El ancho lo limitan los max_width_chars de cada etiqueta. */
+        /* Diseño Moderno y Pulido de la Card de Bit */
         window.as-pet box.as-bubble {{
-            min-width: {min_w}px;
+            min-width: {max(240, min_w - 30)}px;
             padding: {pad_v}px {pad_h}px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            box-shadow: 0 16px 42px rgba(0, 0, 0, 0.42), 0 4px 12px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+            background-color: @window_bg_color;
+            background-image: linear-gradient(180deg, mix(@card_bg_color, #ffffff, 0.05) 0%, @card_bg_color 100%);
         }}
         window.as-pet .as-bubble-title {{
             font-size: {font_title};
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            opacity: 0.88;
         }}
         window.as-pet .as-bubble-front {{
             font-size: {font_front};
-            line-height: 1.38;
+            font-weight: 700;
+            line-height: 1.40;
         }}
         window.as-pet .as-bubble-text {{
             font-size: {font_text};
-            line-height: 1.48;
+            line-height: 1.50;
+            opacity: 0.94;
         }}
         window.as-pet .as-bubble-cita {{
             font-size: {font_cita};
+            opacity: 0.70;
+        }}
+        window.as-pet .as-chip-mazo {{
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            letter-spacing: 0.02em;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }}
+        window.as-pet .as-bubble-linea {{
+            min-height: 3px;
+            border-radius: 9999px;
+            margin: 2px 0 6px 0;
+            opacity: 0.92;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+        }}
+        window.as-pet .as-header-tools button {{
+            min-width: 28px;
+            min-height: 28px;
+            padding: 3px;
+            border-radius: 9999px;
+            opacity: 0.75;
+            transition: all 160ms ease;
+        }}
+        window.as-pet .as-header-tools button:hover {{
+            opacity: 1;
+            background: rgba(128, 128, 128, 0.14);
+        }}
+        window.as-pet .as-header-tools button.as-btn-cerrar:hover {{
+            background: rgba(224, 27, 36, 0.20);
+            color: #e01b24;
+        }}
+        /* Barra de modos segmentada */
+        window.as-pet .as-modo-bar {{
+            background: rgba(128, 128, 128, 0.08);
+            border-radius: 14px;
+            padding: 3px;
+            border: 1px solid rgba(128, 128, 128, 0.12);
+            margin-bottom: 4px;
+        }}
+        window.as-pet button.as-modo-pill {{
+            font-size: 0.72rem;
+            padding: 4px 6px;
+            border-radius: 10px;
+            min-height: 24px;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            opacity: 0.72;
+            transition: all 150ms ease-in-out;
+        }}
+        window.as-pet button.as-modo-pill:hover {{
+            opacity: 1;
+            background: rgba(128, 128, 128, 0.12);
+        }}
+        window.as-pet button.as-modo-pill.suggested-action {{
+            background: linear-gradient(135deg, #3584e4 0%, #1c71d8 100%);
+            color: #ffffff;
+            opacity: 1;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(28, 113, 216, 0.40);
+        }}
+        /* Bloques interiores de tarjeta */
+        window.as-pet .as-card-front-box {{
+            background: rgba(128, 128, 128, 0.05);
+            border: 1px solid rgba(128, 128, 128, 0.12);
+            border-radius: 14px;
+            padding: 10px 12px;
+        }}
+        window.as-pet .as-card-back-box {{
+            background: rgba(53, 132, 228, 0.08);
+            border: 1px solid rgba(53, 132, 228, 0.20);
+            border-left: 4px solid #3584e4;
+            border-radius: 0 14px 14px 0;
+            padding: 10px 12px;
+        }}
+        window.as-pet .as-card-hint-box {{
+            background: rgba(229, 165, 10, 0.09);
+            border: 1px solid rgba(229, 165, 10, 0.22);
+            border-left: 4px solid #e5a50a;
+            border-radius: 0 12px 12px 0;
+            padding: 8px 12px;
+        }}
+        window.as-pet .as-card-subhead {{
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            opacity: 0.60;
+        }}
+        window.as-pet .as-card-subhead-resp {{
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            color: #3584e4;
+        }}
+        window.as-pet .as-box-esquema {{
+            background: rgba(128, 128, 128, 0.06);
+            border-radius: 12px;
+            padding: 8px 12px;
+            border: 1px solid rgba(128, 128, 128, 0.12);
+            border-left: 3px solid #3584e4;
+        }}
+        window.as-pet .as-paso-badge {{
+            font-size: 0.76rem;
+            color: #3584e4;
+            font-weight: bold;
+        }}
+        window.as-pet .as-dialogo-globo {{
+            background: rgba(38, 162, 105, 0.09);
+            border-radius: 4px 14px 14px 14px;
+            padding: 8px 12px;
+            border: 1px solid rgba(38, 162, 105, 0.22);
+            border-left: 4px solid #26a269;
+        }}
+        window.as-pet .as-capa-btn {{
+            font-size: 0.80rem;
+            font-weight: 600;
+            border-radius: 10px;
+            padding: 6px 12px;
+            background: rgba(128, 128, 128, 0.08);
+            border: 1px solid rgba(128, 128, 128, 0.14);
+            transition: all 160ms ease;
+        }}
+        window.as-pet .as-capa-btn:hover {{
+            background: rgba(128, 128, 128, 0.16);
+        }}
+        /* Botones de acción y calificaciones */
+        window.as-pet .as-bubble button.as-rate-again {{
+            background: linear-gradient(180deg, rgba(224, 27, 36, 0.12), rgba(224, 27, 36, 0.18));
+            border: 1px solid rgba(224, 27, 36, 0.35);
+            color: #e01b24;
+            box-shadow: 0 2px 6px rgba(224, 27, 36, 0.15);
+            min-height: 36px;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: {font_btn};
+            padding: {btn_pad_v}px {btn_pad_h}px;
+            transition: all 160ms ease-in-out;
+        }}
+        window.as-pet .as-bubble button.as-rate-again:hover {{
+            background: rgba(224, 27, 36, 0.28);
+            border-color: #e01b24;
+            box-shadow: 0 3px 10px rgba(224, 27, 36, 0.28);
+        }}
+        window.as-pet .as-bubble button.as-rate-good {{
+            background: linear-gradient(180deg, rgba(53, 132, 228, 0.15), rgba(53, 132, 228, 0.24));
+            border: 1px solid rgba(53, 132, 228, 0.38);
+            color: #3584e4;
+            box-shadow: 0 2px 6px rgba(53, 132, 228, 0.18);
+            min-height: 36px;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: {font_btn};
+            padding: {btn_pad_v}px {btn_pad_h}px;
+            transition: all 160ms ease-in-out;
+        }}
+        window.as-pet .as-bubble button.as-rate-good:hover {{
+            background: rgba(53, 132, 228, 0.32);
+            border-color: #3584e4;
+            box-shadow: 0 3px 10px rgba(53, 132, 228, 0.32);
+        }}
+        window.as-pet .as-bubble button.as-bubble-link {{
+            padding: 4px 8px;
+            border-radius: 8px;
+            opacity: 0.72;
+            transition: all 140ms ease;
+        }}
+        window.as-pet .as-bubble button.as-bubble-link:hover {{
+            opacity: 1;
+            background: rgba(128, 128, 128, 0.08);
         }}
         window.as-pet .as-reto-afirma {{
             font-size: {font_text};
@@ -687,8 +910,19 @@ class PetWindow(Gtk.ApplicationWindow):
             return True
         if self.dormida() or self.bubble.get_reveal_child():
             return True
-        if not recordatorios.permitido(recordatorios.config(self.con)):
+        # Frases de libros más seguidas: si han pasado más de 3.5 minutos sin decir nada
+        # y no hay globo abierto ni estamos durmiendo, Bit comparte una cita literaria
+        ahora = time.time()
+        ultimo_quote = getattr(self, "ultimo_quote_tiempo", 0)
+        if (ahora - ultimo_quote > 210
+                and ahora - self.last_nag > 90
+                and random.random() < 0.65
+                and not self.bubble.get_reveal_child()):
+            self.ultimo_quote_tiempo = ahora
+            self.last_nag = ahora
+            self.quote()
             return True
+
         if time.time() - self.last_nag < self.intervalo_min() * 60:
             return True
         t = self.stats
@@ -726,13 +960,11 @@ class PetWindow(Gtk.ApplicationWindow):
             self.diario()
             return True
         if t["pendientes"] == 0 and t["nuevas"] == 0:
-            # Nada que repasar: entonces te deja algo para el rato, un dato de
-            # cultura general o una frase de libro
-            self.sabias_que() if random.random() < 0.6 else self.quote()
-        elif random.random() < 0.30:
-            # Aprender cosas sueltas también cuenta, y de estas te queda algo
-            # solo si las guardas: por eso el dato trae su botón.
-            self.sabias_que() if random.random() < 0.5 else self.quote()
+            # Nada que repasar: las citas literarias tienen prioridad
+            self.quote() if random.random() < 0.70 else self.sabias_que()
+        elif random.random() < 0.50:
+            # Acompañar el estudio con reflexiones de autores y libros frecuentemente
+            self.quote() if random.random() < 0.65 else self.sabias_que()
         elif t["pendientes"] or t["nuevas"] or t["energia"] < 0.6:
             # A veces te explica algo y a veces te reta: así no se vuelve rutina
             if random.random() < 0.5:
@@ -832,7 +1064,7 @@ class PetWindow(Gtk.ApplicationWindow):
         Devuelve una columna: la fila con el chip del mazo y el título, y debajo
         una línea del color del mazo que separa la cabecera del contenido.
         """
-        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         fila = Gtk.Box(spacing=8)
 
         if mazo:
@@ -847,35 +1079,46 @@ class PetWindow(Gtk.ApplicationWindow):
                              valign=Gtk.Align.CENTER, css_classes=["as-bubble-title"])
         fila.append(etiqueta)
 
+        tools = Gtk.Box(spacing=3, css_classes=["as-header-tools"], valign=Gtk.Align.CENTER)
+
         if getattr(self, "voz_cfg", {}).get("activo", True):
             self.btn_voz = Gtk.Button(icon_name="audio-volume-high-symbolic",
                                       tooltip_text="Escuchar (leer en voz alta)",
                                       css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
             self.btn_voz.connect("clicked", lambda *_: self.alternar_voz_globo())
-            fila.append(self.btn_voz)
+            tools.append(self.btn_voz)
 
         self.btn_mic = Gtk.Button(icon_name="audio-input-microphone-symbolic",
                                   tooltip_text="Responder por voz (habla al micrófono)",
                                   css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
         self.btn_mic.connect("clicked", lambda *_: self.alternar_microfono())
-        fila.append(self.btn_mic)
+        tools.append(self.btn_mic)
 
         self.btn_cursos = Gtk.Button(icon_name="media-playback-start-symbolic",
                                       tooltip_text="Cursos Online (Platzi & Udemy)",
                                       css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
         self.btn_cursos.connect("clicked", lambda *_: self.mostrar_menu_cursos())
-        fila.append(self.btn_cursos)
+        tools.append(self.btn_cursos)
+
+        btn_cita = Gtk.Button(icon_name="emblem-documents-symbolic",
+                              tooltip_text="📖 Cita o frase de libro",
+                              css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
+        btn_cita.connect("clicked", lambda *_: self.quote())
+        tools.append(btn_cita)
 
         recientes = Gtk.Button(icon_name="document-open-recent-symbolic",
                                 tooltip_text="Tarjetas recientes",
                                 css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
         recientes.connect("clicked", self.abrir_historial)
-        fila.append(recientes)
+        tools.append(recientes)
 
         cerrar = Gtk.Button(icon_name="window-close-symbolic",
-                            css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
+                            tooltip_text="Cerrar tarjeta",
+                            css_classes=["flat", "circular", "as-btn-cerrar"], valign=Gtk.Align.CENTER)
         cerrar.connect("clicked", self.close_bubble)
-        fila.append(cerrar)
+        tools.append(cerrar)
+
+        fila.append(tools)
         caja.append(fila)
 
         if nivel:
@@ -883,7 +1126,7 @@ class PetWindow(Gtk.ApplicationWindow):
 
         linea = Gtk.Box(css_classes=["as-bubble-linea"])   # el filo del color del mazo
         if color:
-            self.pintar(linea, f"box {{ background:{util.shade(color, 0.55)}; }}")
+            self.pintar(linea, f"box {{ background:{util.shade(color, 0.65)}; }}")
         caja.append(linea)
         return caja
 
@@ -1060,7 +1303,10 @@ class PetWindow(Gtk.ApplicationWindow):
         """Una frase de un libro, con su autor y su obra."""
         frase, autor, obra = citas.aleatoria(self.ultimas_citas)
         self.ultimas_citas = (self.ultimas_citas + [frase])[-12:]
+        self.cita_actual = (frase, autor, obra)
+        self.ultimo_quote_tiempo = time.time()
         self.card = None
+        self.reto = None
         self.texto_hablable = f"«{frase}». {autor}, {obra}."
         self.clear_bubble()
         self.bubble_box.append(self.bubble_header("📖 De un libro"))
@@ -1076,14 +1322,39 @@ class PetWindow(Gtk.ApplicationWindow):
         otra = Gtk.Button(label="Otra frase", css_classes=["pill"])
         otra.connect("clicked", lambda *_: self.quote())
         fila.append(otra)
-        estudiar = Gtk.Button(label="Enséñame algo",
-                              css_classes=["suggested-action", "pill"])
-        estudiar.connect("clicked", lambda *_: self.teach())
-        fila.append(estudiar)
+        guardar = Gtk.Button(label="📌 Guardar cita", css_classes=["pill", "suggested-action"])
+        guardar.connect("clicked", lambda *_: self.guardar_cita())
+        fila.append(guardar)
         self.bubble_box.append(fila)
+
+        estudiar_btn = Gtk.Button(label="🃏 Repasar tarjetas", css_classes=["flat", "as-bubble-link"])
+        estudiar_btn.connect("clicked", lambda *_: self.teach())
+        self.bubble_box.append(estudiar_btn)
+
         self.creature.pensar()
         self.open_bubble()
         self.voz_auto_si_toca()
+
+    def guardar_cita(self):
+        """Convierte la cita actual en tarjeta para repasarla."""
+        if not getattr(self, "cita_actual", None):
+            return
+        frase, autor, obra = self.cita_actual
+        mazos = db.all_decks(self.con)
+        deck_key = "general" if any(d["key"] == "general" for d in mazos) else (mazos[0]["key"] if mazos else "default")
+        db.add_card(
+            self.con, deck_key,
+            front=f"¿Quién escribió esta cita y en qué obra aparece?\n\n«{frase}»",
+            back=f"• <b>Autor:</b> {autor}\n• <b>Obra:</b> <i>{obra}</i>",
+            hint=f"Autor: {autor.split()[-1] if ' ' in autor else autor}",
+            tags="citas,literatura,libros"
+        )
+        self.sonar("listo")
+        self.creature.celebrar()
+        self.say(f"Guardada en tus tarjetas para repasarla:\n— {autor}, {obra}.",
+                 titulo="📖 Cita guardada",
+                 boton=("Otra frase", lambda: self.quote()))
+        self.refresh_stats()
 
     def sabias_que(self, categoria: str | None = None):
         """Un dato de cultura general, con la opción de quedárselo."""
@@ -1184,6 +1455,8 @@ class PetWindow(Gtk.ApplicationWindow):
 
     def teach(self):
         """Saca una tarjeta y te la explica: pregunta y respuesta, las dos."""
+        self.formato_actual = formato_ensenanza(getattr(self, "formato_actual", None))
+
         current_id = self.card["id"] if self.card else None
         if not hasattr(self, "recent_card_ids"):
             self.recent_card_ids = []
@@ -1210,33 +1483,45 @@ class PetWindow(Gtk.ApplicationWindow):
         self.render_card()
 
     def render_card(self):
-        """Enseñar es enseñar: la respuesta está a la vista desde el principio."""
+        """Enseña el contenido en diversos formatos innovadores según la preferencia o rotación."""
         c = self.card
+        if not c:
+            return
         f = cloze.completo(c["front"]) if cloze.tiene_huecos(c["front"]) else c["front"]
         b = c["back"] or c.get("hint", "")
         self.texto_hablable = f"{f}. {b}" if b else f
         self.clear_bubble()
-        titulo = {"quiz": "Fíjate en esto", "lesson": "¿Sabías esto?"}.get(
-            c["kind"], "Repasemos esto")
+
+        # El formato lo sorteó `teach`. Aquí solo se respeta: a este método se
+        # vuelve al cambiar el tamaño de letra, y entonces no debe cambiar nada.
+        if not getattr(self, "formato_actual", None):
+            self.formato_actual = formato_ensenanza()
+
+        titulo = {
+            "tarjeta": "🃏 Tarjeta de estudio",
+            "esquema": "🗺️ Esquema visual",
+            "dialogo": "💬 Charla con Bit",
+            "capas":   "🔍 Descubrimiento activo",
+        }.get(self.formato_actual, "Repasemos esto")
+
         self.bubble_box.append(self.bubble_header(
             titulo, c["deck_color"], mazo=f"{c['deck_icon']} {c['deck_name']}",
             nivel=db.level_name(c["deck_levels"], c["level"])))
 
-        texto_front = (cloze.resaltado(c["front"]) if cloze.tiene_huecos(c["front"])
-                       else c["front"])
-        self.bubble_box.append(Gtk.Label(
-            label=util.to_markup(texto_front), use_markup=True, wrap=True, xalign=0,
-            max_width_chars=self.char_width(30), css_classes=["as-bubble-front"]))
+        # Renderizar según el formato elegido
+        scroll = Gtk.ScrolledWindow(propagate_natural_height=True, max_content_height=250,
+                                    hscrollbar_policy=Gtk.PolicyType.NEVER)
+        if self.formato_actual == "esquema":
+            cuerpo = self._render_formato_esquema(c)
+        elif self.formato_actual == "dialogo":
+            cuerpo = self._render_formato_dialogo(c)
+        elif self.formato_actual == "capas":
+            cuerpo = self._render_formato_capas(c)
+        else:
+            cuerpo = self._render_formato_tarjeta(c)
 
-        if c["back"]:
-            self.bubble_box.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
-            self.bubble_box.append(Gtk.Label(
-                label=util.to_markup(c["back"]), use_markup=True, wrap=True, xalign=0,
-                max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
-        elif c["hint"]:
-            self.bubble_box.append(Gtk.Label(
-                label=util.to_markup(c["hint"]), use_markup=True, wrap=True, xalign=0,
-                max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
+        scroll.set_child(cuerpo)
+        self.bubble_box.append(scroll)
 
         botones = calificaciones(c, estricto(self.con))
         if botones:
@@ -1268,6 +1553,158 @@ class PetWindow(Gtk.ApplicationWindow):
         self.bubble_box.append(self.pie_leer())
         self.open_bubble()
         self.voz_auto_si_toca()
+
+    # ------------------------------------------- los cuatro formatos del globo
+
+    def _panel(self, clase: str, rotulo: str | None, texto: str, *,
+               rotulo_clase: str = "as-card-subhead",
+               texto_clase: str = "as-bubble-text", ancho: int = 30) -> Gtk.Box:
+        """Un trozo de la tarjeta: el rótulo pequeño arriba y el texto debajo.
+
+        Los cuatro formatos se montan con esto, así que un panel de pregunta se
+        ve igual venga del formato que venga y la vista no tiene que reaprender
+        dónde mirar cada vez que cambia el sorteo.
+        """
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3,
+                       css_classes=[clase])
+        if rotulo:
+            caja.append(Gtk.Label(label=rotulo, xalign=0, use_markup=True,
+                                  css_classes=[rotulo_clase]))
+        caja.append(Gtk.Label(label=util.to_markup(texto), use_markup=True, wrap=True,
+                              xalign=0, max_width_chars=self.char_width(ancho),
+                              css_classes=[texto_clase]))
+        return caja
+
+    def _nota_pie(self, texto: str) -> Gtk.Box:
+        """La pista, cuando acompaña a la respuesta en vez de sustituirla."""
+        caja = Gtk.Box(spacing=6, css_classes=["as-nota-pie"])
+        caja.append(Gtk.Label(label="💡", valign=Gtk.Align.START))
+        caja.append(Gtk.Label(label=util.to_markup(texto), use_markup=True, wrap=True,
+                              xalign=0, hexpand=True,
+                              max_width_chars=self.char_width(30),
+                              css_classes=["as-bubble-cita"]))
+        return caja
+
+    def _render_formato_tarjeta(self, c: dict) -> Gtk.Box:
+        """La de siempre: delante la pregunta, detrás la respuesta."""
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        texto_front = (cloze.resaltado(c["front"]) if cloze.tiene_huecos(c["front"])
+                       else c["front"])
+        caja.append(self._panel("as-card-front-box", "PREGUNTA", texto_front,
+                                texto_clase="as-bubble-front"))
+
+        if c["back"]:
+            caja.append(self._panel("as-card-back-box", "RESPUESTA", c["back"],
+                                    rotulo_clase="as-card-subhead-resp", ancho=32))
+            if c.get("hint"):
+                caja.append(self._nota_pie(c["hint"]))
+        elif c.get("hint"):
+            caja.append(self._panel("as-card-hint-box", "PISTA", c["hint"], ancho=32))
+        return caja
+
+    def _render_formato_esquema(self, c: dict) -> Gtk.Box:
+        """La respuesta partida en pasos numerados, para verle el hilo."""
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        f_txt = cloze.completo(c["front"]) if cloze.tiene_huecos(c["front"]) else c["front"]
+        caja.append(self._panel("as-card-front-box", "🎯 CONCEPTO CLAVE", f_txt,
+                                texto_clase="as-bubble-front", ancho=28))
+
+        pasos = trozos_de_respuesta(util.plain(c["back"] or c.get("hint", "")))
+        if pasos:
+            caja.append(Gtk.Label(label="Desglose, paso a paso", xalign=0,
+                                  css_classes=["as-card-subhead"]))
+        cadena = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        for i, trozo in enumerate(pasos, start=1):
+            fila = Gtk.Box(spacing=8, css_classes=["as-box-esquema"])
+            fila.append(Gtk.Label(label=str(i), valign=Gtk.Align.START,
+                                  css_classes=["as-paso-num"]))
+            fila.append(Gtk.Label(label=util.to_markup(trozo), use_markup=True, wrap=True,
+                                  xalign=0, hexpand=True,
+                                  max_width_chars=self.char_width(26),
+                                  css_classes=["as-bubble-text"]))
+            cadena.append(fila)
+        caja.append(cadena)
+
+        if c["back"] and c.get("hint"):
+            caja.append(self._nota_pie(c["hint"]))
+        return caja
+
+    def _render_formato_dialogo(self, c: dict) -> Gtk.Box:
+        """Lo mismo, pero como una charla: pregunta, tu turno, respuesta."""
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        f_txt = cloze.completo(c["front"]) if cloze.tiene_huecos(c["front"]) else c["front"]
+        back_text = util.plain(c["back"] or c.get("hint", ""))
+
+        pregunta = self._panel("as-dialogo-globo", f"🤖 <b>{GLib.markup_escape_text(self.nombre)}</b>",
+                               f_txt, rotulo_clase="as-bubble-title",
+                               texto_clase="as-bubble-front", ancho=26)
+        pregunta.set_halign(Gtk.Align.START)
+        caja.append(pregunta)
+
+        # El turno de quien estudia: no hay nada que escribir, pero el hueco
+        # marca el momento de intentar la respuesta antes de seguir leyendo.
+        mio = Gtk.Label(label="…déjame pensarlo 🤔", halign=Gtk.Align.END,
+                        css_classes=["as-dialogo-mio"])
+        caja.append(mio)
+
+        respuesta = self._panel("as-dialogo-globo", "🤖 <b>Pues mira:</b>", back_text,
+                                rotulo_clase="as-bubble-title", ancho=26)
+        respuesta.set_halign(Gtk.Align.START)
+        caja.append(respuesta)
+
+        if c["back"] and c.get("hint"):
+            caja.append(self._nota_pie(f"Para que se te quede: {c['hint']}"))
+        return caja
+
+    def _capa(self, numero: int, total: int, titulo: str, clase: str,
+              texto: str, abierta: bool) -> Gtk.Box:
+        """Una capa del descubrimiento: su botón y lo que esconde debajo."""
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        revelador = Gtk.Revealer(reveal_child=abierta,
+                                 transition_type=Gtk.RevealerTransitionType.SLIDE_DOWN)
+        revelador.set_child(self._panel(clase, None, texto, ancho=26))
+
+        rotulo = f"Capa {numero} de {total} · {titulo}"
+        clases = ["as-capa-btn"] + (["as-capa-abierta"] if abierta else [])
+        boton = Gtk.Button(label=f"{'▼' if abierta else '▶'} {rotulo}", css_classes=clases)
+
+        def _alternar(*_):
+            visible = not revelador.get_reveal_child()
+            revelador.set_reveal_child(visible)
+            boton.set_label(f"{'▼' if visible else '▶'} {rotulo}")
+            boton.set_css_classes(["as-capa-btn"] + (["as-capa-abierta"] if visible else []))
+        boton.connect("clicked", _alternar)
+        caja.append(boton)
+        caja.append(revelador)
+        return caja
+
+    def _render_formato_capas(self, c: dict) -> Gtk.Box:
+        """Primero la idea en corto; el detalle y la pista, si los pides.
+
+        Abrir una capa a mano es el esfuerzo que hace que se recuerde: si todo
+        estuviera ya desplegado, la vista resbalaría hasta el final.
+        """
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        f_txt = cloze.completo(c["front"]) if cloze.tiene_huecos(c["front"]) else c["front"]
+        back_text = util.plain(c["back"] or "")
+        hint_text = util.plain(c.get("hint", "") or
+                               "Relaciónalo con su función principal en este tema.")
+
+        cabeza = self._panel("as-card-front-box", None, f_txt,
+                             texto_clase="as-bubble-front")
+        cabeza.append(Gtk.Label(label="🔍 <i>Abre las capas a tu ritmo:</i>", use_markup=True,
+                                xalign=0, css_classes=["as-bubble-cita"]))
+        caja.append(cabeza)
+
+        capas = [("Lo esencial", "as-box-esquema",
+                  reto.esencia(back_text, 65) if back_text else hint_text)]
+        if back_text:
+            capas.append(("El detalle completo", "as-card-back-box", back_text))
+        capas.append(("La clave para no olvidarlo", "as-card-hint-box", hint_text))
+
+        for i, (titulo, clase, texto) in enumerate(capas, start=1):
+            caja.append(self._capa(i, len(capas), titulo, clase, texto, abierta=i == 1))
+        return caja
 
     def celebrar_logro(self) -> bool:
         """Si acabas de pasar una marca, la celebra. Solo la primera vez.
@@ -1414,6 +1851,8 @@ class PetWindow(Gtk.ApplicationWindow):
             "hueco": lambda: self.reto_escribir("La palabra que falta…"),
             "escribir": self.reto_escribir,
             "relampago": self.reto_relampago,
+            "caza_error": self.reto_caza_error,
+            "emparejar": self.reto_emparejar,
         }[r["formato"]]())
         self.bubble_box.append(self.pie_leer())
         self.creature.pensar()
@@ -1425,6 +1864,26 @@ class PetWindow(Gtk.ApplicationWindow):
         """Lo que hay que leer antes de responder, según el formato del reto."""
         r = self.reto
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        if r["formato"] == "caza_error":
+            caja.append(Gtk.Label(
+                label=f"Sobre <b>{GLib.markup_escape_text(r['pregunta'])}</b>:",
+                use_markup=True, wrap=True, xalign=0, max_width_chars=self.char_width(30),
+                css_classes=["as-bubble-front"]))
+            caja.append(Gtk.Label(
+                label="🕵️ <i>Dos afirmaciones son ciertas y una es falsa. ¡Pulsa el error!</i>",
+                use_markup=True, wrap=True, xalign=0, max_width_chars=self.char_width(32),
+                css_classes=["as-bubble-cita"]))
+            return caja
+        if r["formato"] == "emparejar":
+            caja.append(Gtk.Label(
+                label=f"🔗 <b>{GLib.markup_escape_text(r.get('pregunta', 'Empareja conceptos'))}</b>",
+                use_markup=True, wrap=True, xalign=0, max_width_chars=self.char_width(30),
+                css_classes=["as-bubble-front"]))
+            caja.append(Gtk.Label(
+                label="<i>Elige la correspondencia correcta de conceptos:</i>",
+                use_markup=True, wrap=True, xalign=0, max_width_chars=self.char_width(32),
+                css_classes=["as-bubble-cita"]))
+            return caja
         if r["formato"] == "invertido":
             # Aquí se enseña la respuesta y hay que reconocer la pregunta
             caja.append(Gtk.Label(label=r["pregunta"], wrap=True, xalign=0,
@@ -1538,6 +1997,26 @@ class PetWindow(Gtk.ApplicationWindow):
             self.bubble_box.append(seguir)
         self.bubble_box.append(self.pie_leer())
 
+    def reto_caza_error(self):
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        for i, texto in enumerate(self.reto["opciones"]):
+            b = Gtk.Button(css_classes=["pill", "as-reto-opcion"])
+            b.set_child(Gtk.Label(label=f"⚠️ {texto}", wrap=True, xalign=0, max_width_chars=self.char_width(28)))
+            b.connect("clicked", lambda _b, i=i: self.resolver(
+                i == self.reto["correcta"], elegida=self.reto["opciones"][i]))
+            caja.append(b)
+        return caja
+
+    def reto_emparejar(self):
+        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        for i, texto in enumerate(self.reto["opciones"]):
+            b = Gtk.Button(css_classes=["pill", "as-reto-opcion"])
+            b.set_child(Gtk.Label(label=texto, wrap=True, xalign=0, max_width_chars=self.char_width(28)))
+            b.connect("clicked", lambda _b, i=i: self.resolver(
+                i == self.reto["correcta"], elegida=self.reto["opciones"][i]))
+            caja.append(b)
+        return caja
+
     # --- la cuenta atrás
 
     def cuenta_atras(self):
@@ -1603,6 +2082,37 @@ class PetWindow(Gtk.ApplicationWindow):
             self.creature.desanimar()
             self.sonar("fallo")
 
+        # Registrar en la sesión de quiz
+        if getattr(self, "sesion_quiz", None) is None:
+            self.sesion_quiz = {"total": 0, "aciertos": 0, "fallos": 0, "historial": []}
+
+        pregunta_txt = (self.reto.get("pregunta") or self.reto.get("afirmacion") or card["front"]) if self.reto else card["front"]
+        correcta_txt = card["back"]
+        if self.reto:
+            if self.reto.get("formato") == "vf":
+                correcta_txt = "Verdadero" if self.reto.get("verdadera") else "Falso"
+            elif self.reto.get("respuesta"):
+                correcta_txt = str(self.reto.get("respuesta"))
+
+        self.sesion_quiz["total"] += 1
+        if acierto:
+            self.sesion_quiz["aciertos"] += 1
+        else:
+            self.sesion_quiz["fallos"] += 1
+
+        self.sesion_quiz["historial"].append({
+            "card_id": card["id"],
+            "front": util.plain(card["front"]),
+            "back": util.plain(card["back"]),
+            "pregunta": pregunta_txt,
+            "acierto": bool(acierto),
+            "elegida": elegida or ("(Tiempo agotado)" if agotado else "(Sin respuesta)"),
+            "correcta": correcta_txt,
+            "deck_name": card.get("deck_name", "General"),
+            "segundos": segundos,
+            "agotado": agotado,
+        })
+
         self.clear_bubble()
         if agotado:
             titulo, clase = "⏱ Se acabó el tiempo", "as-reto-mal"
@@ -1636,14 +2146,38 @@ class PetWindow(Gtk.ApplicationWindow):
                 xalign=0, wrap=True, max_width_chars=self.char_width(32),
                 css_classes=["as-bubble-cita", "as-reto-ok"]))
 
-        fila = Gtk.Box(spacing=6, homogeneous=True)
-        otro = Gtk.Button(label="Otro reto", css_classes=["pill"])
-        otro.connect("clicked", lambda *_: self.quiz())
-        fila.append(otro)
-        ensenar = Gtk.Button(label="Enséñame", css_classes=["pill", "suggested-action"])
-        ensenar.connect("clicked", lambda *_: self.teach())
-        fila.append(ensenar)
-        self.bubble_box.append(fila)
+        # Indicador de estado de la ronda
+        if getattr(self, "cola_repaso_especifico", None):
+            quedan = len(self.cola_repaso_especifico)
+            fila_rep = Gtk.Box(spacing=6, homogeneous=True)
+            sig_lbl = f"Siguiente ({quedan} restantes)" if quedan else "🏁 Finalizar repaso"
+            sig = Gtk.Button(label=sig_lbl, css_classes=["pill", "suggested-action"])
+            sig.connect("clicked", lambda *_: self.siguiente_repaso_especifico())
+            fila_rep.append(sig)
+            self.bubble_box.append(fila_rep)
+        else:
+            self.bubble_box.append(Gtk.Label(
+                label=f"📊 Ronda de Quiz: <b>{self.sesion_quiz['aciertos']}/{self.sesion_quiz['total']} aciertos</b>",
+                use_markup=True, xalign=0, css_classes=["as-bubble-cita"]))
+
+            fila = Gtk.Box(spacing=6, homogeneous=True)
+            otro = Gtk.Button(label="Otro reto", css_classes=["pill"])
+            otro.connect("clicked", lambda *_: self.quiz())
+            fila.append(otro)
+
+            btn_retro = Gtk.Button(
+                label="🏁 Ver retroalimentación",
+                css_classes=["pill", "suggested-action"])
+            btn_retro.connect("clicked", lambda *_: self.mostrar_retroalimentacion_quiz())
+            fila.append(btn_retro)
+            self.bubble_box.append(fila)
+
+            if self.sesion_quiz["total"] >= 5 and self.sesion_quiz["total"] % 5 == 0:
+                self.bubble_box.append(Gtk.Label(
+                    label=f"🎉 ¡Ronda de {self.sesion_quiz['total']} preguntas! Puedes ver tu retroalimentación y consejos o continuar.",
+                    use_markup=True, wrap=True, xalign=0, max_width_chars=self.char_width(32),
+                    css_classes=["as-bubble-cita", "as-reto-ok"]))
+
         if ia.config(self.con)["activa"]:
             fila_ia = Gtk.Box(spacing=10, homogeneous=True)
             fila_ia.append(self.boton_explicar())
@@ -2081,28 +2615,94 @@ class PetWindow(Gtk.ApplicationWindow):
     def render_acta(self, acta: dict):
         self.clear_bubble()
         self.bubble_box.add_css_class("as-bubble-chat")
-        self.bubble_box.append(self.bubble_header("🎓 Examen terminado", CHAT))
-        cabeza = f"<b>{acta['nota']}/100</b>"
+        self.bubble_box.append(self.bubble_header("🎓 Examen oral · Resultados", CHAT))
+        cabeza = f"<b>{acta.get('nota', 0)}/100</b>"
         if "aprobadas" in acta:
-            cabeza += f" · {acta['aprobadas']} de {acta['total']} bien"
+            cabeza += f" · {acta['aprobadas']} de {acta['total']} preguntas aprobadas"
         self.bubble_box.append(Gtk.Label(
-            label=f"{cabeza}\n{acta['juicio']}",
+            label=f"{cabeza}\n{acta.get('juicio', '')}",
             use_markup=True, wrap=True, xalign=0, css_classes=["as-bubble-front"]))
-        if acta["flojas"]:
-            self.bubble_box.append(Gtk.Label(label="Lo que hay que repasar:", xalign=0,
-                                             css_classes=["as-bubble-title"]))
-            for floja in acta["flojas"][:3]:
-                # El examen trae la tarjeta; las conexiones, las dos que unía
+
+        scroll = Gtk.ScrolledWindow(propagate_natural_height=True, max_content_height=280,
+                                    hscrollbar_policy=Gtk.PolicyType.NEVER)
+        caja_info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+
+        flojas = acta.get("flojas", [])
+        # --- 1. En qué fallaste
+        caja_info.append(Gtk.Label(label="❌ <b>En qué fallaste</b>", use_markup=True, xalign=0,
+                                   css_classes=["as-bubble-title"]))
+        if flojas:
+            for floja in flojas:
                 titulo = floja.get("front") or " ↔ ".join(floja.get("entre", ()))
-                self.bubble_box.append(Gtk.Label(
-                    label=f"· {titulo} ({floja['nota']}/100)", wrap=True, xalign=0,
-                    max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
+                preg = floja.get("pregunta", "")
+                resp = floja.get("respuesta", "") or "(Sin respuesta o no entendida)"
+                falto = floja.get("falto") or floja.get("veredicto", "")
+
+                texto_f = f"• <b>{GLib.markup_escape_text(titulo)}</b> ({floja.get('nota', 0)}/100)"
+                if preg and preg != titulo:
+                    texto_f += f"\n  <i>Pregunta:</i> {GLib.markup_escape_text(preg)}"
+                texto_f += f"\n  <i>Dijiste:</i> {GLib.markup_escape_text(resp)}"
+                if falto:
+                    texto_f += f"\n  <i>Te faltó:</i> {GLib.markup_escape_text(falto)}"
+
+                lbl = Gtk.Label(label=texto_f, use_markup=True, wrap=True, xalign=0,
+                                max_width_chars=self.char_width(32), css_classes=["as-bubble-text"])
+                caja_info.append(lbl)
+        else:
+            caja_info.append(Gtk.Label(
+                label="🌟 ¡Excelente! Respondiste con solvencia y precisión a todas las preguntas.",
+                wrap=True, xalign=0, max_width_chars=self.char_width(32),
+                css_classes=["as-bubble-text", "as-reto-ok"]))
+
+        caja_info.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
+
+        # --- 2. En qué puedes mejorar
+        caja_info.append(Gtk.Label(label="💡 <b>En qué puedes mejorar</b>", use_markup=True, xalign=0,
+                                   css_classes=["as-bubble-title"]))
+        mejoras = []
+        if any(f.get("falto") for f in flojas):
+            mejoras.append("• <b>Profundidad y matices</b>: Al responder oralmente, incluye la causa, el mecanismo y un ejemplo práctico en vez de respuestas breves.")
+        if any(f.get("nota", 0) == 0 for f in flojas):
+            mejoras.append("• <b>Fluidez y desinhibición</b>: Si dudas, verbaliza las ideas principales o palabras clave que recuerdes; en un examen oral cualquier detalle suma.")
+        if any(len((f.get("respuesta") or "").split()) < 4 for f in flojas):
+            mejoras.append("• <b>Estructura de respuesta</b>: Elabora respuestas de 2 o 3 frases completas para demostrar dominio y seguridad conceptual.")
+        if not mejoras:
+            mejoras.append("• <b>Consolidación avanzada</b>: Tienes un gran dominio; conecta estos temas con conceptos afines para un conocimiento transversal.")
+        for m in mejoras:
+            caja_info.append(Gtk.Label(label=m, use_markup=True, wrap=True, xalign=0,
+                                       max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
+
+        caja_info.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
+
+        # --- 3. Consejos para seguir estudiando
+        caja_info.append(Gtk.Label(label="🎯 <b>Consejos para seguir estudiando</b>", use_markup=True, xalign=0,
+                                   css_classes=["as-bubble-title"]))
+        consejos = [
+            "1. <b>Técnica Feynman</b>: Usa el modo «👩‍🎓 Te lo explico» en el menú para explicárselo a Bit con tus propias palabras.",
+            "2. <b>Repaso espaciado antes de 24h</b>: Repasa hoy las tarjetas flojas para consolidar la memoria a largo plazo.",
+            "3. <b>Articulación verbal</b>: Practica formulando respuestas completas en voz alta sin leer la pantalla.",
+        ]
+        for c in consejos:
+            caja_info.append(Gtk.Label(label=c, use_markup=True, wrap=True, xalign=0,
+                                       max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
+
+        scroll.set_child(caja_info)
+        self.bubble_box.append(scroll)
+
         fila = Gtk.Box(spacing=6, homogeneous=True)
         cerrar = Gtk.Button(label="Cerrar", css_classes=["pill"])
         cerrar.connect("clicked", self.close_bubble)
         fila.append(cerrar)
-        repetir = self.ultimo_modo or self.empezar_examen_oral
-        otra = Gtk.Button(label="Otra ronda", css_classes=["pill", "suggested-action"])
+
+        if flojas:
+            ids_flojas = [f["card_id"] for f in flojas if "card_id" in f]
+            if ids_flojas:
+                btn_repasar = Gtk.Button(label=f"🔄 Repasar {len(ids_flojas)} flojas", css_classes=["pill", "suggested-action"])
+                btn_repasar.connect("clicked", lambda *_: self.repasar_tarjetas_especificas(ids_flojas))
+                fila.append(btn_repasar)
+
+        repetir = getattr(self, "ultimo_modo", None) or getattr(self, "empezar_examen_oral", lambda: None)
+        otra = Gtk.Button(label="Otra ronda", css_classes=["pill"])
         otra.connect("clicked", lambda *_: repetir())
         fila.append(otra)
         self.bubble_box.append(fila)
@@ -2645,10 +3245,12 @@ class PetWindow(Gtk.ApplicationWindow):
         principales = [
             ("🧠 Enséñame", lambda: (self.wake(), self.teach())),
             ("⚡ Ponme a prueba", lambda: (self.wake(), self.quiz())),
+            ("🎓 Examen oral", lambda: (self.wake(), self.empezar_examen_oral())),
+            ("📊 Retroalimentación", lambda: (self.wake(), self.mostrar_retroalimentacion_quiz())),
+            ("➕ Crear contenido", lambda: (self.wake(), self.dialogo_crear_contenido())),
+            ("🗒️ Recuerdo libre", lambda: (self.wake(), self.empezar_recuerdo_libre())),
             ("🎙️ Hablar", lambda: (self.wake(), self.alternar_conversacion())),
             ("💬 Chat", lambda: (self.wake(), self.abrir_chat())),
-            ("🎓 Examen oral", lambda: (self.wake(), self.empezar_examen_oral())),
-            ("🗒️ Recuerdo libre", lambda: (self.wake(), self.empezar_recuerdo_libre())),
             ("👩‍🎓 Te lo explico", lambda: (self.wake(), self.explicarselo_a_bit())),
             ("🔗 Conexiones", lambda: (self.wake(), self.empezar_conexiones())),
         ]
@@ -2662,9 +3264,11 @@ class PetWindow(Gtk.ApplicationWindow):
                 ("❓ Pregúntame algo", lambda: (self.wake(), self.preguntar()), None),
                 ("💡 ¿Sabías que…?", lambda: (self.wake(), self.sabias_que()), None),
                 ("📖 Una frase de libro", lambda: (self.wake(), self.quote()), None),
+                ("📚 Leer libros (Biblioteca)", lambda: (self.wake(), self.abrir_biblioteca()), None),
                 ("📊 Cómo va la semana", lambda: (self.wake(), self.diario()), None),
                 ("⏱️ Sesión de estudio", self.study, None),
                 ("🕐 Tarjetas recientes", self.abrir_historial, None),
+                ("🎬 Centro Audiovisual / Cursos", lambda: self.abrir_reproductor_cursos("fcc"), None),
                 ("🎬 Platzi", lambda: self.abrir_reproductor_cursos("platzi"), None),
                 ("🎬 Udemy", lambda: self.abrir_reproductor_cursos("udemy"), None)):
             caja.append(self._fila_accion(etiqueta, cb, sufijo))
@@ -2764,14 +3368,495 @@ class PetWindow(Gtk.ApplicationWindow):
         import threading
         threading.Thread(target=lambda: GLib.idle_add(_fin, _tarea()), daemon=True).start()
 
-    def abrir_reproductor_cursos(self, plataforma=None, **kwargs):
-        from . import reproductor
+    def _cargar_tarjeta_completa(self, card_id: int) -> dict | None:
+        row = self.con.execute(
+            """SELECT c.*, d.key AS deck_key, d.name AS deck_name, d.color AS deck_color,
+                      d.icon AS deck_icon, d.levels AS deck_levels
+               FROM cards c JOIN decks d ON d.id=c.deck_id WHERE c.id=?""", (card_id,)).fetchone()
+        return dict(row) if row else None
+
+    def repasar_tarjetas_especificas(self, card_ids: list[int]):
+        """Inicia una sesión enfocada exclusivamente en las tarjetas especificadas."""
+        self.cola_repaso_especifico = list(card_ids)
+        self.siguiente_repaso_especifico()
+
+    def siguiente_repaso_especifico(self):
+        if not getattr(self, "cola_repaso_especifico", None):
+            self.say("¡Has completado el repaso de todas las tarjetas seleccionadas! 🎉",
+                     titulo="✅ Repaso completado", boton=("⚡ Volver al Quiz", self.quiz))
+            return
+        cid = self.cola_repaso_especifico.pop(0)
+        card = self._cargar_tarjeta_completa(cid)
+        if not card:
+            self.siguiente_repaso_especifico()
+            return
+        self.card = card
+        self.reto = reto.preparar(self.con, self.card, estricto=estricto(self.con))
+        self.shown_at = time.time()
+        self.render_reto()
+
+    def mostrar_retroalimentacion_quiz(self):
+        """Pantalla de retroalimentación detallada al terminar o pausar una ronda de quiz."""
+        if not getattr(self, "sesion_quiz", None) or not self.sesion_quiz.get("total", 0):
+            self.say("Aún no has respondido preguntas en este quiz. ¡Juguemos unas cuantas primero!",
+                     titulo="⚡ Quiz", boton=("⚡ Empezar quiz", self.quiz))
+            return
+
+        self.clear_bubble()
+        self.bubble_box.add_css_class("as-bubble-chat")
+        self.bubble_box.append(self.bubble_header("📊 Retroalimentación de Quiz", CHAT))
+
+        tot = self.sesion_quiz["total"]
+        aciertos = self.sesion_quiz["aciertos"]
+        pct = round((aciertos / tot) * 100) if tot else 0
+        falladas = [h for h in self.sesion_quiz["historial"] if not h["acierto"]]
+
+        if pct >= 90:
+            icono_r, msg = "🏆", "¡Excelente rendimiento! Tienes estos conceptos bien afianzados."
+        elif pct >= 70:
+            icono_r, msg = "👏 ¡Buen trabajo! Dominas la gran mayoría de los conceptos clave."
+        elif pct >= 50:
+            icono_r, msg = "⚡", "Aprobado. Te beneficiarás de repasar los puntos donde hubo dudas."
+        else:
+            icono_r, msg = "💪 Ronda desafiante. Analiza los fallos para reforzar las bases."
+
+        cabeza = f"<b>{icono_r} {aciertos} de {tot} aciertos ({pct}%)</b>\n{msg}"
+        self.bubble_box.append(Gtk.Label(label=cabeza, use_markup=True, wrap=True, xalign=0,
+                                         css_classes=["as-bubble-front"]))
+
+        scroll = Gtk.ScrolledWindow(propagate_natural_height=True, max_content_height=290,
+                                    hscrollbar_policy=Gtk.PolicyType.NEVER)
+        caja_info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+
+        # 1. En qué fallaste
+        caja_info.append(Gtk.Label(label="❌ <b>En qué fallaste</b>", use_markup=True, xalign=0,
+                                   css_classes=["as-bubble-title"]))
+        if falladas:
+            for f in falladas:
+                texto_f = f"• <b>{GLib.markup_escape_text(f['pregunta'])}</b>"
+                texto_f += f"\n  <i>Dijiste:</i> {GLib.markup_escape_text(str(f['elegida']))}"
+                texto_f += f"\n  <i>Respuesta correcta:</i> <b>{GLib.markup_escape_text(str(f['correcta']))}</b>"
+                if f.get("back") and f["back"] != str(f["correcta"]):
+                    texto_f += f"\n  <i>Explicación:</i> {GLib.markup_escape_text(f['back'])}"
+                lbl = Gtk.Label(label=texto_f, use_markup=True, wrap=True, xalign=0,
+                                max_width_chars=self.char_width(32), css_classes=["as-bubble-text"])
+                caja_info.append(lbl)
+        else:
+            caja_info.append(Gtk.Label(
+                label="🌟 ¡Ronda perfecta! No tuviste ningún fallo en las preguntas evaluadas.",
+                wrap=True, xalign=0, max_width_chars=self.char_width(32),
+                css_classes=["as-bubble-text", "as-reto-ok"]))
+
+        caja_info.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
+
+        # 2. En qué puedes mejorar
+        caja_info.append(Gtk.Label(label="💡 <b>En qué puedes mejorar</b>", use_markup=True, xalign=0,
+                                   css_classes=["as-bubble-title"]))
+        mejoras = []
+        if any(f.get("agotado") for f in falladas):
+            mejoras.append("• <b>Velocidad de procesamiento</b>: En algunas preguntas se agotó el tiempo. Prueba retos relámpago para ganar agilidad.")
+
+        mazos_fallados = Counter(f.get("deck_name", "") for f in falladas if f.get("deck_name"))
+        if mazos_fallados:
+            top_m, cnt = mazos_fallados.most_common(1)[0]
+            if top_m:
+                mejoras.append(f"• <b>Refuerzo en «{top_m}»</b>: Tuviste {cnt} fallo{'s' if cnt > 1 else ''} en este tema. Te vendrá bien estudiarlo con «Enséñame».")
+
+        if falladas and not any(f.get("agotado") for f in falladas):
+            mejoras.append("• <b>Atención al detalle</b>: Fíjate en los distractores sutiles y las palabras excluyentes (siempre, nunca, sólo).")
+
+        if not falladas:
+            mejoras.append("• <b>Reto superior</b>: Como dominas los quizzes, ¡atrévete con el «🎓 Examen oral» o «🔗 Conexiones»!")
+
+        for m in mejoras:
+            caja_info.append(Gtk.Label(label=m, use_markup=True, wrap=True, xalign=0,
+                                       max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
+
+        caja_info.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
+
+        # 3. Consejos para seguir estudiando
+        caja_info.append(Gtk.Label(label="🎯 <b>Consejos para seguir estudiando</b>", use_markup=True, xalign=0,
+                                   css_classes=["as-bubble-title"]))
+        consejos = [
+            "1. <b>Evocación activa previa</b>: Formula la respuesta mentalmente antes de ver las alternativas ofrecidas.",
+            "2. <b>Micro-sesiones frecuentes</b>: Es 3 veces más efectivo hacer 2 tandas de 5 preguntas al día que una sola de 50.",
+            "3. <b>Desglosar conceptos</b>: Si una tarjeta te confunde, crea dos tarjetas más simples desde el menú «➕ Crear contenido».",
+        ]
+        for c in consejos:
+            caja_info.append(Gtk.Label(label=c, use_markup=True, wrap=True, xalign=0,
+                                       max_width_chars=self.char_width(32), css_classes=["as-bubble-text"]))
+
+        scroll.set_child(caja_info)
+        self.bubble_box.append(scroll)
+
+        fila = Gtk.Box(spacing=6, homogeneous=True)
+        cerrar = Gtk.Button(label="Cerrar", css_classes=["pill"])
+        cerrar.connect("clicked", self.close_bubble)
+        fila.append(cerrar)
+
+        if falladas:
+            ids_falladas = [f["card_id"] for f in falladas if "card_id" in f]
+            if ids_falladas:
+                btn_repasar = Gtk.Button(label=f"🔄 Repasar {len(ids_falladas)} falladas",
+                                         css_classes=["pill", "suggested-action"])
+                btn_repasar.connect("clicked", lambda *_: self.repasar_tarjetas_especificas(ids_falladas))
+                fila.append(btn_repasar)
+
+        def _nueva_ronda(*_):
+            self.sesion_quiz = {"total": 0, "aciertos": 0, "fallos": 0, "historial": []}
+            self.quiz()
+
+        btn_otra = Gtk.Button(label="⚡ Nueva ronda", css_classes=["pill"])
+        btn_otra.connect("clicked", _nueva_ronda)
+        fila.append(btn_otra)
+
+        self.bubble_box.append(fila)
+        self.open_bubble()
+
+    # ------------------------------------------------ creación de contenido
+
+    def dialogo_crear_contenido(self):
+        """Menú para añadir temas (mazos) y preguntas (tarjetas/quizzes) desde la mascota."""
+        self.clear_bubble()
+        self.card = None
+        self.reto = None
+        self.bubble_box.append(self.bubble_header("➕ Crear contenido", CHAT))
+        self.bubble_box.append(Gtk.Label(
+            label="¿Qué te gustaría añadir hoy a tu temario de estudio?",
+            wrap=True, xalign=0, max_width_chars=self.char_width(32),
+            css_classes=["as-bubble-front"]))
+
+        caja_opciones = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+
+        btn_tema = Gtk.Button(label="📚 Nuevo tema (mazo)", css_classes=["pill", "suggested-action"])
+        btn_tema.connect("clicked", lambda *_: self.dialogo_crear_tema())
+        caja_opciones.append(btn_tema)
+
+        btn_tarjeta = Gtk.Button(label="📝 Nueva pregunta o tarjeta", css_classes=["pill"])
+        btn_tarjeta.connect("clicked", lambda *_: self.dialogo_crear_tarjeta())
+        caja_opciones.append(btn_tarjeta)
+
+        if ia.config(self.con).get("activa"):
+            btn_ia = Gtk.Button(label="✨ Crear con IA (dictado o texto)", css_classes=["pill"])
+            btn_ia.connect("clicked", lambda *_: self.dialogo_crear_con_ia())
+            caja_opciones.append(btn_ia)
+
+        self.bubble_box.append(caja_opciones)
+
+        cerrar = Gtk.Button(label="Cancelar", css_classes=["pill", "flat"])
+        cerrar.connect("clicked", self.close_bubble)
+        self.bubble_box.append(cerrar)
+        self.open_bubble()
+
+    def dialogo_crear_tema(self):
+        """Formulario en el globo para crear un nuevo mazo/tema."""
+        self.clear_bubble()
+        self.bubble_box.append(self.bubble_header("📚 Nuevo tema", CHAT))
+
+        scroll = Gtk.ScrolledWindow(propagate_natural_height=True, max_content_height=290,
+                                    hscrollbar_policy=Gtk.PolicyType.NEVER)
+        form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+
+        form.append(Gtk.Label(label="Nombre del tema:", xalign=0, css_classes=["as-bubble-cita"]))
+        ent_nombre = Gtk.Entry(placeholder_text="Ej: Ciberseguridad, Docker, Anatomía...",
+                               css_classes=["as-reto-entrada"])
+        form.append(ent_nombre)
+
+        form.append(Gtk.Label(label="Icono / Emoji:", xalign=0, css_classes=["as-bubble-cita"]))
+        ent_icono = Gtk.Entry(text="📚", placeholder_text="📚, 🛡️, 💻, 🚀, 🧠, ⚡...",
+                              css_classes=["as-reto-entrada"])
+        form.append(ent_icono)
+
+        fila_emojis = Gtk.Box(spacing=4)
+        for emo in ["📚", "🛡️", "💻", "🚀", "🧠", "⚡", "🔬", "🌍", "🎨"]:
+            b_emo = Gtk.Button(label=emo, css_classes=["flat"])
+            b_emo.connect("clicked", lambda _b, e=emo: ent_icono.set_text(e))
+            fila_emojis.append(b_emo)
+        form.append(fila_emojis)
+
+        form.append(Gtk.Label(label="Color temático:", xalign=0, css_classes=["as-bubble-cita"]))
+        color_seleccionado = ["#3584e4"]
+        fila_colores = Gtk.Box(spacing=4)
+        colores = [
+            ("Azul", "#3584e4"),
+            ("Verde", "#26a269"),
+            ("Morado", "#9141ac"),
+            ("Naranja", "#e66100"),
+            ("Rojo", "#c01c28"),
+            ("Esmeralda", "#10b981"),
+        ]
+        botones_color = []
+        for nombre_col, hex_col in colores:
+            b_col = Gtk.Button(label=f"● {nombre_col}", css_classes=["pill"])
+            if hex_col == color_seleccionado[0]:
+                b_col.add_css_class("suggested-action")
+            def _set_c(_btn, c=hex_col):
+                color_seleccionado[0] = c
+                for btn, h in botones_color:
+                    if h == c:
+                        btn.add_css_class("suggested-action")
+                    else:
+                        btn.remove_css_class("suggested-action")
+            b_col.connect("clicked", _set_c)
+            botones_color.append((b_col, hex_col))
+            fila_colores.append(b_col)
+        form.append(fila_colores)
+
+        scroll.set_child(form)
+        self.bubble_box.append(scroll)
+
+        fila_btn = Gtk.Box(spacing=6, homogeneous=True)
+        btn_cancelar = Gtk.Button(label="Atrás", css_classes=["pill"])
+        btn_cancelar.connect("clicked", lambda *_: self.dialogo_crear_contenido())
+        fila_btn.append(btn_cancelar)
+
+        def _guardar(*_):
+            nombre = ent_nombre.get_text().strip()
+            if not nombre:
+                ent_nombre.grab_focus()
+                return
+            icono = ent_icono.get_text().strip() or "📚"
+            color = color_seleccionado[0]
+            slug = re.sub(r'[^a-z0-9]+', '_', unicodedata.normalize('NFKD', nombre.lower()).encode('ascii', 'ignore').decode()).strip('_')
+            if not slug:
+                slug = f"tema_{int(time.time())}"
+            existe = self.con.execute("SELECT id FROM decks WHERE key=?", (slug,)).fetchone()
+            if existe:
+                slug = f"{slug}_{int(time.time()) % 1000}"
+            pos = (self.con.execute("SELECT MAX(pos) AS p FROM decks").fetchone()["p"] or 0) + 1
+            deck_id = db.upsert_deck(self.con, slug, nombre, icono, color, pos, ["Básico", "Intermedio", "Avanzado"])
+            self.con.commit()
+            self.creature.celebrar()
+            self.sonar("acierto")
+
+            self.clear_bubble()
+            self.bubble_box.append(self.bubble_header(f"{icono} ¡Tema creado!", color))
+            self.bubble_box.append(Gtk.Label(
+                label=f"El tema <b>{GLib.markup_escape_text(nombre)}</b> ya está listo.\n¿Quieres añadir su primera pregunta o tarjeta?",
+                use_markup=True, wrap=True, xalign=0, max_width_chars=self.char_width(32),
+                css_classes=["as-bubble-front"]))
+
+            f_exito = Gtk.Box(spacing=6, homogeneous=True)
+            b_anadir = Gtk.Button(label="📝 Añadir pregunta", css_classes=["pill", "suggested-action"])
+            b_anadir.connect("clicked", lambda *_: self.dialogo_crear_tarjeta(deck_id=deck_id))
+            f_exito.append(b_anadir)
+            b_listo = Gtk.Button(label="Listo", css_classes=["pill"])
+            b_listo.connect("clicked", self.close_bubble)
+            f_exito.append(b_listo)
+            self.bubble_box.append(f_exito)
+            self.open_bubble()
+
+        btn_guardar = Gtk.Button(label="💾 Guardar tema", css_classes=["pill", "suggested-action"])
+        btn_guardar.connect("clicked", _guardar)
+        fila_btn.append(btn_guardar)
+        self.bubble_box.append(fila_btn)
+
+        self.open_bubble()
+        GLib.timeout_add(150, lambda: (ent_nombre.grab_focus(), False)[1])
+
+    def dialogo_crear_tarjeta(self, deck_id=None):
+        """Formulario en el globo para crear una nueva pregunta o tarjeta."""
+        mazos = self.con.execute("SELECT id, key, name, icon, color FROM decks WHERE enabled=1 ORDER BY pos").fetchall()
+        if not mazos:
+            self.dialogo_crear_tema()
+            return
+
+        self.clear_bubble()
+        self.bubble_box.append(self.bubble_header("📝 Nueva pregunta", CHAT))
+
+        scroll = Gtk.ScrolledWindow(propagate_natural_height=True, max_content_height=300,
+                                    hscrollbar_policy=Gtk.PolicyType.NEVER)
+        form = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+
+        form.append(Gtk.Label(label="Tema / Mazo:", xalign=0, css_classes=["as-bubble-cita"]))
+        nombres_mazos = [f"{m['icon']} {m['name']}" for m in mazos]
+        dd_mazos = Gtk.DropDown.new_from_strings(nombres_mazos)
+        idx_sel = 0
+        if deck_id is not None:
+            for i, m in enumerate(mazos):
+                if m["id"] == deck_id:
+                    idx_sel = i
+                    break
+        elif self.card and self.card.get("deck_id"):
+            for i, m in enumerate(mazos):
+                if m["id"] == self.card["deck_id"]:
+                    idx_sel = i
+                    break
+        dd_mazos.set_selected(idx_sel)
+        form.append(dd_mazos)
+
+        form.append(Gtk.Label(label="Tipo de pregunta:", xalign=0, css_classes=["as-bubble-cita"]))
+        tipo_box = Gtk.Box(spacing=6, homogeneous=True)
+        btn_tipo_card = Gtk.Button(label="🃏 Flashcard", css_classes=["pill", "suggested-action"])
+        btn_tipo_quiz = Gtk.Button(label="⚡ Quiz (opciones)", css_classes=["pill"])
+        tipo_box.append(btn_tipo_card)
+        tipo_box.append(btn_tipo_quiz)
+        form.append(tipo_box)
+
+        tipo_actual = ["card"]
+
+        form.append(Gtk.Label(label="Pregunta / Frente:", xalign=0, css_classes=["as-bubble-cita"]))
+        ent_front = Gtk.Entry(placeholder_text="¿Qué es...? o Plantea la pregunta",
+                              css_classes=["as-reto-entrada"])
+        form.append(ent_front)
+
+        box_quiz = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        box_quiz.set_visible(False)
+        box_quiz.append(Gtk.Label(label="Opciones (separadas por coma):", xalign=0, css_classes=["as-bubble-cita"]))
+        ent_choices = Gtk.Entry(placeholder_text="Opción 1, Opción 2, Opción 3, Opción 4",
+                                css_classes=["as-reto-entrada"])
+        box_quiz.append(ent_choices)
+        box_quiz.append(Gtk.Label(label="Número de la opción correcta (1, 2, 3 o 4):", xalign=0, css_classes=["as-bubble-cita"]))
+        ent_answer = Gtk.Entry(text="1", placeholder_text="1", css_classes=["as-reto-entrada"])
+        box_quiz.append(ent_answer)
+        form.append(box_quiz)
+
+        form.append(Gtk.Label(label="Respuesta / Explicación:", xalign=0, css_classes=["as-bubble-cita"]))
+        ent_back = Gtk.Entry(placeholder_text="Respuesta correcta o explicación clara...",
+                             css_classes=["as-reto-entrada"])
+        form.append(ent_back)
+
+        form.append(Gtk.Label(label="Pista (opcional):", xalign=0, css_classes=["as-bubble-cita"]))
+        ent_hint = Gtk.Entry(placeholder_text="Ayuda mnemotécnica o dato clave...",
+                             css_classes=["as-reto-entrada"])
+        form.append(ent_hint)
+
+        def _cambiar_tipo(t):
+            tipo_actual[0] = t
+            if t == "card":
+                btn_tipo_card.add_css_class("suggested-action")
+                btn_tipo_quiz.remove_css_class("suggested-action")
+                box_quiz.set_visible(False)
+            else:
+                btn_tipo_quiz.add_css_class("suggested-action")
+                btn_tipo_card.remove_css_class("suggested-action")
+                box_quiz.set_visible(True)
+
+        btn_tipo_card.connect("clicked", lambda *_: _cambiar_tipo("card"))
+        btn_tipo_quiz.connect("clicked", lambda *_: _cambiar_tipo("quiz"))
+
+        scroll.set_child(form)
+        self.bubble_box.append(scroll)
+
+        fila_btn = Gtk.Box(spacing=6, homogeneous=True)
+        btn_cancelar = Gtk.Button(label="Atrás", css_classes=["pill"])
+        btn_cancelar.connect("clicked", lambda *_: self.dialogo_crear_contenido())
+        fila_btn.append(btn_cancelar)
+
+        def _guardar(*_):
+            front = ent_front.get_text().strip()
+            if not front:
+                ent_front.grab_focus()
+                return
+            back = ent_back.get_text().strip()
+            hint = ent_hint.get_text().strip()
+            sel_m = mazos[dd_mazos.get_selected()]
+            d_id = sel_m["id"]
+            d_key = sel_m["key"]
+            kind = tipo_actual[0]
+            choices = None
+            answer = -1
+            if kind == "quiz":
+                raw_choices = [c.strip() for c in ent_choices.get_text().split(",") if c.strip()]
+                if len(raw_choices) < 2:
+                    raw_choices = [back] if back else ["Opción A", "Opción B"]
+                choices = raw_choices
+                try:
+                    num = int(ent_answer.get_text().strip())
+                    answer = max(0, min(len(choices) - 1, num - 1))
+                except ValueError:
+                    answer = 0
+
+            cid, _ = db.add_card(self.con, d_id, d_key, kind, front, back=back, hint=hint,
+                                 choices=choices, answer=answer, builtin=0)
+            self.con.commit()
+            self.creature.celebrar()
+            self.sonar("acierto")
+
+            self.clear_bubble()
+            self.bubble_box.append(self.bubble_header(f"{sel_m['icon']} ¡Pregunta guardada!", sel_m["color"]))
+            self.bubble_box.append(Gtk.Label(
+                label=f"Añadida a <b>{GLib.markup_escape_text(sel_m['name'])}</b>:\n<b>{GLib.markup_escape_text(front)}</b>\n{GLib.markup_escape_text(back)}",
+                use_markup=True, wrap=True, xalign=0, max_width_chars=self.char_width(32),
+                css_classes=["as-bubble-front"]))
+
+            f_exito = Gtk.Box(spacing=6, homogeneous=True)
+            b_otra = Gtk.Button(label="➕ Otra pregunta", css_classes=["pill"])
+            b_otra.connect("clicked", lambda *_: self.dialogo_crear_tarjeta(deck_id=d_id))
+            f_exito.append(b_otra)
+
+            b_probar = Gtk.Button(label="⚡ Probarla ya", css_classes=["pill", "suggested-action"])
+            def _probar(*_):
+                card_data = self._cargar_tarjeta_completa(cid)
+                if card_data:
+                    self.card = card_data
+                    self.reto = reto.preparar(self.con, self.card, estricto=estricto(self.con))
+                    self.shown_at = time.time()
+                    self.render_reto()
+                else:
+                    self.quiz()
+            b_probar.connect("clicked", _probar)
+            f_exito.append(b_probar)
+
+            self.bubble_box.append(f_exito)
+            self.open_bubble()
+
+        btn_guardar = Gtk.Button(label="💾 Guardar pregunta", css_classes=["pill", "suggested-action"])
+        btn_guardar.connect("clicked", _guardar)
+        fila_btn.append(btn_guardar)
+        self.bubble_box.append(fila_btn)
+
+        self.open_bubble()
+        GLib.timeout_add(150, lambda: (ent_front.grab_focus(), False)[1])
+
+    def dialogo_crear_con_ia(self):
+        """Permite dictar o escribir un tema/concepto y la IA redacta la pregunta y respuesta."""
+        self.clear_bubble()
+        self.bubble_box.append(self.bubble_header("✨ Crear con IA", CHAT))
+        self.bubble_box.append(Gtk.Label(
+            label="Escribe o dicta el concepto o tema del que quieres crear preguntas (ej: <i>«Pregunta sobre el ciclo de vida de React»</i> o <i>«Diferencia entre RAM y ROM»</i>):",
+            use_markup=True, wrap=True, xalign=0, max_width_chars=self.char_width(32),
+            css_classes=["as-bubble-front"]))
+
+        ent = Gtk.Entry(placeholder_text="Escribe aquí el tema o concepto...",
+                        css_classes=["as-reto-entrada"])
+        self.bubble_box.append(ent)
+
+        fila_btn = Gtk.Box(spacing=6, homogeneous=True)
+        btn_cancelar = Gtk.Button(label="Atrás", css_classes=["pill"])
+        btn_cancelar.connect("clicked", lambda *_: self.dialogo_crear_contenido())
+        fila_btn.append(btn_cancelar)
+
+        def _generar(*_):
+            texto = ent.get_text().strip()
+            if not texto:
+                ent.grab_focus()
+                return
+            self.crear_tarjeta_con_ia(texto)
+
+        ent.connect("activate", _generar)
+        btn_generar = Gtk.Button(label="✨ Generar con IA", css_classes=["pill", "suggested-action"])
+        btn_generar.connect("clicked", _generar)
+        fila_btn.append(btn_generar)
+        self.bubble_box.append(fila_btn)
+        self.open_bubble()
+        GLib.timeout_add(150, lambda: (ent.grab_focus(), False)[1])
+
+    def abrir_reproductor_cursos(self, plataforma: str | None = None):
         self.wake()
         p = (plataforma or "").lower().strip()
-        nombre_plat = "Udemy" if p == "udemy" else ("Platzi" if p == "platzi" else "Cursos")
+        nombres = {
+            "udemy": "Udemy",
+            "platzi": "Platzi",
+            "freecodecamp": "freeCodeCamp",
+            "fcc": "freeCodeCamp",
+            "khan": "Khan Academy",
+            "mdn": "MDN Web Docs",
+        }
+        nombre_plat = nombres.get(p, "Cursos")
         texto_voz = f"Abriendo {nombre_plat} en el reproductor..."
 
-        self.say(f"🎬 <b>{texto_voz}</b>", titulo="🎬 Cursos Online")
+        self.say(f"🎬 <b>{texto_voz}</b>", titulo="🎬 Fuentes y Cursos Online")
         if getattr(self, "voz_cfg", {}).get("activo", True):
             self.cara_de_la_voz(texto_voz)
             dur = voz.hablar(texto_voz, self.voz_cfg, on_done=self.on_voz_terminada)
@@ -2785,50 +3870,87 @@ class PetWindow(Gtk.ApplicationWindow):
         self.card = None
         self.reto = None
 
-        cabecera = self.bubble_header("🎬 Cursos Online", "#2ec27e")
+        cabecera = self.bubble_header("🎬 Fuentes de Estudio Online", "#2ec27e")
         self.bubble_box.append(cabecera)
 
+        scroll = Gtk.ScrolledWindow(propagate_natural_height=True, max_content_height=320,
+                                    hscrollbar_policy=Gtk.PolicyType.NEVER)
+        lista = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+
+        # 1. freeCodeCamp
+        box_fcc = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, css_classes=["card"])
+        box_fcc.set_margin_top(2)
+        box_fcc.set_margin_bottom(2)
+        box_fcc.set_margin_start(2)
+        box_fcc.set_margin_end(2)
+        box_fcc.append(Gtk.Label(label="🔥 <b>freeCodeCamp</b>", use_markup=True, xalign=0, css_classes=["heading"]))
+        box_fcc.append(Gtk.Label(label="100% gratuito: Web, JavaScript, Python y Algoritmos interactivos.",
+                                 wrap=True, xalign=0, css_classes=["caption"]))
+        btn_fcc = Gtk.Button(label="🔥 Estudiar en freeCodeCamp", css_classes=["pill", "suggested-action"])
+        btn_fcc.connect("clicked", lambda *_: self.abrir_reproductor_cursos("freecodecamp"))
+        box_fcc.append(btn_fcc)
+        lista.append(box_fcc)
+
+        # 2. Platzi
         p_platzi = db.get_last_course(self.con, "platzi")
-        p_udemy = db.get_last_course(self.con, "udemy")
-
-        # Tarjeta Platzi
-        box_platzi = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, css_classes=["card"])
-        box_platzi.set_margin_top(4)
-        box_platzi.set_margin_bottom(4)
-        box_platzi.set_margin_start(4)
-        box_platzi.set_margin_end(4)
-        lbl_p_tit = Gtk.Label(label="🟢 Platzi", css_classes=["heading"], xalign=0)
-        box_platzi.append(lbl_p_tit)
-        if p_platzi and p_platzi.get("course_title"):
-            info_p = f"<b>{p_platzi.get('course_title')}</b>"
-        else:
-            info_p = "Accede a tus cursos y clases de Platzi."
+        box_platzi = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, css_classes=["card"])
+        box_platzi.set_margin_top(2)
+        box_platzi.set_margin_bottom(2)
+        box_platzi.set_margin_start(2)
+        box_platzi.set_margin_end(2)
+        box_platzi.append(Gtk.Label(label="🟢 <b>Platzi</b>", use_markup=True, xalign=0, css_classes=["heading"]))
+        info_p = f"<b>{p_platzi.get('course_title')}</b>" if (p_platzi and p_platzi.get("course_title")) else "Cursos, rutas y clases en español."
         box_platzi.append(Gtk.Label(label=info_p, use_markup=True, wrap=True, xalign=0, css_classes=["caption"]))
-
         btn_platzi = Gtk.Button(label="🟢 Abrir Platzi", css_classes=["pill", "suggested-action"])
         btn_platzi.connect("clicked", lambda *_: self.abrir_reproductor_cursos("platzi"))
         box_platzi.append(btn_platzi)
-        self.bubble_box.append(box_platzi)
+        lista.append(box_platzi)
 
-        # Tarjeta Udemy
-        box_udemy = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, css_classes=["card"])
-        box_udemy.set_margin_top(4)
-        box_udemy.set_margin_bottom(4)
-        box_udemy.set_margin_start(4)
-        box_udemy.set_margin_end(4)
-        lbl_u_tit = Gtk.Label(label="🟣 Udemy", css_classes=["heading"], xalign=0)
-        box_udemy.append(lbl_u_tit)
-        if p_udemy and p_udemy.get("course_title"):
-            info_u = f"<b>{p_udemy.get('course_title')}</b>"
-        else:
-            info_u = "Accede a tu biblioteca de cursos de Udemy."
+        # 3. Udemy
+        p_udemy = db.get_last_course(self.con, "udemy")
+        box_udemy = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, css_classes=["card"])
+        box_udemy.set_margin_top(2)
+        box_udemy.set_margin_bottom(2)
+        box_udemy.set_margin_start(2)
+        box_udemy.set_margin_end(2)
+        box_udemy.append(Gtk.Label(label="🟣 <b>Udemy</b>", use_markup=True, xalign=0, css_classes=["heading"]))
+        info_u = f"<b>{p_udemy.get('course_title')}</b>" if (p_udemy and p_udemy.get("course_title")) else "Tu biblioteca personal y cursos comprados."
         box_udemy.append(Gtk.Label(label=info_u, use_markup=True, wrap=True, xalign=0, css_classes=["caption"]))
-
         btn_udemy = Gtk.Button(label="🟣 Abrir Udemy", css_classes=["pill", "suggested-action"])
         btn_udemy.connect("clicked", lambda *_: self.abrir_reproductor_cursos("udemy"))
         box_udemy.append(btn_udemy)
-        self.bubble_box.append(box_udemy)
+        lista.append(box_udemy)
 
+        # 4. Khan Academy
+        box_khan = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, css_classes=["card"])
+        box_khan.set_margin_top(2)
+        box_khan.set_margin_bottom(2)
+        box_khan.set_margin_start(2)
+        box_khan.set_margin_end(2)
+        box_khan.append(Gtk.Label(label="🌐 <b>Khan Academy</b>", use_markup=True, xalign=0, css_classes=["heading"]))
+        box_khan.append(Gtk.Label(label="Matemáticas, física, ciencias de la computación y ejercicios prácticos.",
+                                  wrap=True, xalign=0, css_classes=["caption"]))
+        btn_khan = Gtk.Button(label="🌐 Abrir Khan Academy", css_classes=["pill"])
+        btn_khan.connect("clicked", lambda *_: self.abrir_reproductor_cursos("khan"))
+        box_khan.append(btn_khan)
+        lista.append(box_khan)
+
+        # 5. MDN Web Docs
+        box_mdn = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, css_classes=["card"])
+        box_mdn.set_margin_top(2)
+        box_mdn.set_margin_bottom(2)
+        box_mdn.set_margin_start(2)
+        box_mdn.set_margin_end(2)
+        box_mdn.append(Gtk.Label(label="📚 <b>MDN Web Docs</b>", use_markup=True, xalign=0, css_classes=["heading"]))
+        box_mdn.append(Gtk.Label(label="Documentación oficial, estándares web y referencias completas de APIs.",
+                                 wrap=True, xalign=0, css_classes=["caption"]))
+        btn_mdn = Gtk.Button(label="📚 Abrir MDN Docs", css_classes=["pill"])
+        btn_mdn.connect("clicked", lambda *_: self.abrir_reproductor_cursos("mdn"))
+        box_mdn.append(btn_mdn)
+        lista.append(box_mdn)
+
+        scroll.set_child(lista)
+        self.bubble_box.append(scroll)
         self.open_bubble()
 
     def registrar_acciones(self):
@@ -2896,6 +4018,11 @@ class PetWindow(Gtk.ApplicationWindow):
     def open_main(self):
         self.close_bubble()
         self.spawn()
+
+    def abrir_biblioteca(self):
+        """Abre la biblioteca directamente en los libros para leer."""
+        self.close_bubble()
+        self.spawn("--biblioteca")
 
     def abrir_ayuda(self):
         """La guía de uso vive en la ventana principal, que es otro proceso."""

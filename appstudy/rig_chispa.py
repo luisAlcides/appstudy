@@ -68,7 +68,8 @@ class Rig:
 
     def dibujar(self, cr, indice: int, cierre: float = 0.0,
                 balanceo: float = 0.0, apertura: float = 0.0,
-                inclinacion: float = 0.0) -> bool:
+                inclinacion: float = 0.0, *, mirada=(0.0, 0.0),
+                guino: float = 0.0, manos=None) -> bool:
         """Pinta la pose entera. Devuelve False si le faltan capas.
 
         `balanceo` va de -1 a 1 y mueve manos y pies en oposición, que es como
@@ -111,7 +112,12 @@ class Rig:
             if nombre == "boca":
                 self._boca(cr, capa, piezas[nombre], apertura, ancho, alto)
             else:
-                self._ojo(cr, capa, piezas[nombre], cierre, ancho, alto)
+                cierre_ojo = max(cierre, guino) if nombre == "ojo_der" else cierre
+                cr.save()
+                cr.translate(max(-1,min(1,mirada[0])) * ancho * .006 * (1-cierre_ojo),
+                             max(-1,min(1,mirada[1])) * alto * .004 * (1-cierre_ojo))
+                self._ojo(cr, capa, piezas[nombre], cierre_ojo, ancho, alto)
+                cr.restore()
         cr.restore()
         for nombre in MIEMBROS:
             if nombre not in piezas:
@@ -119,7 +125,10 @@ class Rig:
             capa = self._superficie(f"{indice}-{nombre}")
             if capa is None:
                 return False
-            self._miembro(cr, capa, piezas[nombre], nombre, balanceo, ancho, alto)
+            movimiento = balanceo
+            if manos is not None and nombre.startswith("mano"):
+                movimiento = manos[0 if nombre.endswith("izq") else 1]
+            self._miembro(cr, capa, piezas[nombre], nombre, movimiento, ancho, alto)
         return True
 
     def _boca(self, cr, capa, datos, apertura, ancho, alto):
