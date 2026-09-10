@@ -187,7 +187,7 @@ CREATE TABLE IF NOT EXISTS card_sources (
     title       TEXT NOT NULL DEFAULT ''
 );
 
--- Cursos online (Platzi, Udemy) y seguimiento de último y siguiente video
+-- Cursos online y seguimiento de último y siguiente video
 CREATE TABLE IF NOT EXISTS online_courses (
     id                   INTEGER PRIMARY KEY AUTOINCREMENT,
     platform             TEXT NOT NULL,
@@ -1024,7 +1024,7 @@ def upsert_online_course(con, platform: str, course_slug: str, course_title: str
                          course_url: str = "", last_video_title: str = "",
                          last_video_url: str = "", next_video_title: str = "",
                          next_video_url: str = "") -> int:
-    """Registra o actualiza el progreso de un curso en Platzi o Udemy."""
+    """Registra o actualiza el progreso de un curso online."""
     p = platform.lower().strip()
     slug = course_slug.strip()
     titulo = course_title.strip() or slug

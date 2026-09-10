@@ -1229,7 +1229,7 @@ Tres detalles que hacen que se sienta como hablar con alguien:
   pequeño se emociona explicando, y medio minuto de monólogo no hay quien lo siga.
   Si quieres más, se lo pides.
 
-Las órdenes de siempre siguen funcionando habladas: «abre Platzi», «crea una
+Las órdenes de siempre siguen funcionando habladas: «abre los cursos», «crea una
 tarjeta de…». Cuando es una orden y no una pregunta, Bit la ejecuta y vuelve a
 escucharte sin esperar respuesta del modelo.
 

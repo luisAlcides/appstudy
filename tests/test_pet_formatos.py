@@ -1,7 +1,7 @@
-"""Los cuatro formatos con que la mascota cuenta una tarjeta.
+"""Los tres formatos con que la mascota cuenta una tarjeta.
 
-Se sortean al pulsarla —ya no hay selector—, así que cualquiera de los cuatro
-puede salir en cualquier momento y los cuatro tienen que montarse sin fallar y
+Se sortean al pulsarla —ya no hay selector—, así que cualquiera de los tres
+puede salir en cualquier momento y los tres tienen que montarse sin fallar y
 sin dejarse la respuesta por el camino.
 """
 from types import MethodType
@@ -43,7 +43,7 @@ class SorteoDeFormatoTest(unittest.TestCase):
             for _ in range(40):
                 self.assertNotEqual(pet.formato_ensenanza(anterior), anterior)
 
-    def test_con_el_tiempo_salen_los_cuatro(self):
+    def test_con_el_tiempo_salen_todos(self):
         vistos, anterior = set(), None
         for _ in range(200):
             anterior = pet.formato_ensenanza(anterior)
@@ -89,7 +89,7 @@ class FormatosSeMontanTest(unittest.TestCase):
         globo = GloboSinVentana()
         return textos(getattr(globo, f"_render_formato_{formato}")(c))
 
-    def test_los_cuatro_cuentan_pregunta_y_respuesta(self):
+    def test_todos_cuentan_pregunta_y_respuesta(self):
         for formato in pet.FORMATOS_ENSENANZA:
             with self.subTest(formato=formato):
                 visto = self.montar(formato, self.carta())
@@ -108,30 +108,6 @@ class FormatosSeMontanTest(unittest.TestCase):
         for numero in ("1", "2", "3"):
             self.assertIn(numero, visto)
         self.assertIn("más allá", visto)
-
-    def test_las_capas_empiezan_con_una_sola_abierta(self):
-        globo = GloboSinVentana()
-        caja = globo._render_formato_capas(self.carta())
-        reveladores = []
-        hijo = caja.get_first_child()
-        while hijo is not None:
-            nieto = hijo.get_first_child()
-            while nieto is not None:
-                if isinstance(nieto, Gtk.Revealer):
-                    reveladores.append(nieto)
-                nieto = nieto.get_next_sibling()
-            hijo = hijo.get_next_sibling()
-        self.assertEqual(len(reveladores), 3)
-        self.assertEqual([r.get_reveal_child() for r in reveladores], [True, False, False])
-
-    def test_una_capa_cerrada_se_abre_al_pulsarla(self):
-        globo = GloboSinVentana()
-        caja = globo._capa(2, 3, "El detalle", "as-card-back-box", "lo de dentro", abierta=False)
-        boton, revelador = caja.get_first_child(), caja.get_last_child()
-        self.assertFalse(revelador.get_reveal_child())
-        boton.emit("clicked")
-        self.assertTrue(revelador.get_reveal_child())
-        self.assertTrue(boton.get_label().startswith("▼"))
 
 
 if __name__ == "__main__":

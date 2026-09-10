@@ -244,8 +244,8 @@ def calificaciones_relampago(modo_estricto: bool) -> list:
     return [("No la tenía", False, "as-rate-again"), ("La tenía", True, "as-rate-good")]
 
 
-# Las cuatro maneras de contar una tarjeta. El orden no importa: se sortean.
-FORMATOS_ENSENANZA = ("tarjeta", "esquema", "dialogo", "capas")
+# Las tres maneras de contar una tarjeta. El orden no importa: se sortean.
+FORMATOS_ENSENANZA = ("tarjeta", "esquema", "dialogo")
 
 
 def trozos_de_respuesta(texto: str, maximo: int = 4) -> list[str]:
@@ -1095,7 +1095,7 @@ class PetWindow(Gtk.ApplicationWindow):
         tools.append(self.btn_mic)
 
         self.btn_cursos = Gtk.Button(icon_name="media-playback-start-symbolic",
-                                      tooltip_text="Cursos Online (Platzi & Udemy)",
+                                      tooltip_text="Cursos Online",
                                       css_classes=["flat", "circular"], valign=Gtk.Align.CENTER)
         self.btn_cursos.connect("clicked", lambda *_: self.mostrar_menu_cursos())
         tools.append(self.btn_cursos)
@@ -1193,11 +1193,10 @@ class PetWindow(Gtk.ApplicationWindow):
                     if not dicho:
                         return
                     dicho_l = dicho.lower()
-                    es_c = any(k in dicho_l for k in ("platzi", "udemy", "curso", "clase", "reproductor", "video"))
-                    es_a = any(k in dicho_l for k in ("platzi", "udemy", "siguiente", "proximo", "próximo", "ultimo", "último", "abre", "abrir", "pon", "poner", "ver", "reproduce", "reproducir", "mostrar", "muéstrame"))
+                    es_c = any(k in dicho_l for k in ("curso", "clase", "reproductor", "video"))
+                    es_a = any(k in dicho_l for k in ("siguiente", "proximo", "próximo", "ultimo", "último", "abre", "abrir", "pon", "poner", "ver", "reproduce", "reproducir", "mostrar", "muéstrame"))
                     if es_c and es_a:
-                        plat = "platzi" if "platzi" in dicho_l else ("udemy" if "udemy" in dicho_l else None)
-                        self.abrir_reproductor_cursos(plat)
+                        self.abrir_reproductor_cursos(None)
                     elif self.chat is not None:
                         self.enviar_chat(dicho)
                     else:
@@ -1501,7 +1500,6 @@ class PetWindow(Gtk.ApplicationWindow):
             "tarjeta": "🃏 Tarjeta de estudio",
             "esquema": "🗺️ Esquema visual",
             "dialogo": "💬 Charla con Bit",
-            "capas":   "🔍 Descubrimiento activo",
         }.get(self.formato_actual, "Repasemos esto")
 
         self.bubble_box.append(self.bubble_header(
@@ -1515,8 +1513,6 @@ class PetWindow(Gtk.ApplicationWindow):
             cuerpo = self._render_formato_esquema(c)
         elif self.formato_actual == "dialogo":
             cuerpo = self._render_formato_dialogo(c)
-        elif self.formato_actual == "capas":
-            cuerpo = self._render_formato_capas(c)
         else:
             cuerpo = self._render_formato_tarjeta(c)
 
@@ -1554,14 +1550,14 @@ class PetWindow(Gtk.ApplicationWindow):
         self.open_bubble()
         self.voz_auto_si_toca()
 
-    # ------------------------------------------- los cuatro formatos del globo
+    # -------------------------------------------- los tres formatos del globo
 
     def _panel(self, clase: str, rotulo: str | None, texto: str, *,
                rotulo_clase: str = "as-card-subhead",
                texto_clase: str = "as-bubble-text", ancho: int = 30) -> Gtk.Box:
         """Un trozo de la tarjeta: el rótulo pequeño arriba y el texto debajo.
 
-        Los cuatro formatos se montan con esto, así que un panel de pregunta se
+        Los tres formatos se montan con esto, así que un panel de pregunta se
         ve igual venga del formato que venga y la vista no tiene que reaprender
         dónde mirar cada vez que cambia el sorteo.
         """
@@ -1654,56 +1650,6 @@ class PetWindow(Gtk.ApplicationWindow):
 
         if c["back"] and c.get("hint"):
             caja.append(self._nota_pie(f"Para que se te quede: {c['hint']}"))
-        return caja
-
-    def _capa(self, numero: int, total: int, titulo: str, clase: str,
-              texto: str, abierta: bool) -> Gtk.Box:
-        """Una capa del descubrimiento: su botón y lo que esconde debajo."""
-        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        revelador = Gtk.Revealer(reveal_child=abierta,
-                                 transition_type=Gtk.RevealerTransitionType.SLIDE_DOWN)
-        revelador.set_child(self._panel(clase, None, texto, ancho=26))
-
-        rotulo = f"Capa {numero} de {total} · {titulo}"
-        clases = ["as-capa-btn"] + (["as-capa-abierta"] if abierta else [])
-        boton = Gtk.Button(label=f"{'▼' if abierta else '▶'} {rotulo}", css_classes=clases)
-
-        def _alternar(*_):
-            visible = not revelador.get_reveal_child()
-            revelador.set_reveal_child(visible)
-            boton.set_label(f"{'▼' if visible else '▶'} {rotulo}")
-            boton.set_css_classes(["as-capa-btn"] + (["as-capa-abierta"] if visible else []))
-        boton.connect("clicked", _alternar)
-        caja.append(boton)
-        caja.append(revelador)
-        return caja
-
-    def _render_formato_capas(self, c: dict) -> Gtk.Box:
-        """Primero la idea en corto; el detalle y la pista, si los pides.
-
-        Abrir una capa a mano es el esfuerzo que hace que se recuerde: si todo
-        estuviera ya desplegado, la vista resbalaría hasta el final.
-        """
-        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        f_txt = cloze.completo(c["front"]) if cloze.tiene_huecos(c["front"]) else c["front"]
-        back_text = util.plain(c["back"] or "")
-        hint_text = util.plain(c.get("hint", "") or
-                               "Relaciónalo con su función principal en este tema.")
-
-        cabeza = self._panel("as-card-front-box", None, f_txt,
-                             texto_clase="as-bubble-front")
-        cabeza.append(Gtk.Label(label="🔍 <i>Abre las capas a tu ritmo:</i>", use_markup=True,
-                                xalign=0, css_classes=["as-bubble-cita"]))
-        caja.append(cabeza)
-
-        capas = [("Lo esencial", "as-box-esquema",
-                  reto.esencia(back_text, 65) if back_text else hint_text)]
-        if back_text:
-            capas.append(("El detalle completo", "as-card-back-box", back_text))
-        capas.append(("La clave para no olvidarlo", "as-card-hint-box", hint_text))
-
-        for i, (titulo, clase, texto) in enumerate(capas, start=1):
-            caja.append(self._capa(i, len(capas), titulo, clase, texto, abierta=i == 1))
         return caja
 
     def celebrar_logro(self) -> bool:
@@ -2803,7 +2749,7 @@ class PetWindow(Gtk.ApplicationWindow):
             self.hablar_en_conversacion("Vale, aquí sigo cuando quieras.", seguir=False)
             return False
         if not self.enviar_chat(texto) and self.conversacion is not None:
-            # Fue una orden ("abre Platzi", "crea una tarjeta"): no hay respuesta
+            # Fue una orden ("abre los cursos", "crea una tarjeta"): no hay respuesta
             # del modelo que esperar, así que se vuelve a escuchar ya.
             self.conversacion.reanudar()
         return False
@@ -2937,11 +2883,10 @@ class PetWindow(Gtk.ApplicationWindow):
             self.crear_tarjeta_con_ia(texto)
             return False
 
-        es_c = any(k in texto_l for k in ("platzi", "udemy", "curso", "clase", "reproductor", "video"))
-        es_a = any(k in texto_l for k in ("platzi", "udemy", "siguiente", "proximo", "próximo", "ultimo", "último", "abre", "abrir", "pon", "poner", "ver", "reproduce", "reproducir", "mostrar", "muéstrame"))
+        es_c = any(k in texto_l for k in ("curso", "clase", "reproductor", "video"))
+        es_a = any(k in texto_l for k in ("siguiente", "proximo", "próximo", "ultimo", "último", "abre", "abrir", "pon", "poner", "ver", "reproduce", "reproducir", "mostrar", "muéstrame"))
         if es_c and es_a:
-            plat = "platzi" if "platzi" in texto_l else ("udemy" if "udemy" in texto_l else None)
-            self.abrir_reproductor_cursos(plat)
+            self.abrir_reproductor_cursos(None)
             return False
 
         self.chat["historial"].append({"role": "user", "content": texto})
@@ -3268,9 +3213,7 @@ class PetWindow(Gtk.ApplicationWindow):
                 ("📊 Cómo va la semana", lambda: (self.wake(), self.diario()), None),
                 ("⏱️ Sesión de estudio", self.study, None),
                 ("🕐 Tarjetas recientes", self.abrir_historial, None),
-                ("🎬 Centro Audiovisual / Cursos", lambda: self.abrir_reproductor_cursos("fcc"), None),
-                ("🎬 Platzi", lambda: self.abrir_reproductor_cursos("platzi"), None),
-                ("🎬 Udemy", lambda: self.abrir_reproductor_cursos("udemy"), None)):
+                ("🎬 Cursos online", lambda: self.abrir_reproductor_cursos("fcc"), None)):
             caja.append(self._fila_accion(etiqueta, cb, sufijo))
 
         caja.append(Gtk.Separator(css_classes=["as-bubble-sep"]))
@@ -3846,8 +3789,6 @@ class PetWindow(Gtk.ApplicationWindow):
         self.wake()
         p = (plataforma or "").lower().strip()
         nombres = {
-            "udemy": "Udemy",
-            "platzi": "Platzi",
             "freecodecamp": "freeCodeCamp",
             "fcc": "freeCodeCamp",
             "khan": "Khan Academy",
@@ -3891,37 +3832,7 @@ class PetWindow(Gtk.ApplicationWindow):
         box_fcc.append(btn_fcc)
         lista.append(box_fcc)
 
-        # 2. Platzi
-        p_platzi = db.get_last_course(self.con, "platzi")
-        box_platzi = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, css_classes=["card"])
-        box_platzi.set_margin_top(2)
-        box_platzi.set_margin_bottom(2)
-        box_platzi.set_margin_start(2)
-        box_platzi.set_margin_end(2)
-        box_platzi.append(Gtk.Label(label="🟢 <b>Platzi</b>", use_markup=True, xalign=0, css_classes=["heading"]))
-        info_p = f"<b>{p_platzi.get('course_title')}</b>" if (p_platzi and p_platzi.get("course_title")) else "Cursos, rutas y clases en español."
-        box_platzi.append(Gtk.Label(label=info_p, use_markup=True, wrap=True, xalign=0, css_classes=["caption"]))
-        btn_platzi = Gtk.Button(label="🟢 Abrir Platzi", css_classes=["pill", "suggested-action"])
-        btn_platzi.connect("clicked", lambda *_: self.abrir_reproductor_cursos("platzi"))
-        box_platzi.append(btn_platzi)
-        lista.append(box_platzi)
-
-        # 3. Udemy
-        p_udemy = db.get_last_course(self.con, "udemy")
-        box_udemy = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, css_classes=["card"])
-        box_udemy.set_margin_top(2)
-        box_udemy.set_margin_bottom(2)
-        box_udemy.set_margin_start(2)
-        box_udemy.set_margin_end(2)
-        box_udemy.append(Gtk.Label(label="🟣 <b>Udemy</b>", use_markup=True, xalign=0, css_classes=["heading"]))
-        info_u = f"<b>{p_udemy.get('course_title')}</b>" if (p_udemy and p_udemy.get("course_title")) else "Tu biblioteca personal y cursos comprados."
-        box_udemy.append(Gtk.Label(label=info_u, use_markup=True, wrap=True, xalign=0, css_classes=["caption"]))
-        btn_udemy = Gtk.Button(label="🟣 Abrir Udemy", css_classes=["pill", "suggested-action"])
-        btn_udemy.connect("clicked", lambda *_: self.abrir_reproductor_cursos("udemy"))
-        box_udemy.append(btn_udemy)
-        lista.append(box_udemy)
-
-        # 4. Khan Academy
+        # 2. Khan Academy
         box_khan = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, css_classes=["card"])
         box_khan.set_margin_top(2)
         box_khan.set_margin_bottom(2)
@@ -3935,7 +3846,7 @@ class PetWindow(Gtk.ApplicationWindow):
         box_khan.append(btn_khan)
         lista.append(box_khan)
 
-        # 5. MDN Web Docs
+        # 3. MDN Web Docs
         box_mdn = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4, css_classes=["card"])
         box_mdn.set_margin_top(2)
         box_mdn.set_margin_bottom(2)
@@ -3969,12 +3880,6 @@ class PetWindow(Gtk.ApplicationWindow):
                            ("study", lambda *_: self.study()),
                            ("open", lambda *_: self.open_main()),
                            ("ayuda", lambda *_: self.abrir_ayuda()),
-                           ("platzi_open", lambda *_: self.abrir_reproductor_cursos("platzi")),
-                           ("udemy_open", lambda *_: self.abrir_reproductor_cursos("udemy")),
-                           ("platzi_next", lambda *_: self.abrir_reproductor_cursos("platzi")),
-                           ("platzi_last", lambda *_: self.abrir_reproductor_cursos("platzi")),
-                           ("udemy_next", lambda *_: self.abrir_reproductor_cursos("udemy")),
-                           ("udemy_last", lambda *_: self.abrir_reproductor_cursos("udemy")),
                            ("cursos_player", lambda *_: self.abrir_reproductor_cursos(None)),
                            ("mute", lambda *_: self.alternar_sonido()),
                            ("card_bigger", lambda *_: self.cambiar_tamano_tarjeta(0.15)),

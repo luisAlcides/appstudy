@@ -1,4 +1,4 @@
-"""Pruebas para el seguimiento de cursos online (Platzi y Udemy) y su integración con Bit y Pomodoro."""
+"""Pruebas para el seguimiento de cursos online (freeCodeCamp y Khan Academy) y su integración con Bit y Pomodoro."""
 import unittest
 
 from tests.apoyo import BaseTemporal
@@ -8,31 +8,31 @@ from appstudy import db, pomodoro, reproductor
 class TestCursosOnline(BaseTemporal):
 
     def test_upsert_y_get_online_courses(self):
-        # Insertar curso Platzi
+        # Insertar curso freeCodeCamp
         id_p = db.upsert_online_course(
             self.con,
-            platform="platzi",
+            platform="freecodecamp",
             course_slug="ingles-c1",
             course_title="Curso de Inglés Avanzado C1",
-            course_url="https://platzi.com/cursos/ingles-c1/",
+            course_url="https://www.freecodecamp.org/learn/ingles-c1/",
             last_video_title="Phrasal verbs in formal contexts",
-            last_video_url="https://platzi.com/clases/ingles-c1/phrasal-verbs/",
+            last_video_url="https://www.freecodecamp.org/learn/ingles-c1/phrasal-verbs/",
             next_video_title="Inversion and emphasis",
-            next_video_url="https://platzi.com/clases/ingles-c1/inversion/"
+            next_video_url="https://www.freecodecamp.org/learn/ingles-c1/inversion/"
         )
         self.assertGreater(id_p, 0)
 
-        # Insertar curso Udemy
+        # Insertar curso Khan Academy
         id_u = db.upsert_online_course(
             self.con,
-            platform="udemy",
+            platform="khan",
             course_slug="docker-mastery",
             course_title="Docker Mastery with Kubernetes",
-            course_url="https://www.udemy.com/course/docker-mastery/",
+            course_url="https://es.khanacademy.org/course/docker-mastery/",
             last_video_title="Multi-stage builds",
-            last_video_url="https://www.udemy.com/course/docker-mastery/learn/lecture/101",
+            last_video_url="https://es.khanacademy.org/course/docker-mastery/learn/lecture/101",
             next_video_title="Docker Compose in production",
-            next_video_url="https://www.udemy.com/course/docker-mastery/learn/lecture/102"
+            next_video_url="https://es.khanacademy.org/course/docker-mastery/learn/lecture/102"
         )
         self.assertGreater(id_u, 0)
 
@@ -41,30 +41,30 @@ class TestCursosOnline(BaseTemporal):
         self.assertEqual(len(todos), 2)
 
         # Filtrar por plataforma
-        platzi = db.get_online_courses(self.con, platform="platzi")
-        self.assertEqual(len(platzi), 1)
-        self.assertEqual(platzi[0]["course_slug"], "ingles-c1")
-        self.assertEqual(platzi[0]["last_video_title"], "Phrasal verbs in formal contexts")
-        self.assertEqual(platzi[0]["next_video_title"], "Inversion and emphasis")
+        freecodecamp = db.get_online_courses(self.con, platform="freecodecamp")
+        self.assertEqual(len(freecodecamp), 1)
+        self.assertEqual(freecodecamp[0]["course_slug"], "ingles-c1")
+        self.assertEqual(freecodecamp[0]["last_video_title"], "Phrasal verbs in formal contexts")
+        self.assertEqual(freecodecamp[0]["next_video_title"], "Inversion and emphasis")
 
         # Obtener último
-        ultimo_platzi = db.get_last_course(self.con, platform="platzi")
-        self.assertIsNotNone(ultimo_platzi)
-        self.assertEqual(ultimo_platzi["next_video_url"], "https://platzi.com/clases/ingles-c1/inversion/")
+        ultimo_freecodecamp = db.get_last_course(self.con, platform="freecodecamp")
+        self.assertIsNotNone(ultimo_freecodecamp)
+        self.assertEqual(ultimo_freecodecamp["next_video_url"], "https://www.freecodecamp.org/learn/ingles-c1/inversion/")
 
         # Actualizar lección siguiente
         db.upsert_online_course(
             self.con,
-            platform="platzi",
+            platform="freecodecamp",
             course_slug="ingles-c1",
             course_title="Curso de Inglés Avanzado C1",
             last_video_title="Inversion and emphasis",
-            last_video_url="https://platzi.com/clases/ingles-c1/inversion/",
+            last_video_url="https://www.freecodecamp.org/learn/ingles-c1/inversion/",
             next_video_title="C1 Speaking Exam Prep",
-            next_video_url="https://platzi.com/clases/ingles-c1/speaking-prep/"
+            next_video_url="https://www.freecodecamp.org/learn/ingles-c1/speaking-prep/"
         )
 
-        actualizado = db.get_online_course(self.con, "platzi", "ingles-c1")
+        actualizado = db.get_online_course(self.con, "freecodecamp", "ingles-c1")
         self.assertEqual(actualizado["last_video_title"], "Inversion and emphasis")
         self.assertEqual(actualizado["next_video_title"], "C1 Speaking Exam Prep")
 

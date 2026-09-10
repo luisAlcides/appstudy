@@ -1,4 +1,4 @@
-"""Reproductor web integrado para cursos online (freeCodeCamp, Platzi y Udemy).
+"""Reproductor web integrado para cursos online (freeCodeCamp, Khan Academy y MDN).
 
 Permite visualizar clases y videos directamente en una ventana nativa de AppStudy
 utilizando WebKitGTK con sesión persistente (cookies y credenciales guardadas).
@@ -33,20 +33,9 @@ from gi.repository import Adw, Gdk, GLib, Gtk
 from . import db, freecodecamp, ia, util, voz
 
 PERFIL_DIR = Path.home() / ".local" / "share" / "appstudy" / "player_profile"
-PLATZI_HOME = "https://platzi.com/home"
-UDEMY_HOME = "https://www.udemy.com/home/my-courses/learning/"
 FCC_HOME = "https://www.freecodecamp.org/learn/"
 KHAN_HOME = "https://es.khanacademy.org/"
 MDN_HOME = "https://developer.mozilla.org/es/"
-
-AUDIOVISUAL_CHANNELS = [
-    ("🧮 3Blue1Brown (Matemáticas & IA)", "https://www.youtube.com/@3blue1brown_es/videos"),
-    ("💻 CS50 Harvard (Computación)", "https://cs50.harvard.edu/x/"),
-    ("🤖 DotCSV (Inteligencia Artificial)", "https://www.youtube.com/@DotCSV/videos"),
-    ("⚡ freeCodeCamp Español (Cursos Completos)", "https://www.youtube.com/@freecodecampespanol/videos"),
-    ("🌌 Kurzgesagt Español (Ciencia & Cosmos)", "https://www.youtube.com/@Kurzgesagt_es/videos"),
-    ("📚 Humanidades & Historia (Khan Academy)", "https://es.khanacademy.org/humanities"),
-]
 
 _instancia_reproductor: CursosPlayerWindow | None = None
 _sesion_webkit: WebKit.NetworkSession | None = None
@@ -98,7 +87,7 @@ def reanudar_reproductor_activo():
 
 
 class CursosPlayerWindow(Adw.Window):
-    """Ventana del reproductor web para freeCodeCamp, Platzi y Udemy."""
+    """Ventana del reproductor web de cursos online."""
 
     def __init__(self, con, parent_window=None):
         super().__init__(transient_for=parent_window)
@@ -106,7 +95,7 @@ class CursosPlayerWindow(Adw.Window):
         _instancia_reproductor = self
 
         self.con = con
-        self.set_title("Reproductor de Cursos · freeCodeCamp, Platzi y Udemy")
+        self.set_title("Reproductor de Cursos · freeCodeCamp, Khan y MDN")
         self.set_default_size(1120, 740)
 
         self.connect("close-request", self._al_cerrar)
@@ -145,14 +134,6 @@ class CursosPlayerWindow(Adw.Window):
         self.btn_fcc.add_css_class("flat")
         self.btn_fcc.connect("clicked", lambda _: self.cargar_url(FCC_HOME))
 
-        self.btn_platzi = Gtk.Button(label="🟢 Platzi", tooltip_text="Ir a Platzi Home")
-        self.btn_platzi.add_css_class("flat")
-        self.btn_platzi.connect("clicked", lambda _: self.cargar_url(PLATZI_HOME))
-
-        self.btn_udemy = Gtk.Button(label="🟣 Udemy", tooltip_text="Ir a Mis Cursos de Udemy")
-        self.btn_udemy.add_css_class("flat")
-        self.btn_udemy.connect("clicked", lambda _: self.cargar_url(UDEMY_HOME))
-
         self.btn_khan = Gtk.Button(label="🌐 Khan", tooltip_text="Ir a Khan Academy")
         self.btn_khan.add_css_class("flat")
         self.btn_khan.connect("clicked", lambda _: self.cargar_url(KHAN_HOME))
@@ -161,12 +142,7 @@ class CursosPlayerWindow(Adw.Window):
         self.btn_mdn.add_css_class("flat")
         self.btn_mdn.connect("clicked", lambda _: self.cargar_url(MDN_HOME))
 
-        self.btn_audiovisual = self.crear_menu_audiovisual()
-
-        self.box_plataformas.append(self.btn_audiovisual)
         self.box_plataformas.append(self.btn_fcc)
-        self.box_plataformas.append(self.btn_platzi)
-        self.box_plataformas.append(self.btn_udemy)
         self.box_plataformas.append(self.btn_khan)
         self.box_plataformas.append(self.btn_mdn)
         self.header.pack_start(self.box_plataformas)
@@ -319,32 +295,6 @@ class CursosPlayerWindow(Adw.Window):
         else:
             self.reanudar_video(solo_si_reproduciendo=True)
 
-    def crear_menu_audiovisual(self):
-        """Crea el selector desplegable de canales y series audiovisuales educativas."""
-        btn = Gtk.MenuButton(label="🎬 Audiovisual")
-        btn.add_css_class("flat")
-        btn.set_tooltip_text("Canales y series educativas audiovisuales de alta calidad")
-        pop = Gtk.Popover()
-        caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        caja.set_margin_top(8)
-        caja.set_margin_bottom(8)
-        caja.set_margin_start(10)
-        caja.set_margin_end(10)
-
-        titulo = Gtk.Label(label="<b>Contenido Audiovisual</b>", use_markup=True, xalign=0)
-        titulo.set_margin_bottom(4)
-        caja.append(titulo)
-
-        for etiqueta, url in AUDIOVISUAL_CHANNELS:
-            b = Gtk.Button(label=etiqueta, css_classes=["flat"])
-            b.set_xalign(0.0)
-            b.connect("clicked", lambda _, u=url: (pop.popdown(), self.cargar_url(u)))
-            caja.append(b)
-
-        pop.set_child(caja)
-        btn.set_popover(pop)
-        return btn
-
     def _al_cerrar(self, *args):
         global _instancia_reproductor
         _instancia_reproductor = None
@@ -428,10 +378,6 @@ class CursosPlayerWindow(Adw.Window):
     def _detectar_plataforma(self, uri: str) -> str | None:
         if "freecodecamp.org" in uri:
             return "freecodecamp"
-        if "platzi.com" in uri:
-            return "platzi"
-        if "udemy.com" in uri:
-            return "udemy"
         return None
 
     def _inspeccionar_pagina(self, uri: str):
@@ -450,14 +396,6 @@ class CursosPlayerWindow(Adw.Window):
                     + (f" » {freecodecamp.nombre_bonito(bloque)}" if bloque else ""))
             else:
                 self.lbl_info.set_text("🔥 freeCodeCamp")
-        elif plat == "platzi":
-            m = re.search(r"platzi\.com/(?:clases|cursos)/([^/?#]+)", uri)
-            slug = m.group(1) if m else "platzi"
-            self.lbl_info.set_text(f"🟢 Platzi · Curso: {slug.replace('-', ' ').title()}")
-        elif plat == "udemy":
-            m = re.search(r"udemy\.com/course/([^/?#]+)", uri)
-            slug = m.group(1) if m else "udemy"
-            self.lbl_info.set_text(f"🟣 Udemy · Curso: {slug.replace('-', ' ').title()}")
 
     def _ejecutar_extractor_js(self, uri: str):
         """Inyecta script para extraer títulos, enlace siguiente y enganchar evento fin de video."""
@@ -474,21 +412,8 @@ class CursosPlayerWindow(Adw.Window):
                 next_url: ""
             };
 
-            // 1. Extraer en Platzi
-            if (location.hostname.indexOf("platzi.com") !== -1) {
-                var h1 = document.querySelector("h1") || document.querySelector(".Class-title");
-                if (h1) res.lesson_title = h1.innerText.trim();
-                
-                var courseElem = document.querySelector(".Course-title") || document.querySelector("a[href*='/cursos/']");
-                if (courseElem) res.course_title = courseElem.innerText.trim();
-
-                var nextBtn = document.querySelector("a[data-testid='next-class']") ||
-                              document.querySelector("a.NextClass") ||
-                              document.querySelector("a[href*='/clases/']:not([aria-current='page'])");
-                if (nextBtn && nextBtn.href) res.next_url = nextBtn.href;
-            }
-            // 1.b Extraer en freeCodeCamp
-            else if (location.hostname.indexOf("freecodecamp.org") !== -1) {
+            // Extraer en freeCodeCamp
+            if (location.hostname.indexOf("freecodecamp.org") !== -1) {
                 var fh = document.querySelector(".challenge-title") ||
                          document.querySelector("h1");
                 if (fh) res.lesson_title = fh.innerText.trim();
@@ -523,18 +448,6 @@ class CursosPlayerWindow(Adw.Window):
                 if (!window._appstudy_reto_timer) {
                     window._appstudy_reto_timer = setInterval(vigilarReto, 1500);
                 }
-            }
-            // 2. Extraer en Udemy
-            else if (location.hostname.indexOf("udemy.com") !== -1) {
-                var uTitle = document.querySelector("h1") || document.querySelector("[data-purpose='lead-title']");
-                if (uTitle) res.lesson_title = uTitle.innerText.trim();
-
-                var uCourse = document.querySelector(".header--course-title") || document.querySelector("a[href*='/course/']");
-                if (uCourse) res.course_title = uCourse.innerText.trim();
-
-                var uNext = document.querySelector("button[data-purpose='go-to-next-lecture']") ||
-                            document.querySelector("a[data-purpose='next-lecture-button']");
-                if (uNext && uNext.href) res.next_url = uNext.href;
             }
 
             // Enganchar detección de fin de video HTML5
@@ -577,47 +490,9 @@ class CursosPlayerWindow(Adw.Window):
 
     def _guardar_progreso_curso(self, uri: str, datos: dict):
         plat = self._detectar_plataforma(uri)
-        if not plat:
+        if plat != "freecodecamp":
             return
-
-        lesson_title = datos.get("lesson_title") or ""
-        course_title = datos.get("course_title") or ""
-        next_url = datos.get("next_url") or ""
-
-        if plat == "freecodecamp":
-            self._guardar_progreso_fcc(uri, lesson_title)
-            return
-
-        slug = ""
-        if plat == "platzi":
-            m = re.search(r"platzi\.com/(?:clases|cursos)/([^/?#]+)", uri)
-            slug = m.group(1) if m else "platzi"
-        elif plat == "udemy":
-            m = re.search(r"udemy\.com/course/([^/?#]+)", uri)
-            slug = m.group(1) if m else "udemy"
-
-        if not slug:
-            return
-
-        if not course_title:
-            course_title = slug.replace("-", " ").title()
-        if not lesson_title:
-            doc_title = datos.get("title", "")
-            lesson_title = doc_title.split("|")[0].split("-")[0].strip() or "Clase en curso"
-
-        db.upsert_online_course(
-            self.con,
-            platform=plat,
-            course_slug=slug,
-            course_title=course_title,
-            course_url=f"https://platzi.com/cursos/{slug}/" if plat == "platzi" else f"https://www.udemy.com/course/{slug}/",
-            last_video_title=lesson_title,
-            last_video_url=uri,
-            next_video_url=next_url
-        )
-
-        icono = "🟢" if plat == "platzi" else "🟣"
-        self.lbl_info.set_text(f"{icono} {plat.capitalize()} · {course_title} » {lesson_title}")
+        self._guardar_progreso_fcc(uri, datos.get("lesson_title") or "")
 
     def _guardar_progreso_fcc(self, uri: str, lesson_title: str = "", hecho=None):
         """Apunta por dónde vas en el currículo de freeCodeCamp."""
@@ -655,7 +530,7 @@ class CursosPlayerWindow(Adw.Window):
     def _mostrar_dialogo_post_video(self):
         """Muestra opciones de repaso espaciado al terminar la clase."""
         uri = self.web_view.get_uri() if self.web_view else ""
-        plat = self._detectar_plataforma(uri) or "platzi"
+        plat = self._detectar_plataforma(uri) or "freecodecamp"
         ultimo = db.get_last_course(self.con, plat)
         curso_nombre = ultimo.get("course_title", "tu curso") if ultimo else "tu curso"
         clase_nombre = ultimo.get("last_video_title", "esta clase") if ultimo else "esta clase"
@@ -770,7 +645,7 @@ class CursosPlayerWindow(Adw.Window):
         mazos = self.con.execute("SELECT id, name FROM decks ORDER BY pos").fetchall()
         deck_id = mazos[0]["id"] if mazos else None
         for m in mazos:
-            if plat in m["name"].lower() or (plat == "platzi" and "ingl" in m["name"].lower()):
+            if plat in m["name"].lower():
                 deck_id = m["id"]
                 break
         win = examen.ExamenWindow(self, self.con, deck_id=deck_id, n=5, deck_nombre=f"Quiz Rápido · {plat.capitalize()}")
@@ -935,15 +810,13 @@ def abrir_reproductor(con, parent_window=None, url: str | None = None,
         p = plataforma.lower().strip()
         if p in ("freecodecamp", "fcc"):
             win.cargar_url(FCC_HOME)
-        elif p == "udemy":
-            win.cargar_url(UDEMY_HOME)
         elif p == "khan":
             win.cargar_url(KHAN_HOME)
         elif p == "mdn":
             win.cargar_url(MDN_HOME)
         else:
-            win.cargar_url(PLATZI_HOME)
+            win.cargar_url(FCC_HOME)
     elif not win.web_view.get_uri():
-        win.cargar_url(PLATZI_HOME)
+        win.cargar_url(FCC_HOME)
 
     return win

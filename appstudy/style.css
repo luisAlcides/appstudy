@@ -642,33 +642,6 @@ window.as-pet box.as-bubble {
   opacity: 0.82;
 }
 
-/* Desplegar una capa: una fila ancha que se nota pulsable pero no grita */
-.as-bubble button.as-capa-btn {
-  font-size: 0.84rem;
-  font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 10px;
-  background: alpha(currentColor, 0.06);
-  border: 1px dashed alpha(currentColor, 0.26);
-  box-shadow: none;
-  opacity: 0.82;
-  transition: all 140ms ease;
-}
-
-/* La capa abierta: sin el borde de puntos, que ya no invita a nada */
-.as-bubble button.as-capa-btn.as-capa-abierta {
-  border-style: solid;
-  border-color: alpha(currentColor, 0.10);
-  background: transparent;
-  opacity: 0.72;
-}
-
-.as-bubble button.as-capa-btn:hover {
-  opacity: 1;
-  background: alpha(currentColor, 0.12);
-  border-style: solid;
-}
-
 /* --------------------------------------------------------- retos de Bit */
 
 .as-reto-tiempo,

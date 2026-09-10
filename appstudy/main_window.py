@@ -402,7 +402,7 @@ class MainWindow(Adw.ApplicationWindow):
              "conviértelas en lecturas o tarjetas.",
              lambda *_: self.abrir_cursos_freecodecamp()),
             ("🎬", "Cursos Online",
-             "Reproductor integrado de Platzi y Udemy con detección de último y siguiente video.",
+             "Reproductor integrado de cursos online con detección de último y siguiente video.",
              lambda *_: self.abrir_reproductor_cursos()),
         ]
 
