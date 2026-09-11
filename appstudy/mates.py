@@ -54,7 +54,12 @@ FUNCIONES = ("cos", "sin", "tan", "sec", "csc", "cot", "log", "ln", "exp",
 ACENTOS = {"bar": "\u0304", "hat": "\u0302", "vec": "\u20d7", "dot": "\u0307",
            "tilde": "\u0303", "overline": "\u0304"}
 
-_LLAVE = r"\{([^{}]*)\}"
+# Admite grupos anidados, como el sumatorio con límites dentro de una fracción.
+# El límite evita un patrón recursivo ilimitado en contenido importado.
+_GRUPO = r"[^{}]*"
+for _ in range(4):
+    _GRUPO = r"(?:[^{}]|\{" + _GRUPO + r"\})*"
+_LLAVE = r"\{(" + _GRUPO + r")\}"
 _FRAC = re.compile(r"\\d?frac\s*" + _LLAVE + r"\s*" + _LLAVE)
 _SQRT = re.compile(r"\\sqrt\s*" + _LLAVE)
 _ACENTO = re.compile(r"\\(" + "|".join(ACENTOS) + r")\s*" + _LLAVE)

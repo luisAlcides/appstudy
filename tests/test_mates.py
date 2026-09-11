@@ -51,6 +51,15 @@ class TestAMarkup(unittest.TestCase):
         salida = mates.a_markup(r"\frac{\frac{a}{b}}{c}")
         self.assertNotIn("frac", salida)
 
+    def test_fraccion_con_limites_y_raiz_con_exponente(self):
+        for formula in (r"\bar{x}=\frac{\sum_{i=1}^{n}x_i}{n}",
+                        r"\sigma=\sqrt{\sigma^2}"):
+            salida = mates.a_markup(formula)
+            self.assertTrue(valido(salida))
+            self.assertNotIn('frac', salida)
+            self.assertNotIn('sqrt', salida)
+            self.assertNotIn('{', salida)
+
     def test_los_acentos_van_encima_de_la_letra(self):
         self.assertIn("x̄", mates.a_markup(r"\bar{x}"))
         self.assertIn("v⃗", mates.a_markup(r"\vec{v}"))

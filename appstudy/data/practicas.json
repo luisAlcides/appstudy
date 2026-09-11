@@ -1,0 +1,3298 @@
+[
+  {
+    "id": "python-promedio",
+    "titulo": "Depura una función de promedio",
+    "tema": "Python",
+    "nivel": "Básico",
+    "minutos": 8,
+    "contexto": "Quieres calcular el promedio de una lista. Para [4, 6], esta función devuelve 2 en vez de 5. Analiza el código y elige cómo corregirlo.\n\ndef promedio(valores):\n    total = 0\n    for valor in valores:\n        total += valor\n        return total / len(valores)",
+    "pasos": [
+      {
+        "titulo": "Encuentra la causa",
+        "pregunta": "¿Por qué promedio([4, 6]) devuelve 2?",
+        "opciones": [
+          "len(valores) vale 4",
+          "return termina la función durante la primera vuelta",
+          "total += valor reemplaza siempre el total"
+        ],
+        "correcta": 1,
+        "pistas": [
+          "Sigue la primera vuelta: total pasa de 0 a 4.",
+          "Observa la indentación de return: sigue dentro del for."
+        ],
+        "explicacion": "En la primera vuelta se suma 4 y se ejecuta return 4 / 2. La función termina antes de sumar 6."
+      },
+      {
+        "titulo": "Corrige el flujo",
+        "pregunta": "¿Qué cambio permite sumar todos los valores antes de dividir?",
+        "opciones": [
+          "Mover return fuera del for, al mismo nivel que for",
+          "Mover total = 0 dentro del for",
+          "Cambiar len(valores) por valor"
+        ],
+        "correcta": 0,
+        "pistas": [
+          "La acumulación debe terminar antes de devolver el resultado.",
+          "En Python, la indentación define qué instrucciones pertenecen al bucle."
+        ],
+        "explicacion": "Con return fuera del bucle, total alcanza 10 y la función devuelve 10 / 2 = 5."
+      },
+      {
+        "titulo": "Comprueba un caso límite",
+        "pregunta": "Tras corregir la indentación, ¿qué conviene hacer para admitir una lista vacía con un error explícito?",
+        "opciones": [
+          "Devolver 0 sin avisar",
+          "Dividir siempre entre len(valores)",
+          "Añadir if not valores: raise ValueError('Lista vacía') antes del bucle"
+        ],
+        "correcta": 2,
+        "pistas": [
+          "Una lista vacía tiene longitud 0.",
+          "El promedio de una lista vacía no está definido en este contrato."
+        ],
+        "explicacion": "La comprobación evita dividir entre cero y comunica la entrada inválida con ValueError. Devolver 0 confundiría ausencia de datos con un promedio real de cero."
+      }
+    ],
+    "solucion": "def promedio(valores):\n    if not valores:\n        raise ValueError('Lista vacía')\n    total = 0\n    for valor in valores:\n        total += valor\n    return total / len(valores)\n\nPruebas: [4, 6] → 5; [7] → 7; [-2, 2] → 0; [] → ValueError.\n\nPrimero reproduce el fallo, después revisa el flujo y finalmente comprueba los límites.",
+    "contexto_bloques": [
+      {
+        "p": "Quieres calcular el promedio de una lista. Para [4, 6], esta función devuelve 2 en vez de 5. Analiza el código y elige cómo corregirlo."
+      },
+      {
+        "code": {
+          "lang": "python",
+          "text": "def promedio(valores):\n    total = 0\n    for valor in valores:\n        total += valor\n        return total / len(valores)"
+        }
+      }
+    ],
+    "solucion_bloques": [
+      {
+        "code": {
+          "lang": "python",
+          "text": "def promedio(valores):\n    if not valores:\n        raise ValueError('Lista vacía')\n    total = 0\n    for valor in valores:\n        total += valor\n    return total / len(valores)"
+        }
+      },
+      {
+        "p": "Pruebas: [4, 6] → 5; [7] → 7; [-2, 2] → 0; [] → ValueError.\n\nPrimero reproduce el fallo, después revisa el flujo y finalmente comprueba los límites."
+      }
+    ]
+  },
+  {
+    "id": "circuito-serie",
+    "titulo": "Interpreta un circuito en serie",
+    "tema": "Electricidad",
+    "nivel": "Básico",
+    "minutos": 7,
+    "contexto": "Simulación en papel: una fuente ideal de 12 V alimenta dos resistencias en serie, R1 = 100 Ω y R2 = 200 Ω. Supón cables ideales.\n\n(+12 V) ── R1 (100 Ω) ── R2 (200 Ω) ── (0 V)\n\nCalcula la resistencia equivalente, la corriente y la caída de tensión en R2.",
+    "pasos": [
+      {
+        "titulo": "Simplifica el circuito",
+        "pregunta": "¿Cuál es la resistencia equivalente?",
+        "opciones": [
+          "66,7 Ω",
+          "300 Ω",
+          "100 Ω"
+        ],
+        "correcta": 1,
+        "pistas": [
+          "Las resistencias están en un único camino de corriente.",
+          "En serie: R total = R1 + R2."
+        ],
+        "explicacion": "R total = 100 + 200 = 300 Ω. La fórmula de inversos corresponde a resistencias en paralelo.",
+        "formula": "R_{eq}=R_1+R_2"
+      },
+      {
+        "titulo": "Calcula la corriente",
+        "pregunta": "¿Qué corriente recorre ambas resistencias?",
+        "opciones": [
+          "25 A",
+          "4 A",
+          "0,04 A (40 mA)"
+        ],
+        "correcta": 2,
+        "pistas": [
+          "Usa I = V / R con la resistencia total de 300 Ω.",
+          "12 / 300 = 0,04. Para convertir amperios a miliamperios, multiplica por 1000."
+        ],
+        "explicacion": "I = 12 V / 300 Ω = 0,04 A = 40 mA. La corriente es la misma en todos los elementos en serie.",
+        "formula": "I=\\frac{V}{R_{eq}}"
+      },
+      {
+        "titulo": "Verifica las tensiones",
+        "pregunta": "¿Qué caída de tensión hay en R2?",
+        "opciones": [
+          "8 V",
+          "12 V",
+          "4 V"
+        ],
+        "correcta": 0,
+        "pistas": [
+          "Aplica V = I × R a R2, usando 0,04 A.",
+          "R2 vale 200 Ω; R1 tiene una caída de 4 V."
+        ],
+        "explicacion": "V2 = 0,04 × 200 = 8 V. En R1 caen 4 V, y 4 + 8 = 12 V confirma el balance.",
+        "formula": "V_2=I\\cdot R_2"
+      }
+    ],
+    "solucion": "R equivalente = 300 Ω.\nI = 40 mA.\nV1 = 4 V; V2 = 8 V.\n\nComprueba siempre las unidades y que las caídas de tensión sumen la tensión de la fuente. Este caso es una simulación con componentes ideales."
+  },
+  {
+    "id": "vehiculo-consumo",
+    "titulo": "Investiga un aumento de consumo",
+    "tema": "Mecánica automotriz",
+    "nivel": "Básico",
+    "minutos": 8,
+    "contexto": "Caso simulado de bitácora: un vehículo registró 40 L consumidos en 500 km en el período A y 45 L en 450 km en el período B, ambos medidos de tanque lleno a tanque lleno. En B cambió de ruta y transportó más carga. No hay otras mediciones. Tu tarea es cuantificar el cambio y decidir qué evidencia falta.",
+    "pasos": [
+      {
+        "titulo": "Normaliza los registros",
+        "pregunta": "¿Cuál fue el consumo en litros por cada 100 km en A y B?",
+        "opciones": [
+          "A: 8; B: 10 L/100 km",
+          "A: 12,5; B: 10 L/100 km",
+          "A: 40; B: 45 L/100 km"
+        ],
+        "correcta": 0,
+        "pistas": [
+          "Compara el combustible por la misma distancia.",
+          "Consumo = litros / kilómetros × 100."
+        ],
+        "explicacion": "A: 40 / 500 × 100 = 8. B: 45 / 450 × 100 = 10 L/100 km. Comparar solamente litros ignora la diferencia de distancia."
+      },
+      {
+        "titulo": "Mide el cambio",
+        "pregunta": "¿Cuánto aumentó el consumo por 100 km respecto a A?",
+        "opciones": [
+          "2 %",
+          "25 %",
+          "20 %"
+        ],
+        "correcta": 1,
+        "pistas": [
+          "La diferencia es 2 L/100 km.",
+          "Divide el aumento entre el valor inicial: (10 − 8) / 8 × 100."
+        ],
+        "explicacion": "El aumento relativo es 2 / 8 × 100 = 25 %. Los 2 L/100 km son la diferencia absoluta."
+      },
+      {
+        "titulo": "Separa evidencia de sospecha",
+        "pregunta": "¿Qué conclusión sostienen estos registros?",
+        "opciones": [
+          "Los inyectores están averiados",
+          "La carga explica por sí sola todo el aumento",
+          "El consumo aumentó; falta comparar condiciones similares antes de atribuir una causa"
+        ],
+        "correcta": 2,
+        "pistas": [
+          "Entre los períodos cambiaron varias condiciones.",
+          "Una diferencia medida no identifica por sí sola la pieza o condición responsable."
+        ],
+        "explicacion": "Los datos demuestran el aumento, pero no su causa. Registra ruta, carga y condiciones de uso en nuevas mediciones comparables antes de sacar una conclusión diagnóstica."
+      }
+    ],
+    "solucion": "A: 8 L/100 km. B: 10 L/100 km. Aumento: 2 L/100 km, equivalente al 25 %.\n\nPróximo paso: repetir registros con el mismo método y condiciones comparables, anotando ruta y carga. La bitácora permite detectar cambios; estos dos registros no justifican atribuir una avería a una pieza."
+  },
+  {
+    "id": "mates-fracciones",
+    "titulo": "Suma fracciones con distinto denominador",
+    "tema": "Matemáticas",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Una receta utiliza 1/2 taza de avena y 1/3 de taza de semillas. Calcula el volumen total de ingredientes secos indicado en la receta.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Busca un denominador común",
+        "pregunta": "¿Cuál es el mínimo común múltiplo de 2 y 3?",
+        "formula": "\\frac{1}{2}+\\frac{1}{3}",
+        "respuesta": "6",
+        "pistas": [
+          "Escribe los primeros múltiplos de 2 y de 3.",
+          "2, 4, 6… y 3, 6…: busca el primero que comparten."
+        ],
+        "explicacion": "El menor múltiplo compartido es 6. Usaremos $$\\frac{a}{6}+\\frac{b}{6}$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Convierte la primera fracción",
+        "pregunta": "¿Qué numerador convierte 1/2 en una fracción equivalente con denominador 6?",
+        "formula": "\\frac{1}{2}=\\frac{a}{6}",
+        "respuesta": "3",
+        "pistas": [
+          "Multiplica numerador y denominador por el mismo número.",
+          "Para pasar de 2 a 6 multiplicas por 3."
+        ],
+        "explicacion": "Multiplicamos por 3: $$\\frac{1}{2}=\\frac{3}{6}$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Suma y expresa el resultado",
+        "pregunta": "¿Cuántas tazas suman? Escribe una fracción exacta.",
+        "formula": "\\frac{3}{6}+\\frac{2}{6}",
+        "respuesta": "5/6",
+        "pistas": [
+          "Con el mismo denominador, suma los numeradores.",
+          "3 + 2 = 5; el denominador sigue siendo 6."
+        ],
+        "explicacion": "El total es $$\\frac{3+2}{6}=\\frac{5}{6}$$ de taza. No se suman los denominadores."
+      }
+    ],
+    "solucion": "Iguala denominadores, convierte las fracciones y suma los numeradores: $$\\frac{1}{2}+\\frac{1}{3}=\\frac{3}{6}+\\frac{2}{6}=\\frac{5}{6}$$."
+  },
+  {
+    "id": "mates-porcentajes",
+    "titulo": "Aplica un descuento y un recargo",
+    "tema": "Matemáticas",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Un artículo cuesta 240 unidades monetarias. Se aplica primero un descuento del 15 % y después un recargo del 10 % sobre el precio rebajado. Escribe los importes sin símbolo monetario.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el descuento",
+        "pregunta": "¿Qué importe representa el 15 % de 240?",
+        "formula": "D=240\\cdot\\frac{15}{100}",
+        "respuesta": "36",
+        "pistas": [
+          "Un 15 % equivale a 0,15.",
+          "Multiplica 240 por 0,15."
+        ],
+        "explicacion": "El descuento es $$D=240\\cdot 0{,}15=36$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Obtén la nueva base",
+        "pregunta": "¿Cuál es el precio tras restar el descuento?",
+        "formula": "P=240-D",
+        "respuesta": "204",
+        "pistas": [
+          "Resta el importe del descuento, no el número 15.",
+          "240 − 36 es el precio rebajado."
+        ],
+        "explicacion": "La nueva base es $$P=240-36=204$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Aplica el recargo",
+        "pregunta": "¿Cuál es el precio final con el recargo del 10 %?",
+        "formula": "F=P\\cdot\\left(1+\\frac{10}{100}\\right)",
+        "respuesta": "224.4",
+        "pistas": [
+          "El recargo se calcula sobre 204.",
+          "El 10 % de 204 es 20,4; súmalo a 204."
+        ],
+        "explicacion": "El precio final es $$F=204\\cdot 1{,}10=224{,}4$$. Los porcentajes sucesivos usan bases distintas."
+      }
+    ],
+    "solucion": "La operación completa es $$240\\cdot 0{,}85\\cdot 1{,}10=224{,}4$$. Restar 15 % y sumar 10 % como si ambos usaran la base inicial daría otro resultado."
+  },
+  {
+    "id": "algebra-lineal",
+    "titulo": "Despeja una ecuación con paréntesis",
+    "tema": "Álgebra",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Resuelve la ecuación manteniendo la igualdad: realiza la misma operación en ambos miembros.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Distribuye la multiplicación",
+        "pregunta": "Tras distribuir el 3, ¿qué término constante aparece a la izquierda?",
+        "formula": "3(x-2)=15",
+        "respuesta": "-6",
+        "pistas": [
+          "Multiplica 3 por cada término del paréntesis.",
+          "El término constante es 3 × (−2)."
+        ],
+        "explicacion": "La distributiva produce $$3x-6=15$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Aísla el término con x",
+        "pregunta": "Sumando 6 en ambos miembros, ¿qué número queda a la derecha?",
+        "formula": "3x-6+6=15+6",
+        "respuesta": "21",
+        "pistas": [
+          "El −6 se cancela con +6.",
+          "También debes sumar 6 a 15."
+        ],
+        "explicacion": "La ecuación queda $$3x=21$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Despeja y comprueba",
+        "pregunta": "¿Cuánto vale x?",
+        "formula": "x=\\frac{21}{3}",
+        "respuesta": "7",
+        "pistas": [
+          "Divide ambos miembros entre 3.",
+          "Comprueba tu valor en 3(x − 2) = 15."
+        ],
+        "explicacion": "La solución es $$x=7$$ porque $$3(7-2)=15$$."
+      }
+    ],
+    "solucion": "Conservamos la igualdad en cada transformación: $$3(x-2)=15\\Rightarrow 3x-6=15\\Rightarrow 3x=21\\Rightarrow x=7$$."
+  },
+  {
+    "id": "algebra-cuadratica",
+    "titulo": "Encuentra las dos raíces de una cuadrática",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Resuelve la ecuación por factorización. Busca dos números cuyo producto sea 6 y cuya suma sea 5.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra los factores",
+        "pregunta": "¿Cuál es el menor de esos dos números positivos?",
+        "formula": "x^2-5x+6=0",
+        "respuesta": "2",
+        "pistas": [
+          "Las parejas de factores positivos de 6 son 1 y 6, o 2 y 3.",
+          "Solo una pareja suma 5."
+        ],
+        "explicacion": "Los números son 2 y 3. Por eso $$x^2-5x+6=(x-2)(x-3)$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Anula el primer factor",
+        "pregunta": "¿Qué valor de x hace cero el factor x − 2?",
+        "formula": "(x-2)(x-3)=0",
+        "respuesta": "2",
+        "pistas": [
+          "Un producto es cero si alguno de sus factores es cero.",
+          "Resuelve x − 2 = 0."
+        ],
+        "explicacion": "La primera raíz es $$x_1=2$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Anula el segundo factor",
+        "pregunta": "¿Cuál es la otra raíz?",
+        "formula": "x-3=0",
+        "respuesta": "3",
+        "pistas": [
+          "Ahora usa el factor que todavía no has anulado.",
+          "Suma 3 a ambos miembros."
+        ],
+        "explicacion": "La segunda raíz es $$x_2=3$$. Ambas satisfacen la ecuación original."
+      }
+    ],
+    "solucion": "Las raíces son 2 y 3: $$2^2-5\\cdot2+6=0$$ y $$3^2-5\\cdot3+6=0$$. Al factorizar un producto igual a cero, hay que considerar todos los factores."
+  },
+  {
+    "id": "estadistica-centro",
+    "titulo": "Compara media y mediana",
+    "tema": "Estadística",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Cinco tareas duraron 2, 3, 3, 4 y 18 minutos. Calcula dos medidas de centro y observa el efecto del valor más grande.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Suma las observaciones",
+        "pregunta": "¿Cuántos minutos suman las cinco tareas?",
+        "formula": "\\sum_{i=1}^{5}x_i=2+3+3+4+18",
+        "respuesta": "30",
+        "pistas": [
+          "Suma primero 2 + 3 + 3 + 4.",
+          "Los primeros cuatro valores suman 12."
+        ],
+        "explicacion": "El total es $$\\sum_{i=1}^{5}x_i=30$$ minutos."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la media",
+        "pregunta": "¿Cuál es la media en minutos?",
+        "formula": "\\bar{x}=\\frac{\\sum_{i=1}^{n}x_i}{n}",
+        "respuesta": "6",
+        "pistas": [
+          "Hay cinco observaciones, incluido el 18.",
+          "Divide 30 entre 5."
+        ],
+        "explicacion": "La media es $$\\bar{x}=\\frac{30}{5}=6$$ minutos."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la mediana",
+        "pregunta": "¿Cuál es la mediana en minutos?",
+        "formula": "2,\\ 3,\\ 3,\\ 4,\\ 18",
+        "respuesta": "3",
+        "pistas": [
+          "Los datos ya están ordenados.",
+          "Con cinco datos, el tercero ocupa el centro."
+        ],
+        "explicacion": "La mediana es 3 minutos. El valor 18 eleva la media a 6, pero la mediana sigue siendo el dato central."
+      }
+    ],
+    "solucion": "Media: $$\\bar{x}=6$$ minutos. Mediana: 3 minutos. Las dos describen el centro de maneras distintas; la media usa la magnitud de todos los valores."
+  },
+  {
+    "id": "estadistica-dispersion",
+    "titulo": "Calcula varianza y desviación estándar",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Considera 2, 4, 4 y 6 como la población completa de observaciones, expresadas en minutos. Calcula su dispersión. En este ejercicio se divide entre N, no entre N − 1.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra el centro",
+        "pregunta": "¿Cuál es la media de la población?",
+        "formula": "\\mu=\\frac{2+4+4+6}{4}",
+        "respuesta": "4",
+        "pistas": [
+          "Suma los cuatro valores.",
+          "Divide 16 entre 4."
+        ],
+        "explicacion": "La media poblacional es $$\\mu=4$$ minutos."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Promedia las desviaciones cuadradas",
+        "pregunta": "¿Cuál es la varianza poblacional, en minutos cuadrados?",
+        "formula": "\\sigma^2=\\frac{(2-4)^2+(4-4)^2+(4-4)^2+(6-4)^2}{4}",
+        "respuesta": "2",
+        "pistas": [
+          "Los cuadrados son 4, 0, 0 y 4.",
+          "Su suma es 8 y la población tiene 4 elementos."
+        ],
+        "explicacion": "La varianza es $$\\sigma^2=\\frac{8}{4}=2$$ minutos cuadrados."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Recupera las unidades originales",
+        "pregunta": "¿Cuál es la desviación estándar en minutos? Redondea a dos decimales.",
+        "formula": "\\sigma=\\sqrt{\\sigma^2}=\\sqrt{2}",
+        "respuesta": "1.4142135623730951",
+        "pistas": [
+          "La desviación estándar es la raíz cuadrada de la varianza.",
+          "La raíz de 2 está entre 1,41 y 1,42."
+        ],
+        "explicacion": "La desviación estándar es $$\\sigma=\\sqrt{2}\\approx1{,}41$$ minutos.",
+        "tolerancia": "0.005"
+      }
+    ],
+    "solucion": "La varianza promedia distancias cuadradas respecto de la media. La raíz devuelve las unidades originales: $$\\sigma^2=2,\\quad\\sigma\\approx1{,}41$$. Para estimar la varianza de una población a partir de una muestra se utiliza otra definición con denominador n − 1."
+  },
+  {
+    "id": "mates-proporcion-directa",
+    "titulo": "Ajusta las cantidades de una receta",
+    "tema": "Matemáticas",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Una receta para 4 personas utiliza 300 g de arroz y 500 mL de agua. Mantén la misma cantidad por persona al prepararla para 10 personas. Escribe los valores sin unidades.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el factor de escala",
+        "pregunta": "¿Por qué factor debes multiplicar las cantidades?",
+        "formula": "k=\\frac{10}{4}",
+        "respuesta": "2.5",
+        "pistas": [
+          "Compara el número nuevo de personas con el original.",
+          "Divide 10 entre 4; puedes escribir una fracción."
+        ],
+        "explicacion": "El factor es $$k=\\frac{10}{4}=2{,}5$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Ajusta el arroz",
+        "pregunta": "¿Cuántos gramos de arroz necesitas?",
+        "formula": "A=300\\cdot k",
+        "respuesta": "750",
+        "pistas": [
+          "Multiplica el arroz original por el factor de escala.",
+          "300 × 2,5 equivale a 300 × 2 más 300 × 0,5."
+        ],
+        "explicacion": "Necesitas $$A=300\\cdot2{,}5=750$$ gramos."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Ajusta el agua",
+        "pregunta": "¿Cuántos mililitros de agua indica la proporción?",
+        "formula": "V=500\\cdot k",
+        "respuesta": "1250",
+        "pistas": [
+          "Aplica el mismo factor a todos los ingredientes.",
+          "Multiplica 500 por 2,5."
+        ],
+        "explicacion": "La proporción indica $$V=500\\cdot2{,}5=1250$$ mililitros."
+      }
+    ],
+    "solucion": "En una proporción directa se conserva la cantidad por persona: $$\\frac{300}{4}=\\frac{750}{10}$$ y $$\\frac{500}{4}=\\frac{1250}{10}$$."
+  },
+  {
+    "id": "mates-proporcion-inversa",
+    "titulo": "Relaciona trabajadores y tiempo",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Modelo ideal: 6 trabajadores terminan una tarea en 8 horas. Todos trabajan al mismo ritmo constante, la tarea se reparte perfectamente y no hay tiempos de coordinación.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Cuantifica el trabajo",
+        "pregunta": "¿Cuántas horas de trabajo individual requiere la tarea en total?",
+        "formula": "W=6\\cdot8",
+        "respuesta": "48",
+        "pistas": [
+          "Multiplica el número de trabajadores por las horas.",
+          "Cada uno aporta 8 horas; son 6 personas."
+        ],
+        "explicacion": "El trabajo total equivale a $$W=48$$ horas de trabajo individual."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Aumenta el equipo",
+        "pregunta": "¿Cuántas horas necesitarían 12 trabajadores?",
+        "formula": "t=\\frac{W}{12}",
+        "respuesta": "4",
+        "pistas": [
+          "El trabajo total se mantiene en 48.",
+          "Divide 48 entre 12."
+        ],
+        "explicacion": "El tiempo sería $$t=\\frac{48}{12}=4$$ horas."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Planifica una duración",
+        "pregunta": "¿Cuántos trabajadores se requieren para acabar en 3 horas?",
+        "formula": "n=\\frac{W}{3}",
+        "respuesta": "16",
+        "pistas": [
+          "Reparte las 48 horas de trabajo entre una duración de 3 horas.",
+          "Calcula 48 / 3."
+        ],
+        "explicacion": "Se requieren $$n=\\frac{48}{3}=16$$ trabajadores en este modelo."
+      }
+    ],
+    "solucion": "La relación inversa conserva el producto: $$n\\cdot t=48$$. Duplicar el equipo reduce el tiempo a la mitad bajo las hipótesis del ejercicio."
+  },
+  {
+    "id": "mates-pitagoras",
+    "titulo": "Calcula la diagonal de un rectángulo",
+    "tema": "Matemáticas",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Un terreno rectangular mide 9 m de ancho y 12 m de largo. Su diagonal forma un triángulo rectángulo con esos dos lados.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Eleva los catetos al cuadrado",
+        "pregunta": "¿Cuánto vale el cuadrado del lado de 9 m? Escribe solo el número.",
+        "formula": "a^2=9^2",
+        "respuesta": "81",
+        "pistas": [
+          "Elevar al cuadrado es multiplicar el número por sí mismo.",
+          "Calcula 9 × 9."
+        ],
+        "explicacion": "El cuadrado es $$a^2=9^2=81$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Suma los cuadrados",
+        "pregunta": "¿Cuánto vale el cuadrado de la diagonal?",
+        "formula": "d^2=9^2+12^2",
+        "respuesta": "225",
+        "pistas": [
+          "El cuadrado de 12 es 144.",
+          "Suma 81 y 144."
+        ],
+        "explicacion": "Por Pitágoras, $$d^2=81+144=225$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Recupera la longitud",
+        "pregunta": "¿Cuánto mide la diagonal en metros?",
+        "formula": "d=\\sqrt{225}",
+        "respuesta": "15",
+        "pistas": [
+          "Busca el número positivo cuyo cuadrado es 225.",
+          "15 × 15 = 225."
+        ],
+        "explicacion": "La longitud es $$d=\\sqrt{225}=15$$ metros."
+      }
+    ],
+    "solucion": "Pitágoras relaciona los lados de un triángulo rectángulo: $$a^2+b^2=d^2$$. La diagonal mide 15 m y es mayor que cualquiera de los lados."
+  },
+  {
+    "id": "mates-potencias",
+    "titulo": "Simplifica potencias de la misma base",
+    "tema": "Matemáticas",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Simplifica la expresión 2³ × 2⁴ / 2² usando las propiedades de las potencias antes de calcular su valor.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Combina el producto",
+        "pregunta": "¿Qué exponente resulta al multiplicar las potencias del numerador?",
+        "formula": "2^3\\cdot2^4=2^a",
+        "respuesta": "7",
+        "pistas": [
+          "Al multiplicar potencias de la misma base se suman los exponentes.",
+          "Suma 3 + 4."
+        ],
+        "explicacion": "El numerador es $$2^{3+4}=2^7$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Combina el cociente",
+        "pregunta": "¿Qué exponente queda después de dividir entre 2²?",
+        "formula": "\\frac{2^7}{2^2}=2^b",
+        "respuesta": "5",
+        "pistas": [
+          "Al dividir potencias de la misma base no nula se restan los exponentes.",
+          "Resta 7 − 2."
+        ],
+        "explicacion": "La expresión se reduce a $$2^{7-2}=2^5$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Evalúa la potencia",
+        "pregunta": "¿Cuál es el valor numérico final?",
+        "formula": "2^5",
+        "respuesta": "32",
+        "pistas": [
+          "Multiplica cinco factores iguales a 2.",
+          "2 × 2 × 2 × 2 × 2."
+        ],
+        "explicacion": "El resultado es $$2^5=32$$."
+      }
+    ],
+    "solucion": "Se conserva la base al operar exponentes: $$\\frac{2^3\\cdot2^4}{2^2}=2^{3+4-2}=32$$. No se multiplican los exponentes al multiplicar potencias."
+  },
+  {
+    "id": "algebra-sistema",
+    "titulo": "Resuelve un sistema por eliminación",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Dos números x e y cumplen x + y = 10 y x − y = 4. Encuentra ambos sumando las ecuaciones.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Elimina una incógnita",
+        "pregunta": "Al sumar las ecuaciones, ¿qué número queda a la derecha de 2x?",
+        "formula": "(x+y)+(x-y)=10+4",
+        "respuesta": "14",
+        "pistas": [
+          "Los términos +y y −y se cancelan.",
+          "Suma 10 y 4."
+        ],
+        "explicacion": "La suma da $$2x=14$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra x",
+        "pregunta": "¿Cuánto vale x?",
+        "formula": "x=\\frac{14}{2}",
+        "respuesta": "7",
+        "pistas": [
+          "Divide los dos miembros entre 2.",
+          "Calcula 14 / 2."
+        ],
+        "explicacion": "La primera incógnita es $$x=7$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra y",
+        "pregunta": "Sustituyendo en x + y = 10, ¿cuánto vale y?",
+        "formula": "y=10-x",
+        "respuesta": "3",
+        "pistas": [
+          "Usa el valor x = 7.",
+          "Resta 10 − 7."
+        ],
+        "explicacion": "La segunda incógnita es $$y=3$$; también cumple $$7-3=4$$."
+      }
+    ],
+    "solucion": "La solución es $$x=7,\\quad y=3$$. Sustitúyela en ambas ecuaciones: $$7+3=10$$ y $$7-3=4$$."
+  },
+  {
+    "id": "algebra-desigualdad",
+    "titulo": "Resuelve una desigualdad con signo negativo",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Resuelve −2x + 6 > 14. Recuerda que dividir una desigualdad entre un número negativo invierte su sentido.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Retira la constante",
+        "pregunta": "Al restar 6 en ambos miembros, ¿qué número queda a la derecha?",
+        "formula": "-2x>14-6",
+        "respuesta": "8",
+        "pistas": [
+          "La operación debe hacerse en ambos miembros.",
+          "Resta 14 − 6."
+        ],
+        "explicacion": "La desigualdad queda $$-2x>8$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra la frontera",
+        "pregunta": "Al dividir entre −2, queda x < b. ¿Cuánto vale b?",
+        "formula": "x<\\frac{8}{-2}",
+        "respuesta": "-4",
+        "pistas": [
+          "Invierte > a < porque divides entre un número negativo.",
+          "Calcula 8 / (−2)."
+        ],
+        "explicacion": "La solución es $$x<-4$$. El valor −4 es la frontera y no está incluido."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Comprueba un valor permitido",
+        "pregunta": "Para x = −5, ¿cuánto vale el miembro izquierdo de la desigualdad original?",
+        "formula": "-2(-5)+6",
+        "respuesta": "16",
+        "pistas": [
+          "El producto de dos negativos es positivo.",
+          "Primero 10, después suma 6."
+        ],
+        "explicacion": "El miembro izquierdo vale 16 y $$16>14$$, así que −5 pertenece a la solución."
+      }
+    ],
+    "solucion": "El conjunto solución es $$x<-4$$. En la frontera, $$-2(-4)+6=14$$, por lo que la desigualdad estricta no se cumple."
+  },
+  {
+    "id": "algebra-funcion-lineal",
+    "titulo": "Construye una función a partir de dos puntos",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Una recta pasa por los puntos (2, 7) y (5, 16). Encuentra su pendiente y su ordenada al origen, y predice otro valor.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la pendiente",
+        "pregunta": "¿Cuánto vale m?",
+        "formula": "m=\\frac{16-7}{5-2}",
+        "respuesta": "3",
+        "pistas": [
+          "Divide el cambio vertical entre el cambio horizontal.",
+          "La diferencia vertical es 9 y la horizontal es 3."
+        ],
+        "explicacion": "La pendiente es $$m=\\frac{9}{3}=3$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra el término independiente",
+        "pregunta": "Si y = 3x + b, ¿cuánto vale b usando el punto (2, 7)?",
+        "formula": "b=7-3\\cdot2",
+        "respuesta": "1",
+        "pistas": [
+          "Sustituye x = 2 e y = 7.",
+          "Resta 6 de 7."
+        ],
+        "explicacion": "El término independiente es $$b=1$$, así que $$y=3x+1$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Evalúa la función",
+        "pregunta": "¿Qué valor de y corresponde a x = 8?",
+        "formula": "y=3\\cdot8+1",
+        "respuesta": "25",
+        "pistas": [
+          "Primero multiplica 3 por 8.",
+          "A 24 súmale 1."
+        ],
+        "explicacion": "El valor predicho por la recta es $$y=25$$."
+      }
+    ],
+    "solucion": "La función es $$f(x)=3x+1$$. Pasa por ambos puntos: $$f(2)=7$$ y $$f(5)=16$$, y produce $$f(8)=25$$."
+  },
+  {
+    "id": "algebra-exponencial",
+    "titulo": "Resuelve una ecuación exponencial",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Encuentra x en 3^(x + 1) = 81, expresando ambos miembros como potencias de la misma base.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Reescribe el segundo miembro",
+        "pregunta": "¿Qué exponente k cumple 3 elevado a k = 81?",
+        "formula": "3^k=81",
+        "respuesta": "4",
+        "pistas": [
+          "Las primeras potencias son 3, 9, 27 y 81.",
+          "Cuenta cuántos factores 3 forman 81."
+        ],
+        "explicacion": "Se cumple $$81=3^4$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Iguala los exponentes",
+        "pregunta": "De x + 1 = 4, ¿qué valor obtienes para x?",
+        "formula": "3^{x+1}=3^4\\Rightarrow x+1=4",
+        "respuesta": "3",
+        "pistas": [
+          "Con esta misma base, la igualdad exige exponentes iguales.",
+          "Resta 1 en ambos miembros."
+        ],
+        "explicacion": "La solución es $$x=3$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Verifica por sustitución",
+        "pregunta": "Sustituyendo x = 3, ¿cuál es el valor del miembro izquierdo?",
+        "formula": "3^{3+1}",
+        "respuesta": "81",
+        "pistas": [
+          "Suma el exponente antes de calcular la potencia.",
+          "Calcula 3 × 3 × 3 × 3."
+        ],
+        "explicacion": "El miembro izquierdo vale $$3^4=81$$, igual que el derecho."
+      }
+    ],
+    "solucion": "Reescribir con la misma base transforma la ecuación: $$3^{x+1}=81=3^4\\Rightarrow x=3$$."
+  },
+  {
+    "id": "estadistica-ponderada",
+    "titulo": "Calcula una media ponderada",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "La nota de un curso se obtiene con tareas (nota 8, peso 25 %), proyecto (nota 6, peso 25 %) y examen (nota 9, peso 50 %). Todos usan la misma escala de 0 a 10.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Pondera las tareas",
+        "pregunta": "¿Cuánto aportan las tareas a la nota final?",
+        "formula": "8\\cdot\\frac{25}{100}",
+        "respuesta": "2",
+        "pistas": [
+          "Convierte 25 % a 0,25.",
+          "Multiplica 8 por un cuarto."
+        ],
+        "explicacion": "Las tareas aportan $$8\\cdot0{,}25=2$$ puntos."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Pondera el proyecto",
+        "pregunta": "¿Cuánto aporta el proyecto?",
+        "formula": "6\\cdot\\frac{25}{100}",
+        "respuesta": "1.5",
+        "pistas": [
+          "El proyecto también representa un cuarto de la nota.",
+          "Divide 6 entre 4."
+        ],
+        "explicacion": "El proyecto aporta $$6\\cdot0{,}25=1{,}5$$ puntos."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Completa la media",
+        "pregunta": "¿Cuál es la nota final al incluir el examen?",
+        "formula": "\\bar{x}_w=2+1{,}5+9\\cdot0{,}5",
+        "respuesta": "8",
+        "pistas": [
+          "El examen aporta la mitad de 9.",
+          "Suma 2 + 1,5 + 4,5."
+        ],
+        "explicacion": "La media ponderada es $$\\bar{x}_w=8$$."
+      }
+    ],
+    "solucion": "Los pesos suman 1: $$0{,}25+0{,}25+0{,}50=1$$. La media es $$8\\cdot0{,}25+6\\cdot0{,}25+9\\cdot0{,}50=8$$; un promedio simple ignoraría los pesos."
+  },
+  {
+    "id": "estadistica-sin-reemplazo",
+    "titulo": "Calcula probabilidades sin reemplazo",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Una bolsa contiene 3 fichas rojas y 2 azules. Extraes dos fichas al azar, una después de otra, sin devolver la primera. Escribe probabilidades entre 0 y 1, como fracción o decimal, no como porcentaje.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Primera extracción",
+        "pregunta": "¿Cuál es la probabilidad de que la primera ficha sea roja?",
+        "formula": "P(R_1)=\\frac{3}{5}",
+        "respuesta": "3/5",
+        "pistas": [
+          "Hay tres resultados favorables entre cinco fichas.",
+          "Divide 3 entre 5."
+        ],
+        "explicacion": "La probabilidad es $$P(R_1)=\\frac{3}{5}=0{,}6$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Actualiza la bolsa",
+        "pregunta": "Si la primera fue roja, ¿cuál es la probabilidad de que la segunda también sea roja?",
+        "formula": "P(R_2\\mid R_1)=\\frac{2}{4}",
+        "respuesta": "1/2",
+        "pistas": [
+          "Quedan dos rojas y dos azules.",
+          "La primera ficha ya no está en la bolsa."
+        ],
+        "explicacion": "La probabilidad condicional es $$P(R_2\\mid R_1)=\\frac{2}{4}=\\frac{1}{2}$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Combina las extracciones",
+        "pregunta": "¿Cuál es la probabilidad de sacar dos rojas?",
+        "formula": "P(R_1\\cap R_2)=P(R_1)\\cdot P(R_2\\mid R_1)",
+        "respuesta": "3/10",
+        "pistas": [
+          "Multiplica la probabilidad inicial por la condicional.",
+          "Calcula (3/5) × (1/2)."
+        ],
+        "explicacion": "La probabilidad conjunta es $$\\frac{3}{5}\\cdot\\frac{1}{2}=\\frac{3}{10}=0{,}3$$."
+      }
+    ],
+    "solucion": "Sin reemplazo, la primera extracción cambia la segunda: $$P(R_1\\cap R_2)=\\frac{3}{10}$$. Multiplicar 3/5 por 3/5 correspondería a devolver la primera ficha."
+  },
+  {
+    "id": "estadistica-condicional",
+    "titulo": "Cambia el grupo de referencia de una probabilidad",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "En un grupo de 20 estudiantes, 12 estudian Python, 8 estudian SQL y 5 estudian ambos. Se elige una persona uniformemente al azar. Escribe probabilidades como fracción o decimal, no como porcentaje.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula una probabilidad conjunta",
+        "pregunta": "¿Cuál es la probabilidad de que estudie ambos temas?",
+        "formula": "P(P\\cap S)=\\frac{5}{20}",
+        "respuesta": "1/4",
+        "pistas": [
+          "Hay cinco estudiantes en la intersección.",
+          "El grupo completo tiene veinte personas."
+        ],
+        "explicacion": "La probabilidad conjunta es $$P(P\\cap S)=\\frac{5}{20}=\\frac{1}{4}$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Condiciona a SQL",
+        "pregunta": "Sabiendo que estudia SQL, ¿cuál es la probabilidad de que también estudie Python?",
+        "formula": "P(P\\mid S)=\\frac{P(P\\cap S)}{P(S)}",
+        "respuesta": "5/8",
+        "pistas": [
+          "Ahora el grupo de referencia son los ocho estudiantes de SQL.",
+          "Cinco de esos ocho también estudian Python."
+        ],
+        "explicacion": "La probabilidad condicional es $$P(P\\mid S)=\\frac{5}{8}=0{,}625$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la unión",
+        "pregunta": "¿Cuál es la probabilidad de que estudie al menos uno de los dos temas?",
+        "formula": "P(P\\cup S)=\\frac{12+8-5}{20}",
+        "respuesta": "3/4",
+        "pistas": [
+          "Sumar 12 y 8 cuenta dos veces a quienes estudian ambos.",
+          "Resta los cinco duplicados y divide entre veinte."
+        ],
+        "explicacion": "La unión incluye 15 personas: $$P(P\\cup S)=\\frac{15}{20}=\\frac{3}{4}$$."
+      }
+    ],
+    "solucion": "La probabilidad conjunta usa todo el grupo; la condicional restringe el grupo de referencia. Aquí $$P(P\\cap S)=\\frac{1}{4},\\quad P(P\\mid S)=\\frac{5}{8}$$."
+  },
+  {
+    "id": "estadistica-varianza-muestral",
+    "titulo": "Distingue varianza muestral y poblacional",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Las mediciones 2, 4 y 6 son una muestra de una población mayor. Estima la varianza poblacional con la varianza muestral corregida, usando n − 1 como denominador.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la media muestral",
+        "pregunta": "¿Cuál es la media de las tres mediciones?",
+        "formula": "\\bar{x}=\\frac{2+4+6}{3}",
+        "respuesta": "4",
+        "pistas": [
+          "Suma los valores y divide entre el número de observaciones.",
+          "La suma es 12 y hay 3 mediciones."
+        ],
+        "explicacion": "La media muestral es $$\\bar{x}=4$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Suma las desviaciones cuadradas",
+        "pregunta": "¿Cuánto suman los cuadrados de las diferencias respecto a la media?",
+        "formula": "\\sum_{i=1}^{3}(x_i-\\bar{x})^2=(2-4)^2+(4-4)^2+(6-4)^2",
+        "respuesta": "8",
+        "pistas": [
+          "Las diferencias son −2, 0 y 2.",
+          "Sus cuadrados son 4, 0 y 4."
+        ],
+        "explicacion": "La suma de cuadrados es $$4+0+4=8$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Usa el denominador muestral",
+        "pregunta": "¿Cuál es la varianza muestral corregida?",
+        "formula": "s^2=\\frac{8}{n-1}=\\frac{8}{3-1}",
+        "respuesta": "4",
+        "pistas": [
+          "El denominador es 3 − 1, no 3.",
+          "Divide 8 entre 2."
+        ],
+        "explicacion": "La varianza muestral corregida es $$s^2=\\frac{8}{2}=4$$."
+      }
+    ],
+    "solucion": "Para este estimador usamos $$s^2=\\frac{\\sum_{i=1}^{n}(x_i-\\bar{x})^2}{n-1}=4$$. Si los tres datos fueran la población completa, su varianza descriptiva sería 8/3."
+  },
+  {
+    "id": "mates-escalas",
+    "titulo": "Interpreta la escala de un plano",
+    "tema": "Matemáticas",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Un plano tiene escala 1:200: cada centímetro dibujado representa 200 centímetros reales. Una habitación mide 3 cm por 2 cm en el plano. Calcula sus dimensiones y su área reales.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Convierte el largo",
+        "pregunta": "¿Cuál es el largo real en centímetros?",
+        "formula": "L=3\\cdot200",
+        "respuesta": "600",
+        "pistas": [
+          "Multiplica la medida del plano por 200.",
+          "Calcula 3 × 200."
+        ],
+        "explicacion": "El largo real es $$L=600$$ centímetros."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Convierte el ancho",
+        "pregunta": "¿Cuál es el ancho real en metros?",
+        "formula": "A=\\frac{2\\cdot200}{100}",
+        "respuesta": "4",
+        "pistas": [
+          "Primero obtén 400 centímetros.",
+          "Un metro tiene 100 centímetros."
+        ],
+        "explicacion": "El ancho real es $$A=\\frac{400}{100}=4$$ metros."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el área",
+        "pregunta": "¿Cuál es el área real en metros cuadrados?",
+        "formula": "S=L\\cdot A",
+        "respuesta": "24",
+        "pistas": [
+          "El largo real es 600 cm, es decir, 6 m.",
+          "Multiplica 6 m por 4 m."
+        ],
+        "explicacion": "El área real es $$S=6\\cdot4=24$$ metros cuadrados."
+      }
+    ],
+    "solucion": "La escala transforma longitudes. El área se calcula con ambas dimensiones reales: $$S=6\\cdot4=24$$. No basta multiplicar el área del plano por 200."
+  },
+  {
+    "id": "mates-unidades-velocidad",
+    "titulo": "Convierte velocidad y calcula distancias",
+    "tema": "Matemáticas",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Un móvil mantiene una velocidad constante de 72 km/h. Convierte la velocidad a metros por segundo y calcula cuánto recorre en 15 segundos.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Convierte kilómetros a metros",
+        "pregunta": "¿Cuántos metros recorre en una hora?",
+        "formula": "72\\cdot1000",
+        "respuesta": "72000",
+        "pistas": [
+          "Cada kilómetro contiene 1000 metros.",
+          "Multiplica 72 por 1000."
+        ],
+        "explicacion": "Recorre $$72000$$ metros en una hora."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Convierte horas a segundos",
+        "pregunta": "¿Cuál es la velocidad en metros por segundo?",
+        "formula": "v=\\frac{72000}{3600}",
+        "respuesta": "20",
+        "pistas": [
+          "Una hora tiene 60 × 60 segundos.",
+          "Divide 72000 entre 3600."
+        ],
+        "explicacion": "La velocidad es $$v=20$$ metros por segundo."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el desplazamiento",
+        "pregunta": "¿Cuántos metros recorre en 15 segundos?",
+        "formula": "d=v\\cdot t",
+        "respuesta": "300",
+        "pistas": [
+          "Usa velocidad en m/s y tiempo en segundos.",
+          "Multiplica 20 por 15."
+        ],
+        "explicacion": "La distancia recorrida es $$d=20\\cdot15=300$$ metros."
+      }
+    ],
+    "solucion": "Con unidades compatibles, $$72\\;\\mathrm{km/h}=20\\;\\mathrm{m/s}$$ y $$d=20\\cdot15=300\\;\\mathrm{m}$$."
+  },
+  {
+    "id": "mates-area-compuesta",
+    "titulo": "Calcula el área de una figura en L",
+    "tema": "Matemáticas",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Una figura en L se obtiene al quitar de una esquina de un rectángulo de 10 m por 8 m un rectángulo de 4 m por 3 m. Calcula el área que queda y su proporción respecto del rectángulo original.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Mide el rectángulo original",
+        "pregunta": "¿Cuál es el área original en metros cuadrados?",
+        "formula": "A=10\\cdot8",
+        "respuesta": "80",
+        "pistas": [
+          "El área de un rectángulo es base por altura.",
+          "Multiplica 10 por 8."
+        ],
+        "explicacion": "El rectángulo original tiene $$A=80$$ metros cuadrados."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Resta la parte retirada",
+        "pregunta": "¿Qué área queda en metros cuadrados?",
+        "formula": "A_L=80-4\\cdot3",
+        "respuesta": "68",
+        "pistas": [
+          "La esquina retirada tiene 12 metros cuadrados.",
+          "Resta 12 de 80."
+        ],
+        "explicacion": "Quedan $$A_L=80-12=68$$ metros cuadrados."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Expresa la proporción",
+        "pregunta": "¿Qué fracción del área original permanece? Escribe fracción o decimal, no porcentaje.",
+        "formula": "f=\\frac{68}{80}",
+        "respuesta": "17/20",
+        "pistas": [
+          "Divide el área restante entre la original.",
+          "Puedes simplificar 68/80 dividiendo ambos términos entre 4."
+        ],
+        "explicacion": "Permanece $$f=\\frac{68}{80}=\\frac{17}{20}=0{,}85$$ del área original."
+      }
+    ],
+    "solucion": "El área de la figura es la diferencia de áreas: $$10\\cdot8-4\\cdot3=68$$. La parte restante representa el 85 % del rectángulo original."
+  },
+  {
+    "id": "mates-sucesion-aritmetica",
+    "titulo": "Encuentra términos y suma una sucesión",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Una sucesión comienza con 5, 8, 11, 14… y mantiene siempre la misma diferencia entre términos consecutivos. Calcula el décimo término y la suma de los diez primeros.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra la diferencia",
+        "pregunta": "¿Cuál es la diferencia común d?",
+        "formula": "d=a_2-a_1",
+        "respuesta": "3",
+        "pistas": [
+          "Resta el primer término del segundo.",
+          "Calcula 8 − 5."
+        ],
+        "explicacion": "La diferencia común es $$d=3$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el décimo término",
+        "pregunta": "¿Cuánto vale el término a₁₀?",
+        "formula": "a_{10}=5+(10-1)\\cdot3",
+        "respuesta": "32",
+        "pistas": [
+          "Del primer término al décimo hay nueve saltos.",
+          "Suma 5 y 9 × 3."
+        ],
+        "explicacion": "El décimo término es $$a_{10}=5+27=32$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Suma los diez términos",
+        "pregunta": "¿Cuál es la suma de los diez primeros términos?",
+        "formula": "S_{10}=\\frac{10(5+32)}{2}",
+        "respuesta": "185",
+        "pistas": [
+          "La media del primero y el último es 37/2.",
+          "Multiplica 37 por 5."
+        ],
+        "explicacion": "La suma es $$S_{10}=185$$."
+      }
+    ],
+    "solucion": "Para una sucesión aritmética, $$a_n=a_1+(n-1)d$$ y $$S_n=\\frac{n(a_1+a_n)}{2}$$. Aquí el décimo término es 32 y la suma es 185."
+  },
+  {
+    "id": "algebra-ecuacion-fraccion",
+    "titulo": "Elimina un denominador en una ecuación",
+    "tema": "Álgebra",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Resuelve (x + 2)/3 = 5 multiplicando ambos miembros por el denominador y comprueba la solución.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Elimina el denominador",
+        "pregunta": "Tras multiplicar ambos miembros por 3, ¿qué número queda a la derecha?",
+        "formula": "x+2=5\\cdot3",
+        "respuesta": "15",
+        "pistas": [
+          "Multiplica también el segundo miembro por 3.",
+          "Calcula 5 × 3."
+        ],
+        "explicacion": "La ecuación queda $$x+2=15$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Despeja la incógnita",
+        "pregunta": "¿Cuánto vale x?",
+        "formula": "x=15-2",
+        "respuesta": "13",
+        "pistas": [
+          "Resta 2 en ambos miembros.",
+          "Calcula 15 − 2."
+        ],
+        "explicacion": "La solución es $$x=13$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Comprueba el resultado",
+        "pregunta": "¿Cuánto vale el miembro izquierdo al sustituir x = 13?",
+        "formula": "\\frac{13+2}{3}",
+        "respuesta": "5",
+        "pistas": [
+          "Suma el numerador antes de dividir.",
+          "Divide 15 entre 3."
+        ],
+        "explicacion": "La comprobación da $$\\frac{15}{3}=5$$, igual al miembro derecho."
+      }
+    ],
+    "solucion": "Multiplicar por el denominador no nulo conserva la igualdad: $$\\frac{x+2}{3}=5\\Rightarrow x+2=15\\Rightarrow x=13$$."
+  },
+  {
+    "id": "algebra-ecuacion-radical",
+    "titulo": "Resuelve una ecuación con raíz",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Resuelve la ecuación √(x + 5) = 4 en los números reales. Comprueba el resultado en la ecuación original después de elevar al cuadrado.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Eleva ambos miembros al cuadrado",
+        "pregunta": "Al eliminar la raíz, ¿qué número queda a la derecha de x + 5?",
+        "formula": "x+5=4^2",
+        "respuesta": "16",
+        "pistas": [
+          "El cuadrado de la raíz principal devuelve el radicando cuando este es no negativo.",
+          "Calcula 4 × 4."
+        ],
+        "explicacion": "Obtenemos $$x+5=16$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Despeja x",
+        "pregunta": "¿Cuál es el valor candidato para x?",
+        "formula": "x=16-5",
+        "respuesta": "11",
+        "pistas": [
+          "Resta 5 en ambos miembros.",
+          "Calcula 16 − 5."
+        ],
+        "explicacion": "El candidato es $$x=11$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Verifica en la ecuación original",
+        "pregunta": "¿Cuánto vale √(11 + 5)?",
+        "formula": "\\sqrt{11+5}",
+        "respuesta": "4",
+        "pistas": [
+          "El radicando es 16 y es no negativo.",
+          "La raíz principal de 16 es positiva."
+        ],
+        "explicacion": "Se cumple $$\\sqrt{16}=4$$, por lo que 11 sí es solución."
+      }
+    ],
+    "solucion": "La solución es $$x=11$$. Verificar en la ecuación original es esencial: elevar al cuadrado puede producir candidatos que no la satisfacen."
+  },
+  {
+    "id": "algebra-valor-absoluto",
+    "titulo": "Encuentra las dos soluciones de un valor absoluto",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Resuelve |x − 3| = 5. El valor absoluto representa la distancia a cero: x debe estar a cinco unidades de 3.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Resuelve la rama positiva",
+        "pregunta": "Si x − 3 = 5, ¿cuánto vale x?",
+        "formula": "x-3=5",
+        "respuesta": "8",
+        "pistas": [
+          "Suma 3 a ambos miembros.",
+          "Calcula 5 + 3."
+        ],
+        "explicacion": "Una solución es $$x=8$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Resuelve la rama negativa",
+        "pregunta": "Si x − 3 = −5, ¿cuánto vale x?",
+        "formula": "x-3=-5",
+        "respuesta": "-2",
+        "pistas": [
+          "Suma 3 también en la rama negativa.",
+          "Calcula −5 + 3."
+        ],
+        "explicacion": "La otra solución es $$x=-2$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Comprueba la segunda solución",
+        "pregunta": "¿Cuánto vale |−2 − 3|?",
+        "formula": "|-2-3|",
+        "respuesta": "5",
+        "pistas": [
+          "La expresión interior es −5.",
+          "El valor absoluto de −5 es su distancia a cero."
+        ],
+        "explicacion": "Se cumple $$|-5|=5$$, igual que para la solución 8."
+      }
+    ],
+    "solucion": "Las dos ramas dan $$x=8$$ y $$x=-2$$. Ambas están a una distancia de 5 unidades del número 3."
+  },
+  {
+    "id": "algebra-vertice-parabola",
+    "titulo": "Localiza el mínimo de una parábola",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Estudia f(x) = x² − 6x + 11. Completa el cuadrado para encontrar el vértice y el valor mínimo de la función.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Completa el cuadrado",
+        "pregunta": "Al escribir f(x) = (x − 3)² + c, ¿cuánto vale c?",
+        "formula": "x^2-6x+11=(x-3)^2+c",
+        "respuesta": "2",
+        "pistas": [
+          "Al desarrollar (x − 3)² aparece x² − 6x + 9.",
+          "Faltan 2 unidades para llegar al término constante 11."
+        ],
+        "explicacion": "La forma de vértice es $$f(x)=(x-3)^2+2$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra la abscisa del vértice",
+        "pregunta": "¿Qué valor de x hace cero el término cuadrado?",
+        "formula": "(x-3)^2=0",
+        "respuesta": "3",
+        "pistas": [
+          "Un cuadrado es cero cuando su base es cero.",
+          "Resuelve x − 3 = 0."
+        ],
+        "explicacion": "El término cuadrado se anula en $$x=3$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra el mínimo",
+        "pregunta": "¿Cuál es el menor valor posible de f(x)?",
+        "formula": "f(3)=(3-3)^2+2",
+        "respuesta": "2",
+        "pistas": [
+          "Un cuadrado real nunca es negativo.",
+          "El mínimo del cuadrado es 0; suma la constante 2."
+        ],
+        "explicacion": "El valor mínimo es $$f(3)=2$$. El vértice es (3, 2)."
+      }
+    ],
+    "solucion": "Como $$(x-3)^2\\geq0$$, siempre $$f(x)\\geq2$$. La igualdad se alcanza en x = 3, así que el vértice es un mínimo."
+  },
+  {
+    "id": "estadistica-frecuencias",
+    "titulo": "Calcula una media desde frecuencias",
+    "tema": "Estadística",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "En una encuesta sobre libros leídos, 4 personas indicaron 0 libros, 3 indicaron 1 y 3 indicaron 2. Usa las frecuencias para calcular la media y la proporción que leyó al menos uno.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Cuenta las observaciones",
+        "pregunta": "¿Cuántas personas respondieron?",
+        "formula": "n=4+3+3",
+        "respuesta": "10",
+        "pistas": [
+          "Suma las frecuencias, no los valores de libros.",
+          "Hay tres grupos de tamaños 4, 3 y 3."
+        ],
+        "explicacion": "La muestra tiene $$n=10$$ personas."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la media",
+        "pregunta": "¿Cuál es la media de libros leídos por persona?",
+        "formula": "\\bar{x}=\\frac{0\\cdot4+1\\cdot3+2\\cdot3}{10}",
+        "respuesta": "9/10",
+        "pistas": [
+          "Multiplica cada valor por su frecuencia.",
+          "El total es 0 + 3 + 6 = 9 libros entre diez personas."
+        ],
+        "explicacion": "La media es $$\\bar{x}=\\frac{9}{10}=0{,}9$$ libros por persona."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula una frecuencia relativa",
+        "pregunta": "¿Qué proporción leyó al menos un libro? Escribe fracción o decimal.",
+        "formula": "p=\\frac{3+3}{10}",
+        "respuesta": "3/5",
+        "pistas": [
+          "Suma quienes leyeron uno y quienes leyeron dos.",
+          "Son seis personas de diez."
+        ],
+        "explicacion": "La proporción es $$p=\\frac{6}{10}=\\frac{3}{5}=0{,}6$$."
+      }
+    ],
+    "solucion": "Las frecuencias actúan como repeticiones de cada valor: $$\\bar{x}=\\frac{\\sum x_i f_i}{\\sum f_i}=0{,}9$$. El 60 % leyó al menos un libro."
+  },
+  {
+    "id": "estadistica-cuartiles",
+    "titulo": "Calcula cuartiles y rango intercuartílico",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Datos ordenados: 1, 2, 3, 4, 6, 8, 9, 11. En este ejercicio, Q1 es la mediana de la mitad inferior y Q3 la mediana de la mitad superior. Con una cantidad par, la mediana es la media de los dos valores centrales.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el primer cuartil",
+        "pregunta": "¿Cuánto vale Q1 para la mitad inferior 1, 2, 3, 4?",
+        "formula": "Q_1=\\frac{2+3}{2}",
+        "respuesta": "2.5",
+        "pistas": [
+          "Selecciona los dos valores centrales de esa mitad.",
+          "Calcula (2 + 3) / 2."
+        ],
+        "explicacion": "El primer cuartil es $$Q_1=2{,}5$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el tercer cuartil",
+        "pregunta": "¿Cuánto vale Q3 para la mitad superior 6, 8, 9, 11?",
+        "formula": "Q_3=\\frac{8+9}{2}",
+        "respuesta": "8.5",
+        "pistas": [
+          "Los valores centrales de la mitad superior son 8 y 9.",
+          "Calcula 17 / 2."
+        ],
+        "explicacion": "El tercer cuartil es $$Q_3=8{,}5$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la dispersión central",
+        "pregunta": "¿Cuál es el rango intercuartílico?",
+        "formula": "RIC=Q_3-Q_1",
+        "respuesta": "6",
+        "pistas": [
+          "Resta el primer cuartil del tercero.",
+          "Calcula 8,5 − 2,5."
+        ],
+        "explicacion": "El rango intercuartílico es $$RIC=6$$."
+      }
+    ],
+    "solucion": "Con el método indicado, $$Q_1=2{,}5,\\quad Q_3=8{,}5,\\quad RIC=6$$. Otros métodos de cálculo de cuartiles pueden dar valores diferentes en muestras pequeñas."
+  },
+  {
+    "id": "estadistica-puntuacion-z",
+    "titulo": "Estandariza una observación",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Una población tiene media 50 y desviación estándar 10. Una observación vale 65. Expresa su distancia a la media en unidades de desviación estándar; no supongas una distribución normal.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la desviación",
+        "pregunta": "¿Cuánto supera 65 a la media?",
+        "formula": "x-\\mu=65-50",
+        "respuesta": "15",
+        "pistas": [
+          "Resta la media del valor observado.",
+          "Calcula 65 − 50."
+        ],
+        "explicacion": "La diferencia es $$x-\\mu=15$$ unidades."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Estandariza",
+        "pregunta": "¿Cuál es la puntuación z de 65?",
+        "formula": "z=\\frac{x-\\mu}{\\sigma}",
+        "respuesta": "1.5",
+        "pistas": [
+          "Divide la diferencia por la desviación estándar.",
+          "Calcula 15 / 10."
+        ],
+        "explicacion": "La puntuación es $$z=1{,}5$$: está 1,5 desviaciones estándar por encima de la media."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Invierte la transformación",
+        "pregunta": "¿Qué valor original corresponde a z = −2?",
+        "formula": "x=\\mu+z\\sigma",
+        "respuesta": "30",
+        "pistas": [
+          "Un z negativo indica un valor por debajo de la media.",
+          "Calcula 50 + (−2) × 10."
+        ],
+        "explicacion": "El valor original es $$x=30$$."
+      }
+    ],
+    "solucion": "Las transformaciones son $$z=\\frac{x-\\mu}{\\sigma}$$ y $$x=\\mu+z\\sigma$$, con desviación estándar positiva. Una puntuación z por sí sola no determina un percentil sin conocer la distribución."
+  },
+  {
+    "id": "estadistica-binomial",
+    "titulo": "Calcula una probabilidad binomial",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Lanzas una moneda equilibrada tres veces de forma independiente. Calcula la probabilidad de obtener exactamente dos caras. Escribe probabilidades como fracción o decimal, no como porcentaje.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula una secuencia concreta",
+        "pregunta": "¿Cuál es la probabilidad de la secuencia cara, cara, cruz?",
+        "formula": "P(CCX)=\\frac{1}{2}\\cdot\\frac{1}{2}\\cdot\\frac{1}{2}",
+        "respuesta": "1/8",
+        "pistas": [
+          "Multiplica las probabilidades porque los lanzamientos son independientes.",
+          "Tres factores 1/2 dan 1/8."
+        ],
+        "explicacion": "Cada secuencia concreta tiene probabilidad $$\\frac{1}{8}$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Cuenta las secuencias favorables",
+        "pregunta": "¿Cuántas secuencias distintas tienen exactamente dos caras?",
+        "formula": "CCX,\\quad CXC,\\quad XCC",
+        "respuesta": "3",
+        "pistas": [
+          "La única cruz puede ocupar cualquiera de las tres posiciones.",
+          "Cuenta las tres secuencias mostradas."
+        ],
+        "explicacion": "Hay 3 secuencias favorables, mutuamente excluyentes."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Suma las probabilidades",
+        "pregunta": "¿Cuál es la probabilidad de exactamente dos caras?",
+        "formula": "P(K=2)=3\\cdot\\frac{1}{8}",
+        "respuesta": "3/8",
+        "pistas": [
+          "Cada secuencia favorable tiene probabilidad 1/8.",
+          "Multiplica 3 por 1/8."
+        ],
+        "explicacion": "La probabilidad es $$P(K=2)=\\frac{3}{8}=0{,}375$$."
+      }
+    ],
+    "solucion": "La cuenta combina el número de secuencias con su probabilidad individual. Para tres ensayos independientes con probabilidad de cara 1/2, exactamente dos caras tiene probabilidad 3/8."
+  },
+  {
+    "id": "mates-mcd-mcm",
+    "titulo": "Usa divisores y múltiplos comunes",
+    "tema": "Matemáticas",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Trabaja con 18 y 24. Calcula su máximo común divisor (MCD), su mínimo común múltiplo (MCM) y simplifica la fracción 18/24.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra el divisor común",
+        "pregunta": "¿Cuál es el máximo común divisor de 18 y 24?",
+        "formula": "18=2\\cdot3^2,\\quad24=2^3\\cdot3",
+        "respuesta": "6",
+        "pistas": [
+          "Toma los factores primos compartidos con el menor exponente.",
+          "Los factores comunes son un 2 y un 3."
+        ],
+        "explicacion": "El MCD es $$2\\cdot3=6$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra el múltiplo común",
+        "pregunta": "¿Cuál es el mínimo común múltiplo de 18 y 24?",
+        "formula": "MCM=\\frac{18\\cdot24}{MCD}",
+        "respuesta": "72",
+        "pistas": [
+          "Para enteros positivos, MCD × MCM es el producto de los números.",
+          "Divide 432 entre 6."
+        ],
+        "explicacion": "El MCM es $$\\frac{432}{6}=72$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Simplifica la fracción",
+        "pregunta": "¿A qué fracción equivale 18/24? Escribe el valor como fracción o decimal.",
+        "formula": "\\frac{18}{24}=\\frac{18/6}{24/6}",
+        "respuesta": "3/4",
+        "pistas": [
+          "Divide numerador y denominador entre el MCD.",
+          "18 / 6 = 3 y 24 / 6 = 4."
+        ],
+        "explicacion": "La forma irreducible es $$\\frac{3}{4}$$; cualquier valor equivalente también representa la misma cantidad."
+      }
+    ],
+    "solucion": "El MCD permite reducir fracciones y el MCM encontrar denominadores comunes. Para 18 y 24 son 6 y 72, respectivamente."
+  },
+  {
+    "id": "mates-sucesion-geometrica",
+    "titulo": "Explora una sucesión geométrica",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "La sucesión 3, 6, 12, 24… multiplica cada término por una misma razón. Calcula el quinto término y la suma de los cinco primeros.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra la razón",
+        "pregunta": "¿Cuál es la razón común r?",
+        "formula": "r=\\frac{6}{3}",
+        "respuesta": "2",
+        "pistas": [
+          "Divide un término entre el anterior.",
+          "6 / 3 y 12 / 6 producen la misma razón."
+        ],
+        "explicacion": "La razón es $$r=2$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el quinto término",
+        "pregunta": "¿Cuánto vale a₅?",
+        "formula": "a_5=3\\cdot2^{5-1}",
+        "respuesta": "48",
+        "pistas": [
+          "Desde el primer término hasta el quinto hay cuatro multiplicaciones.",
+          "2⁴ = 16; multiplícalo por 3."
+        ],
+        "explicacion": "El quinto término es $$a_5=48$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Suma los términos",
+        "pregunta": "¿Cuánto suman los cinco primeros términos?",
+        "formula": "S_5=3\\cdot\\frac{2^5-1}{2-1}",
+        "respuesta": "93",
+        "pistas": [
+          "También puedes sumar 3 + 6 + 12 + 24 + 48.",
+          "La fórmula se reduce a 3 × 31."
+        ],
+        "explicacion": "La suma es $$S_5=93$$."
+      }
+    ],
+    "solucion": "Una sucesión geométrica mantiene una razón: $$a_n=a_1r^{n-1}$$. Para r distinto de 1, $$S_n=a_1\\frac{r^n-1}{r-1}$$."
+  },
+  {
+    "id": "mates-volumen",
+    "titulo": "Calcula volumen y capacidad",
+    "tema": "Matemáticas",
+    "nivel": "Básico",
+    "minutos": 10,
+    "contexto": "Un recipiente rectangular tiene dimensiones interiores de 50 cm de largo, 40 cm de ancho y 30 cm de alto. Calcula su capacidad y cuánto contiene al llenarlo a tres cuartos.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el volumen",
+        "pregunta": "¿Cuál es el volumen interior en centímetros cúbicos?",
+        "formula": "V=50\\cdot40\\cdot30",
+        "respuesta": "60000",
+        "pistas": [
+          "Multiplica las tres dimensiones interiores.",
+          "50 × 40 = 2000; multiplica por 30."
+        ],
+        "explicacion": "El volumen es $$V=60000$$ centímetros cúbicos."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Convierte la capacidad",
+        "pregunta": "¿Cuál es la capacidad en litros?",
+        "formula": "C=\\frac{60000}{1000}",
+        "respuesta": "60",
+        "pistas": [
+          "Un litro equivale a 1000 centímetros cúbicos.",
+          "Divide 60000 entre 1000."
+        ],
+        "explicacion": "La capacidad es $$C=60$$ litros."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el llenado parcial",
+        "pregunta": "¿Cuántos litros contiene a tres cuartos de su capacidad?",
+        "formula": "L=60\\cdot\\frac{3}{4}",
+        "respuesta": "45",
+        "pistas": [
+          "Un cuarto de 60 son 15 litros.",
+          "Multiplica 15 por 3."
+        ],
+        "explicacion": "Contiene $$L=45$$ litros."
+      }
+    ],
+    "solucion": "Las dimensiones interiores determinan la capacidad: $$50\\cdot40\\cdot30=60000\\;\\mathrm{cm}^3=60\\;\\mathrm{L}$$. A tres cuartos contiene 45 litros."
+  },
+  {
+    "id": "mates-trigonometria",
+    "titulo": "Calcula razones trigonométricas",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "En un triángulo rectángulo, respecto al ángulo θ, el cateto opuesto mide 3 y el adyacente mide 4. Calcula la hipotenusa, el seno y la tangente de θ.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra la hipotenusa",
+        "pregunta": "¿Cuánto mide la hipotenusa?",
+        "formula": "h=\\sqrt{3^2+4^2}",
+        "respuesta": "5",
+        "pistas": [
+          "Suma los cuadrados de los catetos.",
+          "9 + 16 = 25; calcula su raíz positiva."
+        ],
+        "explicacion": "La hipotenusa mide $$h=5$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el seno",
+        "pregunta": "¿Cuánto vale el seno de θ? Escribe fracción o decimal.",
+        "formula": "\\sin\\theta=\\frac{opuesto}{hipotenusa}",
+        "respuesta": "3/5",
+        "pistas": [
+          "El seno divide el cateto opuesto entre la hipotenusa.",
+          "Usa 3 / 5."
+        ],
+        "explicacion": "El seno es $$\\sin\\theta=\\frac{3}{5}=0{,}6$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la tangente",
+        "pregunta": "¿Cuánto vale la tangente de θ?",
+        "formula": "\\tan\\theta=\\frac{opuesto}{adyacente}",
+        "respuesta": "3/4",
+        "pistas": [
+          "La tangente relaciona los dos catetos.",
+          "Divide 3 entre 4."
+        ],
+        "explicacion": "La tangente es $$\\tan\\theta=\\frac{3}{4}=0{,}75$$."
+      }
+    ],
+    "solucion": "Las razones dependen del ángulo elegido: $$\\sin\\theta=\\frac{3}{5},\\quad\\cos\\theta=\\frac{4}{5},\\quad\\tan\\theta=\\frac{3}{4}$$."
+  },
+  {
+    "id": "algebra-logaritmos",
+    "titulo": "Resuelve una ecuación logarítmica",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Resuelve log₂(x − 1) = 3. Un logaritmo responde a qué exponente debe elevarse su base; su argumento debe ser positivo.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Pasa a forma exponencial",
+        "pregunta": "¿Qué valor debe tener x − 1?",
+        "formula": "x-1=2^3",
+        "respuesta": "8",
+        "pistas": [
+          "La igualdad log₂(y) = 3 significa y = 2³.",
+          "Multiplica 2 × 2 × 2."
+        ],
+        "explicacion": "El argumento debe valer $$x-1=8$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Despeja x",
+        "pregunta": "¿Cuál es la solución candidata?",
+        "formula": "x=8+1",
+        "respuesta": "9",
+        "pistas": [
+          "Suma 1 en ambos miembros.",
+          "Calcula 8 + 1."
+        ],
+        "explicacion": "La candidata es $$x=9$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Comprueba la ecuación",
+        "pregunta": "Para x = 9, ¿cuánto vale log₂(x − 1)?",
+        "formula": "\\log_2(9-1)=\\log_2(8)",
+        "respuesta": "3",
+        "pistas": [
+          "El argumento es 8, que es positivo.",
+          "Pregunta a qué exponente se eleva 2 para obtener 8."
+        ],
+        "explicacion": "Se cumple $$\\log_2(8)=3$$, y el dominio x > 1 se respeta."
+      }
+    ],
+    "solucion": "La solución es $$x=9$$. La equivalencia logarítmica da $$\\log_2(x-1)=3\\Rightarrow x-1=8$$, con x > 1."
+  },
+  {
+    "id": "algebra-composicion",
+    "titulo": "Compón funciones e invierte una operación",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Sean f(x) = 2x + 1 y g(x) = x². Compara f(g(3)) con g(f(3)) y encuentra la entrada que f transforma en 15.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Aplica g y después f",
+        "pregunta": "¿Cuánto vale f(g(3))?",
+        "formula": "f(g(3))=2\\cdot3^2+1",
+        "respuesta": "19",
+        "pistas": [
+          "Primero calcula g(3) = 9.",
+          "Luego aplica f a 9: 2 × 9 + 1."
+        ],
+        "explicacion": "La composición da $$f(g(3))=19$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Invierte el orden",
+        "pregunta": "¿Cuánto vale g(f(3))?",
+        "formula": "g(f(3))=(2\\cdot3+1)^2",
+        "respuesta": "49",
+        "pistas": [
+          "Primero calcula f(3) = 7.",
+          "Después eleva 7 al cuadrado."
+        ],
+        "explicacion": "La otra composición da $$g(f(3))=49$$. El orden cambia el resultado."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Recupera la entrada",
+        "pregunta": "¿Qué valor de x cumple f(x) = 15?",
+        "formula": "x=\\frac{15-1}{2}",
+        "respuesta": "7",
+        "pistas": [
+          "Deshaz primero la suma de 1 y luego la multiplicación por 2.",
+          "Divide 14 entre 2."
+        ],
+        "explicacion": "La entrada es $$x=7$$, ya que f(7) = 15."
+      }
+    ],
+    "solucion": "Componer funciones exige respetar el orden. Para esta función, la inversa se obtiene con $$f^{-1}(y)=\\frac{y-1}{2}$$."
+  },
+  {
+    "id": "algebra-racional",
+    "titulo": "Resuelve una ecuación con incógnita en el denominador",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Resuelve 6/(x − 1) = 3. Antes de multiplicar por una expresión con x, identifica qué valor anula el denominador.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Identifica la exclusión",
+        "pregunta": "¿Qué valor de x hace que la expresión no esté definida?",
+        "formula": "x-1=0",
+        "respuesta": "1",
+        "pistas": [
+          "Un denominador no puede valer cero.",
+          "Resuelve x − 1 = 0."
+        ],
+        "explicacion": "El valor excluido es $$x=1$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Despeja la incógnita",
+        "pregunta": "Para x distinto de 1, ¿qué solución obtienes?",
+        "formula": "6=3(x-1)",
+        "respuesta": "3",
+        "pistas": [
+          "Divide entre 3 para obtener x − 1 = 2.",
+          "Suma 1 a ambos miembros."
+        ],
+        "explicacion": "La solución candidata es $$x=3$$, que no es el valor excluido."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Comprueba por sustitución",
+        "pregunta": "¿Cuánto vale el miembro izquierdo cuando x = 3?",
+        "formula": "\\frac{6}{3-1}",
+        "respuesta": "3",
+        "pistas": [
+          "El denominador vale 2 y no se anula.",
+          "Divide 6 entre 2."
+        ],
+        "explicacion": "La expresión vale $$\\frac{6}{2}=3$$, como exige la ecuación."
+      }
+    ],
+    "solucion": "La solución es $$x=3$$. La restricción $$x\\neq1$$ sigue vigente al multiplicar por el denominador."
+  },
+  {
+    "id": "algebra-formula-cuadratica",
+    "titulo": "Aplica la fórmula general de una cuadrática",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Resuelve 2x² − 5x + 2 = 0 usando a = 2, b = −5 y c = 2. Calcula el discriminante y luego ambas raíces.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el discriminante",
+        "pregunta": "¿Cuánto vale Δ?",
+        "formula": "\\Delta=b^2-4ac=(-5)^2-4\\cdot2\\cdot2",
+        "respuesta": "9",
+        "pistas": [
+          "El cuadrado de −5 es 25.",
+          "Resta 16 a 25."
+        ],
+        "explicacion": "El discriminante es $$\\Delta=9$$; hay dos raíces reales distintas."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Usa el signo positivo",
+        "pregunta": "¿Cuál es la raíz que se obtiene con +√Δ?",
+        "formula": "x_1=\\frac{5+\\sqrt{9}}{4}",
+        "respuesta": "2",
+        "pistas": [
+          "La raíz cuadrada de 9 es 3.",
+          "Calcula (5 + 3) / 4."
+        ],
+        "explicacion": "La primera raíz es $$x_1=2$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Usa el signo negativo",
+        "pregunta": "¿Cuál es la raíz que se obtiene con −√Δ?",
+        "formula": "x_2=\\frac{5-\\sqrt{9}}{4}",
+        "respuesta": "1/2",
+        "pistas": [
+          "Resta 3 a 5 antes de dividir.",
+          "Calcula 2 / 4."
+        ],
+        "explicacion": "La segunda raíz es $$x_2=\\frac{1}{2}$$."
+      }
+    ],
+    "solucion": "La fórmula $$x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}$$ produce 2 y 1/2. Ambas anulan el polinomio; también puede escribirse $$(2x-1)(x-2)=0$$."
+  },
+  {
+    "id": "estadistica-esperanza",
+    "titulo": "Calcula el valor esperado de una variable discreta",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Una variable aleatoria X toma los valores 0, 2 y 5 con probabilidades 1/2, 3/10 y 1/5, respectivamente. Calcula su esperanza. Escribe fracciones o decimales.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Comprueba la distribución",
+        "pregunta": "¿Cuánto suman las tres probabilidades?",
+        "formula": "\\frac{1}{2}+\\frac{3}{10}+\\frac{1}{5}",
+        "respuesta": "1",
+        "pistas": [
+          "Usa denominador común 10.",
+          "Suma 5/10 + 3/10 + 2/10."
+        ],
+        "explicacion": "Las probabilidades suman 1 y son no negativas."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Pondera un valor",
+        "pregunta": "¿Cuánto aporta el resultado X = 2 al valor esperado?",
+        "formula": "2\\cdot\\frac{3}{10}",
+        "respuesta": "3/5",
+        "pistas": [
+          "Multiplica el valor por su probabilidad.",
+          "Calcula 6 / 10."
+        ],
+        "explicacion": "El aporte es $$\\frac{3}{5}=0{,}6$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Suma los aportes",
+        "pregunta": "¿Cuánto vale E(X)?",
+        "formula": "E(X)=0\\cdot\\frac{1}{2}+2\\cdot\\frac{3}{10}+5\\cdot\\frac{1}{5}",
+        "respuesta": "8/5",
+        "pistas": [
+          "El primer aporte es 0 y el último es 1.",
+          "Suma 0 + 0,6 + 1."
+        ],
+        "explicacion": "La esperanza es $$E(X)=\\frac{8}{5}=1{,}6$$."
+      }
+    ],
+    "solucion": "La esperanza es un promedio ponderado por probabilidades. Aquí vale 1,6, aunque una observación individual solo puede valer 0, 2 o 5."
+  },
+  {
+    "id": "estadistica-bernoulli",
+    "titulo": "Calcula media y varianza de un indicador",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "X vale 1 cuando un ensayo tiene éxito y 0 cuando falla. La probabilidad de éxito es 0,4. Calcula su esperanza, su segundo momento y su varianza.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la esperanza",
+        "pregunta": "¿Cuánto vale E(X)?",
+        "formula": "E(X)=1\\cdot0{,}4+0\\cdot0{,}6",
+        "respuesta": "2/5",
+        "pistas": [
+          "El resultado 0 no aporta nada al promedio.",
+          "Multiplica 1 por 0,4."
+        ],
+        "explicacion": "La esperanza es $$E(X)=0{,}4$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el segundo momento",
+        "pregunta": "¿Cuánto vale E(X²)?",
+        "formula": "E(X^2)=1^2\\cdot0{,}4+0^2\\cdot0{,}6",
+        "respuesta": "2/5",
+        "pistas": [
+          "Al elevar 0 y 1 al cuadrado no cambian sus valores.",
+          "Por eso X² = X en cada resultado."
+        ],
+        "explicacion": "El segundo momento también es $$E(X^2)=0{,}4$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la varianza",
+        "pregunta": "¿Cuánto vale Var(X)?",
+        "formula": "Var(X)=E(X^2)-[E(X)]^2",
+        "respuesta": "6/25",
+        "pistas": [
+          "Resta el cuadrado de 0,4 a 0,4.",
+          "Calcula 0,4 − 0,16."
+        ],
+        "explicacion": "La varianza es $$Var(X)=0{,}24$$."
+      }
+    ],
+    "solucion": "Para un indicador de éxito con probabilidad p, $$E(X)=p$$ y $$Var(X)=p(1-p)$$. Aquí $$0{,}4\\cdot0{,}6=0{,}24$$."
+  },
+  {
+    "id": "estadistica-complemento",
+    "titulo": "Calcula la probabilidad de al menos un éxito",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Realizas dos intentos independientes. Cada uno tiene probabilidad de éxito 0,3. Calcula la probabilidad de lograr al menos un éxito mediante el evento complementario.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula un fallo",
+        "pregunta": "¿Cuál es la probabilidad de fallo en un intento?",
+        "formula": "P(F)=1-0{,}3",
+        "respuesta": "7/10",
+        "pistas": [
+          "Éxito y fallo cubren todos los resultados de un intento.",
+          "Resta 0,3 de 1."
+        ],
+        "explicacion": "La probabilidad de fallo es $$P(F)=0{,}7$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula dos fallos",
+        "pregunta": "¿Cuál es la probabilidad de que fallen ambos intentos?",
+        "formula": "P(F_1\\cap F_2)=0{,}7\\cdot0{,}7",
+        "respuesta": "49/100",
+        "pistas": [
+          "La independencia permite multiplicar las probabilidades.",
+          "Calcula 7 × 7 y divide entre 100."
+        ],
+        "explicacion": "La probabilidad de dos fallos es $$0{,}49$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Usa el complemento",
+        "pregunta": "¿Cuál es la probabilidad de al menos un éxito?",
+        "formula": "P(al\\ menos\\ uno)=1-P(ninguno)",
+        "respuesta": "51/100",
+        "pistas": [
+          "El único caso sin ningún éxito es que fallen ambos.",
+          "Resta 0,49 de 1."
+        ],
+        "explicacion": "La probabilidad es $$1-0{,}49=0{,}51$$."
+      }
+    ],
+    "solucion": "Usar el complemento evita contar por separado uno y dos éxitos. Aquí al menos un éxito tiene probabilidad 0,51, distinta de sumar 0,3 + 0,3."
+  },
+  {
+    "id": "estadistica-covarianza",
+    "titulo": "Calcula una covarianza poblacional",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Considera las parejas (1, 2), (2, 4) y (3, 6) como la población completa. La media de X es 2 y la de Y es 4. Calcula la covarianza poblacional, dividiendo entre N = 3.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula un producto de desviaciones",
+        "pregunta": "¿Cuál es el producto de desviaciones para la primera pareja?",
+        "formula": "(1-2)(2-4)",
+        "respuesta": "2",
+        "pistas": [
+          "Las diferencias son −1 y −2.",
+          "El producto de dos negativos es positivo."
+        ],
+        "explicacion": "El primer producto es $$(-1)(-2)=2$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Suma los productos",
+        "pregunta": "¿Cuánto suman los productos de desviaciones de las tres parejas?",
+        "formula": "(-1)(-2)+(0)(0)+(1)(2)",
+        "respuesta": "4",
+        "pistas": [
+          "El segundo producto es 0 y el tercero es 2.",
+          "Suma 2 + 0 + 2."
+        ],
+        "explicacion": "La suma es $$4$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Promedia los productos",
+        "pregunta": "¿Cuál es la covarianza poblacional? Escribe una fracción exacta.",
+        "formula": "Cov(X,Y)=\\frac{4}{3}",
+        "respuesta": "4/3",
+        "pistas": [
+          "Hay tres parejas en la población.",
+          "Divide la suma 4 entre 3."
+        ],
+        "explicacion": "La covarianza poblacional es $$Cov(X,Y)=\\frac{4}{3}$$, positiva."
+      }
+    ],
+    "solucion": "La covarianza positiva refleja que ambas variables aumentan juntas en estos datos. Su magnitud depende de las unidades; no es una correlación normalizada ni demuestra causalidad."
+  },
+  {
+    "id": "mates-cilindro",
+    "titulo": "Calcula la capacidad de un cilindro",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Un recipiente cilíndrico tiene radio interior de 10 cm y altura interior de 20 cm. Usa π = 3,14 en todos los cálculos; escribe los resultados sin unidades.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el área de la base",
+        "pregunta": "¿Cuál es el área de la base en centímetros cuadrados?",
+        "formula": "A=\\pi r^2",
+        "respuesta": "314",
+        "pistas": [
+          "La base es un círculo; eleva el radio al cuadrado.",
+          "Calcula 3,14 × 100."
+        ],
+        "explicacion": "El área es $$A=314$$ centímetros cuadrados."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el volumen",
+        "pregunta": "¿Cuál es el volumen interior en centímetros cúbicos?",
+        "formula": "V=A\\cdot h",
+        "respuesta": "6280",
+        "pistas": [
+          "Multiplica el área de la base por la altura.",
+          "Calcula 314 × 20."
+        ],
+        "explicacion": "El volumen es $$V=6280$$ centímetros cúbicos."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Convierte a litros",
+        "pregunta": "¿Cuál es la capacidad en litros?",
+        "formula": "C=\\frac{6280}{1000}",
+        "respuesta": "6.28",
+        "pistas": [
+          "Cada litro equivale a 1000 centímetros cúbicos.",
+          "Divide 6280 entre 1000."
+        ],
+        "explicacion": "La capacidad calculada es $$C=6{,}28$$ litros."
+      }
+    ],
+    "solucion": "Usando la aproximación indicada de π: $$V=3{,}14\\cdot10^2\\cdot20=6280\\;\\mathrm{cm}^3=6{,}28\\;\\mathrm{L}$$."
+  },
+  {
+    "id": "mates-combinaciones",
+    "titulo": "Cuenta grupos sin importar el orden",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Hay 5 personas y quieres elegir un grupo de 2. Nadie puede repetirse y el orden dentro del grupo no importa.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Cuenta elecciones ordenadas",
+        "pregunta": "Si distinguieras primera y segunda posición, ¿cuántas elecciones habría?",
+        "formula": "5\\cdot4",
+        "respuesta": "20",
+        "pistas": [
+          "Hay cinco opciones para la primera persona.",
+          "Una vez elegida, quedan cuatro opciones para la segunda."
+        ],
+        "explicacion": "Existen $$5\\cdot4=20$$ parejas ordenadas."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Detecta las repeticiones",
+        "pregunta": "¿Cuántos órdenes distintos tiene cada grupo de dos personas?",
+        "formula": "2!=2\\cdot1",
+        "respuesta": "2",
+        "pistas": [
+          "Un mismo grupo formado por A y B aparece como AB y BA.",
+          "Cuenta esos dos órdenes."
+        ],
+        "explicacion": "Cada grupo se contó 2 veces."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Cuenta los grupos",
+        "pregunta": "¿Cuántos grupos diferentes de dos personas puedes formar?",
+        "formula": "N=\\frac{5\\cdot4}{2}",
+        "respuesta": "10",
+        "pistas": [
+          "Divide el conteo ordenado entre las repeticiones por grupo.",
+          "Calcula 20 / 2."
+        ],
+        "explicacion": "Hay $$N=10$$ grupos distintos."
+      }
+    ],
+    "solucion": "Cuando el orden no importa, eliminamos las permutaciones del mismo grupo: $$N=\\frac{5!}{2!\\,3!}=10$$."
+  },
+  {
+    "id": "mates-notacion-cientifica",
+    "titulo": "Multiplica cantidades en notación científica",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Calcula (3 × 10⁴) × (2 × 10⁻²), operando por separado los coeficientes y las potencias de diez.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Multiplica los coeficientes",
+        "pregunta": "¿Qué coeficiente obtienes al multiplicar 3 por 2?",
+        "formula": "3\\cdot2",
+        "respuesta": "6",
+        "pistas": [
+          "Opera primero los números que acompañan a las potencias.",
+          "Multiplica 3 × 2."
+        ],
+        "explicacion": "El coeficiente es 6, ya dentro del intervalo de 1 a menos de 10."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Combina los exponentes",
+        "pregunta": "¿Qué exponente resulta al multiplicar 10⁴ por 10⁻²?",
+        "formula": "10^4\\cdot10^{-2}=10^n",
+        "respuesta": "2",
+        "pistas": [
+          "Para la misma base, suma los exponentes.",
+          "Calcula 4 + (−2)."
+        ],
+        "explicacion": "El exponente es $$n=2$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Escribe el número ordinario",
+        "pregunta": "¿Cuál es el resultado como número ordinario?",
+        "formula": "6\\cdot10^2",
+        "respuesta": "600",
+        "pistas": [
+          "Diez al cuadrado es cien.",
+          "Multiplica 6 por 100."
+        ],
+        "explicacion": "El resultado es $$600$$."
+      }
+    ],
+    "solucion": "La multiplicación queda $$3\\cdot2\\cdot10^{4-2}=6\\cdot10^2=600$$. El signo del exponente forma parte de la suma."
+  },
+  {
+    "id": "mates-distancia-puntos",
+    "titulo": "Calcula la distancia entre dos puntos",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "En un plano cartesiano, A = (−1, 2) y B = (5, 10). Calcula las diferencias de coordenadas y la distancia entre ambos puntos.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el cambio horizontal",
+        "pregunta": "¿Cuánto vale xB − xA?",
+        "formula": "\\Delta x=5-(-1)",
+        "respuesta": "6",
+        "pistas": [
+          "Restar un número negativo equivale a sumarlo.",
+          "Calcula 5 + 1."
+        ],
+        "explicacion": "El cambio horizontal es $$\\Delta x=6$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el cambio vertical",
+        "pregunta": "¿Cuánto vale yB − yA?",
+        "formula": "\\Delta y=10-2",
+        "respuesta": "8",
+        "pistas": [
+          "Resta la coordenada vertical inicial de la final.",
+          "Calcula 10 − 2."
+        ],
+        "explicacion": "El cambio vertical es $$\\Delta y=8$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la distancia",
+        "pregunta": "¿Cuál es la distancia entre A y B?",
+        "formula": "d=\\sqrt{6^2+8^2}",
+        "respuesta": "10",
+        "pistas": [
+          "Suma 36 y 64 antes de extraer la raíz.",
+          "La raíz positiva de 100 es 10."
+        ],
+        "explicacion": "La distancia es $$d=10$$ unidades."
+      }
+    ],
+    "solucion": "La distancia euclídea aplica Pitágoras a los cambios de coordenadas: $$d=\\sqrt{(x_B-x_A)^2+(y_B-y_A)^2}=10$$."
+  },
+  {
+    "id": "algebra-resto-polinomio",
+    "titulo": "Usa el teorema del resto",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Sea P(x) = x³ − 2x + 4. El resto de dividir P(x) entre x − a es P(a). Encuentra el resto de la división entre x − 2.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Evalúa el término cúbico",
+        "pregunta": "¿Cuánto vale x³ cuando x = 2?",
+        "formula": "2^3",
+        "respuesta": "8",
+        "pistas": [
+          "Multiplica tres factores iguales a 2.",
+          "Calcula 2 × 2 × 2."
+        ],
+        "explicacion": "El término cúbico vale 8."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Evalúa el polinomio",
+        "pregunta": "¿Cuánto vale P(2)?",
+        "formula": "P(2)=2^3-2\\cdot2+4",
+        "respuesta": "8",
+        "pistas": [
+          "Sustituye x = 2 en todos los términos.",
+          "Calcula 8 − 4 + 4."
+        ],
+        "explicacion": "El valor es $$P(2)=8$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Identifica el resto",
+        "pregunta": "¿Cuál es el resto al dividir entre x − 2?",
+        "formula": "R=P(2)",
+        "respuesta": "8",
+        "pistas": [
+          "El teorema del resto usa precisamente el valor calculado.",
+          "El resto coincide con P(2), no con el cociente."
+        ],
+        "explicacion": "El resto es 8; por tanto, x − 2 no es un factor de P(x)."
+      }
+    ],
+    "solucion": "La identidad $$P(x)=(x-2)(x^2+2x+2)+8$$ confirma el resto. Al sustituir x = 2, el producto desaparece y queda 8."
+  },
+  {
+    "id": "algebra-identidad-parametros",
+    "titulo": "Encuentra coeficientes de una identidad",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "La igualdad a(x + 2) + b = 3x + 10 debe cumplirse para todo número real x. Encuentra a y b comparando coeficientes.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Compara los términos con x",
+        "pregunta": "¿Cuánto debe valer a?",
+        "formula": "ax+2a+b=3x+10",
+        "respuesta": "3",
+        "pistas": [
+          "El coeficiente de x debe ser igual en ambos miembros.",
+          "Compara a con 3."
+        ],
+        "explicacion": "Necesitamos $$a=3$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Compara las constantes",
+        "pregunta": "Con a = 3, ¿cuánto debe valer b?",
+        "formula": "2\\cdot3+b=10",
+        "respuesta": "4",
+        "pistas": [
+          "Los términos constantes deben sumar 10.",
+          "Resuelve 6 + b = 10."
+        ],
+        "explicacion": "La constante es $$b=4$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Comprueba un valor",
+        "pregunta": "Con estos parámetros, ¿cuánto vale el miembro izquierdo para x = −2?",
+        "formula": "3(-2+2)+4",
+        "respuesta": "4",
+        "pistas": [
+          "El paréntesis se anula en x = −2.",
+          "Queda 0 + 4."
+        ],
+        "explicacion": "El resultado es 4, igual que $$3(-2)+10=4$$."
+      }
+    ],
+    "solucion": "La identidad queda $$3(x+2)+4=3x+10$$. Comparar coeficientes asegura la igualdad para todo x; comprobar un solo valor no bastaría para demostrarla."
+  },
+  {
+    "id": "algebra-sistema-no-lineal",
+    "titulo": "Resuelve un sistema con un producto",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Dos números x e y cumplen x + y = 7 y xy = 12. Para elegir una única pareja ordenada, toma x como el menor de los dos.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Elimina y",
+        "pregunta": "Si y = 7 − x, la ecuación queda x² − 7x + c = 0. ¿Cuánto vale c?",
+        "formula": "x(7-x)=12",
+        "respuesta": "12",
+        "pistas": [
+          "Expande el producto y pasa todos los términos a un miembro.",
+          "De −x² + 7x − 12 = 0, multiplica por −1."
+        ],
+        "explicacion": "La ecuación es $$x^2-7x+12=0$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra el menor número",
+        "pregunta": "¿Cuál es x, el menor de los dos números?",
+        "formula": "(x-3)(x-4)=0",
+        "respuesta": "3",
+        "pistas": [
+          "Las raíces de la cuadrática son 3 y 4.",
+          "La condición del enunciado pide la menor."
+        ],
+        "explicacion": "La condición selecciona $$x=3$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Recupera y",
+        "pregunta": "¿Cuánto vale y?",
+        "formula": "y=7-x",
+        "respuesta": "4",
+        "pistas": [
+          "Sustituye x = 3.",
+          "Calcula 7 − 3."
+        ],
+        "explicacion": "Obtenemos $$y=4$$; su suma es 7 y su producto es 12."
+      }
+    ],
+    "solucion": "La pareja pedida es (3, 4). Sin la condición de orden, el sistema también admite (4, 3)."
+  },
+  {
+    "id": "algebra-determinante",
+    "titulo": "Calcula un determinante de orden dos",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Una matriz tiene primera fila (3, 2) y segunda fila (1, 4). Para una matriz de filas (a, b) y (c, d), su determinante es ad − bc.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Multiplica la diagonal principal",
+        "pregunta": "¿Cuánto vale ad?",
+        "formula": "a\\cdot d=3\\cdot4",
+        "respuesta": "12",
+        "pistas": [
+          "Usa el elemento superior izquierdo y el inferior derecho.",
+          "Multiplica 3 por 4."
+        ],
+        "explicacion": "El primer producto es 12."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Multiplica la otra diagonal",
+        "pregunta": "¿Cuánto vale bc?",
+        "formula": "b\\cdot c=2\\cdot1",
+        "respuesta": "2",
+        "pistas": [
+          "Usa el elemento superior derecho y el inferior izquierdo.",
+          "Multiplica 2 por 1."
+        ],
+        "explicacion": "El segundo producto es 2."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Resta los productos",
+        "pregunta": "¿Cuál es el determinante?",
+        "formula": "\\det(A)=12-2",
+        "respuesta": "10",
+        "pistas": [
+          "El orden es ad menos bc.",
+          "Resta 2 de 12."
+        ],
+        "explicacion": "El determinante es $$\\det(A)=10$$; al ser distinto de cero, la matriz tiene inversa."
+      }
+    ],
+    "solucion": "Para esta matriz, $$\\det(A)=3\\cdot4-2\\cdot1=10$$. Un determinante nulo indicaría que la matriz no es invertible."
+  },
+  {
+    "id": "estadistica-media-combinada",
+    "titulo": "Combina medias de grupos de distinto tamaño",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Un grupo de 4 estudiantes tiene nota media 6 y otro de 6 estudiantes tiene nota media 8. Cada estudiante pertenece a un solo grupo y todas las notas usan la misma escala.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Reconstruye la primera suma",
+        "pregunta": "¿Cuánto suman las notas del primer grupo?",
+        "formula": "S_1=4\\cdot6",
+        "respuesta": "24",
+        "pistas": [
+          "La suma es el tamaño del grupo por su media.",
+          "Multiplica 4 por 6."
+        ],
+        "explicacion": "Las notas del primer grupo suman 24."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Reconstruye la segunda suma",
+        "pregunta": "¿Cuánto suman las notas del segundo grupo?",
+        "formula": "S_2=6\\cdot8",
+        "respuesta": "48",
+        "pistas": [
+          "Aplica la misma relación al segundo grupo.",
+          "Multiplica 6 por 8."
+        ],
+        "explicacion": "Las notas del segundo grupo suman 48."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la media conjunta",
+        "pregunta": "¿Cuál es la media de los diez estudiantes?",
+        "formula": "\\bar{x}=\\frac{24+48}{4+6}",
+        "respuesta": "7.2",
+        "pistas": [
+          "Suma todas las notas y divide entre el total de personas.",
+          "Calcula 72 / 10."
+        ],
+        "explicacion": "La media conjunta es $$\\bar{x}=7{,}2$$."
+      }
+    ],
+    "solucion": "Los grupos pesan según su tamaño: $$\\bar{x}=\\frac{4\\cdot6+6\\cdot8}{10}=7{,}2$$. Promediar 6 y 8 sin ponderar daría 7 y no representaría a los diez estudiantes."
+  },
+  {
+    "id": "estadistica-transformacion-lineal",
+    "titulo": "Transforma media y varianza",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Una variable X tiene media 10 y varianza 4. Define Y = 3X + 5. Usa E(aX + b) = aE(X) + b y Var(aX + b) = a²Var(X).",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Transforma la media",
+        "pregunta": "¿Cuál es la media de Y?",
+        "formula": "E(Y)=3\\cdot10+5",
+        "respuesta": "35",
+        "pistas": [
+          "Multiplica la media por 3 y luego suma 5.",
+          "Calcula 30 + 5."
+        ],
+        "explicacion": "La nueva media es $$E(Y)=35$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Transforma la varianza",
+        "pregunta": "¿Cuál es la varianza de Y?",
+        "formula": "Var(Y)=3^2\\cdot4",
+        "respuesta": "36",
+        "pistas": [
+          "Sumar una constante no cambia la varianza.",
+          "Eleva 3 al cuadrado y multiplica por 4."
+        ],
+        "explicacion": "La varianza es $$Var(Y)=36$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Obtén la desviación estándar",
+        "pregunta": "¿Cuál es la desviación estándar de Y?",
+        "formula": "\\sigma_Y=\\sqrt{36}",
+        "respuesta": "6",
+        "pistas": [
+          "La desviación estándar es la raíz positiva de la varianza.",
+          "Busca el número positivo cuyo cuadrado es 36."
+        ],
+        "explicacion": "La desviación estándar es $$\\sigma_Y=6$$."
+      }
+    ],
+    "solucion": "El desplazamiento +5 cambia la media, pero no la dispersión. Multiplicar por 3 multiplica la desviación estándar por 3 y la varianza por 9."
+  },
+  {
+    "id": "estadistica-bayes",
+    "titulo": "Actualiza una probabilidad con información nueva",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Eliges una de dos bolsas con igual probabilidad. La bolsa A tiene 3 fichas rojas y 1 azul; B tiene 1 roja y 3 azules. Extraes una ficha al azar de la bolsa elegida. Observas que es roja. Escribe probabilidades como fracción o decimal.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula un evento conjunto",
+        "pregunta": "¿Cuál es la probabilidad de elegir A y sacar una roja?",
+        "formula": "P(A\\cap R)=\\frac{1}{2}\\cdot\\frac{3}{4}",
+        "respuesta": "3/8",
+        "pistas": [
+          "Multiplica la probabilidad de elegir A por la de roja dentro de A.",
+          "Calcula (1/2) × (3/4)."
+        ],
+        "explicacion": "La probabilidad conjunta es $$P(A\\cap R)=\\frac{3}{8}$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la probabilidad total",
+        "pregunta": "¿Cuál es la probabilidad de sacar una roja considerando ambas bolsas?",
+        "formula": "P(R)=\\frac{3}{8}+\\frac{1}{2}\\cdot\\frac{1}{4}",
+        "respuesta": "1/2",
+        "pistas": [
+          "El camino por B aporta 1/8.",
+          "Suma 3/8 y 1/8."
+        ],
+        "explicacion": "La probabilidad total es $$P(R)=\\frac{4}{8}=\\frac{1}{2}$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Actualiza la probabilidad de A",
+        "pregunta": "Sabiendo que salió roja, ¿cuál es la probabilidad de que provenga de A?",
+        "formula": "P(A\\mid R)=\\frac{P(A\\cap R)}{P(R)}",
+        "respuesta": "3/4",
+        "pistas": [
+          "Divide la probabilidad conjunta entre la probabilidad de la observación.",
+          "Calcula (3/8) / (1/2)."
+        ],
+        "explicacion": "La probabilidad actualizada es $$P(A\\mid R)=\\frac{3}{4}$$."
+      }
+    ],
+    "solucion": "Observar una roja cambia la probabilidad de A de 1/2 a 3/4. No hay certeza sobre la bolsa: una roja también puede salir de B."
+  },
+  {
+    "id": "estadistica-correlacion",
+    "titulo": "Normaliza una covarianza",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Para una población conjunta, se conocen Var(X) = 4, Var(Y) = 9 y Cov(X,Y) = 3. Calcula la correlación de Pearson con ρ = Cov(X,Y)/(σX σY).",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la primera desviación estándar",
+        "pregunta": "¿Cuánto vale σX?",
+        "formula": "\\sigma_X=\\sqrt{4}",
+        "respuesta": "2",
+        "pistas": [
+          "Extrae la raíz positiva de la varianza de X.",
+          "El cuadrado de 2 es 4."
+        ],
+        "explicacion": "La desviación estándar de X es 2."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la segunda desviación estándar",
+        "pregunta": "¿Cuánto vale σY?",
+        "formula": "\\sigma_Y=\\sqrt{9}",
+        "respuesta": "3",
+        "pistas": [
+          "Extrae la raíz positiva de la varianza de Y.",
+          "El cuadrado de 3 es 9."
+        ],
+        "explicacion": "La desviación estándar de Y es 3."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Normaliza la covarianza",
+        "pregunta": "¿Cuánto vale la correlación ρ?",
+        "formula": "\\rho=\\frac{3}{2\\cdot3}",
+        "respuesta": "1/2",
+        "pistas": [
+          "Divide la covarianza por el producto de las desviaciones estándar.",
+          "Calcula 3 / 6."
+        ],
+        "explicacion": "La correlación es $$\\rho=0{,}5$$, positiva."
+      }
+    ],
+    "solucion": "La correlación normaliza la covarianza y no tiene unidades: $$\\rho=\\frac{3}{6}=0{,}5$$. Resume asociación lineal; no demuestra causalidad."
+  },
+  {
+    "id": "mates-derivada",
+    "titulo": "Calcula una derivada y una recta tangente",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Sea f(x) = x² + 3x. La derivada de x² es 2x y la de 3x es 3. Usa esas reglas para estudiar la tangente en x = 2.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Evalúa la función",
+        "pregunta": "¿Cuánto vale f(2)?",
+        "formula": "f(2)=2^2+3\\cdot2",
+        "respuesta": "10",
+        "pistas": [
+          "Calcula primero el cuadrado y el producto.",
+          "Suma 4 y 6."
+        ],
+        "explicacion": "El punto de tangencia es (2, 10)."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la pendiente",
+        "pregunta": "¿Cuánto vale f′(2)?",
+        "formula": "f^{\\prime}(x)=2x+3",
+        "respuesta": "7",
+        "pistas": [
+          "Sustituye x = 2 en la derivada.",
+          "Calcula 2 × 2 + 3."
+        ],
+        "explicacion": "La pendiente de la tangente es $$f^{\\prime}(2)=7$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Completa la recta",
+        "pregunta": "Si la tangente tiene forma y = 7x + b, ¿cuánto vale b?",
+        "formula": "b=10-7\\cdot2",
+        "respuesta": "-4",
+        "pistas": [
+          "La recta debe pasar por (2, 10).",
+          "Resta 14 de 10."
+        ],
+        "explicacion": "La tangente es $$y=7x-4$$."
+      }
+    ],
+    "solucion": "La derivada da la pendiente local. En x = 2, la tangente cumple $$y-10=7(x-2)$$. Es una aproximación local a la curva, no la misma función."
+  },
+  {
+    "id": "mates-integral",
+    "titulo": "Calcula una integral definida",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Calcula la integral de f(x) = 2x + 1 entre x = 1 y x = 3. Una antiderivada es F(x) = x² + x. Usa la regla integral = F(3) − F(1).",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Evalúa el extremo superior",
+        "pregunta": "¿Cuánto vale F(3)?",
+        "formula": "F(3)=3^2+3",
+        "respuesta": "12",
+        "pistas": [
+          "Eleva 3 al cuadrado antes de sumar.",
+          "Calcula 9 + 3."
+        ],
+        "explicacion": "En el extremo superior, $$F(3)=12$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Evalúa el extremo inferior",
+        "pregunta": "¿Cuánto vale F(1)?",
+        "formula": "F(1)=1^2+1",
+        "respuesta": "2",
+        "pistas": [
+          "Sustituye 1 en ambos términos.",
+          "Calcula 1 + 1."
+        ],
+        "explicacion": "En el extremo inferior, $$F(1)=2$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Resta los extremos",
+        "pregunta": "¿Cuál es el valor de la integral?",
+        "formula": "\\int_1^3(2x+1)\\,dx=F(3)-F(1)",
+        "respuesta": "10",
+        "pistas": [
+          "Resta el valor inferior del superior.",
+          "Calcula 12 − 2."
+        ],
+        "explicacion": "La integral vale $$10$$."
+      }
+    ],
+    "solucion": "Por el teorema fundamental del cálculo, $$\\int_1^3(2x+1)\\,dx=12-2=10$$. Como 2x + 1 es positiva en el intervalo, también es el área bajo la curva."
+  },
+  {
+    "id": "mates-limite",
+    "titulo": "Resuelve un límite con una discontinuidad removible",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Estudia (x² − 4)/(x − 2) cuando x se acerca a 2. La expresión original no está definida en x = 2, pero para x distinto de 2 puedes factorizar y simplificar.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Factoriza el numerador",
+        "pregunta": "En x² − 4 = (x − 2)(x + a), ¿cuánto vale a?",
+        "formula": "x^2-4=(x-2)(x+a)",
+        "respuesta": "2",
+        "pistas": [
+          "Es una diferencia de cuadrados.",
+          "Usa x² − 2² = (x − 2)(x + 2)."
+        ],
+        "explicacion": "La factorización es $$(x-2)(x+2)$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Evalúa cerca del punto",
+        "pregunta": "Para x = 2,1, ¿cuánto vale la expresión simplificada x + 2?",
+        "formula": "2{,}1+2",
+        "respuesta": "4.1",
+        "pistas": [
+          "La cancelación es válida porque 2,1 es distinto de 2.",
+          "Suma 2,1 y 2."
+        ],
+        "explicacion": "El valor cercano es $$4{,}1$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el límite",
+        "pregunta": "¿A qué valor se acerca x + 2 cuando x se acerca a 2?",
+        "formula": "\\lim_{x\\to2}\\frac{x^2-4}{x-2}=\\lim_{x\\to2}(x+2)",
+        "respuesta": "4",
+        "pistas": [
+          "La función simplificada es continua.",
+          "Sustituye 2 en x + 2 para hallar el límite."
+        ],
+        "explicacion": "El límite es $$4$$, aunque la expresión original no tiene valor en x = 2."
+      }
+    ],
+    "solucion": "El límite depende de valores cercanos, no del valor en el punto. La igualdad con x + 2 es válida solo para x distinto de 2; el límite sí existe y vale 4."
+  },
+  {
+    "id": "mates-producto-escalar",
+    "titulo": "Calcula un producto escalar y un ángulo recto",
+    "tema": "Matemáticas",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Sean u = (2, 1) y v = (1, −2). El producto escalar suma los productos de componentes correspondientes. Dos vectores no nulos con producto escalar cero son perpendiculares.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Multiplica las primeras componentes",
+        "pregunta": "¿Cuánto vale u₁v₁?",
+        "formula": "2\\cdot1",
+        "respuesta": "2",
+        "pistas": [
+          "Usa las primeras componentes de ambos vectores.",
+          "Multiplica 2 por 1."
+        ],
+        "explicacion": "El primer producto es 2."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Suma los dos productos",
+        "pregunta": "¿Cuánto vale u · v?",
+        "formula": "u\\cdot v=2\\cdot1+1\\cdot(-2)",
+        "respuesta": "0",
+        "pistas": [
+          "El segundo producto es −2.",
+          "Suma 2 y −2."
+        ],
+        "explicacion": "El producto escalar es 0."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Interpreta el ángulo",
+        "pregunta": "¿Cuánto mide en grados el ángulo entre estos vectores?",
+        "formula": "u\\cdot v=0,\\quad u\\neq0,\\quad v\\neq0",
+        "respuesta": "90",
+        "pistas": [
+          "Ambos vectores son no nulos y perpendiculares.",
+          "Un ángulo recto mide 90 grados."
+        ],
+        "explicacion": "El ángulo entre ellos mide 90 grados."
+      }
+    ],
+    "solucion": "El producto escalar $$u\\cdot v=0$$ confirma la perpendicularidad de estos dos vectores no nulos."
+  },
+  {
+    "id": "algebra-complejos",
+    "titulo": "Multiplica números complejos",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Calcula (2 + i)(3 − i), donde i² = −1. Usa la distributiva y separa la parte real de la imaginaria.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Simplifica el producto imaginario",
+        "pregunta": "¿Cuál es el valor real de i · (−i)?",
+        "formula": "i(-i)=-i^2",
+        "respuesta": "1",
+        "pistas": [
+          "Sustituye i² por −1.",
+          "El negativo de −1 es 1."
+        ],
+        "explicacion": "El producto $$-i^2=1$$ es real."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Suma los términos reales",
+        "pregunta": "¿Cuál es la parte real del producto completo?",
+        "formula": "(2+i)(3-i)=6-2i+3i-i^2",
+        "respuesta": "7",
+        "pistas": [
+          "Los términos reales son 6 y −i² = 1.",
+          "Suma 6 + 1."
+        ],
+        "explicacion": "La parte real es 7."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Suma los términos imaginarios",
+        "pregunta": "¿Cuál es el coeficiente de i en el resultado?",
+        "formula": "-2i+3i=b i",
+        "respuesta": "1",
+        "pistas": [
+          "Combina los coeficientes de i.",
+          "Calcula −2 + 3."
+        ],
+        "explicacion": "El coeficiente imaginario es 1, y el resultado es $$7+i$$."
+      }
+    ],
+    "solucion": "La distributiva y $$i^2=-1$$ dan $$(2+i)(3-i)=7+i$$. La parte imaginaria es el coeficiente real 1."
+  },
+  {
+    "id": "algebra-binomio-cuadrado",
+    "titulo": "Desarrolla el cuadrado de un binomio",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Escribe (2x − 3)² como ax² + bx + c. Usa (u − v)² = u² − 2uv + v².",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra el coeficiente cuadrático",
+        "pregunta": "¿Cuánto vale a?",
+        "formula": "(2x)^2=ax^2",
+        "respuesta": "4",
+        "pistas": [
+          "El cuadrado afecta al 2 y a la x.",
+          "Calcula 2²."
+        ],
+        "explicacion": "El término cuadrático es $$4x^2$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra el término cruzado",
+        "pregunta": "¿Cuánto vale b?",
+        "formula": "-2(2x)(3)=bx",
+        "respuesta": "-12",
+        "pistas": [
+          "Multiplica los coeficientes e incluye el signo negativo.",
+          "Calcula −2 × 2 × 3."
+        ],
+        "explicacion": "El término cruzado es $$-12x$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra la constante",
+        "pregunta": "¿Cuánto vale c?",
+        "formula": "(-3)^2=c",
+        "respuesta": "9",
+        "pistas": [
+          "El cuadrado de un negativo es positivo.",
+          "Multiplica −3 por −3."
+        ],
+        "explicacion": "La constante es 9; el desarrollo es $$4x^2-12x+9$$."
+      }
+    ],
+    "solucion": "El cuadrado incluye el término cruzado: $$(2x-3)^2=4x^2-12x+9$$. No equivale a elevar cada término al cuadrado y omitir el producto."
+  },
+  {
+    "id": "algebra-fraccion-simplificada",
+    "titulo": "Simplifica una fracción conservando el dominio",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Simplifica (x² − 9)/(x + 3). Identifica primero el valor prohibido, factoriza y evalúa la expresión donde esté definida.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Identifica el valor prohibido",
+        "pregunta": "¿Qué valor de x anula el denominador?",
+        "formula": "x+3=0",
+        "respuesta": "-3",
+        "pistas": [
+          "Resta 3 en ambos miembros.",
+          "El denominador no puede valer cero."
+        ],
+        "explicacion": "El valor prohibido es $$x=-3$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Factoriza y cancela",
+        "pregunta": "Tras simplificar, la expresión es x + b. ¿Cuánto vale b?",
+        "formula": "\\frac{(x-3)(x+3)}{x+3}=x+b",
+        "respuesta": "-3",
+        "pistas": [
+          "Cancela x + 3 solamente cuando x es distinto de −3.",
+          "El factor que queda es x − 3."
+        ],
+        "explicacion": "La expresión simplificada es x − 3, con la restricción x distinto de −3."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Evalúa en un punto permitido",
+        "pregunta": "¿Cuánto vale la expresión para x = 5?",
+        "formula": "5-3",
+        "respuesta": "2",
+        "pistas": [
+          "El valor 5 no está excluido.",
+          "Calcula 5 − 3."
+        ],
+        "explicacion": "La expresión vale 2; también $$\\frac{25-9}{5+3}=2$$."
+      }
+    ],
+    "solucion": "La simplificación da x − 3 para $$x\\neq-3$$. Eliminar un factor no permite recuperar el punto excluido del dominio original."
+  },
+  {
+    "id": "algebra-raiz-doble",
+    "titulo": "Busca un parámetro para una raíz doble",
+    "tema": "Álgebra",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "La ecuación x² − 6x + k = 0 debe tener una raíz real doble. Esto ocurre cuando el discriminante b² − 4ac vale cero.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula b²",
+        "pregunta": "¿Cuánto vale el cuadrado del coeficiente b = −6?",
+        "formula": "b^2=(-6)^2",
+        "respuesta": "36",
+        "pistas": [
+          "Eleva el número completo con su signo al cuadrado.",
+          "Multiplica −6 por −6."
+        ],
+        "explicacion": "El valor es $$b^2=36$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Anula el discriminante",
+        "pregunta": "¿Qué valor de k hace que 36 − 4k = 0?",
+        "formula": "36-4k=0",
+        "respuesta": "9",
+        "pistas": [
+          "Despeja 4k = 36.",
+          "Divide 36 entre 4."
+        ],
+        "explicacion": "El parámetro debe ser $$k=9$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Encuentra la raíz doble",
+        "pregunta": "¿Cuál es la raíz doble?",
+        "formula": "x^2-6x+9=(x-3)^2=0",
+        "respuesta": "3",
+        "pistas": [
+          "El cuadrado se anula cuando x − 3 = 0.",
+          "Suma 3 a ambos miembros."
+        ],
+        "explicacion": "La raíz doble es $$x=3$$."
+      }
+    ],
+    "solucion": "Con k = 9, el polinomio es $$(x-3)^2$$ y el discriminante es cero. Las dos raíces de la fórmula cuadrática coinciden en 3."
+  },
+  {
+    "id": "estadistica-regresion",
+    "titulo": "Construye una recta de regresión",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Para un ajuste lineal con intercepto se conocen x̄ = 2, ȳ = 5, Sxx = Σ(xi − x̄)² = 2 y Sxy = Σ(xi − x̄)(yi − ȳ) = 4. Usa pendiente b = Sxy/Sxx e intercepto a = ȳ − bx̄.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la pendiente",
+        "pregunta": "¿Cuánto vale b?",
+        "formula": "b=\\frac{4}{2}",
+        "respuesta": "2",
+        "pistas": [
+          "Divide la suma cruzada entre la suma de cuadrados de X.",
+          "Calcula 4 / 2."
+        ],
+        "explicacion": "La pendiente es $$b=2$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el intercepto",
+        "pregunta": "¿Cuánto vale a?",
+        "formula": "a=5-2\\cdot2",
+        "respuesta": "1",
+        "pistas": [
+          "La recta ajustada pasa por el punto de medias (2, 5).",
+          "Calcula 5 − 4."
+        ],
+        "explicacion": "El intercepto es $$a=1$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Obtén una predicción",
+        "pregunta": "¿Qué predice la recta para x = 3?",
+        "formula": "\\hat{y}=1+2\\cdot3",
+        "respuesta": "7",
+        "pistas": [
+          "Sustituye el valor de x en la recta ajustada.",
+          "Calcula 1 + 6."
+        ],
+        "explicacion": "La predicción es $$\\hat{y}=7$$."
+      }
+    ],
+    "solucion": "El ajuste es $$\\hat{y}=1+2x$$. Una predicción resume el modelo ajustado; no garantiza que una observación individual tome ese valor."
+  },
+  {
+    "id": "estadistica-error-prediccion",
+    "titulo": "Compara error absoluto y error cuadrático",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Valores reales: 2, 4 y 6. Predicciones correspondientes: 3, 4 y 4. Define el residuo como valor real menos predicción. Calcula dos medidas de error.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el último residuo",
+        "pregunta": "¿Cuál es el residuo de la tercera observación?",
+        "formula": "e_3=6-4",
+        "respuesta": "2",
+        "pistas": [
+          "Resta la predicción del valor real.",
+          "Calcula 6 − 4."
+        ],
+        "explicacion": "El último residuo es 2; los tres residuos son −1, 0 y 2."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el error absoluto medio",
+        "pregunta": "¿Cuál es el MAE?",
+        "formula": "MAE=\\frac{|-1|+|0|+|2|}{3}",
+        "respuesta": "1",
+        "pistas": [
+          "Los valores absolutos suman 3.",
+          "Divide 3 entre el número de observaciones."
+        ],
+        "explicacion": "El error absoluto medio es $$MAE=1$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el error cuadrático medio",
+        "pregunta": "¿Cuál es el MSE? Escribe una fracción exacta.",
+        "formula": "MSE=\\frac{(-1)^2+0^2+2^2}{3}",
+        "respuesta": "5/3",
+        "pistas": [
+          "Los cuadrados son 1, 0 y 4.",
+          "Suma 5 y divide entre 3."
+        ],
+        "explicacion": "El error cuadrático medio es $$MSE=\\frac{5}{3}$$."
+      }
+    ],
+    "solucion": "MAE usa errores absolutos y MSE cuadrados; MSE da más peso a errores grandes. Aquí se divide entre las tres predicciones, sin corrección por grados de libertad."
+  },
+  {
+    "id": "estadistica-error-estandar",
+    "titulo": "Calcula el error estándar de una media",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "Una población tiene desviación estándar conocida σ = 12. Las muestras contienen observaciones independientes de esa misma población. El error estándar de la media es σ/√n.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la raíz del tamaño",
+        "pregunta": "Para n = 36, ¿cuánto vale √n?",
+        "formula": "\\sqrt{36}",
+        "respuesta": "6",
+        "pistas": [
+          "Busca la raíz positiva.",
+          "El cuadrado de 6 es 36."
+        ],
+        "explicacion": "La raíz del tamaño muestral es 6."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula el error estándar",
+        "pregunta": "¿Cuál es el error estándar de la media con n = 36?",
+        "formula": "EE=\\frac{12}{6}",
+        "respuesta": "2",
+        "pistas": [
+          "Divide la desviación estándar por la raíz del tamaño.",
+          "Calcula 12 / 6."
+        ],
+        "explicacion": "El error estándar es $$EE=2$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Aumenta el tamaño muestral",
+        "pregunta": "¿Cuál sería el error estándar con n = 144?",
+        "formula": "EE=\\frac{12}{\\sqrt{144}}",
+        "respuesta": "1",
+        "pistas": [
+          "La raíz de 144 es 12.",
+          "Divide 12 entre 12."
+        ],
+        "explicacion": "El nuevo error estándar es 1."
+      }
+    ],
+    "solucion": "Cuadruplicar el tamaño de muestra reduce el error estándar a la mitad: de 2 a 1. El error estándar describe la variabilidad de la media muestral, no la dispersión de los datos individuales."
+  },
+  {
+    "id": "estadistica-frecuencia-esperada",
+    "titulo": "Calcula una frecuencia esperada bajo independencia",
+    "tema": "Estadística",
+    "nivel": "Intermedio",
+    "minutos": 10,
+    "contexto": "En una tabla de contingencia hay 100 personas. Una fila totaliza 40 personas y una columna 30. Bajo independencia, la frecuencia esperada en su intersección es (total de fila × total de columna)/total general. Se observaron 18 personas en esa celda.",
+    "pasos": [
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la proporción de columna",
+        "pregunta": "¿Qué proporción del total pertenece a esa columna?",
+        "formula": "p=\\frac{30}{100}",
+        "respuesta": "3/10",
+        "pistas": [
+          "Divide el total de columna entre el total general.",
+          "Simplifica 30/100 o escribe un decimal."
+        ],
+        "explicacion": "La proporción es $$p=0{,}3$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Calcula la frecuencia esperada",
+        "pregunta": "Bajo independencia, ¿cuántas personas se esperarían en la intersección?",
+        "formula": "E=40\\cdot\\frac{30}{100}",
+        "respuesta": "12",
+        "pistas": [
+          "Aplica la proporción de columna a las 40 personas de la fila.",
+          "Multiplica 40 por 0,3."
+        ],
+        "explicacion": "La frecuencia esperada es $$E=12$$."
+      },
+      {
+        "tipo": "numero",
+        "titulo": "Compara con lo observado",
+        "pregunta": "¿Cuánto vale observado menos esperado en esa celda?",
+        "formula": "O-E=18-12",
+        "respuesta": "6",
+        "pistas": [
+          "Usa la frecuencia observada del enunciado.",
+          "Resta 12 de 18."
+        ],
+        "explicacion": "La diferencia es 6 personas por encima de lo esperado bajo independencia."
+      }
+    ],
+    "solucion": "La celda tiene 18 observaciones frente a 12 esperadas. Esta diferencia por sí sola no basta para concluir dependencia estadística: habría que evaluar la tabla completa con un procedimiento adecuado."
+  }
+]

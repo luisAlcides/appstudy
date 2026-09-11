@@ -263,7 +263,7 @@ class MainWindow(Adw.ApplicationWindow):
         """Elige un bloque manejable o un modo especial de estudio."""
         dlg = Adw.AlertDialog(
             heading="¿Cómo quieres estudiar?",
-            body="Elige una sesión con temporizador, un simulacro de examen o práctica de redacción.")
+            body="Elige una sesión con temporizador, un examen, escritura o ejercicios prácticos.")
         caja = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         nombres = [f"{p.nombre} · {p.minutos} min · hasta {p.tarjetas} tarjetas"
                    for p in sesiones.PLANES]
@@ -276,6 +276,7 @@ class MainWindow(Adw.ApplicationWindow):
         dlg.set_extra_child(caja)
         dlg.add_response("quick", "Repaso libre")
         dlg.add_response("examen", "📝 Modo Examen")
+        dlg.add_response("practica", "🧩 Ejercicios prácticos")
         dlg.add_response("escritura", "✍️ Escritura libre")
         dlg.add_response("cursos", "🎬 Cursos Online")
         dlg.add_response("start", "Empezar sesión")
@@ -292,6 +293,8 @@ class MainWindow(Adw.ApplicationWindow):
             self.get_application().show_popup()
         elif respuesta == "examen":
             self.abrir_simulacro_examen()
+        elif respuesta == "practica":
+            self.abrir_practica()
         elif respuesta == "escritura":
             self.abrir_escritura_libre()
         elif respuesta == "cursos":
@@ -391,6 +394,9 @@ class MainWindow(Adw.ApplicationWindow):
         se busca, así que se abre solo si lo abres, y entonces se queda abierto.
         """
         modos = [
+            ("🧩", "Ejercicios prácticos",
+             "Practica matemáticas, álgebra, estadística, Python, circuitos y mecánica con pistas y soluciones.",
+             lambda *_: self.abrir_practica()),
             ("📝", "Modo Examen",
              "Simulacro de 20 o 40 preguntas sin calificar hasta el final, con nota y desglose.",
              lambda *_: self.abrir_simulacro_examen()),
@@ -408,7 +414,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         expansor = Adw.ExpanderRow(
             title="Otras formas de estudiar",
-            subtitle=f"Examen, escritura y cursos · {len(modos)} modos")
+            subtitle=f"Ejercicios, examen, escritura y cursos · {len(modos)} modos")
         expansor.set_expanded(bool(db.get_meta(self.con, self.MODOS_ABIERTOS)))
         expansor.connect("notify::expanded", self.on_modos_expandido)
         for icono, titulo, texto, accion in modos:
@@ -440,6 +446,10 @@ class MainWindow(Adw.ApplicationWindow):
     def abrir_reproductor_cursos(self, plataforma=None, siguiente=False):
         from . import reproductor
         reproductor.abrir_reproductor(self.con, parent_window=self, plataforma=plataforma, siguiente=siguiente)
+
+    def abrir_practica(self):
+        from .practica_window import PracticaWindow
+        PracticaWindow(self, self.con).present()
 
     def abrir_simulacro_examen(self, deck_id=None, level=None, n=20):
         from . import examen

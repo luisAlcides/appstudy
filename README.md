@@ -765,6 +765,54 @@ prefieren las que comparten etiquetas, nivel o el término técnico que las une.
 Hace falta haber estudiado **al menos dos tarjetas del mismo tema**; con una
 suelta por mazo te dirá que aún no hay de qué preguntar.
 
+## Ejercicios prácticos guiados
+
+En **Panel → Otras formas de estudiar → Ejercicios prácticos**, o desde el
+selector de sesión, puedes resolver **69 casos con 207 pasos** de nivel básico e intermedio:
+
+- **Python:** depurar una función de promedio y comprobar una lista vacía.
+- **Electricidad:** calcular resistencia, corriente y tensiones de un circuito ideal en serie.
+- **Mecánica automotriz:** comparar consumos de una bitácora y distinguir evidencia de sospechas.
+- **Matemáticas (22):** fracciones, porcentajes sucesivos, proporcionalidad directa
+  e inversa, Pitágoras, potencias, escalas, conversión de velocidad, áreas compuestas
+  y sucesiones aritméticas; MCD y MCM, sucesiones geométricas, volumen y trigonometría;
+  cilindros, combinaciones, notación científica y distancia entre puntos;
+  derivadas y tangentes, integrales definidas, límites y producto escalar.
+- **Álgebra (22):** ecuaciones lineales y cuadráticas, sistemas por eliminación,
+  desigualdades, funciones lineales, ecuaciones exponenciales, ecuaciones con
+  fracciones y raíces, valor absoluto y vértice de una parábola; logaritmos,
+  composición e inversión de funciones, ecuaciones racionales y fórmula cuadrática;
+  teorema del resto, identidades con parámetros, sistemas no lineales y determinantes;
+  números complejos, binomios al cuadrado, simplificación con dominio y raíces dobles.
+- **Estadística (22):** media y mediana, varianza poblacional y desviación estándar,
+  media ponderada, probabilidad sin reemplazo y condicional, varianza muestral,
+  tablas de frecuencias, cuartiles, puntuaciones z y probabilidad binomial;
+  esperanza discreta, varianza de Bernoulli, probabilidad por complemento y covarianza poblacional;
+  medias combinadas, transformación de media y varianza, Bayes y correlación;
+  regresión lineal, errores de predicción, error estándar y frecuencias esperadas.
+
+Cada caso tiene tres pasos, dos pistas progresivas por paso y una
+explicación al acertar. Una respuesta incorrecta permite volver a intentarlo;
+solo se avanza al resolver el paso. El resumen incluye la solución completa y
+los pasos acertados al primer intento sin pistas, y permite practicar de nuevo.
+
+Los 66 casos de matemáticas, álgebra y estadística tienen **respuesta numérica escrita y comprobación inmediata**:
+aceptan decimales con coma o punto y fracciones equivalentes como `5/6` y `10/12`.
+Pulsa **Comprobar respuesta** o Intro. Las entradas mal formadas no cuentan como
+intento. La desviación estándar pide dos decimales y admite un error absoluto de
+0,005; el resto se compara con tolerancia de 0,000000001.
+
+El código de Python utiliza **Pygments**, con tipografía monoespaciada y colores
+según el tema. Las fórmulas, pistas y soluciones aceptan **LaTeX** mediante el
+renderizador nativo de AppStudy (Unicode y Pango: fracciones en línea, raíces,
+sumatorios, exponentes y subíndices, incluidos grupos anidados). No requiere
+instalar un motor TeX. Si falta Pygments, el código conserva su formato sin colores.
+
+Los intentos, pistas y pasos resueltos se guardan automáticamente en la base
+local de la cuenta actual para continuar al reabrir. Este avance no se sincroniza
+entre equipos ni modifica los repasos FSRS. Los casos funcionan sin red ni IA;
+el código y los circuitos se analizan como ejercicios, sin ejecutarlos.
+
 ## 💡 ¿Sabías que…?
 
 Bit suelta datos de cultura general y los va soltando sola de vez en cuando,
