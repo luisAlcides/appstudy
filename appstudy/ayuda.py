@@ -608,7 +608,8 @@ TEMAS = (
         "titulo": "Si algo no va",
         "resumen": "Los tropiezos habituales y qué hacer con cada uno",
         "claves": ("problema", "error", "falla", "no funciona", "arreglar",
-                   "solucion", "wmctrl", "webkit", "pygments"),
+                   "solucion", "wmctrl", "webkit", "pygments", "registro",
+                   "log", "bitacora", "diagnostico"),
         "ver": ("bit", "ia", "atajos"),
         "body": [
             {"h": "Bit no se queda encima de las demás ventanas"},
@@ -638,6 +639,16 @@ TEMAS = (
                   "tu progreso. Tras actualizar la aplicación, cierra y abre la ventana; "
                   "para la mascota, <code>appstudy --pet-off &amp;&amp; appstudy "
                   "--pet</code>."},
+            {"h": "Algo no va y no sale ningún aviso"},
+            {"p": "Hay cosas que AppStudy no puede interrumpirte para contártelas —que "
+                  "la voz no arranque, que la transcripción salga en blanco, que la "
+                  "página del curso no deje medir tu progreso—, así que las apunta:"},
+            {"code": {"lang": "bash", "text":
+                      "tail -n 40 ~/.local/share/appstudy/appstudy.log"}},
+            {"p": "En marcha normal solo recoge lo que pediste y no ocurrió. Para "
+                  "seguir un fallo raro, arranca con el detalle puesto y repite lo que "
+                  "lo provoca:"},
+            {"code": {"lang": "bash", "text": "APPSTUDY_DEBUG=1 appstudy"}},
         ],
     },
 )

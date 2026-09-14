@@ -22,7 +22,9 @@ import time
 import wave
 from pathlib import Path
 
-from . import ia, util, voz
+from . import ia, registro, util, voz
+
+_log = registro.log(__name__)
 
 VOSK_DIR = Path.home() / ".local" / "share" / "appstudy" / "vosk"
 VOSK_MODEL_ES = VOSK_DIR / "vosk-model-small-es-0.42"
@@ -95,7 +97,8 @@ def transcribir_audio(ruta_wav: str, idioma: str = "es") -> str:
             wf.close()
             return " ".join(textos).strip()
     except Exception:
-        pass
+        _log.warning("Vosk no pudo transcribir %s; se intenta con whisper.cpp",
+                     ruta_wav, exc_info=True)
 
     # 2. Intentar con whisper-cli si existe
     whisper_bin = shutil.which("whisper-cli") or shutil.which("whisper")
@@ -108,7 +111,8 @@ def transcribir_audio(ruta_wav: str, idioma: str = "es") -> str:
             )
             return r.stdout.strip()
         except Exception:
-            pass
+            _log.warning("whisper.cpp tampoco pudo con %s: te quedas sin "
+                         "transcripción", ruta_wav, exc_info=True)
 
     return ""
 
@@ -240,7 +244,8 @@ def juzgar_respuesta(dicho: str, esperada: str, card: dict | None = None,
                       "Evalúa en UNA SOLA frase breve y natural si es correcta y comenta la pronunciación o precisión.")
             feedback = ia.completar(cfg_ia, prompt, timeout=10)
         except Exception:
-            pass
+            _log.warning("La IA no juzgó la respuesta hablada; se usa el juicio "
+                         "por parecido de palabras", exc_info=True)
 
     if not feedback:
         if es_acierto:
@@ -300,7 +305,8 @@ class GrabadorMicrofono:
                 try:
                     self._proc.kill()
                 except Exception:
-                    pass
+                    _log.debug("No se pudo matar el proceso de audio",
+                               exc_info=True)
             self._proc = None
         return self._wav_path
 
@@ -432,7 +438,7 @@ class EscuchaContinua:
             try:
                 self.al_estado(estado)
             except Exception:
-                pass
+                _log.warning("El aviso de estado «%s» reventó", estado, exc_info=True)
 
     def iniciar(self) -> bool:
         cmd = self._comando()
@@ -463,7 +469,8 @@ class EscuchaContinua:
                 try:
                     proc.kill()
                 except Exception:
-                    pass
+                    _log.debug("No se pudo matar el proceso de audio",
+                               exc_info=True)
 
     def _escuchar(self):
         proc = self._proc
@@ -498,7 +505,8 @@ class EscuchaContinua:
                 try:
                     self.al_oir(texto)
                 except Exception:
-                    pass
+                    _log.warning("Se transcribió «%s» pero quien lo esperaba "
+                                 "falló al recibirlo", texto, exc_info=True)
             elif self._activa:
                 self.reanudar()         # no se entendió nada: seguimos a la escucha
 
@@ -610,7 +618,8 @@ class EscuchaPalabraClave:
                 try:
                     proc.kill()
                 except Exception:
-                    pass
+                    _log.debug("No se pudo matar el proceso de audio",
+                               exc_info=True)
 
     def _vigilar(self):
         import vosk
@@ -644,5 +653,6 @@ class EscuchaPalabraClave:
                 try:
                     self.al_activar()
                 except Exception:
-                    pass
+                    _log.warning("Se oyó la palabra clave pero no se pudo "
+                                 "atender", exc_info=True)
             return

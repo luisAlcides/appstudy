@@ -26,12 +26,14 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
 from . import citas, cloze, db, estadisticas, ia, logros, reto  # noqa: E402
-from . import historial, recordatorios, scheduler, sonido, util, voz  # noqa: E402
+from . import historial, recordatorios, registro, scheduler, sonido, util, voz  # noqa: E402
 from .bit import Bit  # noqa: E402
 from .chispa import Chispa  # noqa: E402
 from .criatura import (ESCALA_MAX, ESCALA_MIN, ESCALA_PASO, FRAME_ACTIVO,  # noqa: E402,F401
                        FRAME_REPOSO, Creature, _claro, _hex, _oscuro, acercar,
                        muelle, out_back, out_cubic, pulso, suave)
+
+_log = registro.log(__name__)
 
 PET_APP_ID = "io.github.appstudy.AppStudy.Pet"
 
@@ -294,6 +296,7 @@ class PetWindow(Gtk.ApplicationWindow):
         self.card = None            # tarjeta que está enseñando ahora
         self.shown_at = 0.0
         self.last_nag = time.time()
+        self.ultimo_quote_tiempo = self.last_nag
         self.ultimo_reproche = 0
         self.ultimo_aviso_leech = 0.0    # para no repetir la queja cada rato
         self.ultimo_diario = 0.0         # el resumen de la semana, una vez al día
@@ -910,11 +913,12 @@ class PetWindow(Gtk.ApplicationWindow):
             return True
         if self.dormida() or self.bubble.get_reveal_child():
             return True
-        # Frases de libros más seguidas: si han pasado más de 3.5 minutos sin decir nada
-        # y no hay globo abierto ni estamos durmiendo, Bit comparte una cita literaria
+        # Todas las citas automáticas respetan el mismo intervalo configurable.
         ahora = time.time()
-        ultimo_quote = getattr(self, "ultimo_quote_tiempo", 0)
-        if (ahora - ultimo_quote > 210
+        intervalo_citas = citas.intervalo_min(self.con)
+        puede_citar = (intervalo_citas > 0
+                       and ahora - self.ultimo_quote_tiempo >= intervalo_citas * 60)
+        if (puede_citar
                 and ahora - self.last_nag > 90
                 and random.random() < 0.65
                 and not self.bubble.get_reveal_child()):
@@ -961,10 +965,10 @@ class PetWindow(Gtk.ApplicationWindow):
             return True
         if t["pendientes"] == 0 and t["nuevas"] == 0:
             # Nada que repasar: las citas literarias tienen prioridad
-            self.quote() if random.random() < 0.70 else self.sabias_que()
+            self.quote() if puede_citar and random.random() < 0.70 else self.sabias_que()
         elif random.random() < 0.50:
             # Acompañar el estudio con reflexiones de autores y libros frecuentemente
-            self.quote() if random.random() < 0.65 else self.sabias_que()
+            self.quote() if puede_citar and random.random() < 0.65 else self.sabias_que()
         elif t["pendientes"] or t["nuevas"] or t["energia"] < 0.6:
             # A veces te explica algo y a veces te reta: así no se vuelve rutina
             if random.random() < 0.5:
@@ -1150,7 +1154,6 @@ class PetWindow(Gtk.ApplicationWindow):
                 self.btn_voz.set_tooltip_text("Detener voz")
 
     def alternar_microfono(self):
-        import threading
         from . import ia, voz, voz_rec
         if not hasattr(self, "grabador_mic") or not self.grabador_mic:
             self.grabador_mic = voz_rec.GrabadorMicrofono()
@@ -1184,7 +1187,11 @@ class PetWindow(Gtk.ApplicationWindow):
                     if duracion > 0:
                         self.creature.hablar(duracion)
 
-                threading.Thread(target=lambda: GLib.idle_add(_fin, _tarea()), daemon=True).start()
+                def _fallo(e):
+                    self.creature.desanimar()
+                    self.say(f"No pude escucharte: {e}", titulo="🎙️ Se me atragantó")
+
+                util.hilo(_tarea, _fin, _fallo, largo=True, vivo=self)
             elif ruta:
                 def _tarea_gen():
                     return voz_rec.transcribir_audio(ruta, idioma="es")
@@ -1203,7 +1210,11 @@ class PetWindow(Gtk.ApplicationWindow):
                         self.abrir_chat()
                         self.enviar_chat(dicho)
 
-                threading.Thread(target=lambda: GLib.idle_add(_fin_gen, _tarea_gen()), daemon=True).start()
+                def _fallo_gen(e):
+                    self.say(f"No pude transcribir lo que dijiste: {e}",
+                             titulo="🎙️ Se me atragantó")
+
+                util.hilo(_tarea_gen, _fin_gen, _fallo_gen, largo=True, vivo=self)
         else:
             if hasattr(self, "detener_voz"):
                 self.detener_voz()
@@ -1894,7 +1905,8 @@ class PetWindow(Gtk.ApplicationWindow):
         if not texto:
             return
         # En el reto del hueco basta con acertar la palabra que falta
-        objetivo = self.reto.get("palabra") or self.reto["respuesta"]
+        objetivo = (self.reto.get("palabra") or self.reto.get("respuesta_corta")
+                    or self.reto["respuesta"])
         self.resolver(reto.acierta_escrito(texto, objetivo, estricto(self.con)),
                       elegida=texto)
 
@@ -3281,14 +3293,14 @@ class PetWindow(Gtk.ApplicationWindow):
                 "Genera una tarjeta flashcard concisa en formato JSON estricto:\n"
                 "{\n  \"front\": \"Pregunta o concepto clave\",\n  \"back\": \"Respuesta o explicación concisa\",\n  \"tags\": \"etiquetas\"\n}"
             )
+            # Que la IA no responda es un error y se dice; que responda algo que
+            # no es la tarjeta pedida es otra cosa, y de eso se encarga `_fin`.
+            resp = ia.completar(cfg_ia, prompt, timeout=12)
+            m = re.search(r"\{.*\}", resp, re.DOTALL)
             try:
-                resp = ia.completar(cfg_ia, prompt, timeout=12)
-                m = re.search(r"\{.*\}", resp, re.DOTALL)
-                if m:
-                    return json.loads(m.group(0))
-            except Exception:
-                pass
-            return None
+                return json.loads(m.group(0)) if m else None
+            except ValueError:
+                return None
 
         def _fin(res):
             if res and res.get("front") and res.get("back"):
@@ -3308,8 +3320,11 @@ class PetWindow(Gtk.ApplicationWindow):
                 self.creature.desanimar()
                 self.say("No pude redactar la tarjeta automáticamente. Intenta especificar un poco más el concepto.", titulo="⚠️ Aviso")
 
-        import threading
-        threading.Thread(target=lambda: GLib.idle_add(_fin, _tarea()), daemon=True).start()
+        def _fallo(e):
+            self.creature.desanimar()
+            self.say(f"No pude hablar con la IA: {e}", titulo="🧠 Sin respuesta")
+
+        util.hilo(_tarea, _fin, _fallo, largo=True, vivo=self)
 
     def _cargar_tarjeta_completa(self, card_id: int) -> dict | None:
         row = self.con.execute(
@@ -4021,12 +4036,16 @@ def run_pet(argv) -> int:
                     ventana.parar_palabra_clave()
                     ventana.parar_conversacion()
                 except Exception:
-                    pass
+                    # Que no se suelte el micro es justo lo que deja el trasto
+                    # cogido después de cerrar: hay que poder verlo escrito.
+                    _log.warning("Bit no soltó el micrófono al apagarse",
+                                 exc_info=True)
             app.quit()
 
         signal.signal(signal.SIGTERM, _apagar)
         signal.signal(signal.SIGINT, _apagar)
     except Exception:
-        pass
+        # Fuera del hilo principal no se pueden poner manejadores de señal.
+        _log.debug("Sin manejadores de apagado para Bit", exc_info=True)
     app.connect("activate", activate)
     return app.run([argv[0]])

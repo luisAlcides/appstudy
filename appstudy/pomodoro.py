@@ -11,7 +11,9 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import GLib, Gtk
 
-from . import db, scheduler, sonido
+from . import db, registro, scheduler, sonido
+
+_log = registro.log(__name__)
 
 ESTADO_INACTIVO = "inactivo"
 ESTADO_TRABAJO = "trabajo"
@@ -88,16 +90,17 @@ class PomodoroControl:
 
     def _al_completar_trabajo(self):
         try:
-            sonido.tocar("victoria")
+            sonido.reproducir(sonido.config(self.con), "victoria")
         except Exception:
-            pass
+            _log.warning("Sin campana al terminar el pomodoro", exc_info=True)
 
         # Pausar el reproductor de cursos si está activo
         try:
             from . import reproductor
             reproductor.pausar_reproductor_activo()
         except Exception:
-            pass
+            _log.warning("El vídeo del curso siguió corriendo al acabar el "
+                         "pomodoro", exc_info=True)
 
         self.estado = ESTADO_DESCANSO
         self.restante = self.duracion_descanso
@@ -107,13 +110,14 @@ class PomodoroControl:
             try:
                 self.on_fin_trabajo()
             except Exception:
-                pass
+                _log.warning("El aviso de fin de trabajo del pomodoro falló",
+                             exc_info=True)
 
     def _al_completar_descanso(self):
         try:
-            sonido.tocar("subida")
+            sonido.reproducir(sonido.config(self.con), "subida")
         except Exception:
-            pass
+            _log.warning("Sin campana al terminar el descanso", exc_info=True)
         self.estado = ESTADO_INACTIVO
         self.restante = self.duracion_trabajo
         self._notificar()
@@ -185,7 +189,8 @@ class PomodoroWidget(Gtk.Box):
             from . import reproductor
             reproductor.pausar_reproductor_activo()
         except Exception:
-            pass
+            _log.warning("El vídeo siguió corriendo al lanzar el repaso",
+                         exc_info=True)
 
         if hasattr(self.app, "show_popup"):
             from . import sesiones

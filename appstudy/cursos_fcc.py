@@ -15,9 +15,9 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, GLib, Gtk  # noqa: E402
+from gi.repository import Adw, Gtk  # noqa: E402
 
-from . import db, freecodecamp, ia  # noqa: E402
+from . import db, freecodecamp, ia, util  # noqa: E402
 
 _instancia: "CursosFCCWindow | None" = None
 
@@ -38,23 +38,6 @@ def _al_cerrar(*_args):
     global _instancia
     _instancia = None
     return False
-
-
-def _hilo(trabajo, al_terminar=None, al_fallar=None):
-    """Ejecuta algo de red fuera del hilo de la interfaz."""
-    import threading
-
-    def correr():
-        try:
-            resultado = trabajo()
-        except Exception as e:                       # noqa: BLE001 - se muestra al usuario
-            if al_fallar:
-                GLib.idle_add(al_fallar, e)
-            return
-        if al_terminar:
-            GLib.idle_add(al_terminar, resultado)
-
-    threading.Thread(target=correr, daemon=True).start()
 
 
 class CursosFCCWindow(Adw.Window):
@@ -183,9 +166,10 @@ class CursosFCCWindow(Adw.Window):
     def _refrescar_catalogo(self):
         self.aviso("Descargando el currículo de freeCodeCamp…")
         primero = freecodecamp.CURSOS[0][0]
-        _hilo(lambda: freecodecamp.catalogo(primero, refrescar=True),
-              lambda _r: self._recargar_inicio("Catálogo actualizado"),
-              lambda e: self.aviso(f"No se pudo actualizar: {e}"))
+        util.hilo(lambda: freecodecamp.catalogo(primero, refrescar=True),
+                  lambda _r: self._recargar_inicio("Catálogo actualizado"),
+                  lambda e: self.aviso(f"No se pudo actualizar: {e}"),
+                  largo=True, vivo=self)
 
     def _recargar_inicio(self, mensaje=""):
         self.nav.replace([self._pagina_cursos()])
@@ -202,9 +186,10 @@ class CursosFCCWindow(Adw.Window):
             return
 
         self.aviso("Descargando el currículo de freeCodeCamp (solo la primera vez)…")
-        _hilo(lambda: freecodecamp.catalogo(superblock),
-              lambda cat: self.nav.push(self._pagina_modulos(superblock, cat)),
-              lambda e: self.aviso(f"freeCodeCamp: {e}"))
+        util.hilo(lambda: freecodecamp.catalogo(superblock),
+                  lambda cat: self.nav.push(self._pagina_modulos(superblock, cat)),
+                  lambda e: self.aviso(f"freeCodeCamp: {e}"),
+                  largo=True, vivo=self)
 
     def _pagina_modulos(self, superblock: str, cat: dict) -> Adw.NavigationPage:
         nombre = freecodecamp.nombre_curso(superblock)
@@ -332,7 +317,8 @@ class CursosFCCWindow(Adw.Window):
             if self.ventana_padre is not None and hasattr(self.ventana_padre, "refresh_reader"):
                 self.ventana_padre.refresh_reader()
 
-        _hilo(trabajo, listo, lambda e: self.aviso(f"No se pudo guardar: {e}"))
+        util.hilo(trabajo, listo, lambda e: self.aviso(f"No se pudo guardar: {e}"),
+                  largo=True, vivo=self)
 
     def generar_tarjetas(self, superblock, leccion):
         cfg = ia.config(self.con)
@@ -365,7 +351,7 @@ class CursosFCCWindow(Adw.Window):
             self.aviso(f"freeCodeCamp / IA: {e}")
             ia.hilo(lambda: ia.descargar(cfg))
 
-        _hilo(trabajo, listo, falló)
+        util.hilo(trabajo, listo, falló, largo=True, vivo=self)
 
     def _guardar_tarjetas(self, tarjetas, mazo_key):
         fila = self.con.execute("SELECT id, key FROM decks WHERE key=?", (mazo_key,)).fetchone()

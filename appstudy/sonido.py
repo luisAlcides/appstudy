@@ -17,7 +17,9 @@ import subprocess
 import wave
 from pathlib import Path
 
-from . import db
+from . import db, registro
+
+_log = registro.log(__name__)
 
 FRECUENCIA = 44100
 VERSION = 1                     # se sube al cambiar la síntesis, para regenerar
@@ -158,4 +160,6 @@ def reproducir(cfg: dict, nombre: str):
             subprocess.Popen([_reproductor, str(ruta)],
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception:
-        pass            # un sonido que no suena no es motivo para romper nada
+        # Un sonido que no suena no es motivo para romper nada, pero «Bit no
+        # hace ruido» es justo de lo que se acaba preguntando.
+        _log.warning("No se pudo tocar %s", ruta, exc_info=True)

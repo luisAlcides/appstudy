@@ -10,7 +10,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 
-from . import ayuda, bienvenida, buscador, cloze, db, estadisticas  # noqa: E402
+from . import ayuda, bienvenida, buscador, citas, cloze, db, estadisticas  # noqa: E402
 from . import fsrs, graficas  # noqa: E402
 from . import freecodecamp, historial, hotkey, ia, importador, lecturas  # noqa: E402
 from . import lectura_diaria, libros, logros, pet, recordatorios  # noqa: E402
@@ -74,9 +74,10 @@ class ListaTarjetas(Adw.Bin):
             cond.append("c.deck_id=?")
             args.append(self.deck["id"])
         if self.texto:
-            cond.append("(LOWER(c.front) LIKE ? OR LOWER(c.back) LIKE ? "
-                        "OR LOWER(c.tags) LIKE ?)")
-            args += [f"%{self.texto}%"] * 3
+            cond.append("(LOWER(c.front) LIKE ? ESCAPE '\\' "
+                        "OR LOWER(c.back) LIKE ? ESCAPE '\\' "
+                        "OR LOWER(c.tags) LIKE ? ESCAPE '\\')")
+            args += [f"%{db.como_like(self.texto)}%"] * 3
         if self.nivel:
             cond.append("c.level=?")
             args.append(self.nivel)
@@ -1446,6 +1447,13 @@ class MainWindow(Adw.ApplicationWindow):
         self.pet_every.connect("notify::value", self.on_pet_every)
         gp.add(self.pet_every)
 
+        self.pet_quote_every = Adw.SpinRow.new_with_range(0, 240, 5)
+        self.pet_quote_every.set_title("Intervalo mínimo entre frases de libros")
+        self.pet_quote_every.set_subtitle(
+            "En minutos. 0 desactiva las frases automáticas; puedes pedirlas manualmente")
+        self.pet_quote_every.connect("notify::value", self.on_pet_quote_every)
+        gp.add(self.pet_quote_every)
+
         self.reminder_days = Adw.ComboRow(
             title="Días de los recordatorios",
             model=Gtk.StringList.new(list(recordatorios.NOMBRES_DIAS)))
@@ -1883,6 +1891,9 @@ class MainWindow(Adw.ApplicationWindow):
 
     def on_pet_every(self, fila, _p):
         db.set_meta(self.con, "pet_every", int(fila.get_value()))
+
+    def on_pet_quote_every(self, fila, _p):
+        db.set_meta(self.con, "pet_quote_every", int(fila.get_value()))
 
     def on_reminder_days(self, fila, _p):
         recordatorios.guardar(self.con, dias=recordatorios.DIAS[fila.get_selected()])
@@ -3477,6 +3488,9 @@ echo hola
         self.pet_every.set_value(float(db.get_meta(self.con, "pet_every",
                                                    pet.DEFAULT_EVERY_MIN)))
         self.pet_every.handler_unblock_by_func(self.on_pet_every)
+        self.pet_quote_every.handler_block_by_func(self.on_pet_quote_every)
+        self.pet_quote_every.set_value(citas.intervalo_min(self.con))
+        self.pet_quote_every.handler_unblock_by_func(self.on_pet_quote_every)
         rcfg = recordatorios.config(self.con)
         self.reminder_days.handler_block_by_func(self.on_reminder_days)
         self.reminder_days.set_selected(recordatorios.DIAS.index(rcfg["dias"]))

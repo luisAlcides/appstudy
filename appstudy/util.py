@@ -140,22 +140,49 @@ _UI = ThreadPoolExecutor(max_workers=2, thread_name_prefix="as-ui")
 _FONDO = ThreadPoolExecutor(max_workers=2, thread_name_prefix="as-fondo")
 
 
-def hilo(trabajo, al_terminar=None, al_fallar=None, fondo=False, largo=False):
+def en_pie(widget) -> bool:
+    """¿Sigue ese widget dentro de una ventana que está en pantalla?
+
+    Hace falta antes de tocar nada desde un trabajo que acaba tarde: entre que
+    se lanzó y que responde, el usuario ha podido cerrar la ventana. GTK4 no
+    borra el objeto de Python al destruirla —el wrapper sigue vivo mientras algo
+    lo referencie, y un callback pendiente lo referencia—, así que la llamada no
+    falla: escupe una crítica por la consola y deja la interfaz a medias.
+
+    La señal `destroy` no sirve de aviso porque se emite al liberar el objeto,
+    o sea, después de que el último callback suelte su referencia. Lo que sí
+    cambia en el acto es que la ventana deja de estar visible.
+    """
+    if widget is None:
+        return False
+    raiz = widget.get_root()
+    return raiz is not None and raiz.get_visible()
+
+
+def hilo(trabajo, al_terminar=None, al_fallar=None, fondo=False, largo=False, vivo=None):
     """Corre `trabajo()` fuera del hilo de la interfaz y devuelve el resultado en él.
 
     GTK solo se puede tocar desde su hilo, de ahí el `idle_add` del final.
+
+    `vivo` es el widget al que van a parar los resultados. Si para cuando llegan
+    su ventana ya no está, no se llama a nadie: ver `en_pie`.
     """
     from gi.repository import GLib
+
+    def entregar(fn, valor):
+        if vivo is None or en_pie(vivo):
+            fn(valor)
+        return False          # un idle que devuelve cierto se repite sin parar
 
     def dentro():
         try:
             resultado = trabajo()
         except Exception as e:                        # se enseña, no se traga
             if al_fallar:
-                GLib.idle_add(al_fallar, e)
+                GLib.idle_add(entregar, al_fallar, e)
             return
         if al_terminar:
-            GLib.idle_add(al_terminar, resultado)
+            GLib.idle_add(entregar, al_terminar, resultado)
 
     if largo:
         h = threading.Thread(target=dentro, daemon=True)

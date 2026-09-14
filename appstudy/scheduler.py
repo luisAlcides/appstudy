@@ -16,7 +16,7 @@ import json
 import random
 import time
 
-from . import fsrs
+from . import db, fsrs
 
 DAY = 86400.0
 
@@ -41,7 +41,6 @@ NUEVA = {"due": 0.0, "interval": 0.0, "ease": 2.5, "reps": 0, "lapses": 0,
 
 def config(con) -> dict:
     """Retención objetivo, pesos y umbral de sanguijuela, tal como los tengas."""
-    from . import db
     try:
         retencion = float(db.get_meta(con, "retencion", RETENCION_POR_DEFECTO))
     except (TypeError, ValueError):
@@ -243,7 +242,6 @@ def recalcular_sanguijuelas(con) -> int:
 
 def _cupo_agotado(con) -> bool:
     """Cierto si hoy ya se han estrenado todas las tarjetas nuevas que tocaban."""
-    from . import db
     tope = db.nuevas_por_dia(con)
     return bool(tope) and db.nuevas_hoy(con) >= tope
 
@@ -285,8 +283,9 @@ def next_card(con, deck_key: str | None = None, new_ratio: float = 0.25,
     if tags:
         etiquetas = [t.strip().lower() for t in tags.split(",") if t.strip()]
         if etiquetas:
-            where += " AND (" + " OR ".join(["LOWER(c.tags) LIKE ?"] * len(etiquetas)) + ")"
-            args += [f"%{t}%" for t in etiquetas]
+            where += " AND (" + " OR ".join(
+                ["LOWER(c.tags) LIKE ? ESCAPE '\\'"] * len(etiquetas)) + ")"
+            args += [f"%{db.como_like(t)}%" for t in etiquetas]
 
     base = f"""SELECT c.*, d.key AS deck_key, d.name AS deck_name, d.color AS deck_color,
                       d.icon AS deck_icon, d.levels AS deck_levels,

@@ -6,6 +6,19 @@ Son píldoras de pensamiento para acompañar el estudio a lo largo del día.
 """
 import random
 
+from . import db
+
+DEFAULT_EVERY_MIN = 30
+
+
+def intervalo_min(con) -> int:
+    """Intervalo mínimo de las citas automáticas; cero las desactiva."""
+    try:
+        return max(0, min(240, int(db.get_meta(con, "pet_quote_every", DEFAULT_EVERY_MIN))))
+    except (TypeError, ValueError):
+        return DEFAULT_EVERY_MIN
+
+
 # (frase, autor, obra)
 CITAS = [
     # =========================================================================

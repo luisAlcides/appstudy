@@ -13,6 +13,19 @@ DB_PATH = DATA_DIR / "appstudy.db"
 # Identificador de la cuenta de Supabase cuyos datos se están usando. Un UUID.
 _CUENTA = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
+
+def como_like(texto: str) -> str:
+    """El texto tal cual, para buscarlo con `LIKE ? ESCAPE '\\\\'`.
+
+    En un `LIKE`, `%` y `_` no son letras: son comodines. Quien busca «50%»
+    espera las tarjetas que hablan del cincuenta por ciento, no media base; y
+    quien busca «snake_case» no espera que le valga «snakeXcase». Aquí se
+    desactivan, y quien use esto tiene que declarar el `ESCAPE` en su consulta.
+    """
+    for c in ("\\", "%", "_"):
+        texto = texto.replace(c, "\\" + c)
+    return texto
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS decks (
     id      INTEGER PRIMARY KEY,

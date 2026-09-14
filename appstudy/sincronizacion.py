@@ -222,6 +222,7 @@ def _aplicar_card(con, item: dict, mazo: dict | None):
          float(item.get("created") or time.time())))
     cid = con.execute("SELECT id FROM cards WHERE uid=?", (uid,)).fetchone()["id"]
     con.execute("INSERT OR IGNORE INTO state(card_id,due) VALUES(?,0)", (cid,))
+    return cid
 
 
 def _aplicar_chapter(con, item: dict, mazo: dict | None):
@@ -299,6 +300,14 @@ def fusionar(con, remotos: list[dict], equipo: str) -> dict:
                 lecturas[uid] = (ts, generado, rd)
 
     try:
+        # `BEGIN IMMEDIATE` coge el bloqueo de escritura desde el principio: la
+        # fusión entra entera o no entra nada. Pero el módulo `sqlite3` abre
+        # transacción implícita en cuanto se escribe algo, y un BEGIN dentro de
+        # otra transacción es un error. Hoy no pasa —arriba se cierra la que
+        # deja `_versiones_iniciales` y lo de en medio solo lee—, pero basta con
+        # que alguien meta una escritura ahí para romperlo sin avisar.
+        if con.in_transaction:
+            con.commit()
         con.execute("BEGIN IMMEDIATE")
         for (entity, uid), (mod, _gen, borrado, item, mazos, source) in sorted(candidatos.items(), key=lambda par: {"book": 0, "chapter": 1, "card": 2, "note": 3}[par[0][0]]):
             local_mod, _local_borrado = _version_local(con, entity, uid)
@@ -309,13 +318,14 @@ def fusionar(con, remotos: list[dict], equipo: str) -> dict:
                 con.execute(f"DELETE FROM {tabla} WHERE uid=?", (uid,))
                 resultado["borrados"] += 1
             elif entity == "card":
-                _aplicar_card(con, item, mazos.get(str(item.get("deck_key"))))
+                # El identificador lo devuelve quien acaba de escribir la fila:
+                # antes se volvía a buscar por `uid` una vez por los adjuntos y
+                # otra por la fuente, tres consultas iguales por tarjeta.
+                cid = _aplicar_card(con, item, mazos.get(str(item.get("deck_key"))))
                 if "media" in item:
                     from . import multimedia
-                    cid = con.execute("SELECT id FROM cards WHERE uid=?", (uid,)).fetchone()[0]
                     multimedia.guardar(con, cid, multimedia.deserializar(item["media"]), touch=False)
                 if source:
-                    cid = con.execute("SELECT id FROM cards WHERE uid=?", (uid,)).fetchone()["id"]
                     source = dict(source)
                     if not source.get('book_uid') and source.get('kind') == 'book' and source.get('ruta'):
                         # Los archivos v1 no tenían identidad de libro. Conserva

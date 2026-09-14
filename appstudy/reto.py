@@ -313,7 +313,8 @@ def preparar(con, card, evitar=None, estricto: bool = False) -> dict:
     icono, titulo = TITULOS[formato]
     if es_cloze(card):
         # En una cloze la «respuesta» es el texto entero con lo tapado a la vista
-        pregunta = util.plain(cloze.enmascarar(card["front"]))
+        pregunta = util.plain(cloze.enmascarar(
+            card["front"], indice if formato in ("hueco", "escribir") else None))
         solucion = cloze.resaltado(card["front"])
         if card["back"]:
             solucion += "\n\n" + card["back"]

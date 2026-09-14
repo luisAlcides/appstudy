@@ -233,10 +233,13 @@ class GloboEstrictoUITest(BaseTemporal):
                                "celebrar_logro", "celebrar_vuelta", "open_main"):
                     setattr(self, nombre, Mock(return_value=False))
                 self.stats = {"horas": 0.0}
+                # Un widget nuevo en cada llamada: con `return_value` se
+                # devolvía siempre el mismo `Label`, y al colgarlo por segunda
+                # vez GTK protestaba porque ya tenía padre.
                 for nombre in ("bubble_header", "pie_leer", "boton_explicar",
                                "boton_chat", "boton_conversar", "cuenta_atras",
                                "enunciado"):
-                    setattr(self, nombre, Mock(return_value=Gtk.Label()))
+                    setattr(self, nombre, Mock(side_effect=lambda *_a, **_k: Gtk.Label()))
                 self.char_width = Mock(return_value=30)
 
             def __getattr__(self, nombre):

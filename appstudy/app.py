@@ -11,7 +11,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
 from . import bienvenida, cosecha, db, hotkey, ia, nube, pet, respaldo, seed  # noqa: E402
-from . import sincronizacion, util  # noqa: E402
+from . import registro, sincronizacion, util  # noqa: E402
 from .main_window import MainWindow  # noqa: E402
 from .popup import PopupWindow  # noqa: E402
 
@@ -434,6 +434,10 @@ class AppStudy(Adw.Application):
 
 
 def main():
+    # El cuaderno de bitácora, lo primero: si algo falla por debajo durante el
+    # arranque, tiene que quedar escrito. Ver `registro.py`.
+    registro.configurar()
+
     # Comandos CLI rápidos sin necesidad de interfaz gráfica
     if "--status" in sys.argv or "--pet-off" in sys.argv:
         from .status import run_status

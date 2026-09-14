@@ -17,6 +17,65 @@ os.environ["XDG_DATA_HOME"] = _TMP_RAIZ
 
 from appstudy import db, respaldo, scheduler  # noqa: E402
 
+# ---------------------------------------------- las críticas de GTK son fallos
+#
+# GTK no lanza excepciones: cuando se le pide un imposible —colgar un widget que
+# ya tiene padre, dibujar sobre algo destruido— escupe un `Gtk-CRITICAL` por la
+# salida de error y sigue como si nada. La prueba pasa en verde y el error sale
+# a la luz en el escritorio del usuario. Aquí se recogen esos mensajes y se
+# convierten en el fallo que deberían haber sido desde el principio.
+
+_CRITICAS: list[str] = []
+
+
+def _apuntar_critica(nivel, campos, _n_campos, _datos):
+    """Anota lo grave y deja que el resto se imprima como siempre."""
+    from gi.repository import GLib
+
+    if nivel & (GLib.LogLevelFlags.LEVEL_CRITICAL | GLib.LogLevelFlags.LEVEL_ERROR):
+        try:
+            _CRITICAS.append(GLib.log_writer_format_fields(nivel, campos, False).strip())
+        except Exception:                             # pragma: no cover - rarísimo
+            _CRITICAS.append(f"mensaje de GTK de nivel {nivel} que no se pudo leer")
+    return GLib.log_writer_default(nivel, campos, None)
+
+
+def _vigilar_gtk():
+    """Engancha el vigilante, si esta máquina tiene GTK. Si no, no pasa nada."""
+    try:
+        import gi
+        gi.require_version("Gtk", "4.0")
+        from gi.repository import GLib
+    except (ImportError, ValueError):                 # sin GTK no hay nada que vigilar
+        return
+    GLib.log_set_writer_func(_apuntar_critica, None)
+
+
+def _no_hubo_criticas():
+    """Se ejecuta al final de cada prueba, cuando los widgets ya están recogidos."""
+    if not _CRITICAS:
+        return
+    mensajes = "\n".join(_CRITICAS)
+    _CRITICAS.clear()
+    raise AssertionError("GTK protestó durante esta prueba:\n" + mensajes)
+
+
+_ejecutar_prueba = unittest.TestCase.run
+
+
+def _run(self, result=None):
+    # El enganche va en `TestCase` y no en `BaseTemporal` porque la mitad de las
+    # pruebas que tocan GTK heredan directamente de `unittest.TestCase`. Se
+    # apunta antes de arrancar para que, siendo las limpiezas LIFO, esta sea la
+    # última en correr: para entonces la ventana del caso ya se ha desmontado.
+    _CRITICAS.clear()
+    self.addCleanup(_no_hubo_criticas)
+    return _ejecutar_prueba(self, result)
+
+
+unittest.TestCase.run = _run
+_vigilar_gtk()
+
 
 class BaseTemporal(unittest.TestCase):
     """Cada prueba arranca con una base vacía y propia."""

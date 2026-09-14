@@ -14,7 +14,9 @@ from pathlib import Path
 import cairo
 
 from .criatura import Creature, _claro, _hex, _oscuro
-from . import animacion_chispa
+from . import animacion_chispa, registro
+
+_log = registro.log(__name__)
 
 NARANJA_CLARO = "#FBA85E"
 NARANJA = "#F0873A"
@@ -224,7 +226,9 @@ class Chispa(Creature):
             from . import util
             util.hilo(trabajo, listo, lambda _e: None, largo=True)
         except Exception:
-            pass                 # sin GTK (pruebas, herramientas): ya está
+            # Sin GTK (pruebas, herramientas de línea de órdenes) esto no va a
+            # ninguna parte, y es lo esperado: no hay nada que dibujar.
+            _log.debug("Sin GTK: el rig de Chispa no se precarga", exc_info=True)
 
     def _cierre_parpadeo(self) -> float:
         """Cuánto tiene bajado el párpado ahora mismo, de 0 a 1.

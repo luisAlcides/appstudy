@@ -24,7 +24,9 @@ import threading
 import time
 from pathlib import Path
 
-from . import db
+from . import db, registro
+
+_log = registro.log(__name__)
 
 PIPER_DIR = Path.home() / ".local" / "share" / "appstudy" / "piper"
 PIPER_BIN = PIPER_DIR / "piper"
@@ -222,7 +224,9 @@ def config_modelo(modelo: Path) -> dict:
             crudo = json.load(f)
         datos["sample_rate"] = int(crudo.get("audio", {}).get("sample_rate", 22050))
     except Exception:
-        pass
+        # Con el ritmo por defecto la voz sale aguda o grave, pero sale.
+        _log.warning("No se pudo leer %s.json; se usan los valores por defecto",
+                     modelo, exc_info=True)
     _cache_config_modelo[clave] = datos
     return datos
 
@@ -518,7 +522,7 @@ def _notificar_fin(cb):
         try:
             cb()
         except Exception:
-            pass
+            _log.warning("El aviso de fin de locución falló", exc_info=True)
 
 
 class ReproductorVoz:
@@ -701,12 +705,13 @@ class ReproductorVoz:
         try:
             entrada.close()
         except Exception:
-            pass
+            _log.debug("La tubería de audio no se dejó cerrar", exc_info=True)
         if not cancelada:
             try:
                 p_player.wait()
             except Exception:
-                pass
+                _log.debug("No se pudo esperar al reproductor de audio",
+                           exc_info=True)
 
         with self._lock:
             if self._proc is p_player:
@@ -796,12 +801,14 @@ class ReproductorVoz:
                 p_piper.stdin.write(texto.encode("utf-8"))
                 p_piper.stdin.close()
             except Exception:
-                pass
+                _log.warning("Piper no aceptó el texto: te quedas sin voz",
+                             exc_info=True)
 
             try:
                 p_player.wait()
             except Exception:
-                pass
+                _log.debug("No se pudo esperar al reproductor de audio",
+                           exc_info=True)
             finally:
                 with self._lock:
                     self._proc = None
@@ -852,7 +859,8 @@ class ReproductorVoz:
             try:
                 proc.wait()
             except Exception:
-                pass
+                _log.debug("No se pudo esperar al proceso que habla",
+                           exc_info=True)
             finally:
                 with self._lock:
                     if self._proc is proc:
@@ -888,13 +896,15 @@ class ReproductorVoz:
                 try:
                     client.close()
                 except Exception:
-                    pass
+                    _log.debug("El cliente de Kokoro no se dejó cerrar",
+                               exc_info=True)
                 if on_done:
                     _notificar_fin(on_done)
 
             threading.Thread(target=_esperar, daemon=True).start()
         except Exception:
-            pass
+            _log.warning("Kokoro no pudo hablar; se recurre a Piper",
+                         exc_info=True)
 
 
 _reproductor = ReproductorVoz()

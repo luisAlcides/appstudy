@@ -20,7 +20,9 @@ import threading
 import urllib.error
 import urllib.request
 
-from . import db, util
+from . import db, registro, util
+
+_log = registro.log(__name__)
 
 URL_DEFECTO = "http://localhost:11434"
 MODELO_DEFECTO = "gemma4"
@@ -149,7 +151,8 @@ def descargar(cfg: dict | None = None) -> bool:
             _pedir(url, "/api/generate", {"model": modelo, "keep_alive": 0}, espera=5)
             return True
     except Exception:
-        pass
+        _log.warning("No se pudo descargar el modelo de memoria en %s: seguirá "
+                     "ocupando RAM o VRAM", url, exc_info=True)
     return False
 
 
@@ -200,8 +203,9 @@ def buscar_contexto(con, pregunta: str, cuantas: int = 3) -> str:
     palabras = [p for p in _PALABRA.findall(pregunta.lower()) if p not in _VACIAS]
     if not palabras:
         return ""
-    condicion = " OR ".join(["LOWER(front) LIKE ? OR LOWER(back) LIKE ?"] * len(palabras))
-    args = [f"%{p}%" for p in palabras for _ in (0, 1)]
+    condicion = " OR ".join(
+        ["LOWER(front) LIKE ? ESCAPE '\\' OR LOWER(back) LIKE ? ESCAPE '\\'"] * len(palabras))
+    args = [f"%{db.como_like(p)}%" for p in palabras for _ in (0, 1)]
     filas = con.execute(
         f"SELECT front, back FROM cards WHERE {condicion} LIMIT 40", args).fetchall()
     if not filas:

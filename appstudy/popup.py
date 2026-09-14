@@ -528,7 +528,11 @@ class PopupWindow(Adw.Window):
             if jv.get("acierto"):
                 img_fb.add_css_class("success")
             in_fb.append(img_fb)
-            in_fb.append(Gtk.Label(label=f"<b>Dijiste:</b> «{jv['dicho']}»\n{jv['feedback']}",
+            # Lo dicho y el juicio salen de la transcripción y del modelo: un
+            # «&» o un «<» sueltos rompen el marcado de Pango, así que se escapan.
+            dicho_fb = GLib.markup_escape_text(jv.get("dicho") or "")
+            texto_fb = GLib.markup_escape_text(jv.get("feedback") or "")
+            in_fb.append(Gtk.Label(label=f"<b>Dijiste:</b> «{dicho_fb}»\n{texto_fb}",
                                    use_markup=True, wrap=True, xalign=0))
             caja_fb.append(in_fb)
             box.append(caja_fb)
@@ -992,7 +996,6 @@ class PopupWindow(Adw.Window):
         voz.hablar(self.card["back"], self.voz_cfg, card=self.card)
 
     def alternar_microfono(self):
-        import threading
         from . import voz_rec
         if not self.grabador_mic:
             self.grabador_mic = voz_rec.GrabadorMicrofono()
@@ -1028,7 +1031,12 @@ class PopupWindow(Adw.Window):
                         self.render()
                     voz.hablar(juicio["feedback"], self.voz_cfg, card=self.card)
 
-                threading.Thread(target=lambda: GLib.idle_add(_fin, _tarea()), daemon=True).start()
+                def _fallo(e):
+                    self.feedback_voz = {"acierto": False, "dicho": "",
+                                         "feedback": f"No pude escucharte: {e}"}
+                    self.render()
+
+                util.hilo(_tarea, _fin, _fallo, largo=True, vivo=self)
         else:
             if hasattr(self, "detener_voz"):
                 self.detener_voz()

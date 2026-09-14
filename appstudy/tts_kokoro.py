@@ -19,6 +19,7 @@ import os
 import re
 import struct
 import sys
+import traceback
 
 BASE = os.path.expanduser("~/.local/share/appstudy/kokoro")
 MODELO = os.path.join(BASE, "kokoro-v1.0.onnx")
@@ -80,7 +81,10 @@ def main() -> int:
                 pcm = np.clip(audio, -1.0, 1.0) * 32767.0
                 enviar(pcm.astype("<i2").tobytes())
         except Exception:
-            pass  # la app se queda sin audio y recurre a Piper
+            # La aplicación se queda sin audio y recurre a Piper. Esto corre en
+            # el entorno aislado, sin `registro`: el aviso va por la salida de
+            # error, que `voz.py` recoge del proceso.
+            traceback.print_exc()
         try:
             enviar(b"")
         except BrokenPipeError:

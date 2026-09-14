@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import json
 import re
-import threading
 import urllib.parse
 from pathlib import Path
 
@@ -30,7 +29,9 @@ except Exception:
 
 from gi.repository import Adw, Gdk, GLib, Gtk
 
-from . import db, freecodecamp, ia, util, voz
+from . import db, freecodecamp, ia, registro, util, voz
+
+_log = registro.log(__name__)
 
 PERFIL_DIR = Path.home() / ".local" / "share" / "appstudy" / "player_profile"
 FCC_HOME = "https://www.freecodecamp.org/learn/"
@@ -62,7 +63,9 @@ def obtener_perfil_webkit():
                 c.execute("DELETE FROM moz_cookies WHERE name LIKE '%cf_chl%'")
                 c.commit()
         except Exception:
-            pass
+            _log.warning("No se pudieron limpiar las cookies de Cloudflare: la "
+                         "página puede quedarse atascada verificando",
+                         exc_info=True)
 
     session = WebKit.NetworkSession.new(data_dir, cache_dir)
     cm = session.get_cookie_manager()
@@ -217,7 +220,10 @@ class CursosPlayerWindow(Adw.Window):
             self.ucm.register_script_message_handler("retoHecho")
             self.ucm.connect("script-message-received::retoHecho", self._on_reto_hecho)
         except Exception:
-            pass
+            # Sin estos manejadores el vídeo nunca avisa de que ha terminado:
+            # ni repaso al acabar la clase, ni progreso apuntado.
+            _log.warning("WebKit no aceptó los manejadores de mensajes del "
+                         "reproductor", exc_info=True)
 
         self.web_view = WebKit.WebView(network_session=session, user_content_manager=self.ucm)
         self.web_view.set_vexpand(True)
@@ -277,7 +283,8 @@ class CursosPlayerWindow(Adw.Window):
                     decision.ignore()
                     return True
             except Exception:
-                pass
+                _log.warning("No se pudo redirigir la navegación del reproductor",
+                             exc_info=True)
         return False
 
     def _on_key_pressed(self, controller, keyval, keycode, state):
@@ -305,7 +312,8 @@ class CursosPlayerWindow(Adw.Window):
                 self.web_view.stop_loading()
                 self.web_view.load_uri("about:blank")
             except Exception:
-                pass
+                _log.debug("El reproductor no se dejó parar del todo al cerrar",
+                           exc_info=True)
         return False
 
     def pausar_video(self, recordar_estado: bool = False):
@@ -319,7 +327,7 @@ class CursosPlayerWindow(Adw.Window):
         try:
             self.web_view.evaluate_javascript(js, -1, None, None, None, None)
         except Exception:
-            pass
+            _log.warning("El vídeo no se pudo pausar", exc_info=True)
 
     def reanudar_video(self, solo_si_reproduciendo: bool = False):
         """Reanuda el elemento de video HTML5."""
@@ -332,7 +340,7 @@ class CursosPlayerWindow(Adw.Window):
         try:
             self.web_view.evaluate_javascript(js, -1, None, None, None, None)
         except Exception:
-            pass
+            _log.warning("El vídeo no se pudo reanudar", exc_info=True)
 
     def cargar_url(self, url: str):
         """Carga una URL en el WebView."""
@@ -353,7 +361,8 @@ class CursosPlayerWindow(Adw.Window):
                     c.execute("DELETE FROM moz_cookies WHERE name LIKE '%cf%'")
                     c.commit()
             except Exception:
-                pass
+                _log.warning("El botón de limpiar cookies no pudo con el "
+                             "archivo", exc_info=True)
         self.lbl_info.set_text("Cookies de verificación restablecidas. Recargando...")
         if self.web_view:
             self.web_view.reload()
@@ -475,7 +484,8 @@ class CursosPlayerWindow(Adw.Window):
                 js_script, -1, None, None, None, self._on_extractor_js_cb, uri
             )
         except Exception:
-            pass
+            _log.warning("No se pudo leer el progreso de la clase en %s", uri,
+                         exc_info=True)
 
     def _on_extractor_js_cb(self, obj, res, uri):
         try:
@@ -486,7 +496,8 @@ class CursosPlayerWindow(Adw.Window):
             datos = json.loads(raw)
             self._guardar_progreso_curso(uri, datos)
         except Exception:
-            pass
+            _log.warning("La clase de %s no dejó rastro: el progreso no se "
+                         "guardó", uri, exc_info=True)
 
     def _guardar_progreso_curso(self, uri: str, datos: dict):
         plat = self._detectar_plataforma(uri)
@@ -624,10 +635,15 @@ class CursosPlayerWindow(Adw.Window):
 
                 def _fin(fb):
                     lbl_estado.set_text("✅ ¡Comprobación completada!")
-                    txt_resultado.set_markup(f"<b>Bit:</b> {fb}")
+                    txt_resultado.set_markup(
+                        f"<b>Bit:</b> {GLib.markup_escape_text(fb or '')}")
                     voz.hablar(fb, voz.config(self.con))
 
-                threading.Thread(target=lambda: GLib.idle_add(_fin, _evaluar()), daemon=True).start()
+                def _fallo(e):
+                    lbl_estado.set_text(f"⚠️ No pude evaluarlo: {e}")
+                    txt_resultado.set_text("")
+
+                util.hilo(_evaluar, _fin, _fallo, largo=True, vivo=lbl_estado)
             else:
                 grabador.iniciar()
                 btn_mic.set_icon_name("media-record-symbolic")
@@ -740,14 +756,23 @@ class CursosPlayerWindow(Adw.Window):
                     "Genera una tarjeta concisa en formato JSON estricto con estas claves:\n"
                     "{\n  \"front\": \"pregunta o concepto clave\",\n  \"back\": \"respuesta o explicación concisa\",\n  \"tags\": \"etiquetas\"\n}"
                 )
+                # Que la IA no conteste es un error y se cuenta; que conteste algo
+                # que no es una tarjeta se resuelve solo, con el plan B.
+                resp = ia.completar(cfg_ia, prompt, timeout=12)
+                m = re.search(r"\{.*\}", resp, re.DOTALL)
                 try:
-                    resp = ia.completar(cfg_ia, prompt, timeout=12)
-                    m = re.search(r"\{.*\}", resp, re.DOTALL)
-                    if m:
-                        return json.loads(m.group(0))
-                except Exception:
-                    pass
-                return None
+                    return json.loads(m.group(0)) if m else None
+                except ValueError:
+                    return None
+
+            def _sin_ia(motivo):
+                """El plan B de siempre: la selección tal cual, escrita a mano."""
+                if sel:
+                    txt_front.set_text(sel[:60])
+                    txt_back.set_text(sel)
+                else:
+                    txt_front.set_text(clase)
+                lbl_ia_status.set_text(motivo)
 
             def _aplicar_ia(res_ia):
                 if res_ia:
@@ -757,14 +782,11 @@ class CursosPlayerWindow(Adw.Window):
                         txt_tags.set_text(f"{plat},online,{res_ia['tags']}")
                     lbl_ia_status.set_text("✨ Tarjeta redactada por Bit. Puedes ajustarla o guardarla:")
                 else:
-                    if sel:
-                        txt_front.set_text(sel[:60])
-                        txt_back.set_text(sel)
-                    else:
-                        txt_front.set_text(clase)
-                    lbl_ia_status.set_text("Escribe o ajusta los detalles de la tarjeta:")
+                    _sin_ia("Escribe o ajusta los detalles de la tarjeta:")
 
-            threading.Thread(target=lambda: GLib.idle_add(_aplicar_ia, _generar()), daemon=True).start()
+            util.hilo(_generar, _aplicar_ia,
+                      lambda e: _sin_ia(f"Bit no pudo redactarla ({e}). Escríbela tú:"),
+                      largo=True, vivo=lbl_ia_status)
         else:
             if sel:
                 txt_front.set_text(sel[:60])

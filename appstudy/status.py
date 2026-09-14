@@ -10,7 +10,9 @@ import signal
 import sys
 import time
 
-from . import citas, db, scheduler
+from . import citas, db, registro, scheduler
+
+_log = registro.log(__name__)
 
 
 def pet_pid(con):
@@ -61,7 +63,8 @@ def run_status(argv) -> int:
             try:
                 db.set_meta(con, "pet_pid", 0)
             except Exception:
-                pass
+                _log.warning("Bit se cerró pero su PID sigue apuntado en la base",
+                             exc_info=True)
         print(json.dumps({"mascota": False}))
         return 0
     json.dump(snapshot(con), sys.stdout, ensure_ascii=False)

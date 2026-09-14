@@ -9,7 +9,9 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, GLib, Gtk  # noqa: E402
 
-from . import db, mates, sintaxis, util  # noqa: E402
+from . import db, mates, registro, sintaxis, util  # noqa: E402
+
+_log = registro.log(__name__)
 
 
 def render_body(body: list[dict], buscar: str | None = None):
@@ -239,7 +241,8 @@ def _imagen(contenido):
                 spinner.set_visible(False)
                 return caja
             except Exception:
-                pass
+                _log.debug("La imagen en caché no se pudo pintar; se vuelve a "
+                           "pedir", exc_info=True)
 
     spinner.start()
 
@@ -254,7 +257,8 @@ def _imagen(contenido):
                 try:
                     return archivo.read_bytes()
                 except Exception:
-                    pass
+                    _log.debug("No se pudo leer la imagen de la caché",
+                               exc_info=True)
             req = urllib.request.Request(
                 url,
                 headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppStudy/1.0"}
@@ -264,7 +268,8 @@ def _imagen(contenido):
                 try:
                     archivo.write_bytes(data)
                 except Exception:
-                    pass
+                    _log.debug("No se pudo guardar la imagen en la caché",
+                               exc_info=True)
                 return data
         except Exception:
             return None
