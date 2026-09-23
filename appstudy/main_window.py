@@ -10,7 +10,8 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 
-from . import ayuda, bienvenida, buscador, citas, cloze, db, estadisticas  # noqa: E402
+from . import ausencia, ayuda, bienvenida, bitacora, buscador, citas  # noqa: E402
+from . import cloze, db, estadisticas  # noqa: E402
 from . import fsrs, graficas  # noqa: E402
 from . import freecodecamp, historial, hotkey, ia, importador, lecturas  # noqa: E402
 from . import lectura_diaria, libros, logros, pet, recordatorios  # noqa: E402
@@ -1211,6 +1212,11 @@ class MainWindow(Adw.ApplicationWindow):
         dlg.set_child(tv)
         dlg.present(self)
 
+    def bitacora(self, caso_id=None):
+        """Bitácora del taller: contar el equipo que llegó, o abrir un caso."""
+        from . import bitacora_window
+        bitacora_window.abrir(self, caso_id)
+
     def captura_rapida(self):
         """Editor mínimo para guardar una idea sin abandonar la aplicación actual."""
         anterior = getattr(self, "_captura_dialog", None)
@@ -1470,6 +1476,14 @@ class MainWindow(Adw.ApplicationWindow):
         self.reminder_end.set_subtitle("La misma hora de inicio y fin permite todo el día")
         self.reminder_end.connect("notify::value", self.on_reminder_hours)
         gp.add(self.reminder_end)
+
+        self.taller_ausencia = Adw.SpinRow.new_with_range(0, ausencia.MAX_MINUTOS, 5)
+        self.taller_ausencia.set_title("Bitácora: preguntar al volver tras")
+        self.taller_ausencia.set_subtitle(
+            "Minutos sin tocar el equipo. Al volver, Bit te pregunta qué llegó al "
+            "taller (dentro del horario de recordatorios). 0 lo desactiva")
+        self.taller_ausencia.connect("notify::value", self.on_taller_ausencia)
+        gp.add(self.taller_ausencia)
 
         motor = voz.motor_actual()
         if motor in ("kokoro", "piper"):
@@ -1901,6 +1915,9 @@ class MainWindow(Adw.ApplicationWindow):
     def on_reminder_hours(self, _fila, _p):
         recordatorios.guardar(self.con, inicio=int(self.reminder_start.get_value()),
                               fin=int(self.reminder_end.get_value()))
+
+    def on_taller_ausencia(self, fila, _p):
+        ausencia.guardar_minutos(self.con, int(fila.get_value()))
 
     def on_sonido(self, fila, _p):
         sonido.guardar(self.con, activo=fila.get_active())
@@ -2699,6 +2716,8 @@ echo hola
             cap = next((c for c in db.chapters(self.con) if c["id"] == r["id"]), None)
             if cap:
                 self.abrir_lectura(cap)
+        elif r["tipo"] == "caso":
+            self.bitacora(r["id"])
         elif r["tipo"] in ("libro", "nota"):
             self.stack.set_visible_child_name("biblioteca")
             libro = r.get("libro")
@@ -2821,6 +2840,13 @@ echo hola
             if cap:
                 self.abrir_lectura(cap, buscar=f"{card['front']} {card['back']}")
                 return True
+        if fuente and fuente["kind"] == "caso":
+            caso = bitacora.caso_por_uid(self.con, fuente["chapter_uid"])
+            if caso:
+                self.bitacora(caso["id"])
+                return True
+            self.notify_user("Ese caso ya no está en la bitácora")
+            return False
         if fuente and fuente["kind"] == "book" and fuente.get("ruta"):
             ruta = fuente["ruta"]
             if ruta.startswith('appstudy-book:'):
@@ -3491,6 +3517,9 @@ echo hola
         self.pet_quote_every.handler_block_by_func(self.on_pet_quote_every)
         self.pet_quote_every.set_value(citas.intervalo_min(self.con))
         self.pet_quote_every.handler_unblock_by_func(self.on_pet_quote_every)
+        self.taller_ausencia.handler_block_by_func(self.on_taller_ausencia)
+        self.taller_ausencia.set_value(ausencia.minutos(self.con))
+        self.taller_ausencia.handler_unblock_by_func(self.on_taller_ausencia)
         rcfg = recordatorios.config(self.con)
         self.reminder_days.handler_block_by_func(self.on_reminder_days)
         self.reminder_days.set_selected(recordatorios.DIAS.index(rcfg["dias"]))

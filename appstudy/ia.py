@@ -193,12 +193,15 @@ _VACIAS = {"para", "como", "cual", "cuales", "donde", "cuando", "porque", "sobre
            "significa", "diferencia", "explica", "explicame", "dime", "quiero"}
 
 
-def buscar_contexto(con, pregunta: str, cuantas: int = 3) -> str:
+def buscar_contexto(con, pregunta: str, cuantas: int = 3, deck_key: str | None = None) -> str:
     """Tus propias tarjetas que hablan de lo que preguntas.
 
     Un modelo pequeño improvisa cuando no sabe; darle tu material lo ancla a lo
     que de verdad estás estudiando. Es búsqueda por palabras, no por embeddings:
     suficiente para un mazo de cientos de tarjetas y sin nada que instalar.
+
+    `deck_key` la limita a un mazo: «cilindro» en Maquinaria es hidráulico, y
+    en Mecánica, del motor. Mezclarlos despista al modelo.
     """
     palabras = [p for p in _PALABRA.findall(pregunta.lower()) if p not in _VACIAS]
     if not palabras:
@@ -206,8 +209,12 @@ def buscar_contexto(con, pregunta: str, cuantas: int = 3) -> str:
     condicion = " OR ".join(
         ["LOWER(front) LIKE ? ESCAPE '\\' OR LOWER(back) LIKE ? ESCAPE '\\'"] * len(palabras))
     args = [f"%{db.como_like(p)}%" for p in palabras for _ in (0, 1)]
+    mazo = ""
+    if deck_key:
+        mazo = "deck_id=(SELECT id FROM decks WHERE key=?) AND "
+        args.insert(0, deck_key)
     filas = con.execute(
-        f"SELECT front, back FROM cards WHERE {condicion} LIMIT 40", args).fetchall()
+        f"SELECT front, back FROM cards WHERE {mazo}({condicion}) LIMIT 40", args).fetchall()
     if not filas:
         return ""
     marcadas = []
@@ -666,6 +673,48 @@ def generar_desde_texto(cfg, fragmento: str, titulo: str, cuantas: int = 5) -> l
             salida.append({"front": _limpiar(frente), "back": _limpiar(dorso)})
     if not salida:
         raise IAError("El modelo no sacó nada de este fragmento.")
+    return salida
+
+
+def tarjetas_de_caso(cfg, nota: str, mazo: str, contexto: str = "", cuantas: int = 4) -> list:
+    """Tarjetas del concepto de fondo de lo que pasó en el taller.
+
+    Al revés que `generar_desde_texto`: aquí la nota es solo el punto de
+    partida. Nadie necesita recordar que la 320D vino un martes; sí por qué
+    revienta un sello de vástago y cómo se comprueba. El contexto son tarjetas
+    tuyas del mismo tema, para que el modelo no las contradiga ni las repita.
+    """
+    apoyo = (f"\n\nTarjetas que ya tengo sobre el tema (no las repitas ni las "
+             f"contradigas):\n{contexto}" if contexto else "")
+    usuario = (
+        f"Soy supervisor en un taller y acaba de llegar esto:\n\n«{nota}»{apoyo}\n\n"
+        f"Escribe {cuantas} tarjetas de estudio para el mazo «{mazo}» sobre el "
+        "**concepto técnico de fondo** de este caso: por qué ocurre esa falla, cómo "
+        "funciona el sistema afectado, cómo se diagnostica o se comprueba y qué la "
+        "previene. Quédate en el sistema del que habla la nota (en una máquina, "
+        "un cilindro del brazo es hidráulico, no del motor). No preguntes por el "
+        "caso en sí (qué equipo vino, qué día, qué se le hizo) ni menciones el "
+        "modelo del equipo. 'front' es una pregunta concreta de una sola idea; 'back', la "
+        "respuesta en dos o tres frases. Si no estás seguro de un dato o una cifra, "
+        "no lo pongas. Responde solo con el JSON.")
+    crudo = _mensaje(cfg, [{"role": "system", "content": SISTEMA},
+                           {"role": "user", "content": usuario}],
+                     formato=ESQUEMA_TARJETAS, temperatura=0.5,
+                     keep_alive=KEEP_ALIVE_ONESHOT)
+    try:
+        datos = json.loads(crudo)
+    except json.JSONDecodeError:
+        trozo = re.search(r"\{.*\}", crudo, re.S)
+        if not trozo:
+            raise IAError("El modelo no devolvió tarjetas que pueda leer.") from None
+        datos = json.loads(trozo.group(0))
+    salida = []
+    for t in datos.get("tarjetas", []):
+        frente, dorso = str(t.get("front", "")).strip(), str(t.get("back", "")).strip()
+        if frente and dorso:
+            salida.append({"front": _limpiar(frente), "back": _limpiar(dorso)})
+    if not salida:
+        raise IAError("El modelo no sacó nada de este caso.")
     return salida
 
 

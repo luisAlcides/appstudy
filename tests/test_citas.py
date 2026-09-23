@@ -12,6 +12,7 @@ class TestFrecuenciaCitas(BaseTemporal):
         ahora = 100000.0
         return SimpleNamespace(
             con=self.con, refresh_stats=Mock(), dormida=lambda: False,
+            vigilar_taller=lambda: False,
             bubble=SimpleNamespace(get_reveal_child=lambda: False),
             ultimo_quote_tiempo=ahora - transcurrido,
             last_nag=ahora - 10000, intervalo_min=lambda: 5,

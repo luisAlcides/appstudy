@@ -36,6 +36,8 @@ también las corre (`pytest tests/`), porque reconoce las clases de `unittest`.
 | `test_estadisticas.py` | Las series de Progreso, los temas débiles, los cortes por fecha y que las medias no incluyan repasos que no significan nada |
 | `test_logros.py` | Que los logros se den cuando toca, una sola vez, y nunca antes de tiempo |
 | `test_lecturas.py` | El Markdown de tus capítulos: que cada cosa acabe en su bloque, la ida y vuelta sin pérdidas, y que recargar lo de fábrica no borre lo tuyo |
+| `test_bitacora.py` | La bitácora del taller: la nota se guarda antes que la IA, marca y modelo del equipo, mazo por contexto, que dos procesos no generen el mismo caso, la espera tras un fallo, la fuente «caso», la prioridad en el planificador, Ctrl+K y la detección de la vuelta |
+| `test_bitacora_ui.py` | El diálogo de la bitácora: guardar y lanzar la IA, revisar solo las marcadas en el mazo elegido y abrir casos en cualquier estado |
 | `test_buscador.py` | La búsqueda de Ctrl+K: conceptos y flexiones locales, exigencia de todos los términos, acentos y orden por relevancia literal antes que relacionada |
 | `test_notas.py` | Los subrayados (coordenadas relativas, colores, notas) y la lectura de EPUB, incluido que un ZIP con rutas de escape no escriba fuera de su carpeta |
 | `test_fuentes.py` | El vínculo explícito de una tarjeta con un capítulo o páginas de libro, su etiqueta, prioridad sobre parecidos y borrado en cascada |

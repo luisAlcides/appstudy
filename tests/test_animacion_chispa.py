@@ -205,3 +205,175 @@ class NuevasAnimacionesTest(unittest.TestCase):
         cr = cairo.Context(s)
         animacion.parpados(cr, 0, 512, 512, caricia=0.8)
         self.assertTrue(any(s.get_data()))
+
+
+def _sin_triangulos_invertidos(prueba, gestos, pasos=24):
+    for y in range(pasos):
+        for x in range(pasos):
+            puntos = [animacion.desplazar(a/pasos, b/pasos, gestos)
+                      for a, b in ((x, y), (x+1, y), (x+1, y+1), (x, y+1))]
+            for a, b, c in ((puntos[0], puntos[1], puntos[2]),
+                            (puntos[0], puntos[2], puntos[3])):
+                area = (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
+                prueba.assertGreater(area, 0)
+
+
+class ColaYOrejasTest(unittest.TestCase):
+    def test_la_cola_ondea_sin_tocar_la_cara(self):
+        for pose in range(5):
+            quieta = animacion.movimientos(pose, .3)
+            meneo = animacion.movimientos(pose, .3, cola=(1, .5))
+            punta = animacion.COLAS[pose][0][:2]
+            self.assertNotEqual(animacion.desplazar(*punta, quieta),
+                                animacion.desplazar(*punta, meneo))
+            for ojo in animacion.OJOS[pose]:
+                self.assertEqual(animacion.desplazar(*ojo, quieta),
+                                 animacion.desplazar(*ojo, meneo))
+
+    def test_las_orejas_se_mueven_sin_tocar_los_ojos(self):
+        for pose in range(5):
+            quieta = animacion.movimientos(pose, .3)
+            for orejas in ((1, 1), (-1, -1), (1, 0), (0, -1)):
+                movidas = animacion.movimientos(pose, .3, orejas=orejas)
+                for ojo in animacion.OJOS[pose]:
+                    self.assertEqual(animacion.desplazar(*ojo, quieta),
+                                     animacion.desplazar(*ojo, movidas))
+            punta = animacion.OREJAS[pose][0][:2]
+            self.assertNotEqual(
+                animacion.desplazar(*punta, quieta),
+                animacion.desplazar(*punta, animacion.movimientos(pose, .3, orejas=(1, 0))))
+
+    def test_cola_y_orejas_al_maximo_no_invierten_la_malla(self):
+        for pose in range(5):
+            for tiempo in (0, .28, .71):
+                for signo in (1, -1):
+                    gestos = animacion.movimientos(
+                        pose, tiempo, 1.0, cola=(signo, signo*.6),
+                        orejas=(signo, -signo), risa=.5, estirar=.5)
+                    _sin_triangulos_invertidos(self, gestos)
+
+    def test_reposo_dormida_y_movimiento_reducido_no_mueven_la_cola(self):
+        self.assertEqual(animacion.movimientos(5, .3, cola=(1, 1), orejas=(1, 1)), ())
+        self.assertEqual(animacion.movimientos(0, .3, 0, cola=(1, 1), orejas=(1, 1)), ())
+
+    def test_el_render_con_cola_conserva_la_cara(self):
+        sprite = cargar_poses()[0]
+        resultados = []
+        for cola in ((1, .5), (-1, -.5)):
+            s = cairo.ImageSurface(cairo.FORMAT_ARGB32, 512, 512)
+            animacion.pintar(cairo.Context(s), sprite,
+                             animacion.movimientos(0, .2, cola=cola, orejas=cola))
+            resultados.append(bytes(s.get_data()))
+        self.assertNotEqual(*resultados)
+        # Desde la frente hacia abajo; más arriba nacen las orejas, que se mueven.
+        for fila in range(115, 250):
+            inicio, fin = fila * 2048 + 220 * 4, fila * 2048 + 390 * 4
+            self.assertEqual(resultados[0][inicio:fin], resultados[1][inicio:fin])
+
+    def test_olfatear_mueve_el_hocico_de_la_pose_curiosa(self):
+        rasgos = animacion.expresiones(4, .05, olfatear=.5)
+        x, y = animacion.HOCICOS[4]
+        self.assertNotEqual(animacion.desplazar_rasgos(x, y, rasgos), (x, y))
+        for ojo in animacion.OJOS[4]:
+            self.assertEqual(animacion.desplazar_rasgos(*ojo, rasgos), ojo)
+
+
+class ChispaVivaTest(unittest.TestCase):
+    def zorro(self):
+        from appstudy.chispa import Chispa
+        from tests.test_animacion_bit import BitSinVentana
+        return BitSinVentana(Chispa)
+
+    def test_gestos_nuevos_registrados_solo_en_chispa(self):
+        from appstudy.chispa import Chispa
+        from appstudy.criatura import Creature
+        for gesto in ("cazar", "olfatear", "sacudirse"):
+            self.assertIn(gesto, dict(Chispa.GESTOS_MENU))
+            self.assertIn(gesto, Chispa.DURACION_GESTO)
+            self.assertIn(gesto, Chispa.EXPRESIONES)
+            self.assertNotIn(gesto, dict(Creature.GESTOS_MENU))
+
+    def test_actuar_lanza_los_gestos_nuevos(self):
+        zorro = self.zorro()
+        for gesto in ("cazar", "olfatear", "sacudirse"):
+            zorro.anims.clear()
+            zorro.actuar(gesto)
+            self.assertIsNotNone(zorro.phase(gesto))
+        self.assertTrue(any(p["kind"] == "gota" for p in zorro.particulas))
+
+    def test_cazar_se_agacha_salta_y_aterriza(self):
+        zorro = self.zorro()
+        zorro.actuar("cazar")
+        duracion = zorro.DURACION_GESTO["cazar"]
+        poses, alturas = [], []
+        for p in (.2, .6, .95):
+            zorro.t = p * duracion
+            poses.append(zorro._indice_pose())
+            alturas.append(zorro._pose()[0])
+        self.assertEqual(poses, [4, 3, 0])
+        self.assertGreater(alturas[0], 0)      # agachada
+        self.assertLess(alturas[1], -15)       # en el aire
+
+    def test_sacudirse_menea_el_cuerpo_y_se_apaga(self):
+        zorro = self.zorro()
+        zorro.reduced_motion = True
+        base = zorro._pose()[3]
+        zorro.reduced_motion = False
+        zorro.actuar("sacudirse")
+        duracion = zorro.DURACION_GESTO["sacudirse"]
+        giros = []
+        for i in range(1, 40):
+            zorro.t = duracion * i / 40
+            giros.append(abs(zorro._pose()[3] - base))
+        self.assertGreater(max(giros), .08)
+        self.assertLess(giros[-1], .03)
+
+    def test_la_cola_sigue_el_vaiven_y_se_calma_al_dormir(self):
+        zorro = self.zorro()
+        valores = set()
+        for t in (.1, .4, .8):
+            zorro.t = t
+            valores.add(round(zorro._vaiven_cola(), 4))
+        self.assertGreater(len(valores), 1)
+        zorro.reduced_motion = True
+        self.assertEqual(zorro._vaiven_cola(), 0)
+
+    def test_orejas_atras_con_enfado_y_arriba_con_sorpresa(self):
+        zorro = self.zorro()
+        zorro.play("enojado", 2.2)
+        zorro.t = 1.1
+        self.assertTrue(all(v > .5 for v in zorro._orejas()))
+        zorro.anims.clear()
+        zorro.play("sorpresa", .9)
+        zorro.t += .45
+        self.assertTrue(all(v < -.3 for v in zorro._orejas()))
+
+    def test_el_cambio_de_pose_funde_y_acaba_igual_que_sin_fundido(self):
+        zorro = self.zorro()
+        zorro.tick(.02)
+        zorro.play("victoria", 1.7)
+        zorro.tick(.02)
+        self.assertEqual(zorro._pose_previa, 0)
+        self.assertIsNotNone(zorro._fundido())
+        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, 228, 246)
+        zorro.draw(None, cairo.Context(s), 228, 246)
+        self.assertTrue(any(s.get_data()))
+        zorro.tick(.1); zorro.tick(.1); zorro.tick(.1)
+        self.assertIsNone(zorro._fundido())
+
+    def test_un_gesto_entre_dos_ticks_tambien_se_funde(self):
+        zorro = self.zorro()
+        zorro.tick(.02)
+        zorro.play("victoria", 1.7)
+        s = cairo.ImageSurface(cairo.FORMAT_ARGB32, 228, 246)
+        zorro.draw(None, cairo.Context(s), 228, 246)
+        self.assertEqual(zorro._fundido(), 0)
+        self.assertEqual(zorro._pose_previa, 0)
+
+    def test_movimiento_reducido_cambia_de_pose_sin_fundido(self):
+        zorro = self.zorro()
+        zorro.reduced_motion = True
+        zorro.tick(.02)
+        zorro.play("victoria", 1.7)
+        zorro.tick(.02)
+        self.assertIsNone(zorro._fundido())

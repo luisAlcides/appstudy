@@ -17,12 +17,55 @@ ANCLAJES = (
 )
 
 
+# La cola de cada pose: la zona de la punta y la del tramo medio, con el peso
+# de cada una. Dos zonas con retraso dan un látigo, no un bloque que se desliza.
+# La base, pegada a la cadera, queda fuera de ambas y no se mueve.
+COLAS = (
+    ((.19, .52, .14, .17, 1.0), (.30, .76, .12, .11, .45)),
+    ((.19, .58, .14, .17, 1.0), (.30, .80, .12, .10, .45)),
+    ((.15, .64, .13, .15, 1.0), (.27, .83, .11, .09, .45)),
+    ((.16, .50, .14, .17, 1.0), (.25, .76, .12, .11, .45)),
+    ((.17, .55, .14, .17, 1.0), (.27, .80, .12, .10, .45)),
+)
+# Hacia dónde barre la cola en positivo: arriba y hacia el cuerpo, girando
+# alrededor de su nacimiento.
+COLA_DIRECCION = (.8, -.6)
+COLA_AMPLITUD = .035
+
+# Zona de cada oreja (izquierda, derecha) y hacia dónde cae al aplanarse.
+# En la pose curiosa la oreja izquierda ya está tumbada: cae hacia abajo.
+OREJAS = (
+    ((.33, .17, .09, .10, -.8, .6), (.78, .10, .09, .10, .8, .6)),
+    ((.24, .19, .09, .10, -.8, .6), (.68, .09, .08, .09, .8, .6)),
+    ((.36, .19, .09, .10, -.8, .6), (.77, .22, .08, .09, .8, .6)),
+    ((.34, .08, .09, .09, -.8, .6), (.81, .15, .09, .10, .8, .6)),
+    ((.20, .27, .09, .09, -.29, .96), (.63, .08, .08, .09, .8, .6)),
+)
+OREJA_AMPLITUD = .022
+
+
 def movimientos(indice, tiempo, intensidad=1.0, saludo=None, voz=0.0,
-                risa=None, bostezo=None, estirar=None, rascarse=None, enojado=None):
-    """Desplazamientos suaves con alcance local; el descanso no mueve patas."""
+                risa=None, bostezo=None, estirar=None, rascarse=None, enojado=None,
+                cola=None, orejas=None):
+    """Desplazamientos suaves con alcance local; el descanso no mueve patas.
+
+    `cola` es (punta, medio), el vaivén de cada tramo de -1 a 1. `orejas` es
+    (izquierda, derecha): positivo las aplana hacia fuera, negativo las yergue.
+    """
     if indice == 5 or intensidad <= 0:
         return ()
     salida = []
+    if cola:
+        ux, uy = COLA_DIRECCION
+        for (x, y, rx, ry, peso), valor in zip(COLAS[indice], cola):
+            if valor:
+                m = valor * peso * COLA_AMPLITUD * intensidad
+                salida.append((x, y, rx, ry, ux * m, uy * m))
+    if orejas:
+        for (x, y, rx, ry, ux, uy), valor in zip(OREJAS[indice], orejas):
+            if valor:
+                m = max(-1, min(1, valor)) * OREJA_AMPLITUD * intensidad
+                salida.append((x, y, rx, ry, ux * m, uy * m))
     val_enojo = (enojado if isinstance(enojado, (int, float)) else 1.0) if enojado else 0.0
     for n, (x, y) in enumerate(ANCLAJES[indice]):
         mano = n < 2
@@ -119,11 +162,14 @@ OJOS = (
     (),  # Descanso: no abrir los ojos de la pose dormida.
 )
 BOCAS = {0: (.626, .502), 1: (.545, .502), 3: (.550, .381)}
+# La nariz de la pose curiosa, que es la que olfatea.
+HOCICOS = {4: (.586, .400)}
 
 
 def expresiones(indice, tiempo, mirada=(0, 0), parpadeo=None, guino=None,
                 voz=0.0, reducido=False,
-                bostezo=None, risa=None, caricia=None, enojado=None):
+                bostezo=None, risa=None, caricia=None, enojado=None,
+                olfatear=None):
     """Campos locales de mirada, párpados y boca; no sustituyen el pelaje."""
     if reducido or indice == 5:
         return ()
@@ -158,6 +204,12 @@ def expresiones(indice, tiempo, mirada=(0, 0), parpadeo=None, guino=None,
         elif enojado:
             val_enojo = (enojado if isinstance(enojado, (int, float)) else 1.0)
             salida.append((x, y, .072, .028, 0, 0, 0.45 * val_enojo))
+    if olfatear is not None and indice in HOCICOS:
+        # Olisqueos cortos: la nariz tiembla hacia arriba a ráfagas.
+        x, y = HOCICOS[indice]
+        envolvente = math.sin(math.pi * olfatear)
+        rafaga = max(0.0, math.sin(tiempo * 5.5)) * abs(math.sin(tiempo * 31))
+        salida.append((x, y, .06, .05, 0, -.007 * rafaga * envolvente, 0))
     return tuple(salida)
 
 
@@ -251,8 +303,8 @@ def pintar(cr, superficie, gestos, rasgos=()):
     # La boca mide pocos píxeles: la cuadrícula general caía casi entera
     # fuera de ella y anulaba el gesto. Añadir vértices locales conserva
     # los límites del hocico y permite cerrar la sonrisa visiblemente.
-    for cx, cy, rx, ry, _mx, _my, cierre in rasgos:
-        if cierre:
+    for cx, cy, rx, ry, _mx, my, cierre in rasgos:
+        if cierre or my:
             xs.update(cx + rx*f for f in (-1, -.6, 0, .6, 1))
             ys.update(cy + ry*f for f in (-1, -.6, -.3, 0, .3, .6, 1))
     xs, ys = sorted(xs), sorted(ys)

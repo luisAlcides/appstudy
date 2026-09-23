@@ -240,6 +240,11 @@ def recalcular_sanguijuelas(con) -> int:
 
 # ------------------------------------------------------------ próxima tarjeta
 
+def del_taller(card) -> bool:
+    """Cierto si la tarjeta salió de un caso de la bitácora del taller."""
+    return "bitacora" in {t.strip().lower() for t in (card["tags"] or "").split(",")}
+
+
 def _cupo_agotado(con) -> bool:
     """Cierto si hoy ya se han estrenado todas las tarjetas nuevas que tocaban."""
     tope = db.nuevas_por_dia(con)
@@ -305,7 +310,9 @@ def next_card(con, deck_key: str | None = None, new_ratio: float = 0.25,
 
     sin_cupo = respetar_limite and _cupo_agotado(con)
     raw_due = q("AND s.reps>0 AND s.due<=? ORDER BY s.due ASC", (now,), 50)
-    raw_new = [] if sin_cupo else q("AND s.reps=0 ORDER BY c.level ASC, RANDOM()", (), 50)
+    raw_new = [] if sin_cupo else q(
+        "AND s.reps=0 ORDER BY (',' || LOWER(c.tags) || ',' LIKE '%,bitacora,%') DESC, "
+        "c.level ASC, RANDOM()", (), 50)
 
     due = [c for c in raw_due if c["id"] not in excluded]
     new = [c for c in raw_new if c["id"] not in excluded]
@@ -339,9 +346,15 @@ def next_card(con, deck_key: str | None = None, new_ratio: float = 0.25,
         return None
 
     if pool is new or (not due and pool is raw_new):
-        # Entre las nuevas se respeta el nivel: solo se sortea dentro del más bajo
-        minimo = pool[0]["level"]
-        pool = [c for c in pool if c["level"] == minimo]
+        # Lo de la bitácora del taller se salta el orden por niveles: es lo que
+        # acabas de ver con tus ojos y conviene fijarlo mientras está fresco.
+        taller = [c for c in pool if del_taller(c)]
+        if taller:
+            pool = taller
+        else:
+            # Entre las nuevas se respeta el nivel: solo se sortea dentro del más bajo
+            minimo = pool[0]["level"]
+            pool = [c for c in pool if c["level"] == minimo]
 
     if evitar_deck:
         # Intercalar es preferir otro tema, no imponerlo: si lo único que queda

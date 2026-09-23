@@ -228,6 +228,22 @@ CREATE TABLE IF NOT EXISTS fcc_progress (
     updated_at  REAL NOT NULL DEFAULT 0
 );
 
+-- Bitácora del taller: cada equipo que llega, contado en una línea. La nota se
+-- guarda antes de llamar a la IA; las tarjetas que salgan apuntan aquí como
+-- su fuente (card_sources.kind='caso', chapter_uid=casos.uid).
+CREATE TABLE IF NOT EXISTS casos (
+    id          INTEGER PRIMARY KEY,
+    uid         TEXT NOT NULL UNIQUE,
+    texto       TEXT NOT NULL,
+    equipo      TEXT NOT NULL DEFAULT '',
+    deck_key    TEXT NOT NULL DEFAULT '',
+    estado      TEXT NOT NULL DEFAULT 'pendiente',  -- pendiente | generando | propuesto | listo
+    propuestas  TEXT NOT NULL DEFAULT '[]',
+    motivo      TEXT NOT NULL DEFAULT '',
+    intento     REAL NOT NULL DEFAULT 0,
+    created     REAL NOT NULL
+);
+
 """
 
 INDEXES = """
@@ -242,6 +258,7 @@ CREATE INDEX IF NOT EXISTS idx_notas_libro  ON notas(ruta, pagina);
 CREATE INDEX IF NOT EXISTS idx_sources_chapter ON card_sources(chapter_uid);
 CREATE INDEX IF NOT EXISTS idx_online_plat ON online_courses(platform, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_fcc_sb ON fcc_progress(superblock, block);
+CREATE INDEX IF NOT EXISTS idx_casos_estado ON casos(estado, created);
 """
 
 
@@ -634,8 +651,9 @@ def related_cards_for_card(con, card, limit: int = 3) -> list[dict]:
 
 
 def set_card_source(con, card_id: int, source: dict, touch: bool = True):
-    """Asocia una tarjeta a su capítulo o tramo de libro, sin commit propio."""
-    kind = "chapter" if source.get("kind") == "chapter" else "book"
+    """Asocia una tarjeta a su capítulo, tramo de libro o caso del taller, sin
+    commit propio. Un caso guarda su UID en `chapter_uid`."""
+    kind = source.get("kind") if source.get("kind") in ("chapter", "caso") else "book"
     con.execute(
         """INSERT INTO card_sources(card_id,kind,chapter_uid,ruta,page_start,page_end,title)
            VALUES(?,?,?,?,?,?,?)
@@ -664,7 +682,7 @@ def source_label(source: dict | None) -> str:
     if not source:
         return ""
     titulo = str(source.get("title") or "Lectura")
-    if source.get("kind") == "chapter":
+    if source.get("kind") in ("chapter", "caso"):
         return titulo
     inicio, fin = int(source.get("page_start") or 0), int(source.get("page_end") or 0)
     if inicio and fin and fin != inicio:

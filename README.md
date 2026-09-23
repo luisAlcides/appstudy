@@ -205,6 +205,7 @@ volumen, velocidad, tono y el interruptor del «hola bit» siguen como los dejas
 |---|---|
 | Popup de repaso | el atajo global, desde cualquier aplicación |
 | Capturar una tarjeta | `appstudy --capture` o `Super` + `Shift` + `N` |
+| Contar el equipo que llegó al taller | `appstudy --bitacora` o `Super` + `Shift` + `B` (en la app, `Ctrl` + `Shift` + `B`) |
 | Ventana completa | `appstudy`, o «AppStudy» en el menú de aplicaciones |
 | Abrir la guía de uso | **F1**, el botón **?** de la cabecera o `appstudy --ayuda` |
 | Ver tu progreso en gráficas | pestaña **Progreso** |
@@ -765,6 +766,38 @@ prefieren las que comparten etiquetas, nivel o el término técnico que las une.
 Hace falta haber estudiado **al menos dos tarjetas del mismo tema**; con una
 suelta por mazo te dirá que aún no hay de qué preguntar.
 
+## 🛠️ Bitácora del taller
+
+Para estudiar **en el trabajo** aunque te interrumpan. Cuando llega un equipo y
+te levantas a supervisar, la laptop se queda quieta. Al volver (por defecto,
+tras **10 minutos** sin teclado ni ratón, dentro del horario de recordatorios),
+Bit te pregunta: **«¿Llegó un equipo?»**. También puedes abrirla cuando quieras
+con `Super` + `Shift` + `B`, o desde el menú de Bit.
+
+1. Cuentas el caso en una línea, escrita o dictada con el 🎤: «CAT 320D, fuga
+   en el cilindro del brazo, se cambió el sello». Enter. **La nota se guarda al
+   momento**, antes de llamar a la IA: si te vuelven a llamar, no se pierde.
+2. En segundo plano, la IA local saca **3–5 tarjetas del concepto de fondo**
+   (por qué falla un sello de vástago, cómo se distingue una fuga interna de
+   una externa), no del caso en sí. Se apoya en lo que ya tienes en el mazo del
+   caso, sin mezclarlo con otros mazos: un «cilindro» en Maquinaria es
+   hidráulico, no del motor.
+3. Bit te avisa: «Saqué 4 tarjetas de la CAT 320D». Las revisas (todas vienen
+   marcadas), quitas las malas, corriges el mazo si hace falta y Enter.
+4. Las aceptadas **entran primero** entre tus tarjetas nuevas, sin esperar su
+   turno por nivel, para fijarlas mientras está fresco. «Volver a la fuente →»
+   abre el caso.
+
+El caso queda como **historial del taller**: **Ctrl+K** «320D» muestra cada
+visita de ese equipo y las tarjetas que salieron de ella. Si Ollama está
+apagado, la nota espera y Bit la retoma solo cada 15 minutos.
+
+El equipo se reconoce por la marca (CAT, Komatsu, Volvo, Hilux…), y el mazo se
+elige solo: Maquinaria, salvo que la nota suene a vehículo de carretera.
+**Ajustes → Bit, la mascota → «Bitácora: preguntar al volver tras»** cambia los
+minutos (0 lo desactiva). La inactividad la da el propio GNOME
+(`org.gnome.Mutter.IdleMonitor`), sin instalar nada.
+
 ## Ejercicios prácticos guiados
 
 En **Panel → Otras formas de estudiar → Ejercicios prácticos**, o desde el
@@ -1133,6 +1166,7 @@ queda su ruta, la página y los minutos leídos.
 | M | marcador en esta página |
 | N | modo noche |
 | S | rotulador: arrastra sobre el texto para subrayar |
+| Ctrl+Alt+A | escribir una nota sobre la página, sin subrayar primero |
 
 - **Zoom de verdad**: la hoja pide su tamaño y el lector la deja desplazarse. Se
   recuerda por libro cómo lo estabas leyendo (ajuste y escala).
@@ -1146,6 +1180,17 @@ queda su ruta, la página y los minutos leídos.
   páginas para poder volver después.
 
 **Subrayar y anotar**
+
+El botón **Anotar**, en la barra inferior del lector PDF, permite escribir sobre
+la página actual sin seleccionar texto. La nota queda señalada con una pequeña
+marca en el margen superior derecho. Si cierras una nota nueva sin escribir nada,
+se descarta.
+
+Las notas **se guardan automáticamente mientras escribes**: puedes cerrar la ficha
+o cambiar de página sin pulsar Guardar. **Listo** cierra la ficha. La lista de
+anotaciones tiene un botón de edición junto a cada nota o subrayado; al pulsarlo
+se abre su página y su comentario. Las teclas de navegación no actúan mientras
+escribes en una nota, en el buscador o en el campo de número de página.
 
 Pulsa **S** (o el rotulador de la barra) y arrastra sobre el texto. Lo subrayado
 se queda: al soltar, AppStudy le pregunta a poppler **qué texto hay justo debajo
@@ -1191,6 +1236,8 @@ internos del libro se siguen dentro; los que apuntan fuera se abren en tu navega
 
 **El progreso se guarda solo**, en cada cambio de página: cierras el libro,
 vuelves mañana y sigues en la 77. Al salir también se anotan los minutos leídos.
+En PDF el guardado es inmediato, incluso si cierras la aplicación justo después
+de cambiar de página. La cabecera confirma «progreso guardado».
 
 Las páginas se dibujan con `pdftocairo` (poppler, ya lo tienes) en un hilo
 aparte, y se guardan en `~/.local/share/appstudy/paginas`: dibujar una tarda

@@ -17,6 +17,7 @@ set -- "${ARGS[@]+"${ARGS[@]}"}"
 
 ATAJO="${1:-<Super><Shift>e}"
 ATAJO_CAPTURA="${2:-<Super><Shift>n}"
+ATAJO_BITACORA="${3:-<Super><Shift>b}"
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Lo que se elija queda aquí, y las siguientes ejecuciones lo respetan: sin
@@ -142,7 +143,7 @@ Categories=Education;
 Keywords=estudio;flashcards;repaso;ingles;linux;mecanica;
 StartupWMClass=io.github.appstudy.AppStudy
 StartupNotify=true
-Actions=popup;capture;pet;
+Actions=popup;capture;bitacora;pet;
 
 [Desktop Action popup]
 Name=Estudiar ahora (popup)
@@ -151,6 +152,10 @@ Exec=$RAIZ/bin/appstudy --popup
 [Desktop Action capture]
 Name=Captura rápida
 Exec=$RAIZ/bin/appstudy --capture
+
+[Desktop Action bitacora]
+Name=Bitácora del taller
+Exec=$RAIZ/bin/appstudy --bitacora
 
 [Desktop Action pet]
 Name=Soltar a Bit (mascota)
@@ -220,6 +225,8 @@ echo "▸ Registrando el atajo global $ATAJO"
 "$RAIZ/bin/appstudy" --install-hotkey "$ATAJO"
 echo "▸ Registrando captura rápida $ATAJO_CAPTURA"
 "$RAIZ/bin/appstudy" --install-capture-hotkey "$ATAJO_CAPTURA"
+echo "▸ Registrando la bitácora del taller $ATAJO_BITACORA"
+"$RAIZ/bin/appstudy" --install-bitacora-hotkey "$ATAJO_BITACORA"
 
 if [ "$VOZ" = "ninguna" ]; then
   echo "▸ Voz: sin motores (se puede añadir después ejecutando ./install.sh)"
@@ -399,6 +406,7 @@ echo
 echo "✓ Listo."
 echo "  Popup:            pulsa el atajo desde cualquier aplicación"
 echo "  Captura rápida:   $ATAJO_CAPTURA"
+echo "  Bitácora taller:  $ATAJO_BITACORA"
 echo "  Ventana completa: appstudy   (o busca «AppStudy» en el menú)"
 if [ "$MASCOTA" = "si" ]; then
   echo "  Mascota:          sale sola al iniciar sesión (o appstudy --pet)"

@@ -10,6 +10,9 @@ DEFAULT_BINDING = "<Super><Shift>e"
 CAPTURE_SLOT = "appstudy-capture"
 CAPTURE_NAME = "AppStudy · Captura rápida"
 DEFAULT_CAPTURE_BINDING = "<Super><Shift>n"
+BITACORA_SLOT = "appstudy-bitacora"
+BITACORA_NAME = "AppStudy · Bitácora del taller"
+DEFAULT_BITACORA_BINDING = "<Super><Shift>b"
 
 
 def _gs(*args) -> str:

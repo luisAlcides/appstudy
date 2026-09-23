@@ -25,6 +25,7 @@ TIPOS = {
     "capitulo":  {"icono": "📖", "nombre": "Capítulo", "peso": 0.95},
     "libro":     {"icono": "📚", "nombre": "Libro", "peso": 0.85},
     "nota":      {"icono": "🖍️", "nombre": "Subrayado", "peso": 0.70},
+    "caso":      {"icono": "🛠️", "nombre": "Bitácora", "peso": 0.90},
 }
 
 
@@ -290,17 +291,36 @@ def _notas(con, palabras, limite):
     return sorted(salida, key=lambda x: -x["puntos"])[:limite]
 
 
+def _casos(con, palabras, limite):
+    filas = con.execute("SELECT id, texto, equipo, created FROM casos").fetchall()
+    salida = []
+    for f in filas:
+        puntos, relacionado = _puntuar_amplio(palabras, f["equipo"], f["texto"])
+        if not puntos:
+            continue
+        fecha = time.strftime("%d/%m/%Y", time.localtime(f["created"]))
+        salida.append({
+            "tipo": "caso", "id": f["id"], "puntos": puntos,
+            "titulo": f"{f['equipo'] or 'Caso del taller'} · {fecha}",
+            "detalle": _recorte(f["texto"], palabras),
+            "contexto": "🛠️ Bitácora del taller",
+            "relacionado": relacionado,
+        })
+    return sorted(salida, key=lambda x: -x["puntos"])[:limite]
+
+
 # ------------------------------------------------------------------- la mezcla
 
 def buscar(con, consulta: str, catalogo=None, limite: int = LIMITE_TOTAL) -> list[dict]:
-    """Todo lo que encaja, de más a menos, mezclando los cuatro almacenes."""
+    """Todo lo que encaja, de más a menos, mezclando los cinco almacenes."""
     palabras = _palabras(consulta)
     if not palabras or len("".join(palabras)) < 2:
         return []
     resultados = (_tarjetas(con, palabras, LIMITE_POR_TIPO)
                   + _capitulos(con, palabras, LIMITE_POR_TIPO)
                   + _libros(con, palabras, LIMITE_POR_TIPO, catalogo)
-                  + _notas(con, palabras, LIMITE_POR_TIPO))
+                  + _notas(con, palabras, LIMITE_POR_TIPO)
+                  + _casos(con, palabras, LIMITE_POR_TIPO))
     for r in resultados:
         r["puntos"] *= TIPOS[r["tipo"]]["peso"]
         r["icono"] = TIPOS[r["tipo"]]["icono"]

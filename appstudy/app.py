@@ -40,6 +40,14 @@ class AppStudy(Adw.Application):
                              "Registrar el atajo global de captura rápida", "ATAJO")
         self.add_main_option("capture", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
                              "Abrir la captura rápida de una tarjeta", None)
+        self.add_main_option("install-bitacora-hotkey", 0, GLib.OptionFlags.NONE,
+                             GLib.OptionArg.STRING,
+                             "Registrar el atajo global de la bitácora del taller", "ATAJO")
+        self.add_main_option("bitacora", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
+                             "Contar en la bitácora el equipo que llegó al taller", None)
+        self.add_main_option("bitacora-caso", 0, GLib.OptionFlags.NONE,
+                             GLib.OptionArg.STRING,
+                             "Abrir un caso de la bitácora (para revisar sus tarjetas)", "ID")
         self.add_main_option("pet", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
                              "Soltar la mascota de escritorio", None)
         self.add_main_option("status", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE,
@@ -92,6 +100,7 @@ class AppStudy(Adw.Application):
         for nombre, cb in (("quit", lambda *_: self.quit()),
                            ("popup", lambda *_: self.show_popup()),
                            ("capture", lambda *_: self.show_capture()),
+                           ("bitacora", lambda *_: self.show_bitacora()),
                            ("main", lambda *_: self.show_main_window()),
                            ("reload", lambda *_: self.reload_content()),
                            ("buscar", lambda *_: self.abrir_buscador()),
@@ -104,6 +113,7 @@ class AppStudy(Adw.Application):
         self.set_accels_for_action("app.reload", ["<Control>r", "F5"])
         self.set_accels_for_action("app.buscar", ["<Control>k"])
         self.set_accels_for_action("app.capture", ["<Control><Shift>n"])
+        self.set_accels_for_action("app.bitacora", ["<Control><Shift>b"])
         self.set_accels_for_action("app.ayuda", ["F1"])
 
     def abrir_buscador(self):
@@ -144,6 +154,12 @@ class AppStudy(Adw.Application):
             ok, mensaje = hotkey.install(
                 self.capture_command(), opts["install-capture-hotkey"],
                 slot=hotkey.CAPTURE_SLOT, name=hotkey.CAPTURE_NAME)
+            cmdline.print_literal(mensaje + "\n")
+            return 0 if ok else 1
+        if "install-bitacora-hotkey" in opts:
+            ok, mensaje = hotkey.install(
+                f"{self.base_command()} --bitacora", opts["install-bitacora-hotkey"],
+                slot=hotkey.BITACORA_SLOT, name=hotkey.BITACORA_NAME)
             cmdline.print_literal(mensaje + "\n")
             return 0 if ok else 1
         if opts.get("pet"):
@@ -228,6 +244,10 @@ class AppStudy(Adw.Application):
             self.abrir_ayuda()
         elif opts.get("capture"):
             self.show_capture()
+        elif opts.get("bitacora"):
+            self.show_bitacora()
+        elif "bitacora-caso" in opts:
+            self.show_bitacora(opts["bitacora-caso"])
         elif opts.get("popup"):
             self.show_popup(opts.get("deck"))
         else:
@@ -279,6 +299,15 @@ class AppStudy(Adw.Application):
         self.show_main_window()
         if self.main_window:
             self.main_window.captura_rapida()
+
+    def show_bitacora(self, caso_id=None):
+        self.show_main_window()
+        if self.main_window:
+            try:
+                caso_id = int(caso_id) if caso_id is not None else None
+            except ValueError:
+                caso_id = None
+            self.main_window.bitacora(caso_id)
 
     def reload_content(self) -> str:
         """Reimporta los mazos y capítulos incluidos y pone al día lo que se ve.

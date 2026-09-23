@@ -98,8 +98,12 @@ TEMAS = (
                 "<code>Super + Shift + N</code> — captura rápida: una tarjeta nueva "
                 "sin dejar lo que estabas haciendo (dentro de la aplicación, "
                 "<code>Ctrl + Shift + N</code>).",
-                "<code>Ctrl + K</code> — buscar en tarjetas, capítulos, libros y "
-                "subrayados a la vez.",
+                "<code>Super + Shift + B</code> — bitácora del taller: cuenta en una "
+                "línea el equipo que llegó y la IA saca tarjetas del concepto de fondo "
+                "(dentro de la aplicación, <code>Ctrl + Shift + B</code>). Bit te lo "
+                "pregunta solo cuando vuelves tras un rato fuera.",
+                "<code>Ctrl + K</code> — buscar en tarjetas, capítulos, libros, "
+                "subrayados y casos de la bitácora a la vez.",
                 "<code>Ctrl + R</code> o <code>F5</code> — recargar el contenido "
                 "incluido y refrescar la ventana.",
                 "<code>F1</code> — esta guía.",

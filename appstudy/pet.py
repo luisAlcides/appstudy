@@ -26,7 +26,8 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gdk, Gio, GLib, Gtk  # noqa: E402
 
 from . import citas, cloze, db, estadisticas, ia, logros, reto  # noqa: E402
-from . import historial, recordatorios, registro, scheduler, sonido, util, voz  # noqa: E402
+from . import ausencia, bitacora, historial, recordatorios, registro  # noqa: E402
+from . import scheduler, sonido, util, voz  # noqa: E402
 from .bit import Bit  # noqa: E402
 from .chispa import Chispa  # noqa: E402
 from .criatura import (ESCALA_MAX, ESCALA_MIN, ESCALA_PASO, FRAME_ACTIVO,  # noqa: E402,F401
@@ -300,6 +301,10 @@ class PetWindow(Gtk.ApplicationWindow):
         self.ultimo_reproche = 0
         self.ultimo_aviso_leech = 0.0    # para no repetir la queja cada rato
         self.ultimo_diario = 0.0         # el resumen de la semana, una vez al día
+        # Bitácora del taller: te ve volver tras un rato fuera y te pregunta
+        self.vigia = ausencia.Vigia(ausencia.minutos(self.con) * 60)
+        self.taller_generando = False
+        self.taller_avisados = set()     # casos cuyas tarjetas ya te anunció
         self.ia_texto = ""            # lo que el modelo lleva escrito
         self.ia_cuerpo = None
         self.contexto_ia = ""         # la tarjeta desde la que preguntaste
@@ -899,6 +904,85 @@ class PetWindow(Gtk.ApplicationWindow):
         hasta = float(db.get_meta(self.con, "pet_snooze_until", 0) or 0)
         return time.time() < hasta
 
+    # ---------------------------------------------------- bitácora del taller
+
+    def vigilar_taller(self) -> bool:
+        """Cada vuelta del bucle: ¿volviste de supervisar? ¿hay tarjetas del taller?
+
+        Se llama antes que nada porque la lectura de inactividad tiene que ser
+        continua: si se saltara mientras hay un globo abierto, no se vería el
+        momento en que vuelves. Cierto si ha dicho algo.
+        """
+        self.vigia.umbral_s = ausencia.minutos(self.con) * 60
+        fuera = self.vigia.observar(ausencia.inactividad_s())
+        if (fuera and not self.dormida()
+                and recordatorios.permitido(recordatorios.config(self.con))):
+            self.preguntar_taller(fuera)
+            return True
+        self.generar_taller()
+        if self.dormida() or self.bubble.get_reveal_child():
+            return False
+        for caso in bitacora.por_revisar(self.con):
+            if caso["id"] not in self.taller_avisados:
+                self.taller_avisados.add(caso["id"])
+                self.anunciar_taller(caso)
+                return True
+        return False
+
+    def preguntar_taller(self, minutos: float):
+        """Al volver: el globo que convierte la interrupción en algo que aprender."""
+        self.card = None
+        self.reto = None
+        self.last_nag = time.time()
+        texto = (f"Estuviste fuera {round(minutos)} min. ¿Llegó un equipo? "
+                 "Cuéntamelo en una línea y te saco tarjetas de lo que tenía.")
+        self.texto_hablable = texto
+        self.clear_bubble()
+        self.bubble_box.append(self.bubble_header("🛠️ ¿Qué llegó al taller?"))
+        self.bubble_box.append(Gtk.Label(label=util.to_markup(texto), use_markup=True,
+                                         wrap=True, xalign=0,
+                                         max_width_chars=self.char_width(30),
+                                         css_classes=["as-bubble-text"]))
+        fila = Gtk.Box(spacing=6, homogeneous=True)
+        contar = Gtk.Button(label="Contar", css_classes=["suggested-action", "pill"])
+        contar.connect("clicked", lambda *_: self.abrir_bitacora())
+        nada = Gtk.Button(label="No, nada", css_classes=["pill"])
+        nada.connect("clicked", lambda *_: self.close_bubble())
+        fila.append(contar)
+        fila.append(nada)
+        self.bubble_box.append(fila)
+        self.creature.saludar()
+        self.sonar("aviso")
+        self.open_bubble()
+
+    def anunciar_taller(self, caso):
+        n = len(caso["propuestas"])
+        equipo = caso["equipo"] or "tu caso"
+        self.creature.celebrar()
+        self.say(f"Saqué {n} tarjetas de <b>{GLib.markup_escape_text(equipo)}</b>. "
+                 "Revísalas en un momento y entran primero en tus repasos.",
+                 titulo="🛠️ Bitácora del taller",
+                 boton=("Revisar", lambda: self.abrir_bitacora(caso["id"])))
+
+    def generar_taller(self):
+        """Si la app no pudo (cerrada, sin IA en ese momento), lo retoma Bit."""
+        if self.taller_generando:
+            return
+        pendientes = bitacora.pendientes(self.con, reintento=True)
+        if not pendientes:
+            return
+
+        def fin(_resultado=None):
+            self.taller_generando = False
+        self.taller_generando = bitacora.lanzar(self.con, pendientes[0]["id"], fin, fin)
+
+    def abrir_bitacora(self, caso_id=None):
+        self.close_bubble()
+        if caso_id is None:
+            self.spawn("--bitacora")
+        else:
+            self.spawn("--bitacora-caso", str(caso_id))
+
     def intervalo_min(self) -> int:
         try:
             return max(5, int(db.get_meta(self.con, "pet_every", DEFAULT_EVERY_MIN)))
@@ -909,6 +993,8 @@ class PetWindow(Gtk.ApplicationWindow):
 
     def on_check(self):
         self.refresh_stats()
+        if self.vigilar_taller():
+            return True
         if getattr(self, "_ventana_historial", None) is not None:
             return True
         if self.dormida() or self.bubble.get_reveal_child():
@@ -3142,7 +3228,7 @@ class PetWindow(Gtk.ApplicationWindow):
             caja.append(Gtk.Label(label="Reducir movimiento está activo: solo verás las expresiones faciales. "
                                         "Puedes cambiarlo en Ajustes → Apariencia y progreso.",
                                   wrap=True, max_width_chars=32, xalign=0))
-        for nombre, etiqueta in Creature.GESTOS_MENU:
+        for nombre, etiqueta in self.creature.GESTOS_MENU:
             caja.append(self._fila_accion(etiqueta,
                         lambda n=nombre: self.creature.actuar(n)))
         self.poner_en_menu(caja)
@@ -3222,6 +3308,7 @@ class PetWindow(Gtk.ApplicationWindow):
                 ("💡 ¿Sabías que…?", lambda: (self.wake(), self.sabias_que()), None),
                 ("📖 Una frase de libro", lambda: (self.wake(), self.quote()), None),
                 ("📚 Leer libros (Biblioteca)", lambda: (self.wake(), self.abrir_biblioteca()), None),
+                ("🛠️ Bitácora del taller", lambda: self.abrir_bitacora(), None),
                 ("📊 Cómo va la semana", lambda: (self.wake(), self.diario()), None),
                 ("⏱️ Sesión de estudio", self.study, None),
                 ("🕐 Tarjetas recientes", self.abrir_historial, None),

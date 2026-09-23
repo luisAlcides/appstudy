@@ -1154,6 +1154,8 @@ class Lector:
         self.pendiente = None
         self.memoria = {}
         self.guardar_en = self.redibujar_en = None
+        self.editor_nota = None
+        self.cerrado = False
         self.texto_libro = None            # se saca al buscar por primera vez
 
         total = libros.paginas(libro["ruta"])
@@ -1403,11 +1405,14 @@ class Lector:
                               "Rotulador: arrastra sobre el texto (S)")
         caja.append(self.btn_subrayar)
 
+        anotar = Gtk.Button(label="Anotar")
+        anotar.connect("clicked", lambda *_: self.anotar_pagina())
+        util.tooltip_perezoso(anotar, "Añadir una nota a esta página (Ctrl+Alt+A)")
+        caja.append(anotar)
+
         self.btn_notas = Gtk.MenuButton(icon_name="view-list-bullet-symbolic")
-        self.btn_notas.set_popover(self.panel_notas())
-        self.btn_notas.connect("notify::active", lambda *_: (
-            self.btn_notas.set_popover(self.panel_notas())
-            if self.btn_notas.get_active() else None))
+        self.btn_notas.set_create_popup_func(
+            lambda *_: self.btn_notas.set_popover(self.panel_notas()))
         caja.append(self.btn_notas)
         return caja
 
@@ -1459,7 +1464,13 @@ class Lector:
     # ------------------------------------------------------------ páginas
 
     def ir(self, n, forzar=False):
+        if self.cerrado:
+            return
         n = max(1, min(int(n), self.total))
+        if n != self.n:
+            self.cerrar_editor_nota()
+            self._ancla = None
+            self.hoja.poner_trazo(None)
         escala, ancho, alto = self.medidas()
         self.n = n
         self.caja_pagina.set_text(str(n))
@@ -1517,15 +1528,10 @@ class Lector:
         self.bib.ventana.notify_user(str(e))
 
     def apuntar_luego(self, n):
-        if self.guardar_en:
-            GLib.source_remove(self.guardar_en)
-
-        def guardar():
-            self.guardar_en = None
-            db.book_progreso(self.con, self.libro["ruta"], n)
-            return False
-
-        self.guardar_en = GLib.timeout_add(500, guardar)
+        # Cerrar la aplicación justo después de pasar de página también
+        # debe conservar el punto de lectura: no esperar a un temporizador.
+        db.book_progreso(self.con, self.libro["ruta"], n)
+        self.titulo.set_subtitle(f"página {n} de {self.total} · progreso guardado")
 
     # ------------------------------------------------------------ acciones
 
@@ -1538,8 +1544,8 @@ class Lector:
         if hasattr(self, "btn_subrayar"):
             total = db.notas_de(self.con, self.libro["ruta"])
             self.btn_notas.set_tooltip_text(
-                f"{len(total)} subrayados en este libro" if total
-                else "Todavía no has subrayado nada")
+                f"{len(total)} notas y subrayados en este libro" if total
+                else "Notas y subrayados del libro")
 
     def _relativo(self, x, y):
         w = self.hoja.get_width() or 1
@@ -1605,13 +1611,27 @@ class Lector:
         if nota:
             self.abrir_nota(nota["id"], ancla=(x, y))
 
-    def abrir_nota(self, nota_id, ancla=None):
+    def anotar_pagina(self):
+        """Una nota de página se señala con una marca pequeña en el margen."""
+        self.cerrar_editor_nota()
+        nota_id = db.nota_add(self.con, self.libro["ruta"], self.n,
+                              (0.95, 0.02, 0.99, 0.06), color=self.color_nota)
+        self.cargar_notas()
+        self.abrir_nota(nota_id, nueva=True)
+
+    def cerrar_editor_nota(self):
+        if self.editor_nota is not None:
+            self.editor_nota.popdown()
+
+    def abrir_nota(self, nota_id, ancla=None, nueva=False):
         """La ficha de un subrayado: lo que dice, tu comentario y qué hacer con él."""
         nota = next((n for n in db.notas_de(self.con, self.libro["ruta"])
                      if n["id"] == nota_id), None)
         if not nota:
             return
+        self.cerrar_editor_nota()
         pop = Gtk.Popover(autohide=True)
+        self.editor_nota = pop
         pop.set_parent(self.hoja)
         if ancla:
             rect = Gdk.Rectangle()
@@ -1627,17 +1647,21 @@ class Lector:
                              wrap=True, xalign=0, css_classes=["as-dim"])
             caja.append(cita)
         else:
-            caja.append(Gtk.Label(label="Sin texto debajo (una figura, o un escaneo)",
+            caja.append(Gtk.Label(label=f"Nota de la página {nota['pagina']}",
                                   xalign=0, css_classes=["as-dim"]))
 
         entrada = Gtk.TextView(wrap_mode=Gtk.WrapMode.WORD, top_margin=6,
                                bottom_margin=6, left_margin=8, right_margin=8)
         entrada.get_buffer().set_text(nota["nota"])
+        entrada.get_buffer().connect(
+            "changed", lambda *_: self.guardar_nota(nota_id, entrada))
         marco = Gtk.Frame()
         marco.set_child(entrada)
         marco.set_size_request(-1, 90)
         caja.append(Gtk.Label(label="Tu nota", xalign=0, css_classes=["heading"]))
         caja.append(marco)
+        caja.append(Gtk.Label(label="Se guarda automáticamente al escribir",
+                              xalign=0, css_classes=["as-dim", "caption"]))
 
         colores = Gtk.Box(spacing=6)
         for nombre, rgb in db.COLORES_NOTA.items():
@@ -1662,20 +1686,32 @@ class Lector:
         borrar.connect("clicked", lambda *_: (db.nota_borrar(self.con, nota_id),
                                               self.cargar_notas(), pop.popdown()))
         fila.append(borrar)
-        guardar = Gtk.Button(label="Guardar", css_classes=["suggested-action"])
+        guardar = Gtk.Button(label="Listo", css_classes=["suggested-action"])
         guardar.connect("clicked", lambda *_: (self.guardar_nota(nota_id, entrada),
                                                pop.popdown()))
         fila.append(guardar)
         caja.append(fila)
 
+        def al_cerrar(*_):
+            if nueva:
+                actual = next((n for n in db.notas_de(self.con, self.libro["ruta"])
+                               if n["id"] == nota_id), None)
+                if actual and not actual["nota"].strip():
+                    db.nota_borrar(self.con, nota_id)
+                    self.cargar_notas()
+            if self.editor_nota is pop:
+                self.editor_nota = None
+            pop.unparent()
+
         pop.set_child(caja)
-        pop.connect("closed", lambda *_: pop.unparent())
+        pop.connect("closed", al_cerrar)
         pop.popup()
+        entrada.grab_focus()
 
     def guardar_nota(self, nota_id, vista):
         buf = vista.get_buffer()
         texto = buf.get_text(buf.get_start_iter(), buf.get_end_iter(), False)
-        db.nota_editar(self.con, nota_id, nota=texto.strip())
+        db.nota_editar(self.con, nota_id, nota=texto)
         self.cargar_notas()
 
     def cambiar_color(self, nota_id, color):
@@ -1701,24 +1737,29 @@ class Lector:
         caja.set_size_request(430, -1)
         todas = db.notas_de(self.con, self.libro["ruta"])
         caja.append(Gtk.Label(
-            label=f"{len(todas)} subrayados" if todas else "Todavía no has subrayado nada",
+            label=f"{len(todas)} notas y subrayados" if todas else "Todavía no tienes anotaciones",
             xalign=0, css_classes=["heading"]))
         if not todas:
             caja.append(Gtk.Label(
-                label="Pulsa S o el rotulador de arriba y arrastra sobre el texto.",
+                label="Pulsa Anotar para escribir una nota, o S para subrayar texto.",
                 xalign=0, wrap=True, css_classes=["as-dim"]))
         scroll = Gtk.ScrolledWindow(vexpand=True)
         scroll.set_size_request(-1, min(420, 60 + 66 * min(len(todas), 6)))
         lista = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE,
                             css_classes=["boxed-list"])
         for nota in todas:
-            resumen = util.plain(nota["texto"])[:90] or "(sin texto)"
+            resumen = util.plain(nota["texto"] or nota["nota"])[:90] or "Nota de página"
             fila = Adw.ActionRow(title=util.as_label(resumen),
                                  subtitle=f"pág. {nota['pagina']}"
                                           + (f" · {util.plain(nota['nota'])[:60]}"
                                              if nota["nota"] else ""))
             fila.set_subtitle_lines(2)
             fila.set_activatable(True)
+            editar = Gtk.Button(icon_name="document-edit-symbolic", valign=Gtk.Align.CENTER)
+            editar.set_tooltip_text(f"Editar anotación de la página {nota['pagina']}")
+            editar.connect("clicked", lambda _b, n=nota: (
+                pop.popdown(), self.ir(n["pagina"]), self.abrir_nota(n["id"])))
+            fila.add_suffix(editar)
             fila.connect("activated",
                          lambda _f, n=nota: (pop.popdown(), self.ir(n["pagina"])))
             lista.append(fila)
@@ -1740,7 +1781,7 @@ class Lector:
                 lineas.append(f"> {util.plain(n['nota'])}")
             lineas.append("")
         self.pagina.get_clipboard().set("\n".join(lineas))
-        self.bib.ventana.notify_user(f"{len(notas)} subrayados copiados")
+        self.bib.ventana.notify_user(f"{len(notas)} anotaciones copiadas")
 
     def on_marcar(self, boton):
         self.marcas = db.book_marcar(self.con, self.libro["ruta"], self.n)
@@ -1782,7 +1823,16 @@ class Lector:
         return False
 
     def on_key(self, _c, keyval, _code, estado):
+        # Dejar espacios, flechas y letras al editor cuando se está escribiendo.
+        raiz = self.pagina.get_root()
+        foco = raiz.get_focus() if raiz else None
+        if isinstance(foco, (Gtk.Editable, Gtk.TextView)):
+            return False
         tecla = Gdk.keyval_name(keyval)
+        if (estado & Gdk.ModifierType.CONTROL_MASK
+                and estado & Gdk.ModifierType.ALT_MASK and tecla in ("a", "A")):
+            self.anotar_pagina()
+            return True
         if estado & Gdk.ModifierType.CONTROL_MASK and tecla in ("f", "F"):
             self.btn_buscar.set_active(not self.btn_buscar.get_active())
             return True
@@ -1817,6 +1867,11 @@ class Lector:
 
     def cerrar(self):
         """Al salir se guardan avance, minutos y cómo lo estabas leyendo."""
+        if self.cerrado:
+            return
+        self.cerrado = True
+        self.cerrar_editor_nota()
+        self.pendiente = None
         for temporizador in ("guardar_en", "redibujar_en"):
             if getattr(self, temporizador):
                 GLib.source_remove(getattr(self, temporizador))
