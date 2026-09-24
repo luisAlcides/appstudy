@@ -1,4 +1,8 @@
-"""Conexión con un modelo de lenguaje local para preguntarle cosas a Bit.
+"""Conexión con un modelo de lenguaje para preguntarle cosas a Bit.
+
+Hay dos proveedores: Ollama, en tu máquina (lo que describe lo que sigue), y
+Claude a través de Claude Code con tu suscripción (ver `ia_claude`). Todo pasa
+por `_mensaje`, que elige según `cfg["proveedor"]`.
 
 El modelo corre **en tu máquina**, servido por Ollama (`http://localhost:11434`),
 así que ni tus tarjetas ni tus preguntas salen del equipo, no hay clave de API
@@ -20,7 +24,7 @@ import threading
 import urllib.error
 import urllib.request
 
-from . import db, registro, util
+from . import db, ia_claude, registro, util
 
 _log = registro.log(__name__)
 
@@ -79,16 +83,28 @@ def config(con) -> dict:
         "activa": db.get_meta(con, "ia_activa", "0") == "1",
         "url": db.get_meta(con, "ia_url", URL_DEFECTO) or URL_DEFECTO,
         "modelo": db.get_meta(con, "ia_modelo", MODELO_DEFECTO) or MODELO_DEFECTO,
+        # 'ollama' (en tu equipo) o 'claude' (Claude Code con tu suscripción)
+        "proveedor": db.get_meta(con, "ia_proveedor", "ollama") or "ollama",
+        "modelo_claude": (db.get_meta(con, "ia_modelo_claude", ia_claude.MODELO_DEFECTO)
+                          or ia_claude.MODELO_DEFECTO),
     }
 
 
-def guardar(con, activa=None, url=None, modelo=None):
+def guardar(con, activa=None, url=None, modelo=None, proveedor=None, modelo_claude=None):
     if activa is not None:
         db.set_meta(con, "ia_activa", "1" if activa else "0")
     if url is not None:
         db.set_meta(con, "ia_url", url.rstrip("/") or URL_DEFECTO)
     if modelo is not None:
         db.set_meta(con, "ia_modelo", modelo)
+    if proveedor is not None:
+        db.set_meta(con, "ia_proveedor", proveedor)
+    if modelo_claude is not None:
+        db.set_meta(con, "ia_modelo_claude", modelo_claude)
+
+
+def usa_claude(cfg: dict | None) -> bool:
+    return bool(cfg) and cfg.get("proveedor") == "claude"
 
 
 # -------------------------------------------------------------------- HTTP
@@ -136,8 +152,8 @@ def descargar(cfg: dict | None = None) -> bool:
     Pone la IA en reposo para liberar toda la RAM y GPU cuando no se usa el
     chatbot o las funciones de IA. Solo se vuelve a activar cuando vuelvas a usarla.
     """
-    if not cfg:
-        return False
+    if not cfg or usa_claude(cfg):
+        return False                # Claude no ocupa memoria en este equipo
     url = cfg.get("url", URL_DEFECTO)
     try:
         cargados = en_memoria(url)
@@ -170,6 +186,8 @@ def elegir_modelo(instalados: list, preferido: str) -> str | None:
 def probar(cfg: dict) -> tuple:
     """(ok, mensaje) para el botón «Probar conexión» de Ajustes."""
     c = cfg
+    if usa_claude(c):
+        return ia_claude.probar(c.get("modelo_claude", ia_claude.MODELO_DEFECTO))
     try:
         instalados = modelos(c["url"])
     except IAError as e:
@@ -239,6 +257,14 @@ def _mensaje(cfg, mensajes, formato=None, temperatura=0.4, trozo=None,
     c = cfg
     if not c["activa"]:
         raise IAError("La IA está desactivada. Actívala en Ajustes.")
+    if usa_claude(c):
+        # Claude no admite temperatura ni keep_alive: no hay modelo que cargar.
+        try:
+            return ia_claude.mensaje(mensajes, modelo=c.get("modelo_claude",
+                                                             ia_claude.MODELO_DEFECTO),
+                                     formato=formato, trozo=trozo)
+        except ia_claude.ClaudeError as e:
+            raise IAError(str(e)) from e
     modelo = elegir_modelo(modelos(c["url"]), c["modelo"])
     if not modelo:
         raise IAError("No hay ningún modelo descargado. Prueba: ollama pull gemma3")

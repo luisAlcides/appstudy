@@ -13,7 +13,7 @@ from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango  # noqa: E402
 from . import ausencia, ayuda, bienvenida, bitacora, buscador, citas  # noqa: E402
 from . import cloze, db, estadisticas  # noqa: E402
 from . import fsrs, graficas  # noqa: E402
-from . import freecodecamp, historial, hotkey, ia, importador, lecturas  # noqa: E402
+from . import freecodecamp, historial, hotkey, ia, ia_claude, importador, lecturas  # noqa: E402
 from . import lectura_diaria, libros, logros, pet, recordatorios  # noqa: E402
 from . import respaldo, scheduler  # noqa: E402
 from . import recomendaciones, nube, sincronizacion  # noqa: E402
@@ -1551,13 +1551,19 @@ class MainWindow(Adw.ApplicationWindow):
 
         gia = Adw.PreferencesGroup(
             title="Inteligencia artificial",
-            description="Un modelo que corre en tu propia máquina con Ollama: puedes "
-                        "preguntarle a Bit, pedirle que te explique una tarjeta de otra "
-                        "manera y generar tarjetas nuevas. Ni tus datos ni tus preguntas "
-                        "salen del equipo.")
+            description="Puedes preguntarle a Bit, pedirle que te explique una tarjeta "
+                        "de otra manera y generar tarjetas nuevas. Con Ollama el modelo "
+                        "corre en tu máquina y nada sale del equipo; con Claude se usa tu "
+                        "suscripción a través de Claude Code y las preguntas van a Anthropic.")
         self.ia_switch = Adw.SwitchRow(title="Activar la IA")
         self.ia_switch.connect("notify::active", self.on_ia_toggle)
         gia.add(self.ia_switch)
+
+        self.ia_proveedor = Adw.ComboRow(
+            title="Proveedor",
+            model=Gtk.StringList.new(["Ollama (en tu equipo)", "Claude (tu suscripción)"]))
+        self.ia_proveedor.connect("notify::selected", self.on_ia_proveedor)
+        gia.add(self.ia_proveedor)
 
         self.ia_url = Adw.EntryRow(title="Servidor")
         self.ia_url.connect("apply", self.on_ia_url)
@@ -2021,8 +2027,30 @@ class MainWindow(Adw.ApplicationWindow):
         self.probar_ia()
 
     def on_ia_modelo(self, fila):
-        ia.guardar(self.con, modelo=fila.get_text().strip() or ia.MODELO_DEFECTO)
+        texto = fila.get_text().strip()
+        if ia.usa_claude(ia.config(self.con)):
+            ia.guardar(self.con, modelo_claude=texto or ia_claude.MODELO_DEFECTO)
+        else:
+            ia.guardar(self.con, modelo=texto or ia.MODELO_DEFECTO)
         self.probar_ia()
+
+    def on_ia_proveedor(self, fila, _p):
+        proveedor = "claude" if fila.get_selected() == 1 else "ollama"
+        if proveedor == "claude":
+            cfg = ia.config(self.con)       # lo que ocupaba Ollama ya no hace falta
+            ia.hilo(lambda: ia.descargar(cfg))
+        ia.guardar(self.con, proveedor=proveedor)
+        self._mostrar_proveedor_ia(ia.config(self.con))
+        self.probar_ia()
+
+    def _mostrar_proveedor_ia(self, c):
+        """El servidor y liberar memoria solo tienen sentido con Ollama."""
+        claude = ia.usa_claude(c)
+        self.ia_url.set_visible(not claude)
+        self.ia_liberar_row.set_visible(not claude)
+        self.ia_modelo.handler_block_by_func(self.on_ia_modelo)
+        self.ia_modelo.set_text(c["modelo_claude"] if claude else c["modelo"])
+        self.ia_modelo.handler_unblock_by_func(self.on_ia_modelo)
 
     def pausar_ia_manual(self):
         """Descarga el modelo de la memoria para que quede en reposo."""
@@ -3597,15 +3625,16 @@ echo hola
             str(db.get_meta(self.con, "reduced_motion", "0")).lower() in ("1", "true"))
         self.reduced_motion.handler_unblock_by_func(self.on_reduced_motion)
         c = ia.config(self.con)
-        for fila, cb in ((self.ia_switch, self.on_ia_toggle), (self.ia_url, self.on_ia_url),
-                         (self.ia_modelo, self.on_ia_modelo)):
+        filas_ia = ((self.ia_switch, self.on_ia_toggle), (self.ia_url, self.on_ia_url),
+                    (self.ia_proveedor, self.on_ia_proveedor))
+        for fila, cb in filas_ia:
             fila.handler_block_by_func(cb)
         self.ia_switch.set_active(c["activa"])
         self.ia_url.set_text(c["url"])
-        self.ia_modelo.set_text(c["modelo"])
-        for fila, cb in ((self.ia_switch, self.on_ia_toggle), (self.ia_url, self.on_ia_url),
-                         (self.ia_modelo, self.on_ia_modelo)):
+        self.ia_proveedor.set_selected(1 if ia.usa_claude(c) else 0)
+        for fila, cb in filas_ia:
             fila.handler_unblock_by_func(cb)
+        self._mostrar_proveedor_ia(c)
         self.btn_ia.set_visible(c["activa"])
         self.btn_fcc.set_visible(c["activa"])
 
