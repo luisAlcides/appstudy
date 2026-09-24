@@ -334,7 +334,11 @@ class Chispa(Creature):
         parpadeo = self.phase("parpadeo")
         if parpadeo is not None and self.anims["parpadeo"][1] > .3:
             parpadeo = (parpadeo * 2) % 1
-        caricia_val = 1.0 if self.phase("caricia") is not None else (self.hover_suave if self.hover else None)
+        caricia = self.phase("caricia")
+        caricia_val = self.hover_suave if self.hover else None
+        if caricia is not None:
+            # Entorna los ojos poco a poco y los vuelve a abrir al acabar.
+            caricia_val = max(caricia_val or 0.0, self.presencia_gesto(caricia))
         rasgos = animacion_chispa.expresiones(
             indice, self.t, self.mirada, parpadeo, self.phase("guino"),
             voz, self.reduced_motion,
@@ -567,6 +571,14 @@ class Chispa(Creature):
                 sx += .16 * k
                 sy -= .14 * k
                 dy += 3 * k
+        p = self.phase_motion("caricia")
+        if p is not None:
+            # Se arrima a la mano: se inclina, se encoge de gusto y se mece.
+            k = self.presencia_gesto(p)
+            rot -= (.07 + .04 * math.sin(p * math.pi * 4)) * k
+            sx += .04 * k
+            sy -= .05 * k
+            dy += 2.5 * k
         p = self.phase_motion("olfatear")
         if p is not None:
             k = math.sin(math.pi * p) ** 2

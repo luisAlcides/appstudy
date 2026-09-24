@@ -185,6 +185,23 @@ class NuevasAnimacionesTest(unittest.TestCase):
         rasgos = animacion.expresiones(0, 0.0, bostezo=0.5)
         self.assertTrue(any(cierre < -0.3 for *_, cierre in rasgos))
 
+    def test_la_boca_no_pliega_la_malla(self):
+        # Un pliegue deja triángulos de área cero: la matriz de la textura no
+        # se puede invertir, cairo falla y el gesto no llega a dibujarse.
+        for fase in [i / 20 for i in range(1, 20)]:
+            for nombre in ("bostezo", "risa", "enojado"):
+                rasgos = animacion.expresiones(0, fase * 1.8, **{nombre: fase})
+                _sin_pliegues_en_rasgos(self, rasgos)
+            _sin_pliegues_en_rasgos(self, animacion.expresiones(0, fase * 3, voz=1.0))
+
+    def test_bostezo_se_dibuja_entero(self):
+        sprite = cargar_poses()[0]
+        for fase in [i / 20 for i in range(1, 20)]:
+            s = cairo.ImageSurface(cairo.FORMAT_ARGB32, 512, 512)
+            cr = cairo.Context(s)
+            animacion.pintar(cr, sprite, animacion.movimientos(0, fase, bostezo=fase),
+                             animacion.expresiones(0, fase, bostezo=fase))
+
     def test_rascarse_mueve_la_pata_hacia_la_oreja(self):
         antes = animacion.movimientos(4, 0.0)
         durante = animacion.movimientos(4, 0.0, rascarse=0.5)
@@ -216,6 +233,20 @@ def _sin_triangulos_invertidos(prueba, gestos, pasos=24):
                             (puntos[0], puntos[2], puntos[3])):
                 area = (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
                 prueba.assertGreater(area, 0)
+
+
+def _sin_pliegues_en_rasgos(prueba, rasgos):
+    """La misma malla refinada que usa `pintar` alrededor de la boca."""
+    xs = {i / 32 for i in range(33)}
+    ys = set(xs)
+    for cx, cy, rx, ry, *_ in rasgos:
+        xs.update(cx + rx*f for f in (-1, -.6, 0, .6, 1))
+        ys.update(cy + ry*f for f in (-1, -.6, -.3, 0, .3, .6, 1))
+    xs, ys = sorted(xs), sorted(ys)
+    for x in xs:
+        columna = [animacion.desplazar_rasgos(x, y, rasgos)[1] for y in ys]
+        for arriba, abajo in zip(columna, columna[1:]):
+            prueba.assertGreater(abajo - arriba, 1e-6)
 
 
 class ColaYOrejasTest(unittest.TestCase):
@@ -326,6 +357,21 @@ class ChispaVivaTest(unittest.TestCase):
             zorro.t = duracion * i / 40
             giros.append(abs(zorro._pose()[3] - base))
         self.assertGreater(max(giros), .08)
+        self.assertLess(giros[-1], .03)
+
+    def test_caricia_se_arrima_y_vuelve_a_su_sitio(self):
+        zorro = self.zorro()
+        zorro.reduced_motion = True
+        base = zorro._pose()[3]
+        zorro.reduced_motion = False
+        zorro.actuar("caricia")
+        duracion = zorro.DURACION_GESTO["caricia"]
+        giros = []
+        for i in range(1, 40):
+            zorro.t = duracion * i / 40
+            giros.append(abs(zorro._pose()[3] - base))
+        self.assertGreater(max(giros), .06)
+        self.assertLess(giros[0], .03)
         self.assertLess(giros[-1], .03)
 
     def test_la_cola_sigue_el_vaiven_y_se_calma_al_dormir(self):

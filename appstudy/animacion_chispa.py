@@ -188,9 +188,10 @@ def expresiones(indice, tiempo, mirada=(0, 0), parpadeo=None, guino=None,
     if indice in BOCAS:
         x, y = BOCAS[indice]
         if bostezo is not None:
-            # El bostezo abre ampliamente la boca hacia abajo
+            # El bostezo abre la boca hacia abajo. Abrir más de 0.4 pliega la
+            # malla junto al borde de la zona; la altura extra da la amplitud.
             envolvente = math.sin(math.pi * bostezo)
-            salida.append((x, y, .072, .035, 0, 0, -0.60 * envolvente))
+            salida.append((x, y, .072, .075, 0, 0, -0.38 * envolvente))
         elif risa is not None:
             envolvente = math.sin(math.pi * risa)
             temblor = math.sin(tiempo * 24) * 0.25 * envolvente
@@ -341,6 +342,11 @@ def pintar(cr, superficie, gestos, rasgos=()):
         origen, destino = zip(*triangulo)
         p, q, r = origen
         u, v, z = destino
+        # Un triángulo aplastado no tiene transformación inversa y dejaría el
+        # contexto de cairo en error; la base ya pintada cubre ese hueco.
+        area = (v[0]-u[0])*(z[1]-u[1]) - (v[1]-u[1])*(z[0]-u[0])
+        if abs(area) < 1e-3:
+            continue
         fuente = cairo.Matrix(q[0]-p[0], q[1]-p[1], r[0]-p[0], r[1]-p[1], p[0], p[1])
         fuente.invert()
         objetivo = cairo.Matrix(v[0]-u[0], v[1]-u[1], z[0]-u[0], z[1]-u[1], u[0], u[1])
