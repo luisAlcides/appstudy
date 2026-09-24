@@ -197,9 +197,9 @@ class Chispa(Creature):
             return 3
         if self.phase("saludo") is not None:
             return 1
-        if any(self.phase(g) is not None for g in ("curiosear", "ladear", "suspiro", "enojado", "rascarse")):
+        if any(self.phase(g) is not None for g in ("curiosear", "ladear", "suspiro", "enojado", "rascarse", "inspeccionar")):
             return 4
-        if self.phase("estirar") is not None or self.phase("bostezo") is not None:
+        if any(self.phase(g) is not None for g in self.EXPRESIONES):
             return 0
         if self.t < self.hablando_hasta or self.charlando:
             return 0
@@ -335,7 +335,7 @@ class Chispa(Creature):
         if parpadeo is not None and self.anims["parpadeo"][1] > .3:
             parpadeo = (parpadeo * 2) % 1
         caricia = self.phase("caricia")
-        caricia_val = self.hover_suave if self.hover else None
+        caricia_val = self.hover_suave
         if caricia is not None:
             # Entorna los ojos poco a poco y los vuelve a abrir al acabar.
             caricia_val = max(caricia_val or 0.0, self.presencia_gesto(caricia))
@@ -356,7 +356,9 @@ class Chispa(Creature):
             estirar=self.phase("estirar"),
             caricia=caricia_val,
             rascarse=self.phase("rascarse"),
-            enojado=enojo_val)
+            enojado=enojo_val,
+            zen=self.phase("zen"), dormitar=self.phase("dormitar"),
+            tararear=self.phase("tararear"))
         cr.restore()
         return x, y, superficie, k
 
@@ -416,10 +418,33 @@ class Chispa(Creature):
 
     def play(self, nombre, dur):
         Creature.play(self, nombre, dur)
+        if nombre in ("olfatear", "cazar", "inspeccionar"):
+            # Estos gestos dirigen todo el cuerpo: no sumarles un saludo o
+            # el salto que haya quedado de una celebración anterior.
+            for anterior in ("saludo", "salto", "ladear", "asentir", "negar"):
+                self.anims.pop(anterior, None)
         if nombre == "sacudirse":
             self._salpicar()
         elif nombre == "olfatear":
             self.objetivo = [.35, -.8]      # la nariz y la mirada, al aire
+
+    def _decidir(self, ahora, dt):
+        if not self.reduced_motion and self.mood != "dormido":
+            for gesto in ("olfatear", "cazar", "inspeccionar"):
+                p = self.phase(gesto)
+                if p is None:
+                    continue
+                k = math.sin(math.pi * p) ** 2
+                if gesto == "olfatear":
+                    self.objetivo = [.35 * k, -.8 * k]
+                elif gesto == "cazar":
+                    self.objetivo = [.65 * k, .8 * k]
+                else:
+                    self.objetivo = [math.sin(math.tau * p) * k, .3 * k]
+                # El cursor y los gestos espontáneos vuelven a dirigir la
+                # mirada al acabar; no interrumpen la acción elegida.
+                return
+        Creature._decidir(self, ahora, dt)
 
     def _salpicar(self):
         """Gotas hacia los dos lados, no el goteo de la pena."""
@@ -476,7 +501,9 @@ class Chispa(Creature):
     def _fundido(self):
         """Avance del fundido desde la pose anterior, de 0 a 1; None si no hay."""
         desde = getattr(self, "_fundido_desde", None)
-        if desde is None or self.reduced_motion:
+        # El salto de caza cambia de silueta en pleno vuelo. Fundir esas
+        # celdas superpone dos cabezas y cuatro patas durante el despegue.
+        if desde is None or self.reduced_motion or self.phase("cazar") is not None:
             return None
         avance = (self.t - desde) / self.FUNDIDO
         return avance if 0 <= avance < 1 else None
@@ -553,11 +580,12 @@ class Chispa(Creature):
             # Acecho: se agazapa y menea la cadera antes de saltar.
             agazapada = (suave(min(1.0, p / .15)) if p < .45
                          else 1 - suave(min(1.0, (p - .45) / .06)))
-            meneo = suave(max(0.0, min(1.0, (p - .15) / .1))) if p < .45 else 0.0
+            meneo = (suave(max(0.0, min(1.0, (p - .15) / .1)))
+                     * (1 - suave(max(0.0, min(1.0, (p - .35) / .1)))))
             dy += 7 * agazapada
             sx += .08 * agazapada
             sy -= .12 * agazapada
-            rot += math.sin(self.t * 18) * .035 * meneo
+            rot += math.sin(p * math.pi * 12) * .07 * meneo
             # El salto en arco: sube con el hocico alto y cae de cabeza.
             if .47 < p < .82:
                 q = (p - .47) / .35
@@ -582,9 +610,16 @@ class Chispa(Creature):
         p = self.phase_motion("olfatear")
         if p is not None:
             k = math.sin(math.pi * p) ** 2
-            rafaga = max(0.0, math.sin(self.t * 5.5)) * abs(math.sin(self.t * 31))
-            dy -= 2 * k + .8 * rafaga * k
-            rot -= .05 * k
+            aspiracion = animacion_chispa.olisqueo(p)
+            dy -= 5 * k + 2 * aspiracion
+            rot -= .12 * k
+            sy += .04 * aspiracion
+        p = self.phase_motion("inspeccionar")
+        if p is not None:
+            # Sigue con el cuerpo la exploración de izquierda a derecha.
+            k = math.sin(math.pi * p) ** 2
+            rot += .22 * math.sin(math.tau * p) * k
+            dy -= 2 * k
         p = self.phase_motion("sacudirse")
         if p is not None:
             entrada = suave(min(1.0, p / .1))

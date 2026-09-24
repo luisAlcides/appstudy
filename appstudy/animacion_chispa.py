@@ -166,6 +166,11 @@ BOCAS = {0: (.626, .502), 1: (.545, .502), 3: (.550, .381)}
 HOCICOS = {4: (.586, .400)}
 
 
+def olisqueo(fase):
+    """Tres aspiraciones, siempre completas aunque el gesto empiece más tarde."""
+    return math.sin(math.pi * fase) ** 2 * math.sin(math.pi * fase * 3) ** 2
+
+
 def expresiones(indice, tiempo, mirada=(0, 0), parpadeo=None, guino=None,
                 voz=0.0, reducido=False,
                 bostezo=None, risa=None, caricia=None, enojado=None,
@@ -208,15 +213,13 @@ def expresiones(indice, tiempo, mirada=(0, 0), parpadeo=None, guino=None,
     if olfatear is not None and indice in HOCICOS:
         # Olisqueos cortos: la nariz tiembla hacia arriba a ráfagas.
         x, y = HOCICOS[indice]
-        envolvente = math.sin(math.pi * olfatear)
-        rafaga = max(0.0, math.sin(tiempo * 5.5)) * abs(math.sin(tiempo * 31))
-        salida.append((x, y, .06, .05, 0, -.007 * rafaga * envolvente, 0))
+        salida.append((x, y, .06, .05, 0, -.012 * olisqueo(olfatear), 0))
     return tuple(salida)
 
 
 def parpados(cr, indice, ancho, alto, parpadeo=None, guino=None, reducido=False,
              bostezo=None, risa=None, estirar=None, caricia=None, rascarse=None,
-             enojado=None):
+             enojado=None, zen=None, dormitar=None, tararear=None):
     """Párpados sobre el ojo, sin comprimir mejillas ni estirar el hocico."""
     if reducido or indice in (3, 5):
         return
@@ -233,6 +236,9 @@ def parpados(cr, indice, ancho, alto, parpadeo=None, guino=None, reducido=False,
             cierre = max(cierre, math.sin(math.pi * estirar) * 0.75)
         if caricia is not None:
             cierre = max(cierre, caricia * 0.65)
+        for fase, intensidad in ((zen, .96), (dormitar, 1.0), (tararear, .65)):
+            if fase is not None:
+                cierre = max(cierre, math.sin(math.pi * fase) ** 2 * intensidad)
         if rascarse is not None and n == 0:
             cierre = max(cierre, math.sin(math.pi * rascarse) * 0.85)
         if val_enojo > 0:
@@ -317,6 +323,7 @@ def pintar(cr, superficie, gestos, rasgos=()):
             nx, ny = desplazar_rasgos(nx, ny, rasgos)
             vertices.append(((x * w, y * h), (nx * w, ny * h)))
     moviles = []
+    estaticos = []
     for fila in range(filas):
         for columna in range(columnas):
             a = fila * (columnas + 1) + columna
@@ -325,10 +332,19 @@ def pintar(cr, superficie, gestos, rasgos=()):
             if not all(origen == destino for origen, destino in puntos):
                 moviles.extend(((puntos[0], puntos[1], puntos[2]),
                                 (puntos[0], puntos[2], puntos[3])))
-    # Pintar la superficie completa como base sólida garantiza que ninguna
-    # contracción de malla ni corte de cuadrícula deje huecos transparentes
-    # que se verían como cuadros negros de fondo en ventanas compuestas.
+            else:
+                estaticos.append(puntos)
+    # Aislar la textura permite reemplazar sus píxeles transparentes sin
+    # borrar el fondo del llamador ni dejar la silueta original duplicada.
+    cr.push_group()
     cr.save()
+    cr.set_antialias(cairo.ANTIALIAS_NONE)
+    for puntos in estaticos:
+        cr.move_to(*puntos[0][0])
+        for origen, _ in puntos[1:]:
+            cr.line_to(*origen)
+        cr.close_path()
+    cr.clip()
     cr.set_source_surface(superficie, 0, 0)
     cr.get_source().set_filter(cairo.FILTER_BILINEAR)
     cr.paint()
@@ -338,12 +354,13 @@ def pintar(cr, superficie, gestos, rasgos=()):
     # Sin antialias en los recortes compartidos: no aparecen costuras alfa.
     # La textura sí conserva su filtrado bilineal.
     cr.set_antialias(cairo.ANTIALIAS_NONE)
+    cr.set_operator(cairo.OPERATOR_SOURCE)
     for triangulo in moviles:
         origen, destino = zip(*triangulo)
         p, q, r = origen
         u, v, z = destino
         # Un triángulo aplastado no tiene transformación inversa y dejaría el
-        # contexto de cairo en error; la base ya pintada cubre ese hueco.
+        # contexto de cairo en error e impediría dibujar los siguientes.
         area = (v[0]-u[0])*(z[1]-u[1]) - (v[1]-u[1])*(z[0]-u[0])
         if abs(area) < 1e-3:
             continue
@@ -359,3 +376,5 @@ def pintar(cr, superficie, gestos, rasgos=()):
         cr.paint()
         cr.restore()
     cr.restore()
+    cr.pop_group_to_source()
+    cr.paint()

@@ -57,6 +57,24 @@ class ExtremidadesTest(unittest.TestCase):
         animacion.pintar(cairo.Context(s),sprite,())
         self.assertEqual(bytes(s.get_data()),bytes(sprite.get_data()))
 
+    def test_no_deja_la_silueta_vieja_ni_borra_el_fondo(self):
+        sprite = cairo.ImageSurface(cairo.FORMAT_ARGB32, 128, 128)
+        cr = cairo.Context(sprite)
+        cr.set_source_rgb(1, 0, 0)
+        cr.arc(64, 64, 2, 0, 6.283185307)
+        cr.fill()
+        gesto = ((.5, .5, .4, .4, .08, 0),)
+        for fondo in (False, True):
+            salida = cairo.ImageSurface(cairo.FORMAT_ARGB32, 128, 128)
+            cr = cairo.Context(salida)
+            if fondo:
+                cr.set_source_rgb(0, 0, 1)
+                cr.paint()
+            animacion.pintar(cr, sprite, gesto)
+            pixeles = memoryview(salida.get_data()).cast("I")
+            self.assertEqual(pixeles[64 * 128 + 64], 0xff0000ff if fondo else 0)
+            self.assertEqual(pixeles[64 * 128 + 74], 0xffff0000)
+
 
 class ConversacionTest(unittest.TestCase):
     def test_voz_arranca_suave_y_se_detiene_al_cancelarla(self):
@@ -136,7 +154,12 @@ class HablaSinDeformacionesTest(unittest.TestCase):
         self.assertGreater(cambios,0,"la boca debe seguir animándose")
 
     def test_hablar_y_gestos_no_producen_huecos_transparentes(self):
-        sprite = cargar_poses()[0]
+        # Una textura opaca detecta costuras internas sin exigir que el borde
+        # de una pata permanezca pintado después de que esta se haya movido.
+        sprite = cairo.ImageSurface(cairo.FORMAT_ARGB32, 512, 512)
+        cr = cairo.Context(sprite)
+        cr.set_source_rgb(1, .5, .2)
+        cr.paint()
         antes = memoryview(sprite.get_data()).cast("I")
         for tiempo in (.1, .2, .35, .5, .7, .85, 1.0):
             gestos = animacion.movimientos(0, tiempo, 1.0, voz=1.0)
@@ -144,8 +167,10 @@ class HablaSinDeformacionesTest(unittest.TestCase):
             s = cairo.ImageSurface(cairo.FORMAT_ARGB32, 512, 512)
             animacion.pintar(cairo.Context(s), sprite, gestos, rasgos)
             despues = memoryview(s.get_data()).cast("I")
-            huecos = sum(1 for o, d in zip(antes, despues)
-                         if (o >> 24) > 200 and (d >> 24) == 0)
+            # Los pies pueden desplazar también el borde inferior del lienzo.
+            huecos = sum(1 for y in range(8, 504) for x in range(8, 504)
+                         if (antes[y * 512 + x] >> 24) > 200
+                         and (despues[y * 512 + x] >> 24) == 0)
             self.assertEqual(huecos, 0, f"Huecos transparentes en t={tiempo}")
 
     def test_el_dibujo_no_usa_las_capas_segmentadas(self):
@@ -314,6 +339,102 @@ class ChispaVivaTest(unittest.TestCase):
         from appstudy.chispa import Chispa
         from tests.test_animacion_bit import BitSinVentana
         return BitSinVentana(Chispa)
+
+    def test_gestos_de_exploracion_reemplazan_saludo_y_salto(self):
+        for gesto in ("olfatear", "cazar", "inspeccionar"):
+            with self.subTest(gesto=gesto):
+                zorro = self.zorro()
+                zorro.saludar()
+                zorro.celebrar()
+                zorro.actuar(gesto)
+                self.assertIsNone(zorro.phase("saludo"))
+                self.assertIsNone(zorro.phase("salto"))
+                self.assertEqual(zorro._indice_pose(), 4)
+
+    def test_cursor_no_anula_la_mirada_del_gesto(self):
+        for gesto in ("olfatear", "cazar", "inspeccionar"):
+            with self.subTest(gesto=gesto):
+                zorro = self.zorro()
+                zorro.puntero = (-1, 1)
+                zorro.actuar(gesto)
+                duracion = zorro.DURACION_GESTO[gesto]
+                zorro.t = duracion * .25
+                zorro.tick(.01)
+                self.assertGreater(zorro.objetivo[0], 0)
+                if gesto == "olfatear":
+                    self.assertLess(zorro.objetivo[1], 0)
+                zorro.t = duracion
+                zorro.tick(.01)
+                self.assertEqual(zorro.objetivo, [-1, 1])
+
+    def test_olfateo_no_depende_del_tiempo_que_lleve_abierta_la_app(self):
+        for fase in (.15, .5, .8):
+            referencia = animacion.expresiones(4, 0, olfatear=fase)
+            for tiempo in (1, 12, 1234):
+                self.assertEqual(referencia, animacion.expresiones(4, tiempo, olfatear=fase))
+        x, y = animacion.HOCICOS[4]
+        _, nariz_y = animacion.desplazar_rasgos(
+            x, y, animacion.expresiones(4, 0, olfatear=.5))
+        self.assertLess(nariz_y, y - .01)
+
+    def test_inspeccionar_mira_y_se_inclina_hacia_ambos_lados(self):
+        zorro, reposo = self.zorro(), self.zorro()
+        zorro.actuar("inspeccionar")
+        for fase, signo in ((.25, 1), (.75, -1)):
+            zorro.t = reposo.t = zorro.DURACION_GESTO["inspeccionar"] * fase
+            zorro._decidir(zorro.t, .016)
+            self.assertGreater(signo * zorro.objetivo[0], .4)
+            self.assertGreater(signo * (zorro._pose()[3] - reposo._pose()[3]), .1)
+
+    def test_cazar_no_da_un_tiron_al_terminar_el_acecho(self):
+        zorro = self.zorro()
+        zorro.actuar("cazar")
+        poses = []
+        for fase in (.45 - 1e-6, .45 + 1e-6):
+            zorro.t = zorro.DURACION_GESTO["cazar"] * fase
+            poses.append(zorro._pose())
+        for antes, despues in zip(*poses):
+            self.assertAlmostEqual(antes, despues, delta=.001)
+
+    def test_cazar_no_superpone_las_siluetas_al_despegar(self):
+        zorro = self.zorro()
+        zorro.actuar("cazar")
+        zorro._seguir_pose()
+        for fase in (.5, .85):
+            zorro.t = zorro.DURACION_GESTO["cazar"] * fase
+            zorro._seguir_pose()
+            self.assertIsNone(zorro._fundido())
+
+    def test_exploracion_respeta_movimiento_reducido(self):
+        for gesto in ("olfatear", "cazar", "inspeccionar"):
+            zorro = self.zorro()
+            zorro.reduced_motion = True
+            zorro.actuar(gesto)
+            zorro.t = zorro.DURACION_GESTO[gesto] / 2
+            self.assertEqual(zorro._pose(), (0, 1, 1, 0))
+
+    def test_gestos_faciales_se_dibujan_tambien_al_estudiar(self):
+        from unittest.mock import patch
+        for gesto in ("zen", "dormitar", "tararear"):
+            zorro = self.zorro()
+            zorro.teaching = True
+            zorro.actuar(gesto)
+            zorro.t = zorro.DURACION_GESTO[gesto] / 2
+            self.assertEqual(zorro._indice_pose(), 0)
+            superficie = cairo.ImageSurface(cairo.FORMAT_ARGB32, 512, 512)
+            with patch.object(animacion, "parpados", wraps=animacion.parpados) as pintar:
+                zorro._pintar_pose(cairo.Context(superficie), cargar_poses(), 0)
+                self.assertEqual(pintar.call_args.kwargs[gesto], .5)
+
+    def test_gestos_de_descanso_cierran_y_reabren_los_ojos(self):
+        for gesto in ("zen", "dormitar", "tararear"):
+            frames = []
+            for fase in (0, .5, 1):
+                s = cairo.ImageSurface(cairo.FORMAT_ARGB32, 512, 512)
+                animacion.parpados(cairo.Context(s), 0, 512, 512, **{gesto: fase})
+                frames.append(bytes(s.get_data()))
+            self.assertEqual(frames[0], frames[2])
+            self.assertNotEqual(frames[0], frames[1])
 
     def test_gestos_nuevos_registrados_solo_en_chispa(self):
         from appstudy.chispa import Chispa

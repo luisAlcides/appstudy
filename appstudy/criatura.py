@@ -1533,11 +1533,19 @@ class Creature(Gtk.DrawingArea):
                 cr.set_source_rgba(*_hex("#7FA3C0", alpha * 0.9))
                 cr.fill()
             elif p["kind"] == "nota":
-                cr.select_font_face("sans")
-                cr.set_font_size(13)
-                cr.move_to(-4, 4)
+                # Una nota vectorial no depende de que la fuente incluya ♪.
                 cr.set_source_rgba(*_hex("#B08AA8", alpha))
-                cr.show_text("♪")
+                cr.save()
+                cr.translate(-2, 3)
+                cr.scale(1.4, 1)
+                cr.arc(0, 0, 2, 0, math.tau)
+                cr.fill()
+                cr.restore()
+                cr.set_line_width(1.5)
+                cr.move_to(.5, 3)
+                cr.line_to(.5, -7)
+                cr.curve_to(5, -5, 5, -3, 2.5, -1)
+                cr.stroke()
             else:                                   # z
                 cr.select_font_face("sans")
                 cr.set_font_size(13)
